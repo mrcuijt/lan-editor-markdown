@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>POI Basic Cell Merge</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### POI Basic Cell Merge
+
+读取带有合并单元格的 Excel 表格
+
+![](./images/poi-basic-cell-merge/poi-basic-cell-merge-001.png)
+
+读取结果
+
+<text>╔════════╤═══╤═══╤═══╤═══╤═══╤════════╗
+║ 合并列 │   │   │   │   │   │ 合并行 ║
+╟────────┼───┼───┼───┼───┼───┼────────╢
+║ q      │ q │ q │ q │ q │ q │        ║
+╟────────┼───┼───┼───┼───┼───┼────────╢
+║ e      │ e │ e │ e │ e │ e │        ║
+╟────────┼───┼───┼───┼───┼───┼────────╢
+║ y      │ y │ y │ y │ y │ y │        ║
+╟────────┼───┼───┼───┼───┼───┼────────╢
+║        │   │   │   │   │   │        ║
+╟────────┼───┼───┼───┼───┼───┼────────╢
+║        │   │   │   │   │   │        ║
+╚════════╧═══╧═══╧═══╧═══╧═══╧════════╝</text>
+
+POI 获取指定元素的合并单元格数
+
+```java
+public static int GetMergeNum(Cell cell, Sheet sheet) {
+    int mergeSize = 1;
+    List<CellRangeAddress> mergedRegions = sheet.getMergedRegions();
+    for (CellRangeAddress cellRangeAddress: mergedRegions) {
+        if (cellRangeAddress.isInRange(cell)) {
+            //获取合并的行数
+            mergeSize = cellRangeAddress.getLastColumn() - cellRangeAddress.getFirstColumn() + 1;
+            //获取合并的列数
+            //mergeSize =	cellRangeAddress.getFirstRow()-cellRangeAddress.getLastRow()+1；			
+            break;
+        }
+    }
+    return mergeSize;
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

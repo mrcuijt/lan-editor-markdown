@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="./1.13.0/standalone.js"></script>
+    <script type="text/javascript" src="./1.13.0/parser-babylon.js"></script>
+    <script type="text/javascript" src="./1.13.0/parser-graphql.js"></script>
+    <script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+</head>
+<body>
+
+<select>
+    <option value="flow">flow</option>
+    <option value="babel">babel</option>
+    <option value="babel-flow">babel-flow</option>
+    <option value="typescript">typescript</option>
+    <option value="css">css</option>
+    <option value="less">less</option>
+    <option value="scss">scss</option>
+    <option value="json">json</option>
+    <option value="json5">json5</option>
+    <option value="json-stringify">json-stringify</option>
+    <option value="graphql">graphql</option>
+    <option value="markdown">markdown</option>
+    <option value="mdx">mdx</option>
+    <option value="vue">vue</option>
+    <option value="yaml">yaml</option>
+    <option value="html">html</option>
+    <option value="angular">angular</option>
+</select>
+
+<button id="format">Format</button>
+
+<input id="input"/>
+
+<textarea id="textarea"></textarea>
+
+<script type="text/javascript">
+
+    var options = {
+        "arrowParens": "avoid",
+        "bracketSpacing": true,
+        "htmlWhitespaceSensitivity": "css",
+        "insertPragma": false,
+        "jsxBracketSameLine": false,
+        "jsxSingleQuote": false,
+        "parser": "babylon",
+        "printWidth": 80,
+        "proseWrap": "preserve",
+        "requirePragma": false,
+        "semi": true,
+        "singleQuote": false,
+        "tabWidth": 2,
+        "trailingComma": "none",
+        "useTabs": false
+    };
+
+    var autosize = require("autosize");
+    var formatButton = document.querySelector("#format");
+    var textInput = document.querySelector("#input");
+    var textarea = document.querySelector("#textarea");
+    formatButton.addEventListener("click", function () {
+        var value = textInput.value;
+//        textInput.value = prettier.format(value, {
+//            parser: "javascript",
+//            plugins: prettierPlugins
+//        });
+        textInput.value = prettier.format(value, {
+            parser: "html",
+            plugins: prettierPlugins,
+            "trailingComma": "es5",
+            "tabWidth": 4,
+            "semi": false,
+            "singleQuote": true
+        });
+        textarea.textContent = value;
+        // from a NodeList
+        autosize(document.querySelectorAll('textarea'));
+    });
+
+
+
+</script>
+</body>
+</html>

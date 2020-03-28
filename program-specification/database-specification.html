@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>database-specification</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### database-specification
+
+#### 一、约定
+
+ - _**1、如无特殊需求，所有表使用 innodb 引擎。**_
+
+ - _**2、如无特殊需求，所有主键均为自增类型。**_
+
+ - _**3、如无特殊需求，所有字段均为 NOT NULL，并给定默认值。**_
+
+ - _**4、所有字段均设置备注，枚举字段需要说明每个枚举值的意义。**_
+
+ - _**5、在能满足取值范围的情况下，选择占用存储空间最小的数据类型。**_
+ 
+ _**如布尔值使用 tinyint，时间类型使用 timestamp。**_
+
+#### 二、命名规范
+
+ - _**1、数据库名：与系统名相同。**_
+
+ - _**2、表名：系统名称缩写+\_+表名。**_
+ 
+ _**表名必须描述该表的用途，由单个或多个名词组成，首字母小写，后续单词首字母大写。**_
+
+ - _**3、字段名：字段名必须描述该字段的用途，由单个或多个名词组成。**_
+
+ _**单词之间用下划线连接。**_
+
+ - _**4、主键字段：表名+Id。**_
+
+ - _**5、外键字段：与主表主键字段完全一样。**_
+
+ - _**6、主键：pk\_+表名。**_
+
+ - _**7、外键：fk\_+从表名+\_+主表名。**_
+
+ - _**8、视图：view\_+名名称。**_
+
+ - _**9、存储过程：prcd\_+名称。**_
+
+ - _**10、函数：fun\_+名称。**_
+
+ - _**11、触发器：trg\_+名称。**_
+
+ - _**12、索引：idx\_+名称。**_
+ 
+参考链接：
+
+ - <a href="https://blog.csdn.net/learsea/article/details/52872398" target="_blank">MySQL 基本约定与命名规范</a>
+
+ - <a href="https://www.biaodianfu.com/mysql-best-practices.html" target="_blank">MySQL 命名、设计及使用规范</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

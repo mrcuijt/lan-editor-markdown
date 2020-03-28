@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Express Main</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Express 工程的结构
+
+#### app.js 工程入口。
+
+分析代码：
+
+ - 我们导入了 `express` 模块，前面我们通过 `npm install` 依赖上了，在这里就可以直接通过 require 获取。
+ 
+ - `routes` 是一个文件夹形式的本地模块，即 `./routes/index.js` ，他的功能是为指定的路径组织返回内容，**```相对于 mvc 架构中的控制器```。**
+ 
+ - `app.set` 是 Express 的参数设置工具，接收一个键（key）和一个值（value），可以用的参数如下：
+ 
+  - **```basepath```**: 基础机制，通常用于 res.readirect() 跳转。
+  
+  - **```port```**: 端口。
+  
+  - **```views```**: 视图文件的目录，存放模板文件。
+  
+  - **```view engine```**: 视图模块引擎（推荐使用 ejs）。
+  
+  - **```view options```**: 全局视图参数对象。
+  
+  - **```view cache```**: 启用视图缓存。
+  
+  - **```case senstive routes```**: 路径区分大小写。
+  
+  - **```strict routing```**: 严格路径，启用后不会忽略路径模末尾 "/"。
+  
+  - **```jsonp callback```**: 开启同名的 jsonp 支持。
+
+ - Express 依赖于 `connect` ，connect 更加短小精悍，是一个偏向基础设施的框架，提供了大量的中间件，可以通过 `app.use` 启用。
+ 
+ 中间件：一系列的组件连接到一起，然后让 http 的请求依次流过这些组件。这些被 connect 串联起来的组件被称为中间件。 `app.configure` 中启用了五个中间件：
+ 
+  - **```bodyParser```**: 解析客户端请求。
+  
+  - **```router```**: 项目的路由支持。
+  
+  - **```static```**: 提供静态文件支持。（如在连接数据库时提供数据库连接信息的静态配置文件）
+  
+  - **```methodOverride```**: 函数重写。
+  
+  - **```errorHeandler```**: 错误控制器。
+  
+  - **```connect详解```**: http://cnodejs.org.topic/4fb790e06f43b56112b292c
+
+ - app.get("/",routes.index)
+ 
+ 是一个路由控制器，如果用户访问'/'路径，则 routes.index 来控制。
+ 
+ - 通过 express.createServer() 函数创建一个应用的实例。
+
+![](./images/node-express-main/node-express-main-001.png)
+
+```javascript
+/*引入模块*/
+var express = require('express');
+var path = require('path');
+var favicon = require('serve-favicon');
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var bodyParser = require('body-parser');
+var http = require('http');
+ 
+/*
+  引入 routes 是什么概念，我们之前讲过包是什么概念，包的话可以作为一个简单的文件夹的包
+  里面如果没有 package.json 的话他会直接的去找 index.js 所以说我们实际上是直接引用的 index.js
+*/
+// routes 是一个文件夹形式的本地模块，即 ./routes/index.js ，他的功能是为指定路径组织返回内容，相对于mvc框架中的控制器。
+var index = require('./routes/index'); // 引入路由下的 index
+var users = require('./routes/users'); // 引入路由下的 users
+ 
+/*实例化 express 对象*/
+// 我们导入了 express 模块，前面我们通过 npm install 依赖上了，在这里就可以直接通过 require 获取。
+var app = express();
+ 
+/*配置 epxress 对象（app）的一些参数*/
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+// 指定的视图引擎
+app.set('view engine', 'ejs');
+ 
+/* 通过 app.use 使用一些中间件 */
+// uncomment after placing your favicon in /public
+//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+/* __dirname 项目部署的路径 */
+app.use(express.static(path.join(__dirname, 'public')));
+ 
+// 使用路由控制
+app.use('/', index);
+app.use('/users', users);
+ 
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+ 
+// 使用异常触发器
+// error handler
+app.use(function(err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+ 
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
+ 
+// 创建服务并监听端口
+http.createServer(app).listen(3000,function(){
+    console.log("Express server listening on port 3000");
+});
+ 
+module.exports = app;
+```
+
+&amp;#160; &amp;#160;有了 app.js 这些程序的入口了之后我们可以做哪些事情呢？首先当我们去访问 3000 端口的时候，根据那个目录去访问，当我们根据 '/' 这个目录去访问的时候，它就会有 routes.index 这个路由去控制，就可以渲染到我们的页面。
+
+我们怎样去控制呢？
+
+#### 二、 routes/index.js
+
+ `routes/index.js` 是路由文件，相当于控制器，用于组织展示内容。
+
+```javascript
+var express = require('express');
+var router = express.Router();
+ 
+/* GET home page. */
+router.get('/', function(req, res, next) {
+    res.render('index', { title: 'Express' });
+});
+ 
+module.exports = router;
+```
+
+&amp;#160; &amp;#160; **```app.js 通过 app.get('/',routes.index)将 '/' 路径映射到 export.index 函数下，我们的请求就由这个函数来处理```**，在这个函数中只有一个语句，`res.render('index',{'title':'pact'})` ，功能是调用模块解析引擎，并传入一个对象作为参数，这个对象只有一个属性，即 title。
+
+&amp;#160; &amp;#160;其中我们用到模块解析引擎解析的模板就是 index 模板，那我们这个模板是怎么样的呢？
+
+#### 三、index.ejs 模板文件
+
+index.ejs 模板文件，即 routes.index.js 中调用的模板。
+
+&amp;#160; &amp;#160;它的基础是 HTML 语言（我们降低了学习难度），其中包含了 `<%=title%>` 的标签，功能是显示引用的变量。即 `res.render` 函数的第二个参数中对象的属性。
+
+```xml
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+  </body>
+</html>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

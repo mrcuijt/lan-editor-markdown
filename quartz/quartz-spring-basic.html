@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>quartz-spring-basic</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### quartz-spring-basic
+
+Spring 提供，直接将一个普通的 POJO（JavaBean）配置成一个供 Quartz 任务调度的一个 Bean 
+
+让普通的 POJO 可以不再通过 继承 QuartzJobBean 或者 实现 Job 接口就可以供调用
+配置的 POJO 中的方法要求是方法必须是 public void 修饰的。
+
+在 Spring 容器中使用 **`org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean`**
+
+创建 JobDetail 任务实例
+
+```xml
+<!-- 配置要调用的类 -->
+<property name="targetObject" ref="remindJob"></property>
+<!-- 配置要调用的方法 -->
+<property name="targetMethod" value="execute"></property>
+```
+
+```xml
+<!-- 任务内容 -->
+<bean id="remindJob" class="cn.jbit.demo.job.RemindJob">
+    <property name="remindService" ref="remindService"></property>
+    <property name="trueName" value="张三"></property>
+</bean>
+ 
+ <!-- 任务实例 -->
+<bean id="remindJobDetail"
+    class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    <!-- 配置要调用的类 -->
+    <property name="targetObject" ref="remindJob"></property>
+    <!-- 配置要调用的方法 -->
+    <property name="targetMethod" value="execute"></property>
+</bean>
+```
+
+##### CronTrigger & Spring 集成案例
+
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-3-2 下午6:55:56
+ * @author：moshco zhu
+ */
+package cn.jbit.demo.job;
+  
+import java.io.Serializable;
+  
+import cn.jbit.demo.service.RemindService;
+  
+/**
+ * 
+ * 
+ * 创建时间：2016-3-2 下午6:55:56
+ * 
+ * @author moshco zhu
+ * 
+ */
+public class RemindJob implements Serializable {
+  
+    // 姓名
+    protected String trueName = null;
+  
+    // 提醒Service
+    protected RemindService remindService = null;
+  
+    /**
+     * 业务实现
+     * 
+     * 
+     * 开发时间：2016-3-2 下午7:16:28
+     * 
+     * @author：moshco zhu
+     */
+    public void execute() {
+  
+        // 统计所有没有阅读的邮件数量
+        int totalEmail = remindService.countNoReadEmail();
+        System.out.println(trueName + "，到目前为止，你一共有" + totalEmail + "封邮件没有阅读。");
+
+    }
+  
+    /**
+     * @return the trueName
+     */
+    public String getTrueName() {
+        return trueName;
+    }
+
+    /**
+     * @param trueName
+     *            the trueName to set
+     */
+    public void setTrueName(String trueName) {
+        this.trueName = trueName;
+    }
+
+    /**
+     * @return the remindService
+     */
+    public RemindService getRemindService() {
+        return remindService;
+    }
+
+    /**
+     * @param remindService
+     *            the remindService to set
+     */
+    public void setRemindService(RemindService remindService) {
+        this.remindService = remindService;
+    }
+
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:tx="http://www.springframework.org/schema/tx" 
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-3.2.xsd 
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+
+
+    <bean id="remindService" class="cn.jbit.demo.service.RemindServiceImpl">
+    </bean>
+
+    <!-- 任务内容 -->
+    <bean id="remindJob" class="cn.jbit.demo.job.RemindJob">
+        <property name="remindService" ref="remindService"></property>
+        <property name="trueName" value="张三"></property>
+    </bean>
+
+   <!-- 任务实例 -->
+    <bean id="remindJobDetail"
+        class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!-- 配置要调用的类 -->
+        <property name="targetObject" ref="remindJob"></property>
+        <!-- 配置要调用的方法 -->
+        <property name="targetMethod" value="execute"></property>
+    </bean>
+
+    <!-- 配置触发器 -->
+    <bean name="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <!-- 配置JobDetail -->
+        <property name="jobDetail" ref="remindJobDetail"></property>
+        <!-- 配置Cron表达式 -->
+        <property name="cronExpression" value="1/3 * * ? * * "></property>
+    </bean>
+
+    <!-- 配置调度器 -->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <!-- 指定触发器 -->
+                <ref bean="cronTrigger" />
+                <!-- 可以在这里添加其他的触发器 -->
+            </list>
+        </property>
+    </bean>
+</beans>
+```
+
+##### SimpleTrigger & Spring 集成案例
+
+```java
+/**
+ *
+ *
+ * 创建时间：2016-3-2 下午6:55:56
+ * @author：moshco zhu
+ */
+package cn.jbit.demo.job;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.springframework.scheduling.quartz.QuartzJobBean;
+
+import cn.jbit.demo.service.RemindService;
+
+/**
+ * 
+ * 
+ * 创建时间：2016-3-2 下午6:55:56
+ * 
+ * @author moshco zhu
+ * 
+ * 在集成 Spring 时，RemindJob 不在是实现 Job 接口了而是 继承 QuartzJobBean
+ */
+public class RemindJob extends QuartzJobBean {
+
+    // 姓名
+    protected String trueName = null;
+
+    // 提醒 Service
+    protected RemindService remindService = null;
+
+    /**
+     * 业务实现
+     * 
+     * 
+     * 开发时间：2016-3-2 下午6:57:28
+     * 
+     * @author：moshco zhu
+     * @param context
+     * @throws JobExecutionException
+     */
+    @Override
+    protected void executeInternal(JobExecutionContext context)
+            throws JobExecutionException {
+  
+        // 统计所有没有阅读的邮件数量
+        int totalEmail = remindService.countNoReadEmail();
+        System.out.println(trueName + "，到目前为止，你一共有" + totalEmail + "封邮件没有阅读。");
+
+    }
+  
+    /**
+     * @return the trueName
+     */
+    public String getTrueName() {
+        return trueName;
+    }
+
+    /**
+     * @param trueName
+     *            the trueName to set
+     */
+    public void setTrueName(String trueName) {
+        this.trueName = trueName;
+    }
+
+    /**
+     * @return the remindService
+     */
+    public RemindService getRemindService() {
+        return remindService;
+    }
+
+    /**
+     * @param remindService
+     *            the remindService to set
+     */
+    public void setRemindService(RemindService remindService) {
+        this.remindService = remindService;
+    }
+
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:tx="http://www.springframework.org/schema/tx" 
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-2.0.xsd 
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-2.0.xsd 
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+
+    <!-- 配置提醒服务bean 该bean的id是remindService -->
+    <bean id="remindService" class="cn.jbit.service.RemindService">
+    </bean>
+
+    <!-- 配置 jobDetail -->
+    <bean id="remindJob" class="org.springframework.scheduling.quartz.JobDetailBean">
+        <!-- 指定 jobClass是RemindJob -->
+        <property name="jobClass" value="cn.jbit.test.RemindJob"></property>
+        <!-- 指定任务数据 -->
+        <property name="jobDataAsMap">
+            <map>
+                <entry key="remindService" value-ref="remindService"></entry>
+                <entry key="userName" value="张三"></entry>
+            </map>
+        </property>
+    </bean>
+
+    <!-- 配置触发器 -->
+    <bean id="myTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+        <!-- 配置JobDetail -->
+        <property name="jobDetail" ref="remindJob"></property>
+        <!-- 配置启动后延迟时间1s -->
+        <property name="startDelay" value="1000"></property>
+        <!-- 配置重复执行的时间间隔3s -->
+        <property name="repeatInterval" value="10000"></property>
+        <!-- <property name="endTime">
+            <bean class="java.util.Date">
+                <property name="time" value="1411799327180"></property>
+            </bean>
+        </property> -->
+    </bean>
+
+    <!-- 配置调度器 --><!-- 调度器创建后会自动开始调用 -->
+    <!-- 在上面的触发器中需要设置 结束时间 -->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <!-- 指定触发器 -->
+                <ref bean="myTrigger" />
+                <!-- 可以在这里添加其他的触发器 -->
+            </list>
+        </property>
+    </bean>
+</beans>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Basic Util EventEmitter</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 常用工具类 util 和 事件 EventEmitter
+
+#### 一、util 全局变量
+
+```javascript
+util.inherits(constructor,superConstructor)
+```
+
+&amp;#160; &amp;#160;此方法是一个实现对象间原型继承的函数。JavaScript 通过原型赋值来实现继承，细节可以参考云哥JS高级视频（原型）。
+
+案例看 util/inherits.js
+
+&amp;#160; &amp;#160;定义了一个基础对象 Base ，原型方法为 showName ，使用 Sub 对象继承于 Base ，可访问 showName 方法。
+
+```javascript
+util.inspect(object,[showHidden],[depth],[colors])
+```
+
+&amp;#160; &amp;#160;此方法是一个将任意对象转换为字符串的方法，通常用于调试和错误输出，它至少接收一个参数 object 。
+
+参数： 
+
+ - **object** ， 即要转换的对象
+
+ - **showHidden** 是一个可选参数，如果值为 true ，将会输出更多隐藏信息。
+
+ - **depth** 表示最大的递归层数，如果对象很复杂，你可以指定层数以控制输出信息的多少。默认为 2 层，指定 null 打印出来全部。
+
+&amp;#160; &amp;#160;如果 colors 为 true ，输出格式将会以 ANSI 颜色编码，通常用于在终端显示更漂亮的效果。
+
+案例：**```inspect.js```**
+
+```javascript
+var util = require('util');
+ 
+function Person(){
+    this.name='marico';
+    this.toString=function(){
+        return this.name;
+    }
+}
+ 
+var obj = new Person();
+console.log(util.inspect(obj));
+console.log(util.inspect(obj,true,2,true));
+```
+
+#### 二、事件驱动 events
+
+&amp;#160; &amp;#160;events 是 NodeJs 最重要的模板，原因是 NodeJs 本身架构就是事件式的，而它提供了唯一的接口。所以构成 NodeJs 事件编程的基石。events 模块不仅用于用户代码与 NodeJs  下层事件循环的交互。还几乎被所有的模块依赖。
+
+#### 1. 事件发射器
+
+&amp;#160; &amp;#160;events 模块只提供了一个对象。events.EventEmitter 。 EventEmitter 的核心就是事件监听功能的封装。EventEmitter 的每个事件有一个事件或若干个参数组成，事件名是一个字符串，通常表达一定的语义。对于每个事件，EventEmitter 支持若干个事件监听器。当事件发射时，注册到这个事件的事件监听器被依次调用，事件参数作为回调函数参数传递。
+
+案例：events.js 
+
+```javascript
+var events = require('events');
+ 
+// 实例化事件对象
+var emitter = new events.EventEmitter();
+ 
+// 注册事件监听1
+emitter.on('someEvent',function(arg1,arg2){
+    console.log('Listener1',arg1,arg2);
+});
+ 
+// 注册事件监听2
+emitter.on('someEvent',function(arg1,arg2){
+    console.log('Listener2',arg1,arg2);
+});
+ 
+// 触发事件
+emitter.emit('someEvent','marico',1991);
+```
+
+常用 API 的方法介绍：
+
+ - (1) **```EventEmitter.on - (event,listener)```** 为指定事件注册一个监听器，接收一个字符串 event 和一个回调函数 listener。
+ 
+ - (2) **```EventEmitter.emit - (event,[arg1],[args2]...)```** 发射 event 事件，传递若干可选参数到事件监听器的参数表
+ 
+ - (3) **```EventEmitter.once - (event,listener)```**  为指定事件注册一个单次监听器，即监听器最多只会触发一次，触发后立刻接触该监听器。
+ 
+ - (4) **```EventEmitter.removeListener - (event,listener)```** 移除指定事件的某个监听器，listener 必须是该事件已经注册过的监听器。
+ 
+ - (5) **```EventEmitter.removeAllListener - ([event])```** 移除所有事件的所有监听器，如果指定 event ，则移除指定事件的所有监听器。
+
+#### 2. error 事件
+
+&amp;#160; &amp;#160;EventEmitter 定义了一个特殊的事件 error ， 它包含错误的定义，我们在遇到异常的时候通常会发射 error 事件，当 error 事件被发射时，EventEmitter 规定如果没有相应的监听器，NodeJs 会把它当做异常，退出程序并打印调用栈，我们一般要为发射 error 的事件对象设置监听器，避免遇到错误后整个程序崩溃，例如：数组长度溢出，集合长度溢出，0 不能错误除数，等一些异常操作。
+
+```javascript
+var events = require('events');
+var emitter = new events.EventEmitter();
+emitter.emit('error');
+```
+
+#### 3. 继承 EventEmitter 
+
+&amp;#160; &amp;#160;大多时候我们不会直接使用 EventEmitter ，而是在对象中继承它，包括 fs , net ,  http 在内的。只要是支持事件相应的核心模块都是 EventEmitter 的子类。
+
+为什么要这样做呢？
+
+ 1. 具有某个实体功能的对象实现事件的符合语义，事件的监听和发射应该是一个对象的发放。
+ 
+ 2. JavaScript 的对象机制基于原型，支持部分多重继承，继承 EventEmitter 不会打乱对象原有的继承关系
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

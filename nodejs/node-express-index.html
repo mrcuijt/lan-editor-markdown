@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Express Index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Express 框架
+
+#### 一、 为什么要使用 Express 框架？
+
+&amp;#160; &amp;#160;NodeJs 由于不需要另外的 HTTP 服务器，因此减少了一层抽象，给性能带了不少的提升，同时也因此提高了开发难度，实现一个 POST 数据的标点，例如：
+
+```xml
+<form>
+    <intpu type='text' name='title' />
+    <input type='submit' />
+</form>
+```
+
+PHP 获取 POST 请求参数：
+
+```php
+echo &_POST('title');
+```
+
+nodejs ：
+
+案例：post.js
+
+```javascript
+var http = require('http');
+ 
+var querystring = require('querystring'); // 相当于 ext 中的 decode 
+ 
+var util = require('util');
+ 
+http.createServer(function(req,res){
+ 
+    var  post = '';
+ 
+    // 注册 data 事件监听函数，每当接收到请求体的数据
+    req.on('data',function(chunk){ // data 事件会被多次触发直到 end 事件触发
+        post += chunk;
+    });
+ 
+    req.on('end',function(){
+ 
+        // 解析成真正的 post 为真正的 post 请求格式
+        // 相当于 Ext.decode() 会将 post 请求体的内容解析为一个 JSON 类型的格式对象
+        post = querystring.parse(post);
+ 
+        // 向前段返回
+        res.end(util.inspect(post));
+ 
+    });
+ 
+ 
+}).listen(3000);
+```
+
+&amp;#160; &amp;#160;NodeJs 虽然提供了 http 模块，却不是让你直接使用这个模块进行 Web 开发的。 http 模块仅仅是一个 HTTP服务器内核的封装。
+
+#### 二、 Express 框架
+
+&amp;#160; &amp;#160;npm 提供了大量的第三方模块，其中不乏许多 Web框架 ，我们没有必要重复发明轮子，因而选择使用  Express 作为开发框架，目前最稳定且唯一一个 Web 开发框架。
+
+提供更高层的节后外，还实现了许多功能，如下：
+
+ - 路由控制
+ 
+ - 模板解析支持
+ 
+ - 动态视图
+ 
+ - 用户会话
+ 
+ - CSRF 保护
+ 
+ - 静态文件服务
+ 
+ - 错误控制器
+ 
+ - 访问日志
+ 
+ - 缓存
+ 
+ - 插件支持
+
+使用 Express  重新实现上方例子：
+
+#### 三、 安装 Express 
+
+&amp;#160; &amp;#160;如果一个包是某个工程依赖，我们需要使用本地模式安装即可，但是 Express 像很多框架一样都提供了快速开发工具，这个工具的功能通常建立一个网站最小的基础框架，在此基础上完成开发，当然可以自己建立，推荐使用这个工具，我们选择全局模式安装。
+
+```python
+npm install -g express
+
+## 安装完之后使用 
+express -help
+```
+
+&amp;#160; &amp;#160;Express 在初始化一个项目的时候需要制定模块引擎，模式支持 Jade 和 ejs ， 为了降低学习难度我们推荐使用 ejs 。
+
+#### 四、 建立工程
+
+```python
+express -t ejs pcat 
+```
+
+当前目录出现了子目录 pcat 并且产生一些文件：
+
+```textarea
+pcat 
+pcat/package.json
+pcat/app.js
+....
+```
+
+**```提示我们进入 pcat 目录执行 npm install 命令```**
+
+**```它自动安装了依赖 ejs 和 express ， 检查目录中的 package.json 文件内容是：```**
+
+```javascript
+{
+    name:'pcat',
+    version:'0.0.1',
+    private:true,
+    dependencies:{
+        express:'2.5.8',
+        ejs:">=0.0.1"
+    }
+}
+```
+
+![](./images/node-express-index/node-express-index-001.png)
+
+**```启动 dependencies 属性中有 express 和 ejs ， 无参数的 npm install 的功能就是检查当前目录下的 package.json 并自动安装所有指定的依赖。```**
+
+#### 五、 启动服务器
+
+&amp;#160; &amp;#160;用 Express 实现的网站实际上就是一个 NodeJs 程序，因此可以直接运行，我们运行的 node app.js ， 看到 Express server listening on port 3000 in development mode。打开浏览器访问即可。
+
+&amp;#160; &amp;#160;如果在修改代码后不想重新启动服务器看到效果，则使用 supervisor 实现监视代码修改和自动重启。
+
+&amp;#160; &amp;#160;我们使用 express 生成了 package.json ， 它只产生了 javascript 的 app.js 和 routes/index.js 。模板引擎 ejs 有文件 index.ejs ，此外还有样式表 style.css 。
+
+问题： 创建工程时候一直使用 jade 。 要求用 ejs 
+
+```python
+express -t ejs microblog
+```
+
+可是执行后，仍旧创建的是 jade 项目。
+
+原来， express3.x  ， express4.x 中创建 ejs 命令更新为：
+
+```python
+## -e (即 ejs) , -j (即 jade)
+express -e microblog 
+```
+
+当然，最直接的，你也可以修改 package.json 里的定义来实现安装 ejs 。
+
+PS：建立工程过程
+
+1、必须得安装 express 框架
+
+```python
+## express 的安装命令也更新了，需要安装 express-generator 
+
+## 全局安装
+$ npm install -g express  
+
+## 这段命令必须执行，不然会提示 “express 命令找不到”
+$ npm install -g express-generator  
+```
+
+2、建立网站工程结构：
+
+```python
+express -e ejs microblog
+```
+
+3、根据提示，进入文件夹安装
+
+```python
+## microblog 为前面创建工程的文件夹
+cd microblog
+ 
+npm install 
+```
+
+express4.x ：
+
+```python
+npm install -g express-generator 
+
+## 或者 
+## 后者是指定 express 命令的版本号 4.x 已经把命令行工具分离出来。
+npm install -g express-generator@3
+```
+
+在 express 4.x 以后的版本中创建一个 ejs 项目可以使用一下命令：
+
+```python
+1. express -e ejs prjectname
+1. express --view=ejs projectname(express v4.15.5)
+2. cd projectname && npm install
+```
+
+在 express4.x 中不再使用 node app.js 来启动服务器了，用以下命令
+
+```python
+## 语法
+npm start xxx.js 
+
+## (例子： npm start app.js)
+```
+
+&amp;#160; &amp;#160;早期的 Express 版本，启动命令为 ： node  xxx.js （或者 node 自动查找默认名字的启动项目，如 app.js / index.js）
+
+#### ejs 框架模板
+
+![](./images/node-express-index/node-express-index-002.png)
+
+值标签模板：
+
+ - **```<%= %>```**
+ 
+  `title:"<h1>Express</h1>"`
+  
+  `<%= title%>  // 页面显示 <h1>Express</h1>` 
+
+&amp;#160; &amp;#160;这个标签在接收到 `title：'<h1>Express</h1>'` 时，从显示的效果来看，他直接输出 HTML 标签到页面上，**```输出的是转义后的变量值。```**
+
+ - **```<%- %>```**
+ 
+ `title:"<h1>Express</h1>"`
+ 
+ `<%- title%>  // 页面显示 Express`
+
+&amp;#160; &amp;#160;而这个标签，从显示效果上看，它没有直接输出 HTML 代码到页面上，**```输出的是没有转义后的变量值。```**
+
+ - **```<% %>```**
+ 
+&amp;#160; &amp;#160;而这个标签，从显示上看，他循环了出来参数中的值，**```标签中是 javascript 逻辑代码，注意括号的开闭和。```**
+
+#### 五、 express 项目结构
+
+![](./images/node-express-index/node-express-index-003.png)
+
+ - node_modules 文件夹
+ 
+ 这文件夹就是在创建完项目后，cd到项目目录执行npm install后生成的文件夹，下载了项目需要的依赖项
+ 
+ - package.json 文件
+ 
+ 此文件是项目的配置文件（可定义应用程序名，版本，依赖项等等）
+ 
+ `node_modules` 文件夹下的依赖项是从哪里知道的呢？原因就是项目根目录下的这个 `package.json` 文件，执行 `npm install` 时会去找此文件中的 `dependencies` ，并安装指定的依赖项
+ 
+ - public 文件夹(包含 images、javascripts、stylesheets)
+ 
+ 这个文件夹做过Web开发的应该一看就知道，为了存放图片、脚本、样式等文件的
+ 
+ - routes 文件夹
+ 
+ 用于存放路由文件，
+ 
+ - views 文件夹
+ 
+ 用于存放模版文件
+
+#### 六、 express 项目分析
+
+先从 app.js 看起
+
+##### (1) app.set(name,value)
+
+把名字为 name 的项的值设为 value ， 用于设置参数
+
+```javascript
+app.set('views' , path.join(__dirname , "views"));
+```
+
+&amp;#160; &amp;#160;设置了模板文件夹的路径；主要清楚 ```__dirname``` 的意思就可以了，**它是 NodeJs 中的全局变量 ```表示取当前执行文件的路径```**
+
+```javascript
+app.set('view engine' , 'ejs');
+```
+
+设置使用的模板引擎，我们使用 ejs
+
+##### (2)  app.use([path],function)
+
+&amp;#160; &amp;#160;用这个方法来使用中间件，因为 express 依赖于 connect ，有大量的中间件，可以通过 app.use 来使用；path 参数可以不填默认为 “/”。
+
+```python
+app.use(express.static(path.join(__dirname,'public'))); 
+```
+
+这一句中可能要注意一下，`express.static()` 是处理静态文件请求的，设置了 `public` 文件，`public` 下所有文件都会以静态资料文件形式返回（如样式，脚本，图片素材等文件）
+
+```python
+var routes = require('./routes/index');
+var users = require('./routes/users');
+
+app.use('/',routes);
+app.use('/users',users);
+```
+
+&amp;#160; &amp;#160;上面代码表示当用户使用 `/` 访问时，调用 `routes` ， 即 `routes` 目录下的 `index.js` 文件，其中 `.js` 后缀省略，用 `/users` 访问时，调用 `routes` 目录下的 `users.js` 文件。
+
+&amp;#160; &amp;#160;这就是为什么，我们示例中用 `http://localhost:8100/` 访问的是，修改的 index.js 里的文件代码可以执行（当然 NodeJs 文件中也要写对应的代码，才能是我们最终看到的效果）
+
+##### (3) app.get(name); 
+
+获取名为 name 的项的值
+
+```javascript
+if(app.get('env') === 'development'){
+    app.use(function(err,req,res,next){
+        res.status(err.status || 500);
+        res.render('error',{
+            message : err.message,
+            error : err
+        });
+    });
+}
+```
+
+表示如果是开发环境，处理 `error` 时会输出堆栈信息
+
+##### (4) 路由文件 index.js 
+
+主要看下面这段代码
+
+```javascript
+router.get('/' , function(req,res){
+    res.render('index',{
+        title:"<h1>Express</h1>/",
+        users:[{username : 'Wilson'},{username : 'Wilson Zhong'},{username:'Zhong Wei'}]
+    });
+});
+```
+
+&amp;#160; &amp;#160;这段表示， router.get 表示通过 get 请求 / 时，响应后面的 function 处理，两个参数分别是 request, response ; res.render 表示调用模板引擎解析名字 index 的模板，并且传入了 title 和 users 两个对象作为参数；
+
+&amp;#160; &amp;#160;为什么它会知道模板 views 目录下的 index.ejs ? 而不是其他目录下的文件，或者其它后缀名文件？
+
+原因就是 app.js 中的设置：
+
+```javascript
+app.set('views',path.join(__dirname , 'views'));
+app.set('view engine', 'ejs');
+```
+
+&amp;#160; &amp;#160;而这两个参数在 index.ejs 中可以使用，那么加上 ejs 的部分，就会返回最终生成的页面展现！
+
+&amp;#160; &amp;#160;***```提示：关于express，还是有必要去看看API，application、request、response、router、middleware还提供了很多方法！```***
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

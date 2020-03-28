@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Servlet JNDI DataSource</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Tomcat JNDI DataSource
+
+&#160; &#160;Tomcat 下 war 应用配置数据源又一方法，把配置写于 /META-INF/context.xml 中，例：
+
+```xml
+<Context path="/axis2" 
+         privileged="true" 
+         antiResourceLocking="false" 
+         antiJARLocking="false">
+
+    <ResourceLink
+         name="jdbc/BPMSDB"
+         global="BPMSDB"
+         type="javax.sql.DataSource"/>
+</Context>
+```
+
+&#160; &#160;在部署 web 工程的时候，如果工程中 META-INF 目录下 存在 Context.xml
+
+&#160; &#160;则会在 tomcat 的安装目录的 conf/ 下生成一个 Catalina/localhost  的目录结构，产生一个文件：xxx.xml    （工程的上下文路径.xml）
+
+查看定义文件，comtext 在 tomcat5.5 中可出现的位置有：
+
+```textarea
+[list]
+[*]in the $CATALINA_HOME/conf/context.xml file: the Context element information will be loaded by all webapps 
+[*]in the $CATALINA_HOME/conf/[enginename]/[hostname]/context.xml.default file: the Context element information will be loaded by all webapps of that host 
+[*]in individual files (with a ".xml" extension) in the $CATALINA_HOME/conf/[enginename]/[hostname]/ directory. The name of the file (less the .xml) extension will be used as the context path. Multi-level context paths may be defined using #, e.g. context#path.xml. The default web application may be defined by using a file called ROOT.xml. 
+[*]if the previous file was not found for this application, in an individual file at /META-INF/context.xml inside the application files 
+[*]inside a Host element in the main conf/server.xml 
+[/list]
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

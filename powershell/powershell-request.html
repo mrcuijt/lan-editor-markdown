@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PowerShell Request</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 使用 PowerShell 发送 HTTP 请求
+
+#### 查看 PowerShell 版本
+
+```python
+$PSVersionTable
+
+Name                           Value
+----                           -----
+PSVersion                      3.0
+WSManStackVersion              3.0
+SerializationVersion           1.1.0.1
+CLRVersion                     4.0.30319.42000
+BuildVersion                   6.2.9200.16398
+PSCompatibleVersions           {1.0, 2.0, 3.0}
+PSRemotingProtocolVersion      2.2
+```
+
+##### GET
+
+```python
+## Support PowerShell 3.0 OR More Height Level
+$Response = Invoke-WebRequest http://wenku.baidu.com/
+$Response.Content
+
+## 内容太长会被截断，通过使用管道只显示前 10 行响应结果
+$Response.Content | head -n 10
+```
+
+##### POST，需要先构建 POST 数据。
+
+```python
+## Support PowerShell 3.0 OR More Height Level
+$body = @{
+    "doc_id_code"="1eafaeea5ef7ba0d4a733b44"
+    "query_word"=""
+}
+
+$Response = Invoke-WebRequest http://wenku.baidu.com/rec/getstrrec -Body $body -Method Post
+$Response.Content
+```
+
+#### 文件下载
+
+```python
+Invoke-WebRequest -Uri http://wenku.baidu.com/ -OutFile wenku.html
+```
+
+#### 代理下载
+
+```python
+Invoke-WebRequest -Uri http://wenku.baidu.com/ -OutFile wenku.html -Proxy 'http://my-proxy:8080'
+```
+
+#### TCP 请求脚本
+
+```python
+######################################## 
+## Send-TcpRequest.ps1 
+## Send a TCP request to a remote computer, and return the response. 
+## If you do not supply input to this script (via either the pipeline, or the 
+## -InputObject parameter,) the script operates in interactive mode. 
+## 
+## Example: 
+## 
+## $http = @" 
+## GET / HTTP/1.1 
+## Host:cn.bing.com  
+## `n`n 
+## "@ 
+## 
+## $http | .\Send-TcpRequest cn.bing.com  80 
+######################################## 
+param( 
+        [string] $remoteHost = "localhost", 
+        [int] $port = 80, 
+        [switch] $UseSSL, 
+        [string] $inputObject, 
+        [int] $commandDelay = 100 
+     ) 
+
+[string] $output = "" 
+
+## Store the input into an array that we can scan over. If there was no input, 
+## then we will be in interactive mode. 
+$currentInput = $inputObject 
+if(-not $currentInput) 
+{ 
+    $SCRIPT:currentInput = @($input) 
+} 
+$scriptedMode = [bool] $currentInput 
+
+function Main 
+{ 
+    ## Open the socket, and connect to the computer on the specified port 
+    if(-not $scriptedMode) 
+    { 
+        write-host "Connecting to $remoteHost on port $port" 
+    } 
+
+    trap { Write-Error "Could not connect to remote computer: $_"; exit } 
+    $socket = new-object System.Net.Sockets.TcpClient($remoteHost, $port) 
+
+    if(-not $scriptedMode) 
+    { 
+        write-host "Connected. Press ^D followed by [ENTER] to exit.`n" 
+    } 
+
+    $stream = $socket.GetStream() 
+
+    if($UseSSL) 
+    { 
+        $sslStream = New-Object System.Net.Security.SslStream $stream,$false 
+        $sslStream.AuthenticateAsClient($remoteHost) 
+        $stream = $sslStream 
+    } 
+
+    $writer = new-object System.IO.StreamWriter $stream 
+
+    while($true) 
+    { 
+        ## Receive the output that has buffered so far 
+        $SCRIPT:output += GetOutput 
+
+        ## If we're in scripted mode, send the commands, 
+        ## receive the output, and exit. 
+        if($scriptedMode) 
+        { 
+            foreach($line in $currentInput) 
+            { 
+                $writer.WriteLine($line) 
+                $writer.Flush() 
+                Start-Sleep -m $commandDelay 
+                $SCRIPT:output += GetOutput 
+            } 
+
+            break 
+        } 
+        ## If we're in interactive mode, write the buffered 
+        ## output, and respond to input. 
+        else 
+        { 
+            if($output)  
+            { 
+                foreach($line in $output.Split("`n")) 
+                { 
+                    write-host $line 
+                } 
+                $SCRIPT:output = "" 
+            } 
+
+            ## Read the user's command, quitting if they hit ^D 
+            $command = read-host 
+            if($command -eq ([char] 4)) { break; } 
+
+            ## Otherwise, Write their command to the remote host 
+            $writer.WriteLine($command) 
+            $writer.Flush() 
+        } 
+    } 
+
+    ## Close the streams 
+    $writer.Close() 
+    $stream.Close() 
+
+    ## If we're in scripted mode, return the output 
+    if($scriptedMode) 
+    { 
+        $output 
+    } 
+} 
+
+## Read output from a remote host 
+function GetOutput 
+{ 
+    ## Create a buffer to receive the response 
+    $buffer = new-object System.Byte[] 1024 
+    $encoding = new-object System.Text.AsciiEncoding 
+
+    $outputBuffer = "" 
+    $foundMore = $false 
+
+    ## Read all the data available from the stream, writing it to the 
+    ## output buffer when done. 
+    do 
+    { 
+        ## Allow data to buffer for a bit 
+        start-sleep -m 1000 
+
+        ## Read what data is available 
+        $foundmore = $false 
+        $stream.ReadTimeout = 1000 
+
+        do 
+        { 
+            try 
+            { 
+                $read = $stream.Read($buffer, 0, 1024) 
+
+                if($read -gt 0) 
+                { 
+                    $foundmore = $true 
+                    $outputBuffer += ($encoding.GetString($buffer, 0, $read)) 
+                } 
+            } catch { $foundMore = $false; $read = 0 } 
+        } while($read -gt 0) 
+    } while($foundmore) 
+
+    $outputBuffer 
+} 
+. Main
+```
+
+```python
+$http = @" 
+GET / HTTP/1.1 
+Host:cn.bing.com 
+`n`n 
+"@
+
+$http | .\Send-TcpRequest cn.bing.com 80 | more
+```
+
+```python
+## 设置不允许执行任何脚本（默认）
+set-ExecutionPolicy Restricted
+
+## 设置允许执行未签名的脚本
+set-ExecutionPolicy RemoteSigned
+
+## 设置允许执行所有已签名的脚本
+set-ExecutionPolicy AllSigned
+```
+
+```python
+## 查看关于签名的主题
+get-help about_signing
+```
+
+若要使用 MakeCert.exe 工具创建证书，请在 SDK 命令提示符窗口中运行以下命令。
+
+ - 注意：第一条命令将为计算机创建本地证书颁发机构。第二条命令从该证书颁发机构生成个人证书。
+
+ - 注意：您可以按原样复制或键入显示的命令。
+
+  - 不必进行任何替换，不过可更改证书名称。
+
+```python
+makecert -n "CN=PowerShell Local Certificate Root" -a sha1 `
+    -eku 1.3.6.1.5.5.7.3.3 -r -sv root.pvk root.cer `
+    -ss Root -sr localMachine
+
+makecert -pe -n "CN=PowerShell User" -ss MY -a sha1 `
+    -eku 1.3.6.1.5.5.7.3.3 -iv root.pvk -ic root.cer
+```
+
+&amp;#160; &amp;#160;MakeCert.exe 工具将提示您输入私钥密码。该密码可确保无人能够不经您的同意就使用或访问该证书。应创建并输入您可以记住的密码。您将在以后使用此密码检索该证书。
+
+&amp;#160; &amp;#160;要验证是否正确生成了证书，请使用以下命令从计算机上的证书存储区中获取该证书。（在文件系统目录中找不到证书文件。）
+
+&amp;#160; &amp;#160;在 Windows Powershell 提示符下，键入：
+
+```python
+## 查看签名证书
+get-childitem cert:\CurrentUser\my -codesigning
+```
+
+```textarea
+Directory: Microsoft.PowerShell.Security\Certificate::CurrentUser\My
+
+Thumbprint                                Subject
+----------                                -------
+4D4917CB140714BA5B81B96E0B18AAF2C4564FDF  CN=PowerShell User ]
+```
+
+&amp;#160; &amp;#160;此命令使用 Windows PowerShell 证书提供程序来查看该证书的相关信息。
+
+&amp;#160; &amp;#160;如果该证书已创建完成，则输出将显示标识该证书的指纹，如下所示：
+
+&amp;#160; &amp;#160;若要对 Add-Signature.ps1 脚本文件进行签名，请在 Windows PowerShell 命令提示符下键入以下命令：
+
+```python
+$cert = @(Get-ChildItem cert:\CurrentUser\My -codesigning)[0]
+
+Set-AuthenticodeSignature add-signature.ps1 $cert
+```
+
+参考链接
+
+ - <a href="https://blog.csdn.net/quicknet/article/details/20286075?utm_source=blogxgwz6" target="_blank">Powershell 原生支持的 cURL</a>
+
+ - <a href="https://www.cnblogs.com/leon-2016/p/9198632.html" target="_blank">Win7 升级 PowerShell【转】</a>
+
+ - <a href="https://www.jb51.net/article/95022.htm" target="_blank">PowerShell 因为在此系统中禁止执行脚本的解决方法</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

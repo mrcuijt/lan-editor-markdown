@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>protocol-http</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### protocol-http
+
+![title](images/protocol-http/protocol-http-001.png)
+
+ - 1991 年 HTTP 0.9 
+ 
+  - 只支持 GET 方法
+  
+  - 不支持 POST 方法，不能向服务器提交数据
+
+ - 1996 年 HTTP 1.0
+ 
+  - 支持 POST 
+  
+  - 不支持虚拟主机，一个 IP 只能建一个网站
+  
+  - 不支持连接复用
+  
+ - 1999 年 HTTP 1.1
+ 
+  - 支持虚拟主机，一个域名可以建一个网站了不再是一个固定的 IP 了。
+  
+  - 支持连接复用
+  
+     - Connection:keepalive 数据响应完毕后不关闭连接。
+     
+     - Connection:close
+
+ - 2015 年 HTTP 2.0
+
+##### HTTP 通讯过程
+
+![title](images/protocol-http/protocol-http-002.png)
+
+蓝色文字为 HTTP 请求报文
+
+红色文字为 HTTP 响应报文 + 空行 + 响应数据
+
+##### HTTP Server 例子
+
+![title](images/protocol-http/protocol-http-003.png)
+
+```java
+ServerSocket serverSocket = new ServerSocket(8090);
+while(true){
+  Socket client = serverSocket.accpet();
+  BufferReader in = new BuffereReader(new InputStreamReader(client.getInputStream()));
+  PrintWirter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(client.getOutputStream())), true);
+  String action = in.readLine();
+  StringBuffer clientHeaders = new StringBuffer();
+  for(String s = in.readLine(); s != null && s.length() > 0; s = in.readLine();){
+    clientHeaders.appends(s).append("\r\n");
+  }
+
+  if(action.startsWith("GET")){
+    String html = "<!DOCTYPE html>\r\n" + "<html><head><title>hello,world</title></head><body><h1>hello,world</h1></body></html>";
+    out.print("HTTP/1.1 200 OK\r\n");
+    out.print("Context-Type: text/html\r\n");
+    out.print("Content-Length: " + html.length() + "\r\n");
+    out.print("Connection: close\r\n");
+    out.print("\r\n");
+    out.print(html);
+  }
+  out.close();
+  in.close();
+  client.close();
+}
+```
+
+##### HTTP Client 例子
+
+![title](images/protocol-http/protocol-http-004.png)
+
+```java
+Socket socket = new Socket("www.baidu.com", 80);
+OutputStream output = socket.getOutputStream();
+PrintWirter writer = new PrintWriter(output, true);
+writer.print("GET / HTTP/1.1\r\n");
+writer.print("Host: www.baidu.com\r\n");
+writer.print("User-Agent: MSIE\r\n");
+wirter.print("Connection: close\r\n");
+writer.print("\r\n");
+
+InputStream input = socket.getInputStream();
+BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+String line;
+while((line = reader.ReadLine()) != null){
+  System.out.println(line);
+}
+
+reader.close();
+input.close();
+output.close();
+writer.close();
+socket.close();
+```
+
+Server 中获得的那些信息是绝对可信的？
+
+ - IP request.getRemoteAddr();
+ 
+  - 通过 Socket 连接获取到的
+  
+  - 有可能是 NAT
+  
+  - 有可能是 客户代理、透明代理
+  
+  - 不完全可信
+ 
+ - Header cookie, user-agent, ...
+ 
+  - 不完全可信
+ 
+ - Body
+ 
+  - 不完全可信
+ 
+ - URL
+
+  - 不完全可信
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

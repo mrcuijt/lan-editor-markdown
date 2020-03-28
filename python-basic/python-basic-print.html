@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>python-basic-print</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### python-basic-print
+
+ - The easiest way, but not the most elegant one:
+
+ We used print with a comma separated list of values to print out the results, as we can see in the following example. All the values are separated by blanks, which is the default behaviour. We can change the default value to an arbitrary string, if we assign this string to the keyword parameter "sep" of the print function:
+
+```python
+q = 459
+p = 0.098
+## 459 0.098 44.982
+print(q, p, p * q)
+## 459,0.098,44.982
+print(q, p, p * q, sep=",")
+## 459 :-) 0.098 :-) 44.982
+print(q, p, p * q, sep=" :-) ")
+```
+
+ - Alternatively, we can construe out of the values a new string by using the string concatenation operator:
+
+```python
+## 459 0.098 44.982
+print(str(q) + " " + str(p) + " " + str(p * q))
+```
+
+Since Python 2.6 has been introduced, the string method format should be used instead of this old-style formatting. Unfortunately, string modulo "%" is still available in Python3 and what is even worse, it is still widely used. That's why we cover it in great detail in this tutorial. You should be capable of understanding it, when you encounter it in some Python code. But it is very likely that one day this old style of formatting will be removed from the language. So you should get used to str.format(). 
+
+The following diagram depicts how the string modulo operator works: 
+
+![title](./images/python-basic-print/python-basic-print-001.png)
+
+On the left side of the "string modulo operator" is the so-called format string and on the right side is a tuple with the content, which is interpolated in the format string. The values can be literals, variables or arbitrary arithmetic expressions. 
+
+![title](./images/python-basic-print/python-basic-print-002.png)
+
+The format string contains placeholders. There are two of those in our example: "%5d" and "%8.2f". 
+
+The general syntax for a format placeholder is
+
+```python
+%[flags][width][.precision]type 
+```
+
+![title](./images/python-basic-print/python-basic-print-003.png)
+
+Let's have a look at the placeholders in our example. The second one "%8.2f" is a format description for a float number. Like other placeholders, it is introduced with the "%" character. This is followed by the total number of digits the string should contain. This number includes the decimal point and all the digits, i.e. before and after the decimal point. Our float number 59.058 has to be formatted with 8 characters. The decimal part of the number or the precision is set to 2, i.e. the number following the "." in our placeholder. Finally, the last character "f" of our placeholder stands for "float". 
+
+he first placeholder "%5d" is used for the first component of our tuple, i.e. the integer 453. The number will be printed with 5 characters. As 453 consists only of 3 digits, the output is padded with 2 leading blanks. You may have expected a "%5i" instead of "%5d". Where is the difference? It's easy: There is no difference between "d" and "i" both are used for formatting integers. The advantage or beauty of a formatted output can only be seen, if more than one line is printed with the same pattern. In the following picture you can see, how it looks, if 5 float numbers are printed with the placeholder "%6.2f" are printed insubsequent lines: 
+
+![title](./images/python-basic-print/python-basic-print-004.png)
+
+<text zoom="7.2">╔════════════╤═══════════════════════════════════════════════════════════════════════════════════╗
+║ Conversion │ Meaning                                                                           ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ d          │ Signed integer decimal.                                                           ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ i          │ Signed integer decimal.                                                           ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ o          │ Unsigned octal.                                                                   ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ u          │ Obsolete and equivalent to 'd', i.e. signed integer decimal.                      ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ x          │ Unsigned hexadecimal (lowercase).                                                 ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ X          │ Unsigned hexadecimal (uppercase).                                                 ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ e          │ Floating point exponential format (lowercase).                                    ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ E          │ Floating point exponential format (uppercase).                                    ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ f          │ Floating point decimal format.                                                    ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ F          │ Floating point decimal format.                                                    ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ g          │ Same as "e" if exponent is greater than -4 or less than precision, "f" otherwise. ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ G          │ Same as "E" if exponent is greater than -4 or less than precision, "F" otherwise. ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ c          │ Single character (accepts integer or single character string).                    ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ r          │ String (converts any python object using repr()).                                 ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ s          │ String (converts any python object using str()).                                  ║
+╟────────────┼───────────────────────────────────────────────────────────────────────────────────╢
+║ %          │ No argument is converted, results in a "%" character in the result.               ║
+╚════════════╧═══════════════════════════════════════════════════════════════════════════════════╝</text>
+
+```
+["Conversion","Meaning"],
+["d","Signed integer decimal."],
+["i","Signed integer decimal."],
+["o","Unsigned octal."],
+["u","Obsolete and equivalent to 'd', i.e. signed integer decimal."],
+["x","Unsigned hexadecimal (lowercase)."],
+["X","Unsigned hexadecimal (uppercase)."],
+["e","Floating point exponential format (lowercase)."],
+["E","Floating point exponential format (uppercase)."],
+["f","Floating point decimal format."],
+["F","Floating point decimal format."],
+["g","Same as \"e\" if exponent is greater than -4 or less than precision, \"f\" otherwise."],
+["G","Same as \"E\" if exponent is greater than -4 or less than precision, \"F\" otherwise."],
+["c","Single character (accepts integer or single character string)."],
+["r","String (converts any python object using repr())."],
+["s","String (converts any python object using str())."],
+["%","No argument is converted, results in a \"%\" character in the result."]
+```
+
+The following examples show some example cases of the conversion rules from the table above: 
+
+```python
+##  3.561e+02
+print("%10.3e"% (356.08977))
+##  3.561E+02
+print("%10.3E"% (356.08977))
+##        31
+print("%10o"% (25))
+##       031
+print("%10.3o"% (25))
+##     00031
+print("%10.5o"% (25))
+##   2f
+print("%5x"% (47))
+## 002f
+print("%5.4x"% (47))
+## 002F
+print("%5.4X"% (47))
+##Only one percentage sign: % 
+print("Only one percentage sign: %% " % ())
+```
+
+<text zoom="7.2">╔══════╤══════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Flag │ Meaning                                                                                          ║
+╟──────┼──────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ #    │ Used with o, x or X specifiers the value is preceded with 0, 0o, 0O, 0x or 0X respectively.      ║
+╟──────┼──────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ 0    │ The conversion result will be zero padded for numeric values.                                    ║
+╟──────┼──────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -    │ The converted value is left adjusted                                                             ║
+╟──────┼──────────────────────────────────────────────────────────────────────────────────────────────────╢
+║      │ If no sign (minus sign e.g.) is going to be written, a blank space is inserted before the value. ║
+╟──────┼──────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ +    │ A sign character ("+" or "-") will precede the conversion (overrides a "space" flag).            ║
+╚══════╧══════════════════════════════════════════════════════════════════════════════════════════════════╝</text>
+
+```
+["Flag","Meaning"],
+["#","Used with o, x or X specifiers the value is preceded with 0, 0o, 0O, 0x or 0X respectively."],
+["0","The conversion result will be zero padded for numeric values."],
+["-","The converted value is left adjusted"],
+[" ","If no sign (minus sign e.g.) is going to be written, a blank space is inserted before the value."],
+["+","A sign character (\"+\" or \"-\") will precede the conversion (overrides a \"space\" flag)."]
+```
+
+Examples: 
+
+```python
+## 0X2F
+print("%#5X"% (47))
+##   2F
+print("%5X"% (47))
+##0X002F
+print("%#5.4X"% (47))
+## 0o31
+print("%#5o"% (25))
+##+42
+print("%+d"% (42))
+## 42
+print("% d"% (42))
+##+42
+print("%+2d"% (42))
+## 42
+print("% 2d"% (42))
+##42
+print("%2d"% (42))
+```
+
+Even though it may look so, the formatting is not part of the print function. If you have a closer look at our examples, you will see that we passed a formatted string to the print function. Or to put it in other words: If the string modulo operator is applied to a string, it returns a string. This string in turn is passed in our examples to the print function. So, we could have used the string modulo functionality of Python in a two layer approach as well, i.e. first create a formatted string, which will be assigned to a variable and this variable is passed to the print function:
+
+```python
+s = "Price: $ %8.2f"% (356.08977)
+## Price: $   356.09
+print(s)
+```
+
+#### The Pythonic Way: The string method "format"
+
+The Python help function is not very helpful concerning the string format method. All it says is this:
+
+```python
+|  format(...)
+ |      S.format(*args, **kwargs) -> str
+ |      
+ |      Return a formatted version of S, using substitutions from args and kwargs.
+ |      The substitutions are identified by braces ('{' and '}').
+ |  
+```
+
+Let's dive into this topic a little bit deeper: The format method was added in Python 2.6. The general form of this method looks like this: 
+
+```python
+template.format(p0, p1, ..., k0=v0, k1=v1, ...)
+```
+
+The template (or format string) is a string which contains one or more format codes (fields to be replaced) embedded in constant text. The "fields to be replaced" are surrounded by curly braces {}. The curly braces and the "code" inside will be substituted with a formatted value from one of the arguments, according to the rules which we will specify soon. Anything else, which is not contained in curly braces will be literally printed, i.e. without any changes. If a brace character has to be printed, it has to be escaped by doubling it: {{ and }}. 
+
+There are two kinds of arguments for the .format() method. The list of arguments starts with zero or more positional arguments (p0, p1, ...), it may be followed by zero or more keyword arguments of the form name=value. 
+
+A positional parameter of the format method can be accessed by placing the index of the parameter after the opening brace, e.g. {0} accesses the first parameter, {1} the second one and so on. The index inside of the curly braces can be followed by a colon and a format string, which is similar to the notation of the string modulo, which we had discussed in the beginning of the chapter of our tutorial, e.g. {0:5d} 
+If the positional parameters are used in the order in which they are written, the positional argument specifiers inside of the braces can be omitted, so '{} {} {}' corresponds to '{0} {1} {2}'. But they are needed, if you want to access them in different orders: '{2} {1} {0}'. 
+
+The following diagram with an example usage depicts how the string method "format" works works for positional parameters: 
+
+![title](./images/python-basic-print/python-basic-print-005.png)
+
+Examples of positional parameters:
+
+```python
+## 'First argument: 47, second one: 11'
+"First argument: {0}, second one: {1}".format(47,11) 
+
+## 'Second argument: 11, first one: 47'
+"Second argument: {1}, first one: {0}".format(47,11) 
+
+## 'Second argument:  11, first one:   47.42'
+"Second argument: {1:3d}, first one: {0:7.2f}".format(47.42,11) 
+
+## 'First argument: 47, second one: 11'
+"First argument: {}, second one: {}".format(47,11) 
+
+## arguments can be used more than once:
+## ... 
+
+## 'various precisions:   1.41 or  1.415'
+"various precisions: {0:6.2f} or {0:6.3f}".format(1.4148)
+```
+
+In the following example we demonstrate how keyword parameters can be used with the format method:
+
+```python
+## 'Art:   453,  Price:    59.06'
+"Art: {a:5d},  Price: {p:8.2f}".format(a=453, p=59.058)
+```
+
+![title](./images/python-basic-print/python-basic-print-006.png)
+
+参考资料：
+
+ - <a href="https://www.python-course.eu/python3_formatted_output.php" target="_blank">Formatted Output</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

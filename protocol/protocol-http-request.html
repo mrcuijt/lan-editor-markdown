@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>protocol-http-request</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### protocol-http-request
+
+![title](images/protocol-http-request/protocol-http-request-001.png)
+
+ - HTTP 首行 --- 请求的方法、页面和 HTTP 版本
+ 
+ - Host 
+ 
+  - 从 HTTP 1.1 版本后是必须的头信息
+  
+  - 表示请求的是哪一个虚拟主机。
+  
+ - 问建立 TCP 连接的时候不是提供了一个连接服务器的地址吗？
+ 
+ 为什么不直接使用那一个？
+  
+  - 因为在建立 TCP 连接的时候可以写域名也可以写 IP 地址，只要能够连接上主机就可以了。
+  
+  - 但是要指定你要访问这个主机上的哪一个虚拟主机时，直接使用 TCP 连接时的地址就不合适了。
+
+ - 如果客户端在连接时使用的是域名，客户端在请求时会将域名通过 DNS 解析为 IP 地址，然后再通过 IP 地址去请求服务器的。服务器在客户端连接到自己的时候是不知道客户端是使用哪个域名的。
+ 
+ - 所以在 HTTP 的请求头中，Host 请求头是必须的，因为这样才能知道用户是希望访问哪个虚拟主机。
+
+#### HTTP ACTIONS
+
+![title](images/protocol-http-request/protocol-http-request-002.png)
+
+#### 幂等性 idempotence
+
+ - 一次和多次请求某一个资源应该具有同样的副作用。
+ 
+多次访问某一个资源可能是 POST 也可能是 GET，结果要是相同的。就具有幂等性。
+
+举例
+
+ - 我们写一个论坛上写一个发帖的表单，表单提交后就会在论坛上发一个新帖子。通过 FORM POST 提交，提交后会响应一个页面通知请求成功了。这个时候如果我们刷新一下我们的浏览器，浏览器可能会有这么一个提示，这个页面是 POST 请求生成的刷新页面会导致重新提交数据那么我们选是，多刷新几次浏览器多提交几次。我们会发现可能会出现很多个一样的帖子。也就是说我们向数据库中插入了好几条记录。
+ 
+ - 这种就是不具有幂等性的例子。
+ 
+具有幂等性的例子是，同样的内容你在这里刷新只出现一个。
+
+HTTP 的方法都应该具有幂等性，也就是说我们编写出来的程序都应该具有幂等性。这个在编写 API 的时候特别重要。API 都应该有幂等性。
+
+ - 又比如说我们访问的是一个电商网站，我们去下单，多刷新几次都多下了几个订单。这样就不太好。
+
+ - 如果是一个支付的网站，我们多刷新几下，就重复支付了多次扣钱。就更不好了。
+
+程序应该具有幂等性。
+
+#### HTTP 请求头
+
+![title](images/protocol-http-request/protocol-http-request-003.png)
+
+![title](images/protocol-http-request/protocol-http-request-004.png)
+
+#### HttpServletRequest
+
+![title](images/protocol-http-request/protocol-http-request-005.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

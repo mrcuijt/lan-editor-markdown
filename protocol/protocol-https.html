@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>protocol-https</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### protocol-https
+
+#### HTTP 存在的问题
+
+ - 容易被监听
+ 
+  - HTTP 协议报文以明文传输
+  
+  - 无法校验数据完整性
+ 
+ - 数据可能被篡改
+ 
+ - 容易假冒服务器
+
+#### HTTPS 
+
+ - HTTPS = HTTP over SSL
+ 
+ - SSL vs. TLS
+ 
+   - SSL = Secure Sockets Layer 安全套接层
+   
+   - TLS = Transport Layer Security 传输层安全协议
+
+![title](images/protocol-https/protocol-https-001.png)
+
+![title](images/protocol-https/protocol-https-002.png)
+
+SSL 是 TLS 的前身，网上应用最多的是 TLS 1.2 版。
+
+#### 加密算法
+
+ - 摘要 MD5 SHA --- 验证数据未被篡改，不能防偷窥
+ 
+ - 对称加密 DES、3DES、RC-5、IDEA --- 加密解密秘钥相同；加/解密速度快
+ 
+ - 非对称加密 RSA、ECC --- 加密解密密钥不同；加/解密速度慢
+
+##### 数字签名
+
+对消息做摘要，用私钥加密摘要。密文即签名。签名同消息一起发送。
+
+验证：
+
+ - 同样算法对消息做摘要
+ 
+ - 用公钥解密密文
+ 
+ - 比对 1 和 2 的结果
+
+非对称加密传输秘钥，对称加密传输数据；摘要算法保障数据完整。
+
+#### 密码套件 Cipher Suite
+
+密码套件的名称 例：**`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`**
+
+ - 秘钥交换算法，例如 **`ECDHE_RSA`**，用于决定客户端与服务器之间在握手时如何建立通信，一般用非对称加密算法。
+ 
+ - 批量加密算法，例如 **`AES_128_GCM`**，用于加密消息流。一般是对称加密算法。
+ 
+ - 消息验证算法，例如 **`SHA256`**，用于创建消息摘要，验证数据的完整性。
+
+#### HTTPS 连接过程 （TLS 握手协议）
+
+![title](images/protocol-https/protocol-https-003.png)
+
+##### 服务器数字证书
+
+ - 证书信息（域名、组织单位等）
+ 
+ - 有效期
+ 
+ - 证书公钥
+ 
+ - 证书签名算法
+ 
+ - 签发机构
+ 
+ - 数字签名（用签发机构私钥加密的证书数据摘要）
+
+![title](images/protocol-https/protocol-https-004.png)
+
+##### HTTPS 连接过程中的明文信息
+
+ - **服务器主机名（域名） / 随机数 / 客户端支持的加密套件**
+ 
+  - 因为一个 IP 可能会有多个虚拟主机。
+  
+  - 如果不指明访问的主机名的话主机无法确认访问的是哪一个虚拟主机。
+  
+  - 服务器不知道返回哪一个域名证书。
+ 
+ - **通讯的服务器 IP 地址无法加密。**
+ 
+ - **通信的时间，通信的流量都是可以被监控的。**
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

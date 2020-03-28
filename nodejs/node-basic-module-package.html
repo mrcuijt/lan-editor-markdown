@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Basic Module Package</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 模块和包
+
+&amp;#160; &amp;#160;概念：模块（Module）和包（Package）是 NodeJS 最重要的支柱。开发一个具有一定规模的程序不可能只用一个文件，通常需要把各个功能拆分、封装、然后组合起来。模块正式为了实现这种方式而诞生，在浏览器 JavaScript 中，脚本模块的拆分和组合通常使用 HTML 的 script 标签来实现，NodeJS 提供了 require 函数来调用其他模块，而且模块都是基于文件，机制非常简单，模块和包的区别是透明的，因此经常不作区分。
+
+#### 一、模块
+
+##### 1.什么是模块
+
+Ryan 是 NodeJS 的创始人。
+
+&amp;#160; &amp;#160;模块和文件是一一对应的。一个 NodeJS 文件就是一个模块，这个文件可能是 JavaScript 代码、JSON 或者编译过的 C/C++ 扩展。
+
+```javascript
+var http = require('http');
+```
+
+&amp;#160; &amp;#160;其中 http 是 NodeJS 的一个核心模块，通过 require 函数根据模块的名称获取这个模块的对象，然后使用其中的对象。
+
+##### 2.创建及加载模块
+
+##### 1）创建模块
+
+&amp;#160; &amp;#160;NodeJS 提供了 exports 和 requeire 两个对象，其中 exports 是模块公开的接口， require 用于重外部获取一个模块的接口，即获取模块的 exports 对象。
+
+使用 NodeJS 的 exports 对象创建一个 module 模块
+
+```javascript
+var name;
+exports.setName=function(thyName){
+    name = thyName;
+}
+exports.sayHello=function(){
+    console.info('hello ' + name);
+}
+```
+
+在 NodeJS 中通过 require 对象加载 module 模块 1
+
+```javascript
+var myModule=require('./module');
+myModule.setName("marico");
+myModule.sayHello();  // 输出结果 marico 
+```
+
+在 NodeJS 中通过 require 对象加载 module 模块 2
+
+```javascript
+// 引入模块 module
+var myModule1=require('./module');
+myModule1.setName("marico");
+var myModule2=require('./module');
+myModule2.setName("cc");
+myModule1.sayHello(); // 输出结果 cc 
+```
+
+##### 2）单次加载
+
+&amp;#160; &amp;#160;上面的例子有点类似创建一个对象，但实际上和对象又有本质的区别，因为 require 不会重复加载模块，也就是说无论调用多少次 require ，获取的模块都是同一个。
+
+##### 3）覆盖 exports
+
+有时我们只是想把一个对象封装到模块中，例如
+
+ - **定义模块**：singleobject.js
+ 
+ - **引入模块使用**：getSingleObject.js
+ 
+ - **繁琐**：exports.hello = hello;
+ 
+ - **引入**：require('./singleobject').hello
+
+ - **简易**：module.exports = hello;
+
+**exports** 本身仅仅是一个普通的空对象，即 **{}** ，它是专门用来声明接口
+
+&amp;#160; &amp;#160;我们有我们的接口，和我们的实现类， exports 就是声明一个接口，定义这个接口中我有哪些方法可以调用，也就是说我们用接口实例化一个对象的时候，我们就可以调接口中的这些方法，而不是调用实现类的这些方法，有可能
+
+#### 二、创建包
+
+##### 1.包的概念
+
+&amp;#160; &amp;#160;包是在模块基础上更深一步的抽象，NodeJS 的包类似与 C/C++ 的函数库或者 java 的类库，它将某个独立的功能封装起来，用于发布、更新、依赖管理的版本控制。开发了 npm 来解决包的发布和获取需求。
+
+##### 2.如何创建一个包
+
+CommonJS 规范的包应该具备以下特征：
+
+ - package.json 必须在包的顶层目录下
+
+ - 二进制文件应该在 bin 目录下
+
+ - JavaScript 代码应该在 lib 目录下
+
+ - 文档应该在 doc 目录下
+
+&amp;#160; &amp;#160;NodeJS 对包要求没有那么严格，只要顶层目录下有 package.json ，并符合基本规范即可
+
+##### （1）作为文件夹的模块（不常用）
+
+**```somepackage``` 文件夹**
+
+&amp;#160; &amp;#160;最简单的包，就是一个作为文件夹的模块，创建一个文件夹 somepackage ，里面有一个 index.js ，里面提供一个方法 sayHello()
+
+```javascript
+var somepackage=require('/somepackage');
+somepackage.sayHello();
+```
+
+&amp;#160; &amp;#160;我们使用这种方法可以把文件夹封装成一个模块，即所谓的包。包通常是一些模块的集合，在模块的基础上提供了更复杂、更完善、更符合规范的包用于发布。
+
+&amp;#160; &amp;#160;**somepackage** 包下如果没有 **package.json** 它会默认去搜索 **somepackage** 下的 **index.js** 文件
+
+##### （2）package.json（常用）
+
+&amp;#160; &amp;#160;前面的例子，在 **somepackage** 文件夹下，我们创建一个 **package.json** 的文件，内容
+
+ **```package.json```**
+
+```javascript
+{
+    'main':'./lib/index.js';
+}
+```
+
+&amp;#160; &amp;#160;main 主要是指向一个主的 js 文件，就像我们的 ext 下的 app.js 文件，然后由我们的 app.js 来加载其它模块的信息。
+
+&amp;#160; &amp;#160;NodeJS 在调用某个包时，会检查包中 package.json 文件的 main 字段，将其作为包的接口模块，如果 package.json 或 main 字段不存在，会尝试寻找 index.js 或 index.code 作为包的接口。
+
+#### package.json 的规范属性：
+
+ - **```name``` : 包的名称，必须是唯一**
+ 
+ - **```description``` : 包的简要描述**
+ 
+ - **```version``` : 符合语义化版本识别规范的版本字符串**
+ 
+ - **```keywords``` : 关键字数据，通常用于搜索**
+ 
+ - **```maintainers``` : 维护者数组，每个元素要包含 name、email、web可选字段**
+ 
+ - **```contributors``` : 贡献者数组，格式与 maintainers 相同。包的作者应该是贡献者数据的第一个元素**
+ 
+ - **```bugs``` : 提交 bug 的地址，可以是网址或者电子邮件地址**
+ 
+ - **```licenses``` : 许可证数组，每个元素要包含 type 和 url 字段**
+ 
+ - **```repositories``` : 仓库托管地址数组，每个元素要包含 type、url和path字段**
+ 
+ - **```dependencies``` : 包的依赖，一个关联数组，由包名称和版本号组成。**
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

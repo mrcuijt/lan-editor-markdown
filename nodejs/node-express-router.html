@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Express Router</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 路由控制
+
+#### 一、工作原理
+
+&amp;#160; &amp;#160;当通过浏览器访问 app.js 建立的服务器时，会看到一个简单的页面，实际上它已经完成了许多透明工作，当访问 `http://localhost:3000` ，浏览器会向服务器发送请求，包括请求方法、路径、HTTP 协议版本和请求头信息。app 会解析请求的路径，调用相应的逻辑，app.js 中有 `app.get('/',routes.index)` 通过 `res.render('index',{"title":"pact"})` 调用视图模板 index ，传递 title 变量，最终视图生成 HTML 页面，返回给浏览器。
+
+&amp;#160; &amp;#160;浏览器接收到内容后，通过分析需要获取 `/stylesheets/style.css` ，因此会再次向服务器发起请求，app.js 并没有一个路由规则指派到 `/stylesheets/style.css` ，但 app 通过 `app.use(express.static(__dirname+'/public'))` 配置了静态文件服务器的一个中间件，因此会定向到 app.js 所在目录下的 `/public/stylesheets/style.css` 拿去这个文件。
+
+![](./images/node-express-router/node-express-router-001.png)
+
+&amp;#160; &amp;#160;这是一个典型的 MVC 架构，浏览器发送请求，有路由控制器接收，根据不同的路径定向到不同的服务器，控制器处理用户具体的请求，可能会访问数据库中的对象，即模型部分，生成视图的 HTML ，最后再由路由控制器返回给浏览器，完成一次请求。
+
+#### 二、创建路由规则
+
+&amp;#160; &amp;#160;当我们在浏览器访问 http://localhost:3000/ 的时候，服务器响应头返回 404 Not found 错误这是因为 /pact 是一个不存在的路由规则，而且它也不是一个 public 目录下的文件，所以响应 404 假设我们创建一个 /pact 的路由规则。
+
+```javascript
+// 在 index.js 中增加函数 pact
+app.get('/pact',routes.pact); 
+export.pact=function(req,res){
+    res.send("The time is "+ new Date().toString());
+}
+```
+
+&amp;#160; &amp;#160;服务器在开始监听之前，设置好了所有的路由规则，当请求到达时直接分配到相应函数。app.get 是路由规则创建函数。
+
+ - 参数一：请求的路径
+
+ - 参数二：是一个回调函数，该路由规则被触发时调用回调函数，并传递 req（请求信息）和res（响应信息）两个函数。
+ 
+#### 三、路径匹配
+
+上面讲到了为了固定的路径设置路由规则，Express 还提供更高级的路由匹配模式。
+
+```javascript
+app.get('/user/:username',function(req,res){
+    res.send("user : " + req.params.username);
+});
+```
+
+&amp;#160; &amp;#160;路由规则 `/user/:username` 会被自动编译成正则表达式，类似于 `\/user\/([^\/]+)\/?` 这样的形式，路径参数可以相应函数中通过 `req.params` 的属性访问。
+
+&amp;#160; &amp;#160;路径规则同样支持 javascript 正则表达式，例如：`app.get(\/user\/([^\/]+)\/,?callback)`，这样的好处在于可以定义更加复杂的路径 `uize` ，不同只是配置的参数是匿名的，因此需要通过 `req.params[0]` 这样的形式访问。
+
+#### 四、REST 风格的路由规则
+
+&amp;#160; &amp;#160;Express 支持 REST 风格的请求方式，REST 意思是表征状态转移，它是一种基于 HTTP 协议的网络应用的接口风格，充分利用 HTTP 的方法实现了统一风格的接口和服务，HTTP 协议定义了以下 8 个标准方法：
+
+ - **```GET```**：请求获取指定的资源 获取
+ 
+ - **```POST```**：向指定资源提交数据 新增
+ 
+ - **```DELETE```**：请求服务器删除指定资源 删除
+ 
+ - **```PUT```**：请求服务器存一个资源 更新
+ 
+ - **```HEAD```**：请求指定资源的响应头
+ 
+ - **```TRACE```**：回显服务器收到的请求，主要用于测试或诊断
+ 
+ - **```CONNCET```**：HTTP/1.1 协议中预留给能够将连接改为管道方式的代理服务器。
+ 
+ - **```OPTIONS```**：返回服务器支持的 HTTP 请求方法
+
+&amp;#160; &amp;#160;所谓安全指的是连续访问多次获得的结果不受访问者影响。而幂等指的是重复请求多次与一次请求的效果是一样的，比如获取、更新和删除操作是幂等，这与新增不同。
+
+&amp;#160; &amp;#160;删除操作在第一次请求完成删除的时候，会返回操作的结果。下一次再请求删除的时候如果数据不存在就不会再执行删除操作，但是服务器返回的结果还是相同的。
+
+&amp;#160; &amp;#160;Express 对每种 HTTP 请求方法都设计了不同的路由绑定函数，例如前面全部都是 app.get ，标示该路径绑定了 GET 请求，向这个路径发起其他方式的请求不会被响应。
+
+```javascript
+GET app.get(path,callback)
+POST app.post(path,callback)
+PUT app.put(path,callbacl)
+DELTE app.delete(path,callback)
+...
+...
+```
+
+**```所有方法 app.all(path,callback)```**
+
+怎么使用？
+
+&amp;#160; &amp;#160;绑定一个 POST 请求，可以使用 app.post("path",callback) 的方法设置路由规则。
+
+&amp;#160; &amp;#160;app.all 函数，它支持把所有的请求方法都绑定到同一个相应函数，是一个非常灵活的函数。
+
+#### 五、控制转移
+
+ **```Express 支持同一路径绑定多个响应函数```**
+ 
+```javascript
+app.all('/test/:user',function(req,res){
+    res.send("all methods is call");
+    next(); // 通过 next() 函数可以将控制权教给后面的规则。
+});
+
+app.get('/test/:user',function(){
+    res.send("user : "+req.params.user);
+});
+```
+
+ **```但是我们访问都会只返回一次。```**
+ 
+&amp;#160; &amp;#160;Express 提供了路由控制权转移的方法，即 next() 函数，通过调用则将控制权交给后面的规则。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

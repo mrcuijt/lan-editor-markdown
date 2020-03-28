@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Basic Glob Local</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 全局对象和全局变量
+
+&amp;#160; &amp;#160;概念：所有属性都可以在程序的任何地方访问，即全局变量。在JavaScript中，通常 window 是全局对象，而 NodeJS 的全局对象是 global，所有全局变量都是 global 对象的属性，如： console、process 等。
+
+#### 一、全局对象与全局变量
+
+global 最根本的作用是作为全局变量的宿主。满足一下条件称为全局变量；
+
+ 1. 在最外层定义的变量
+ 
+ 2. 全局对象的属性 document
+ 
+ 3. 隐式定义的变量（未定义直接赋值的变量）
+
+&amp;#160; &amp;#160;**在 NodeJS 中不可能在最外层定义变量，因为所有用户代码都是属于当前模块的，而模块本身不是最外层上下文。**
+
+**```在 NodeJS 中并不提倡使用全局变量。```**
+
+#### 二、process 
+
+&amp;#160; &amp;#160;它用于描述当前 NodeJS 进程状态的对象。提供了一个与操作系统的简单接口，通常写本地命令行程序的时候，会用到它。
+
+ 1. process.args 是命令行参数数组，第一个元素是 node，第二个元素是脚本文件名，第三个元素开始每个元素是一个运行参数。
+
+ 2. process.stdout 是标准输出流，通常我们使用的 console.log() 其底层是用 process.stdout.write()；实现。
+
+ 3. process.stdin 是标准输入流，初始时它是被暂停的。要想从标准输入流读取数据，必须恢复流，并手动创编写流的事件相应函数。
+
+ 4. process.nextTick(callback)  功能是为事件循环设置一项任务。NodeJS 会在下次事件循环调用 callback 
+ 
+&amp;#160; &amp;#160;NodeJs 适合 IO 密集型的应用，而不是计算密集型的应用。 **process.nextTick()** 提供了这样一个工具，可以把复杂的工作拆散，变成一个较小的事件。
+
+```javascript
+function doSomething(args,callback){
+    somethingComplited(args);
+    callback();
+}
+doSomething('12345',function onEnd(){
+    compute();
+});
+```
+
+&amp;#160; &amp;#160;如果假设 compute() 和 somethingComplited() 是两个较为耗时的函数。以上的程序在调用 doSomething 时会先执行 somethingComplited(args) 然后立即调用回调函数，在 onEnd() 中又会执行 compute()，改写为：
+
+```javascript
+function doSomething(args,callback){
+    somethingComplited(args);
+    process.nextTick(callback);
+}
+```
+
+![](./images/node-basic-glob-local/node-basic-glob-local-001.png)
+
+&amp;#160; &amp;#160;使用 **process.nextTick()** 后，改写后的程序会把上面耗时的操作拆分为两个事件，减少每个事件的执行时间，提高事件响应速度。
+
+&amp;#160; &amp;#160;程序流程分析：程序在运行完成 somethingComplited(args); 函数后继续向下执行遇到 process.nextTick(callback)  后会将回调函数 callback 添加到当前的进程中，另外再做执行，随后跳出 doSomething() 函数，系统进程会将 callback 回调函数做为独立的一个事件函数执行。**```从而使得 doSomething() 函数在执行完成 somethingComplited() 函数后不必再等待，callback 函数执行完成后整个函数退出。```**
+
+process 其他方法： 
+
+ - **process.platform()**
+ 
+ - **process.pid()**
+ 
+ - **process.execPath()**
+ 
+ - **process.memoryUsage()**
+ 
+ ... 等方法。
+ 
+API 链接：http://nodejs.org/api/process.html
+
+#### 二、console
+
+用于控制台标准输出，NodeJs 沿用了这个标准，提供与习惯行为一直的 console 对象。
+
+ - **console.log()** 向标准输出流打印字符并以换行符结束。
+ 
+ 使用案例：
+ 
+```javascript
+console.log("Hello");
+console.log("Hello%marico");
+console.log("Hello%marico","Mr.");
+```
+
+ - **console.err();** 用法与 console.log() 相同，只是向标准错误流输出。
+ 
+ - **console.trace();** 向标准错误输出流输出当前的调用栈。
+ 
+ 调用栈：是指我调用的那些方法那些栈的信息
+
+**```argv.js```**
+
+```javascript
+console.log(process.argv);
+```
+
+**```console.js```**
+
+```javascript
+console.log("Hello");
+console.log('Hello%marico');
+console.log('Hello%marico',"Mr.","类似于 Java 中的可变量参数"); // log 函数中可以添加多个参数
+
+console.error('error!');
+console.trace('this is a error');
+```
+
+**```nexttick.js```**
+
+```javascript
+/*
+ * 使用 process.nextTick() 后，改写后的程序会把耗时的操作拆分为两个事件，减少每个事件的执行时间，提高事件响应速度。
+ */
+function compute(){    
+    console.log("I am is compute method");
+}
+ 
+function somethingComplited(args){
+    console.log("I am is somethingComplited method");
+    console.log(args);
+}
+ 
+//function doSomething(args,callback){
+//    somethingComplited(args);
+//    callback(); // 此时 doSomething 函数需要等待 callback 函数执行完毕后才会退出
+//}
+ 
+function doSomething(args,callback){
+    // 执行 somethingComplited 函数的时候，将这个函数执行完后执行的回调函数加入到 process 进程当中。
+    somethingComplited(args);   
+    // 使得 somethingComplited 函数执行完毕后， doSomething 函数不会再等待 callback 函数执行完毕后再退出。
+    process.nextTick(callback); 
+}
+ 
+doSomething("marico",function onEnd(){
+    compute();
+});
+```
+
+**```stdin.js```**
+
+```javascript
+// 恢复流 - 让我们的输入直接可以使用（控制台中的标准输入流）
+process.stdin.resume();
+// 注册等待数据输入的事件（命令行中键盘的数据输入）
+process.stdin.on('data',function(data){
+    process.stdout.write('read form console'+ data.toString());
+}); 
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

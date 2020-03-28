@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>POI Index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### POI 使用详解
+
+#### Apache POI 使用详解
+
+#### 1.POI结构与常用类
+
+##### (1) POI介绍
+
+&amp;#160; &amp;#160;Apache POI 是 Apache 软件基金会的开源项目，POI 提供 API 给 Java 程序对 Microsoft Office 格式档案读和写的功能。 .NET 的开发人员则可以利用 NPOI (POI for .NET) 来存取 Microsoft Office 文档的功能。
+
+##### (2) POI 结构说明
+
+**包名称说明**
+
+ - HSSF 提供读写 Microsoft Excel XLS 格式档案的功能。
+
+ - XSSF 提供读写 Microsoft Excel OOXML XLSX 格式档案的功能。
+
+ - HWPF 提供读写 Microsoft Word DOC 格式档案的功能。
+
+ - HSLF 提供读写 Microsoft PowerPoint 格式档案的功能。
+
+ - HDGF 提供读 Microsoft Visio 格式档案的功能。
+
+ - HPBF 提供读 Microsoft Publisher 格式档案的功能。
+
+ - HSMF 提供读 Microsoft Outlook 格式档案的功能。
+
+##### (3)POI常用类说明
+
+<text>╔════════════════════╤══════════════════════╗
+║ 类名               │ 说明                 ║
+╟────────────────────┼──────────────────────╢
+║ HSSFWorkbook       │ Excel的文档对象      ║
+╟────────────────────┼──────────────────────╢
+║ HSSFSheet          │ Excel的表单          ║
+╟────────────────────┼──────────────────────╢
+║ HSSFRow            │ Excel的行            ║
+╟────────────────────┼──────────────────────╢
+║ HSSFCell           │ Excel的格子单元      ║
+╟────────────────────┼──────────────────────╢
+║ HSSFFont           │ Excel字体            ║
+╟────────────────────┼──────────────────────╢
+║ HSSFDataFormat     │ 格子单元的日期格式   ║
+╟────────────────────┼──────────────────────╢
+║ HSSFHeader         │ Excel文档Sheet的页眉 ║
+╟────────────────────┼──────────────────────╢
+║ HSSFFooter         │ Excel文档Sheet的页脚 ║
+╟────────────────────┼──────────────────────╢
+║ HSSFCellStyle      │ 格子单元样式         ║
+╟────────────────────┼──────────────────────╢
+║ HSSFDateUtil       │ 日期                 ║
+╟────────────────────┼──────────────────────╢
+║ HSSFPrintSetup     │ 打印                 ║
+╟────────────────────┼──────────────────────╢
+║ HSSFErrorConstants │ 错误信息表           ║
+╚════════════════════╧══════════════════════╝</text>
+
+#### 2. Excel 的基本操作
+
+##### (1) 创建 Workbook 和 Sheet
+
+```java
+public class Test00 {
+    public static void main(String[] args) throws IOException {
+        //文件路径
+        String filePath = "d:\\users\\lizw\\桌面\\POI\\sample.xls"; 
+        //创建 Excel 文件(Workbook)
+        HSSFWorkbook workbook = new HSSFWorkbook(); 
+        //创建工作表(Sheet)
+        HSSFSheet sheet = workbook.createSheet(); 
+        //创建工作表(Sheet)
+        sheet = workbook.createSheet("Test"); 
+        FileOutputStream out = new FileOutputStream(filePath);
+        //保存 Excel 文件
+        workbook.write(out); 
+        //关闭文件流
+        out.close();
+        System.out.println("OK!");
+    }
+}
+```
+
+##### (2) 创建单元格
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+// 创建行,从0开始
+HSSFRow row = sheet.createRow(0);
+// 创建行的单元格,也是从0开始
+HSSFCell cell = row.createCell(0);
+// 设置单元格内容
+cell.setCellValue("李志伟");
+// 设置单元格内容,重载
+row.createCell(1).setCellValue(false);
+// 设置单元格内容,重载
+row.createCell(2).setCellValue(new Date());
+// 设置单元格内容,重载
+row.createCell(3).setCellValue(12.345);
+```
+
+![](./images/poi-index/poi-index-001.png)
+
+##### (3) 创建文档摘要信息
+
+```java
+// 创建文档信息
+workbook.createInformationProperties();
+// 摘要信息
+DocumentSummaryInformation dsi=workbook.getDocumentSummaryInformation();
+// 类别
+dsi.setCategory("类别:Excel文件");
+// 管理者
+dsi.setManager("管理者:李志伟");
+// 公司
+dsi.setCompany("公司:--");
+// 摘要信息
+SummaryInformation si = workbook.getSummaryInformation();
+// 主题
+si.setSubject("主题:--");
+// 标题
+si.setTitle("标题:测试文档");
+// 作者
+si.setAuthor("作者:李志伟");
+// 备注
+si.setComments("备注:POI测试文档");
+```
+
+![](./images/poi-index/poi-index-002.png)
+
+##### (4) 创建批注
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+HSSFPatriarch patr = sheet.createDrawingPatriarch();
+// 创建批注位置
+HSSFClientAnchor anchor = patr.createAnchor(0, 0, 0, 0, 5, 1, 8,3);
+// 创建批注
+HSSFComment comment = patr.createCellComment(anchor);
+// 设置批注内容
+comment.setString(new HSSFRichTextString("这是一个批注段落！"));
+// 设置批注作者
+comment.setAuthor("李志伟");
+// 设置批注默认显示
+comment.setVisible(true);
+HSSFCell cell = sheet.createRow(2).createCell(1);
+cell.setCellValue("测试");
+// 把批注赋值给单元格
+cell.setCellComment(comment);
+```
+
+![](./images/poi-index/poi-index-003.png)
+
+&amp;#160; &amp;#160;创建批注位置 `HSSFPatriarch.createAnchor(dx1, dy1, dx2, dy2, col1, row1, col2, row2)` 方法参数说明：
+
+ - dx1 第 1 个单元格中x轴的偏移量
+ 
+ - dy1 第 1 个单元格中y轴的偏移量
+ 
+ - dx2 第 2 个单元格中x轴的偏移量
+ 
+ - dy2 第 2 个单元格中y轴的偏移量
+ 
+ - col1 第 1 个单元格的列号
+ 
+ - row1 第 1 个单元格的行号
+ 
+ - col2 第 2 个单元格的列号
+ 
+ - row2 第 2 个单元格的行号
+
+##### (5) 创建页眉和页脚
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+// 得到页眉
+HSSFHeader header =sheet.getHeader();
+header.setLeft("页眉左边");
+header.setRight("页眉右边");
+header.setCenter("页眉中间");
+// 得到页脚
+HSSFFooter footer =sheet.getFooter();
+footer.setLeft("页脚左边");
+footer.setRight("页脚右边");
+footer.setCenter("页脚中间");
+```
+
+![](./images/poi-index/poi-index-004.png)
+
+&amp;#160; &amp;#160;也可以使用 Office 自带的标签定义，你可以通过 HSSFHeader 或 HSSFFooter 访问到它们，都是静态属性，列表如下：
+
+<text>╔═════════════════════════════════╤════╤══════════════╗
+║ HSSFHeader.tab                  │ &A │ 表名         ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.file                 │ &F │ 文件名       ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.startBold            │ &B │ 粗体开始     ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.endBold              │ &B │ 粗体结束     ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.startUnderline       │ &U │ 下划线开始   ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.endUnderline         │ &U │ 下划线结束   ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.startDoubleUnderline │ &E │ 双下划线开始 ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.endDoubleUnderline   │ &E │ 双下划线结束 ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.time                 │ &T │ 时间         ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.date                 │ &D │ 日期         ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.numPages             │ &N │ 总页面数     ║
+╟─────────────────────────────────┼────┼──────────────╢
+║ HSSFHeader.page                 │ &P │ 当前页号     ║
+╚═════════════════════════════════╧════╧══════════════╝</text>
+
+#### 3. Excel 的单元格操作
+
+##### (1) 设置格式
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+HSSFRow row=sheet.createRow(0);
+// 设置日期格式--使用 Excel 内嵌的格式
+HSSFCell cell=row.createCell(0);
+cell.setCellValue(new Date());
+HSSFCellStyle style=workbook.createCellStyle();
+style.setDataFormat(HSSFDataFormat.getBuiltinFormat("m/d/yy h:mm"));
+cell.setCellStyle(style);
+// 设置保留 2 位小数--使用 Excel 内嵌的格式
+cell=row.createCell(1);
+cell.setCellValue(12.3456789);
+style=workbook.createCellStyle();
+style.setDataFormat(HSSFDataFormat.getBuiltinFormat("0.00"));
+cell.setCellStyle(style);
+// 设置货币格式--使用自定义的格式
+cell=row.createCell(2);
+cell.setCellValue(12345.6789);
+style=workbook.createCellStyle();
+style.setDataFormat(workbook.createDataFormat().getFormat("￥#,##0"));
+cell.setCellStyle(style);
+// 设置百分比格式--使用自定义的格式
+cell=row.createCell(3);
+cell.setCellValue(0.123456789);
+style=workbook.createCellStyle();
+style.setDataFormat(workbook.createDataFormat().getFormat("0.00%"));
+cell.setCellStyle(style);
+// 设置中文大写格式--使用自定义的格式
+cell=row.createCell(4);
+cell.setCellValue(12345);
+style=workbook.createCellStyle();
+style.setDataFormat(workbook.createDataFormat().getFormat("[DbNum2][$-804]0"));
+cell.setCellStyle(style);
+// 设置科学计数法格式--使用自定义的格式
+cell=row.createCell(5);
+cell.setCellValue(12345);
+style=workbook.createCellStyle();
+style.setDataFormat(workbook.createDataFormat().getFormat("0.00E+00"));
+cell.setCellStyle(style);
+```
+
+![](./images/poi-index/poi-index-005.png)
+
+&amp;#160; &amp;#160;**HSSFDataFormat.getFormat**和**HSSFDataFormat.getBuiltinFormat**的区别： 
+
+ - 当使用Excel内嵌的（或者说预定义）的格式时，直接用 HSSFDataFormat.getBuiltinFormat 静态方法即可。
+ - 当使用自己定义的格式时，必须先调用 HSSFWorkbook.createDataFormat()，因为这时在底层会先找有没有匹配的内嵌 FormatRecord，如果没有就会新建一个 FormatRecord，所以必须先调用这个方法，然后你就可以用获得的 HSSFDataFormat 实例的 getFormat 方法了，当然相对而言这种方式比较麻烦，所以内嵌格式还是用 HSSFDataFormat.getBuiltinFormat 静态方法更加直接一些。
+
+##### (2) 合并单元格
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+HSSFRow row=sheet.createRow(0);
+// 合并列
+HSSFCell cell=row.createCell(0);
+cell.setCellValue("合并列");
+CellRangeAddress region=new CellRangeAddress(0, 0, 0, 5);
+sheet.addMergedRegion(region);
+// 合并行
+cell=row.createCell(6);
+cell.setCellValue("合并行");
+region=new CellRangeAddress(0, 5, 6, 6);
+sheet.addMergedRegion(region);
+```
+
+![](./images/poi-index/poi-index-006.png)
+
+&amp;#160; &amp;#160;CellRangeAddress 对象其实就是表示一个区域，其构造方法如下：`CellRangeAddress(firstRow, lastRow, firstCol, lastCol)`，参数的说明：
+
+ - **`firstRow`** 区域中第一个单元格的行号
+ 
+ - **`lastRow`** 区域中最后一个单元格的行号
+ 
+ - **`firstCol`** 区域中第一个单元格的列号
+ 
+ - **`lastCol`** 区域中最后一个单元格的列号
+
+&amp;#160; &amp;#160;**提示**：即使你没有用 CreateRow 和 CreateCell 创建过行或单元格，也完全可以直接创建区域然后把这一区域合并，Excel 的区域合并信息是单独存储的，和 RowRecord、ColumnInfoRecord 不存在直接关系。
+
+##### (3) 单元格对齐
+
+```java
+HSSFCell cell = row.createCell(0);
+cell.setCellValue("单元格对齐");
+HSSFCellStyle style = workbook.createCellStyle();
+// 水平居中
+style.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+// 垂直居中
+style.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);
+// 自动换行
+style.setWrapText(true);
+// 缩进
+style.setIndention((short)5);
+// 文本旋转，这里的取值是从 -90 到 90，而不是 0-180 度。
+style.setRotation((short)60);
+cell.setCellStyle(style);
+```
+
+![](./images/poi-index/poi-index-007.png)
+
+水平对齐相关参数
+
+ - 如果是左侧对齐就是 HSSFCellStyle.ALIGN_FILL;
+ - 如果是居中对齐就是 HSSFCellStyle.ALIGN_CENTER;
+ - 如果是右侧对齐就是 HSSFCellStyle.ALIGN_RIGHT;
+ - 如果是跨列举中就是 HSSFCellStyle.ALIGN_CENTER_SELECTION;
+ - 如果是两端对齐就是 HSSFCellStyle.ALIGN_JUSTIFY;
+ - 如果是填充就是 HSSFCellStyle.ALIGN_FILL;
+
+垂直对齐相关参数
+
+ - 如果是靠上就是 HSSFCellStyle.VERTICAL_TOP;
+ - 如果是居中就是 HSSFCellStyle.VERTICAL_CENTER;
+ - 如果是靠下就是 HSSFCellStyle.VERTICAL_BOTTOM;
+ - 如果是两端对齐就是 HSSFCellStyle.VERTICAL_JUSTIFY;
+
+##### (4) 使用边框
+
+&amp;#160; &amp;#160;边框和其他单元格设置一样也是调用 CellStyle 接口，CellStyle 有 2 种和边框相关的属性，分别是:
+
+<text>╔════════════════════╤══════════╤═════════════════════════════════════╗
+║ 边框相关属性       │ 说明     │ 范例                                ║
+╟────────────────────┼──────────┼─────────────────────────────────────╢
+║ Border + 方向      │ 边框类型 │ BorderLeft, BorderRight 等          ║
+╟────────────────────┼──────────┼─────────────────────────────────────╢
+║ 方向 + BorderColor │ 边框颜色 │ TopBorderColor,BottomBorderColor 等 ║
+╚════════════════════╧══════════╧═════════════════════════════════════╝</text>
+
+```java
+HSSFCell cell=row.createCell(1);
+cell.setCellValue("设置边框");
+HSSFCellStyle style=workbook.createCellStyle();
+// 上边框
+style.setBorderTop(HSSFCellStyle.BORDER_DOTTED);
+// 下边框
+style.setBorderBottom(HSSFCellStyle.BORDER_THICK);
+// 左边框
+style.setBorderLeft(HSSFCellStyle.BORDER_DOUBLE);
+// 右边框
+style.setBorderRight(HSSFCellStyle.BORDER_SLANTED_DASH_DOT);
+// 上边框颜色
+style.setTopBorderColor(HSSFColor.RED.index);
+// 下边框颜色
+style.setBottomBorderColor(HSSFColor.BLUE.index);
+// 左边框颜色
+style.setLeftBorderColor(HSSFColor.GREEN.index);
+// 右边框颜色
+style.setRightBorderColor(HSSFColor.PINK.index);
+cell.setCellStyle(style);
+```
+
+![](./images/poi-index/poi-index-008.png)
+
+其中边框类型分为以下几种：
+
+![](./images/poi-index/poi-index-008_1.png)
+
+<text>╔════════════╤══════════════════════════════════════════╗
+║ 边框范例图 │ 对应的静态值                             ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_DOTTED              ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_HAIR                ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_DASH\_DOT\_DOT        ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_DASH\_DOT            ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_DASHED              ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_THIN                ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_MEDIUM\_DASH\_DOT\_DOT ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_SLANTED\_DASH\_DOT    ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_MEDIUM\_DASH\_DOT     ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_MEDIUM\_DASHED       ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_MEDIUM              ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_THICK               ║
+╟────────────┼──────────────────────────────────────────╢
+║            │ HSSFCellStyle.BORDER\_DOUBLE              ║
+╚════════════╧══════════════════════════════════════════╝</text>
+
+##### (5) 设置字体
+
+```java
+HSSFCell cell = row.createCell(1);
+cell.setCellValue("设置字体");
+HSSFCellStyle style = workbook.createCellStyle();
+HSSFFont font = workbook.createFont();
+// 设置字体名称
+font.setFontName("华文行楷");
+// 设置字号
+font.setFontHeightInPoints((short)28);
+// 设置字体颜色
+font.setColor(HSSFColor.RED.index);
+// 设置下划线
+font.setUnderline(FontFormatting.U_SINGLE);
+// 设置上标下标
+font.setTypeOffset(FontFormatting.SS_SUPER);
+// 设置删除线
+font.setStrikeout(true);
+style.setFont(font);
+cell.setCellStyle(style);
+```
+
+![](./images/poi-index/poi-index-009.png)
+
+下划线选项值：
+
+ - 单下划线 FontFormatting.U\_SINGLE
+ - 双下划线 FontFormatting.U\_DOUBLE
+ - 会计用单下划线 FontFormatting.U\_SINGLE\_ACCOUNTING
+ - 会计用双下划线 FontFormatting.U\_DOUBLE\_ACCOUNTING
+ - 无下划线 FontFormatting.U\_NONE
+
+上标下标选项值：
+
+ - 上标 FontFormatting.SS\_SUPER
+ - 下标 FontFormatting.SS\_SUB
+ - 普通，默认值 FontFormatting.SS\_NONE
+
+##### (6) 背景和纹理
+
+##### (7) 设置宽度和高度
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+HSSFRow row = sheet.createRow(1);
+HSSFCell cell = row.createCell(1);
+cell.setCellValue("123456789012345678901234567890");
+// 设置第一列的宽度是 31 个字符宽度
+sheet.setColumnWidth(1, 31 * 256);
+// 设置行的高度是50个点
+row.setHeightInPoints(50);
+```
+
+![](./images/poi-index/poi-index-011.png)
+
+&amp;#160; &amp;#160;这里你会发现一个有趣的现象，`setColumnWidth` 的第二个参数要乘以 256，这是怎么回事呢？其实，这个参数的单位是 1/256 个字符宽度，也就是说，这里是把 B 列的宽度设置为了 31 个字符。
+
+&amp;#160; &amp;#160;设置行高使用 `HSSFRow` 对象的 `setHeight` 和 `setHeightInPoints` 方法，这两个方法的区别在于 `setHeightInPoints` 的单位是点，而 `setHeight` 的单位是 1/20 个点，**所以 `setHeight` 的值永远是 `setHeightInPoints` 的 20 倍。**
+
+&amp;#160; &amp;#160;你也可以使用 `HSSFSheet.setDefaultColumnWidth`、`HSSFSheet.setDefaultRowHeight` 和 `HSSFSheet.setDefaultRowHeightInPoints` 方法设置默认的列宽或行高。
+
+##### (8) 判断单元格是否为日期
+
+&amp;#160; &amp;#160;判断单元格是否为日期类型，使用 `DateUtil.isCellDateFormatted(cell)`方法，例如：
+
+```java
+HSSFCell cell = row.createCell(1);
+//设置日期数据
+cell.setCellValue(new Date());
+//输出：false
+System.out.println(DateUtil.isCellDateFormatted(cell));
+HSSFCellStyle style =workbook.createCellStyle();
+style.setDataFormat(HSSFDataFormat.getBuiltinFormat("m/d/yy h:mm"));
+//设置日期样式
+cell.setCellStyle(style);
+//输出：true
+System.out.println(DateUtil.isCellDateFormatted(cell));
+```
+
+#### 4. 使用 Excel 公式
+
+##### (1) 基本计算
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+HSSFRow row = sheet.createRow(0);
+HSSFCell cell = row.createCell(0);
+// 设置公式
+cell.setCellFormula("2+3*4");
+cell = row.createCell(1);
+cell.setCellValue(10);
+cell = row.createCell(2);
+// 设置公式
+cell.setCellFormula("A1*B1");
+```
+
+![](./images/poi-index/poi-index-012.png)
+
+##### (2) SUM 函数
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+HSSFRow row = sheet.createRow(0);
+row.createCell(0).setCellValue(1);
+row.createCell(1).setCellValue(2);
+row.createCell(2).setCellValue(3);
+row.createCell(3).setCellValue(4);
+row.createCell(4).setCellValue(5);
+row = sheet.createRow(1);
+// 等价于"A1+C1"
+row.createCell(0).setCellFormula("sum(A1,C1)");
+// 等价于"B1+C1+D1"
+row.createCell(1).setCellFormula("sum(B1:D1)");
+```
+
+![](./images/poi-index/poi-index-013.png)
+
+##### (3) 日期函数
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+HSSFCellStyle style=workbook.createCellStyle();
+style.setDataFormat(workbook.createDataFormat().getFormat("yyyy-mm-dd"));
+HSSFRow row = sheet.createRow(0);
+// 日历对象
+Calendar date=Calendar.getInstance();
+HSSFCell cell=row.createCell(0);
+date.set(2011,2, 7);
+cell.setCellValue(date.getTime());
+// 第一个单元格开始时间设置完成
+cell.setCellStyle(style);
+cell=row.createCell(1);
+date.set(2014,4, 25);
+cell.setCellValue(date.getTime());
+// 第一个单元格结束时间设置完成
+cell.setCellStyle(style);
+cell=row.createCell(3);
+cell.setCellFormula("CONCATENATE(DATEDIF(A1,B1,\"y\"),\"年\")");
+cell=row.createCell(4);
+cell.setCellFormula("CONCATENATE(DATEDIF(A1,B1,\"m\"),\"月\")");
+cell=row.createCell(5);
+cell.setCellFormula("CONCATENATE(DATEDIF(A1,B1,\"d\"),\"日\")");
+```
+
+![](./images/poi-index/poi-index-014.png)
+
+以上代码中的公式说明：
+
+&amp;#160; &amp;#160;DATEDIF(A1,B1,\"y\") ：取得 A1 单元格的日期与 B1 单元格的日期的时间间隔。 ( “ y ” : 表示以年为单位 , ” m ”表示以月为单位 ; ” d ”表示以天为单位 ) 。
+
+CONCATENATE( str1,str2, … ) ：连接字符串。
+
+更多 Excel 的日期函数可参考：http://tonyqus.sinaapp.com/archives/286
+
+#### 5. 使用图形
+
+##### (5) 插入图片
+
+```java
+// 创建工作表(Sheet)
+HSSFSheet sheet = workbook.createSheet("Test");
+FileInputStream stream=newFileInputStream("d:\\POI\\Apache.gif");
+byte[] bytes=new byte[(int)stream.getChannel().size()];
+// 读取图片到二进制数组
+stream.read(bytes);
+int pictureIdx = workbook.addPicture(bytes,HSSFWorkbook.PICTURE_TYPE_JPEG);
+HSSFPatriarch patriarch = sheet.createDrawingPatriarch();
+HSSFClientAnchor anchor = new HSSFClientAnchor(0, 0, 0, 0,(short)0, 0, (short)5, 5);
+HSSFPicture pict = patriarch.createPicture(anchor,pictureIdx);
+// 自动调节图片大小,图片位置信息可能丢失
+// pict.resize();
+```
+
+![](./images/poi-index/poi-index-015.png)
+
+##### (6) 从 Excel 文件提取图片
+
+```java
+InputStream inp = new FileInputStream(filePath);
+// 读取现有的Excel文件
+HSSFWorkbook workbook = new HSSFWorkbook(inp); 
+List<HSSFPictureData> pictures = workbook.getAllPictures();
+for (int i = 0; i < pictures.size(); i++) {
+    HSSFPictureData pic = pictures.get(i);
+    String ext = pic.suggestFileExtension();
+    // 判断文件格式   
+    if (ext.equals("png")) {
+        FileOutputStream png = newFileOutputStream("d:\\POI\\Apache.png");
+        png.write(pic.getData());
+        // 保存图片
+        png.close(); 
+    }
+}
+```
+
+#### 6. Excel 表操作
+
+##### (1) 设置默认工作表
+
+```java
+// 创建Excel文件(Workbook)
+HSSFWorkbook workbook = new HSSFWorkbook();
+// 创建工作表(Sheet)
+workbook.createSheet("Test0");
+// 创建工作表(Sheet)
+workbook.createSheet("Test1");
+// 创建工作表(Sheet)
+workbook.createSheet("Test2");
+// 创建工作表(Sheet)
+workbook.createSheet("Test3");
+// 设置默认工作表
+workbook.setActiveSheet(2);
+```
+
+##### (2) 重命名工作表
+
+```java
+// 创建Excel文件(Workbook)
+HSSFWorkbook workbook = new HSSFWorkbook();
+// 创建工作表(Sheet)
+workbook.createSheet("Test0");
+// 创建工作表(Sheet)
+workbook.createSheet("Test1");
+// 创建工作表(Sheet)
+workbook.createSheet("Test2");
+// 创建工作表(Sheet)
+workbook.createSheet("Test3");
+// 重命名工作表
+workbook.setSheetName(2, "1234");
+```
+
+##### (3) 调整表单显示比例
+
+```java
+// 创建Excel文件(Workbook)
+HSSFWorkbook workbook = new HSSFWorkbook();
+// 创建工作表(Sheet)
+HSSFSheet sheet1= workbook.createSheet("Test0");
+// 创建工作表(Sheet)
+HSSFSheet sheet2=workbook.createSheet("Test1");
+// 创建工作表(Sheet)
+HSSFSheet sheet3=workbook.createSheet("Test2");
+// 50% 显示比例
+sheet1.setZoom(1,2);
+// 200% 显示比例
+sheet2.setZoom(2,1);
+// 10% 显示比例
+sheet3.setZoom(1,10);
+```
+
+![](./images/poi-index/poi-index-016.png)
+
+![](./images/poi-index/poi-index-017.png)
+
+![](./images/poi-index/poi-index-018.png)
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/huajiezh/p/5467821.html" target="_blank">POI使用详解</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

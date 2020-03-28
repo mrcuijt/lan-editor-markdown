@@ -1,0 +1,546 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><style type="text/css">h1,h2,h3,h4,h5,h6,p,blockquote{margin:0;padding:0}body{font-family:"Helvetica Neue",Helvetica,"Hiragino Sans GB",Arial,sans-serif;font-size:13px;line-height:18px;color:#737373;margin:10px 13px 10px 13px}a{color:#0069d6}a:hover{color:#0050a3;text-decoration:none}a img{border:0}p{margin-bottom:9px}h1,h2,h3,h4,h5,h6{color:#404040;line-height:36px}h1{margin-bottom:18px;font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:16px}h5{font-size:14px}h6{font-size:13px}hr{margin:0 0 19px;border:0;border-bottom:1px solid #ccc}blockquote{padding:13px 13px 21px 15px;margin-bottom:18px;font-family:georgia,serif;font-style:italic}blockquote:before{content:"C";font-size:40px;margin-left:-10px;font-family:georgia,serif;color:#eee}blockquote p{font-size:14px;font-weight:300;line-height:18px;margin-bottom:0;font-style:italic}code,pre{font-family:Monaco,Andale Mono,Courier New,monospace}code{background-color:#fee9cc;color:rgba(0,0,0,0.75);padding:1px 3px;font-size:12px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px}pre{display:block;padding:14px;margin:0 0 18px;line-height:16px;font-size:11px;border:1px solid #d9d9d9;white-space:pre-wrap;word-wrap:break-word}pre code{background-color:#fff;color:#737373;font-size:11px;padding:0}@media screen and (min-width:768px){body{width:748px;margin:10px auto}}body{font-family:Helvetica,Geneva,Arial,sans-serif;font-size:1em;font-style:normal;font-weight:400;color:#333;background-color:#fff;line-height:2em}body.with_sponsor{margin-right:410px}a{color:#5a86e4;text-decoration:none}a:hover{text-decoration:underline}a.external,a[href*="//"]:not([href*="alexgorbatchev.com"]){background:url(external.png) right 50% no-repeat;padding-right:12px}.file-list,code,pre{font-family:Consolas,Monaco,"Bitstream Vera Sans Mono","Courier New",Courier,monospace}table{-moz-border-radius:5px;-webkit-border-radius:5px 5px 5px 5px;border:2px solid #adadad;padding:.5em;width:100%}table td,table th{padding:.3em .5em;vertical-align:top}table th{text-align:left}table tbody>tr:hover{background:#cbe2ff;-moz-border-radius:3px;-webkit-border-radius:3px 3px 3px 3px}table tbody>tr>td:first-child{white-space:nowrap}#clear{clear:both}#title h1{font-weight:700;font-size:4em;color:#adadad;margin:0;line-height:100%}#title h1 #whatsnew{display:inline}#title h1 #whatsnew a{font-size:.5em;color:red}#title h2{font-size:1.45em}#title #forkme{display:block;position:fixed;z-index:5;top:0;left:0;border:0;background:url(forkme.png) no-repeat;width:149px;height:149px;text-indent:-1000px;overflow:hidden}#content .date,#content .version,.badge{-moz-border-radius:3px;-webkit-border-radius:3px 3px 3px 3px;font-size:10px;font-weight:400;padding:3px 5px 4px;line-height:100%;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}#content .sponsor,#theme-example{-moz-border-radius:5px;-webkit-border-radius:5px 5px 5px 5px}#content #news ul{list-style-type:none;margin:0;padding:0}#content #news ul li{position:relative;display:block;padding-left:7em;min-height:22px}#blurb,#content .date,#footer,#meta,.float{position:absolute;width:10em;text-align:right}#content .date{background:#cbe2ff;color:#5a86e4;height:20px;left:0;top:0;padding:6px 5px 0}#content .version{background:#adadad;color:#fff}#content h3{margin:1.5em 0 .5em;font-size:1.45em}#content h2>a[name]{color:#000;text-decoration:none}#content .sponsor{padding:.1em 1em;background:#feffcb;margin-bottom:1em}#footer,#sponsor{-moz-border-radius:3px;-webkit-border-radius:3px 3px 3px 3px}#content li>p:only-child{margin:0}#blurb,#footer,#meta,.float{top:10px;right:10px;padding:1em;line-height:1.1em}#blurb a,#footer a,#meta a,.float a{display:block}.with_sponsor #blurb,.with_sponsor #footer,.with_sponsor #meta,.with_sponsor .float{right:190px}#sponsor{position:fixed;top:10px;right:10px;bottom:10px;background:#6380EA}#sponsor a{padding:0;background:0 0}#meta{z-index:2;font-weight:700;padding-top:7em}#footer{background:#cbe2ff;padding-top:14em;z-index:1}#footer #ad{margin-bottom:.5em}#blurb{text-align:left;z-index:2}#blurb a{display:inline}#blurb em{font-size:80%}#copyright{color:#adadad;font-size:1.2em;margin-top:3em}#theme-example{padding:1em 2em;background-color:#adadad}.code>.container>.line,.code>.container>.line>.java,.code>.container>.line>.js,.code>.container>.line>code,.gutter>.line{height:14px!important;line-height:14px!important;font-size:14px!important;font-family:"courier new"!important}#code_source{border:1px solid #ccc;width:998px;height:200px}#code_type{width:170px;border:1px solid #bbb;height:28px;line-height:28px}.syntaxhighlighter .comments,.syntaxhighlighter .comments a,.syntaxhighlighter .plain,.syntaxhighlighter .plain a,.syntaxhighlighter .string,.syntaxhighlighter .string a{height:14px!important;line-height:14px!important;font-size:14px!important;font-family:"courier new"!important}.syntaxhighlighter .plain,.syntaxhighlighter .plain a{color:#000!important}.syntaxhighlighter a,.syntaxhighlighter code,.syntaxhighlighter div,.syntaxhighlighter table,.syntaxhighlighter table caption,.syntaxhighlighter table tbody,.syntaxhighlighter table td,.syntaxhighlighter table thead,.syntaxhighlighter table tr,.syntaxhighlighter textarea{-moz-border-radius:0!important;-webkit-border-radius:0!important;background:0 0!important;border:0!important;bottom:auto!important;float:none!important;height:auto!important;left:auto!important;line-height:1.1em!important;margin:0!important;outline:0!important;overflow:visible!important;padding:0!important;position:static!important;right:auto!important;text-align:left!important;top:auto!important;vertical-align:baseline!important;width:auto!important;box-sizing:content-box!important;font-family:Consolas,"Bitstream Vera Sans Mono","Courier New",Courier,monospace!important;font-weight:400!important;font-style:normal!important;font-size:1em!important;min-height:inherit!important;min-height:auto!important}.syntaxhighlighter,.syntaxhighlighter table td.code .container{position:relative!important}.syntaxhighlighter,.syntaxhighlighter table,.syntaxhighlighter table td.code{width:100%!important}.syntaxhighlighter .bold,.syntaxhighlighter.printing .script{font-weight:700!important}.syntaxhighlighter{margin:1em 0!important;overflow:auto!important;font-size:1em!important}.syntaxhighlighter.source{overflow:hidden!important}.syntaxhighlighter .italic{font-style:italic!important}.syntaxhighlighter .line{white-space:pre!important}.syntaxhighlighter table caption{text-align:left!important;padding:.5em 0 .5em 1em!important}.syntaxhighlighter table td.code .container textarea{box-sizing:border-box!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;border:none!important;background:#fff!important;padding-left:1em!important;overflow:hidden!important;white-space:pre!important}.syntaxhighlighter table td.gutter .line{text-align:right!important;padding:0 .5em 0 1em!important}.syntaxhighlighter table td.code .line{padding:0 1em!important}.syntaxhighlighter.nogutter td.code .container textarea,.syntaxhighlighter.nogutter td.code .line{padding-left:0!important}.syntaxhighlighter.show{display:block!important}.syntaxhighlighter.collapsed table{display:none!important}.syntaxhighlighter.collapsed .toolbar{padding:.1em .8em 0!important;font-size:1em!important;position:static!important;width:auto!important;height:auto!important}.syntaxhighlighter.collapsed .toolbar span{display:inline!important;margin-right:1em!important}.syntaxhighlighter.collapsed .toolbar span a{padding:0!important;display:none!important}.syntaxhighlighter .toolbar span.title,.syntaxhighlighter.collapsed .toolbar span a.expandSource{display:inline!important}.syntaxhighlighter .toolbar{position:absolute!important;right:1px!important;top:1px!important;width:11px!important;height:11px!important;font-size:10px!important;z-index:10!important}.syntaxhighlighter .toolbar a{display:block!important;text-align:center!important;text-decoration:none!important;padding-top:1px!important}.syntaxhighlighter .toolbar a.expandSource,.syntaxhighlighter.printing .toolbar{display:none!important}.syntaxhighlighter.ie{font-size:.9em!important;padding:1px 0!important}.syntaxhighlighter.ie .toolbar{line-height:8px!important}.syntaxhighlighter.ie .toolbar a{padding-top:0!important}.syntaxhighlighter.printing .line.alt1 .content,.syntaxhighlighter.printing .line.alt2 .content,.syntaxhighlighter.printing .line.highlighted .number,.syntaxhighlighter.printing .line.highlighted.alt1 .content,.syntaxhighlighter.printing .line.highlighted.alt2 .content{background:0 0!important}.syntaxhighlighter.printing .line .number{color:#bbb!important}.syntaxhighlighter.printing .line .content,.syntaxhighlighter.printing .plain,.syntaxhighlighter.printing .plain a{color:#000!important}.syntaxhighlighter.printing a{text-decoration:none!important}.syntaxhighlighter.printing .comments,.syntaxhighlighter.printing .comments a{color:#008200!important}.syntaxhighlighter.printing .string,.syntaxhighlighter.printing .string a{color:#00f!important}.syntaxhighlighter.printing .keyword{color:#069!important;font-weight:700!important}.syntaxhighlighter.printing .preprocessor{color:gray!important}.syntaxhighlighter.printing .variable{color:#a70!important}.syntaxhighlighter.printing .value{color:#090!important}.syntaxhighlighter.printing .functions{color:#ff1493!important}.syntaxhighlighter.printing .constants{color:#06c!important}.syntaxhighlighter.printing .color1,.syntaxhighlighter.printing .color1 a{color:gray!important}.syntaxhighlighter.printing .color2,.syntaxhighlighter.printing .color2 a{color:#ff1493!important}.syntaxhighlighter.printing .color3,.syntaxhighlighter.printing .color3 a{color:red!important}.syntaxhighlighter.printing .break,.syntaxhighlighter.printing .break a{color:#000!important}.syntaxhighlighter a,.syntaxhighlighter code,.syntaxhighlighter div,.syntaxhighlighter table,.syntaxhighlighter table caption,.syntaxhighlighter table tbody,.syntaxhighlighter table td,.syntaxhighlighter table thead,.syntaxhighlighter table tr,.syntaxhighlighter textarea{-moz-border-radius:0!important;-webkit-border-radius:0!important;background:0 0!important;border:0!important;bottom:auto!important;float:none!important;height:auto!important;left:auto!important;line-height:1.1em!important;margin:0!important;outline:0!important;overflow:visible!important;padding:0!important;position:static!important;right:auto!important;text-align:left!important;top:auto!important;vertical-align:baseline!important;width:auto!important;box-sizing:content-box!important;font-family:Consolas,"Bitstream Vera Sans Mono","Courier New",Courier,monospace!important;font-weight:400!important;font-style:normal!important;font-size:1em!important;min-height:inherit!important;min-height:auto!important}.syntaxhighlighter,.syntaxhighlighter table td.code .container{position:relative!important}.syntaxhighlighter,.syntaxhighlighter table,.syntaxhighlighter table td.code{width:100%!important}.syntaxhighlighter .bold,.syntaxhighlighter .keyword,.syntaxhighlighter .script,.syntaxhighlighter.printing .script{font-weight:700!important}.syntaxhighlighter{margin:1em 0!important;overflow:auto!important;font-size:1em!important}.syntaxhighlighter.source{overflow:hidden!important}.syntaxhighlighter .italic{font-style:italic!important}.syntaxhighlighter .line{white-space:pre!important}.syntaxhighlighter table caption{text-align:left!important;padding:.5em 0 .5em 1em!important}.syntaxhighlighter table td.code .container textarea{box-sizing:border-box!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;border:none!important;background:#fff!important;padding-left:1em!important;overflow:hidden!important;white-space:pre!important}.syntaxhighlighter table td.gutter .line{text-align:right!important;padding:0 .5em 0 1em!important}.syntaxhighlighter table td.code .line{padding:0 1em!important}.syntaxhighlighter.nogutter td.code .container textarea,.syntaxhighlighter.nogutter td.code .line{padding-left:0!important}.syntaxhighlighter.show{display:block!important}.syntaxhighlighter.collapsed table{display:none!important}.syntaxhighlighter.collapsed .toolbar{padding:.1em .8em 0!important;font-size:1em!important;position:static!important;width:auto!important;height:auto!important}.syntaxhighlighter.collapsed .toolbar span{display:inline!important;margin-right:1em!important}.syntaxhighlighter.collapsed .toolbar span a{padding:0!important;display:none!important}.syntaxhighlighter .toolbar span.title,.syntaxhighlighter.collapsed .toolbar span a.expandSource{display:inline!important}.syntaxhighlighter .toolbar{position:absolute!important;right:1px!important;top:1px!important;width:11px!important;height:11px!important;font-size:10px!important;z-index:10!important}.syntaxhighlighter .toolbar a{display:block!important;text-align:center!important;text-decoration:none!important;padding-top:1px!important}.syntaxhighlighter .toolbar a.expandSource,.syntaxhighlighter.printing .toolbar{display:none!important}.syntaxhighlighter.ie{font-size:.9em!important;padding:1px 0!important}.syntaxhighlighter.ie .toolbar{line-height:8px!important}.syntaxhighlighter.ie .toolbar a{padding-top:0!important}.syntaxhighlighter.printing .line.alt1 .content,.syntaxhighlighter.printing .line.alt2 .content,.syntaxhighlighter.printing .line.highlighted .number,.syntaxhighlighter.printing .line.highlighted.alt1 .content,.syntaxhighlighter.printing .line.highlighted.alt2 .content{background:0 0!important}.syntaxhighlighter.printing .line .number{color:#bbb!important}.syntaxhighlighter.printing .line .content,.syntaxhighlighter.printing .plain,.syntaxhighlighter.printing .plain a{color:#000!important}.syntaxhighlighter.printing a{text-decoration:none!important}.syntaxhighlighter.printing .comments,.syntaxhighlighter.printing .comments a{color:#008200!important}.syntaxhighlighter.printing .string,.syntaxhighlighter.printing .string a{color:#00f!important}.syntaxhighlighter.printing .keyword{color:#069!important;font-weight:700!important}.syntaxhighlighter.printing .preprocessor{color:gray!important}.syntaxhighlighter.printing .variable{color:#a70!important}.syntaxhighlighter.printing .value{color:#090!important}.syntaxhighlighter.printing .functions{color:#ff1493!important}.syntaxhighlighter.printing .constants{color:#06c!important}.syntaxhighlighter.printing .color1,.syntaxhighlighter.printing .color1 a{color:gray!important}.syntaxhighlighter.printing .color2,.syntaxhighlighter.printing .color2 a{color:#ff1493!important}.syntaxhighlighter.printing .color3,.syntaxhighlighter.printing .color3 a{color:red!important}.syntaxhighlighter .line.highlighted.number,.syntaxhighlighter table caption,.syntaxhighlighter.printing .break,.syntaxhighlighter.printing .break a{color:#000!important}.syntaxhighlighter,.syntaxhighlighter .line.alt1,.syntaxhighlighter .line.alt2{background-color:#fff!important}.syntaxhighlighter .line.highlighted.alt1,.syntaxhighlighter .line.highlighted.alt2{background-color:#e0e0e0!important}.syntaxhighlighter .gutter{color:#afafaf!important}.syntaxhighlighter .gutter .line{border-right:3px solid #6ce26c!important}.syntaxhighlighter .gutter .line.highlighted{background-color:#6ce26c!important;color:#fff!important}.syntaxhighlighter.printing .line .content{border:none!important}.syntaxhighlighter.collapsed{overflow:visible!important}.syntaxhighlighter.collapsed .toolbar{color:#00f!important;background:#fff!important;border:1px solid #6ce26c!important}.syntaxhighlighter.collapsed .toolbar a{color:#00f!important}.syntaxhighlighter.collapsed .toolbar a:hover{color:red!important}.syntaxhighlighter .toolbar{color:#fff!important;background:#6ce26c!important;border:none!important}.syntaxhighlighter .toolbar a{color:#fff!important}.syntaxhighlighter .plain,.syntaxhighlighter .plain a,.syntaxhighlighter .toolbar a:hover{color:#000!important}.syntaxhighlighter .comments,.syntaxhighlighter .comments a{color:#008200!important}.syntaxhighlighter .string,.syntaxhighlighter .string a{color:#00f!important}.syntaxhighlighter .keyword{color:#069!important}.syntaxhighlighter .preprocessor{color:gray!important}.syntaxhighlighter .variable{color:#a70!important}.syntaxhighlighter .value{color:#090!important}.syntaxhighlighter .functions{color:#ff1493!important}.syntaxhighlighter .constants{color:#06c!important}.syntaxhighlighter .script{color:#069!important;background-color:none!important}.syntaxhighlighter .color1,.syntaxhighlighter .color1 a{color:gray!important}.syntaxhighlighter .color2,.syntaxhighlighter .color2 a{color:#ff1493!important}.syntaxhighlighter .color3,.syntaxhighlighter .color3 a{color:red!important}.syntaxhighlighter table{margin:1px 0!important}</style><title>program-vo-show</title></head><body><h4 id="programvo">program-vo</h4>
+
+<h4 id="vopodtobopojoentitymode">vo、po、dto、bo、pojo、entity、mode 如何区分</h4>
+
+<p><strong>Java Bean：一种可重用组件，即“一次编写，任何地方执行，任何地方重用”。满足三个条件</strong></p>
+
+<ul>
+<li><p>类必须是具体的和公共的</p></li>
+<li><p>具有无参构造器</p></li>
+<li><p>提供一致性设计模式的公共方法将内部域或暴露成员属性</p></li>
+</ul>
+
+<h5 id="vo">VO</h5>
+
+<ul>
+<li><p><strong>VO</strong></p>
+
+<p><strong>value object : 值对象</strong></p>
+
+<p>视图对象，用于展示层，它的作用是把某个指定页面（或组件）的所有数据封装起来。</p>
+
+<p>主要体现在视图的对象，对于一个 WEB 页面将整个页面的属性封装成一个对象。然后用一个 VO 对象在控制层与视图层进行传输交换。主要对应界面显示的数据对象。对于一个 WEB 页面，或者 SWT、SWING 的一个界面，用一个 VO 对象对应整个界面的值。</p>
+
+<p>仅仅包含数据，但应是抽象出的业务对象，可以和表对应，也可以不是。</p>
+
+<ul><li><p>1、VO 通常用于业务层之间的数据传递，由 new 创建，由 GC 回收。</p>
+
+<p>PO 则是向数据库中添加新数据时创建，删除数据库中数据时削除的。并且它只能存活在一个数据库连接中，断开连接即被销毁。</p></li>
+<li><p>2、VO 是值对象，精确点讲它是业务对象，是存活在业务层的，是业务逻辑使用的，它存活的目的就是为数据提供一个生存的地方。</p>
+
+<p>PO 则是有状态的，每个属性代表其当前的状态。它是物理数据的对象表示。使用它，可以使我们的程序与物理数据解耦，并且可以简化对象数据与物理数据之间的转换。</p></li>
+<li><p>3、VO 的属性是根据当前业务的不同而不同的，也就是说，它的每一个属性都一一对应当前业务逻辑所需要的数据的名称。</p>
+
+<p>PO 的属性是跟数据库表的字段一一对应的。</p></li></ul></li>
+</ul>
+
+<h5 id="po">PO</h5>
+
+<ul>
+<li><p><strong>PO</strong></p>
+
+<p><strong>persistant object : 持久层对象</strong></p>
+
+<p>是 ORM (Objevt Relational Mapping)框架中 Entity，PO 属性和数据库中表的字段形成一一对应关系 
+VO 和 PO，都是属性加上属性的 get 和 set 方法；表面看没什么不同，但代表的含义是完全不同的。</p>
+
+<p>PO 对象需要实现序列化接口。</p>
+
+<p>PO 是持久化对象，它只是将物理数据实体的一种对象表示，为什么需要它？因为它可以简化我们对于物理实体的了解和耦合，简单地讲，可以简化对象的数据转换为物理数据的编程。VO 是什么？它是值对象，准确地讲，它是业务对象，是生活在业务层的，是业务逻辑需要了解，需要使用的，再简单地讲，它是概念模型转换得到的。 </p>
+
+<p>最形象的理解就是一个 PO 就是数据库中的一条记录。好处是可以把一条记录作为一个对象处理，可以方便的转为其它对象。最简单的 PO 就是对应数据库中某个表中的一条记录，多个记录可以用 PO 的集合。PO 中应该不包含任何对数据库的操作。</p>
+
+<p>首先说 PO 和 VO 吧，它们的关系应该是相互独立的，一个 VO 可以只是 PO 的部分，也可以是多个 PO 构成，同样也可以等同于一个 PO（当然我是指他们的属性）。正因为这样，PO 独立出来，数据持久层也就独立出来了，它不会受到任何业务的干涉。又正因为这样，业务逻辑层也独立开来，它不会受到数据持久层的影响，业务层关心的只是业务逻辑的处理，至于怎么存怎么读交给别人吧！不过，另外一点，如果我们没有使用数据持久层，或者说没有使用 Hibernate，那么 PO 和 VO 也可以是同一个东西，虽然这并不好。</p></li>
+</ul>
+
+<h5 id="do">DO</h5>
+
+<ul>
+<li><p><strong>DO</strong></p>
+
+<p><strong>Domain Object 领域对象</strong></p>
+
+<p>就是从现实世界中抽象出来的有形或无形的业务实体。</p></li>
+</ul>
+
+<h5 id="to">TO</h5>
+
+<ul>
+<li><p><strong>TO</strong></p>
+
+<p><strong>Transfer Object 数据传输对象</strong></p>
+
+<p>在应用程序不同 tie( 关系 ) 之间传输的对象</p></li>
+</ul>
+
+<h5 id="dto">DTO</h5>
+
+<ul>
+<li><p><strong>DTO</strong></p>
+
+<p><strong>data transfer object : 数据传输对象</strong></p>
+
+<p><strong>经过处理后的 PO，可能增加或者减少 PO 的属性</strong></p>
+
+<p>这个概念来源于 J2EE 的设计模式，原来的目的是为了 EJB 的分布式应用提供粗粒度的数据实体，以减少分布式调用的次数，从而提高分布式调用的性能和降低网络负载，但在这里，我泛指用于展示层与服务层之间的数据传输对象。</p>
+
+<p>是一种设计模式之间传输数据的软件应用系统，数据传输目标往往是数据访问对象从数据库中检索数据</p>
+
+<p>数据传输对象与数据交互对象或数据访问对象之间的差异是一个以不具任何行为除了存储和检索的数据（访问和存取器）</p>
+
+<p>简而言之，就是接口之间传递的数据封装 </p>
+
+<p>表里面有十几个字段：id，name，gender（M/F)，age…… </p>
+
+<p>页面需要展示三个字段：name，gender(男/女)，age </p>
+
+<p>DTO 由此产生，一是能提高数据传输的速度(减少了传输字段)，二能隐藏后端表结构</p>
+
+<p>客户端用 WebService 来获取数据，没有必要把整个 PO 对象传递到客户端，这时我们就可以用只有这 3 个属性的 DTO 来传递结果到客户端，这样也不会暴露服务端表结构.到达客户端以后，如果用这个对象来对应界面显示，那此时它的身份就转为 VO</p></li>
+</ul>
+
+<p><img title="" alt="title" src="images/program-vo/program-vo-001.png"></p>
+
+<h5 id="bo">BO</h5>
+
+<ul>
+<li><p><strong>BO</strong></p>
+
+<p><strong>business object : 业务对象</strong></p>
+
+<p><strong>service、manager、business 等命名</strong></p>
+
+<p>从业务模型的角度看 , 见 UML 元件领域模型中的领域对象。封装业务逻辑的 Java 对象 , 通过调用 DAO 方法 , 结合 PO,VO 进行业务操作。</p>
+
+<p>BO 把业务逻辑封转为一个对象，这个对象可以包括一个或多个其它的对象。通过调用 DAO 方法，结合 PO 或 VO 进行业务操作。</p>
+
+<p>一个人的业务逻辑，有睡觉，吃饭，工作，上班等等形为还有可能和别人发关系的行为。</p>
+
+<p>PO 组合，如投保人是一个 PO，被保险人是一个 PO，险种信息是一个 PO 等等，他们组合气来是第一张保单的 BO。这样处理业务逻辑时，我们就可以针对 BO 去处理。</p>
+
+<p>主要作用是把业务逻辑封装为一个对象。这个对象可以包括一个或多个其它的对象。 比如一个简历，有教育经历、工作经历、社会关系等等。 我们可以把教育经历对应一个 PO ，工作经历对应一个 PO ，社会关系对应一个 PO 。 建立一个对应简历的 BO 对象处理简历，每个 BO 包含这些 PO 。 这样处理业务逻辑时，我们就可以针对 BO 去处理。</p></li>
+</ul>
+
+<h5 id="pojo">POJO</h5>
+
+<ul>
+<li><p><strong>POJO</strong></p>
+
+<p><strong>plian ordinary java object : 简单无规则 java 对象</strong></p>
+
+<p><strong>POJO 是一种概念或者接口，身份及作用随环境变化而变化</strong></p>
+
+<p>纯的传统意义的 Java 对象。就是说在一些 Object/Relation Mapping 工具中，能够做到维护数据库表记录的 persisent object 完全是一个符合 Java Bean 规范的纯 Java 对象，没有增加别的属性和方法。我的理解就是最基本的 Java Bean ，只有属性字段及 setter 和 getter 方法！</p>
+
+<p>可以转化为 PO、DTO、VO；比如 POJO 在传输过程中就是 DTO</p>
+
+<p>POJO 对象有时也被称为 Data 对象，大量应用于表现现实中的对象。 </p>
+
+<p>一个 POJO 持久化以后就是 PO。</p>
+
+<p>直接用它传递、传递过程中就是 DTO</p>
+
+<p>直接用来对应表示层就是 VO </p></li>
+</ul>
+
+<p><img title="" alt="title" src="images/program-vo/program-vo-006.png"></p>
+
+<h5 id="dao">DAO</h5>
+
+<ul>
+<li><p><strong>DAO</strong></p>
+
+<p><strong>data access object : 数据访问对象</strong></p>
+
+<p>是 SUN 的一个标准 J2EE 设计模式，这个模式中有个接口就是 DAO，负责持久层的操作。为业务层提供接口。此对象用于访问数据库。通常和 PO 结合使用， DAO 中包含了各种数据库的操作方法。通过它的方法 , 结合 PO 对数据库进行相关的操作。夹在业务逻辑与数据库资源中间。配合 VO, 提供数据库的 CRUD 操作。</p>
+
+<p>主要用来封装对数据库的访问。通过它可以把 POJO 持久化为 PO，用 PO 组装出来 VO、DTO</p></li>
+</ul>
+
+<p><img title="" alt="title" src="images/program-vo/program-vo-002.png"></p>
+
+<p>其他的还有model/module/domain/entity</p>
+
+<h5 id="entity">Entity</h5>
+
+<ul>
+<li><p><strong>Entity</strong></p>
+
+<p>实体，和 PO 的功能类似，和数据表一一对应，一个实体一张表</p></li>
+</ul>
+
+<h5 id="qo">QO</h5>
+
+<ul>
+<li><p><strong>QO</strong></p>
+
+<p><strong>QO 查询对象</strong></p></li>
+</ul>
+
+<h5 id="controller">Controller</h5>
+
+<ul>
+<li><p><strong>Controller</strong></p>
+
+<p><strong>Controller 控制层主要是 Action/Servlet 等构成</strong></p>
+
+<p>目前 Spring MVC 则是通过 @Controller 标签使用</p>
+
+<p>此层业务层与视图层打交道的中间层，负责传输 VO 对象和调用 BO 层的业务方法，负责视图层请求的数据处理后响应给视图层。</p></li>
+</ul>
+
+<h5 id="view">View</h5>
+
+<ul>
+<li><p><strong>View</strong></p>
+
+<p><strong>视图层</strong></p>
+
+<p>主要是指由JSP、HTML等文件形成的显示层。</p></li>
+</ul>
+
+<p><strong>上述名词在实际项目的应用举例：</strong></p>
+
+<p>控制层(controller-action)，业务层/服务层( bo-manager )，实体层(po-entity)，dao(dao)，视图对象(Vo-本项目省略)，视图层(view-jsp/html)</p>
+
+<ul>
+<li><p>Struts 里的 ActionForm 就是个 VO;</p></li>
+<li><p>Hibernate 里的 实体 Bean 就是个PO,也叫 POJO;</p></li>
+<li><p>Hibernate 里的 Criteria 就相当于一个 QO;</p></li>
+</ul>
+
+<p>在使用 Hibernate 的时候我们会定义一些查询的方法,这些方法写在接口里,可以有不同的实现类.而这个接口就可以说是个 DAO.</p>
+
+<p>参考链接：</p>
+
+<ul>
+<li><p><a href="https://blog.csdn.net/qq_41604862/article/details/79675223" target="_blank">vo、po、dto、bo、pojo、entity、mode 如何区分</a></p></li>
+<li><p><a href="https://www.cnblogs.com/EasonJim/p/7967949.html" target="_blank">Java中PO、BO、VO、DTO、POJO、DAO概念及其作用和项目实例图（转）</a></p></li>
+<li><p><a href="http://www.360doc.com/content/14/1225/14/15242507_435666535.shtml" target="_blank">PO BO VO DTO POJO DAO 概念及其作用（附转换图）</a></p></li>
+<li><p><a href="https://www.iteye.com/blog/zz563143188-1845469" target="_blank">Spring mvc+hibernate+freemarker(实战) </a></p></li>
+</ul>
+
+<h4 id="vodtodopo">领域模型中的实体类分为四种类型：VO、DTO、DO、PO</h4>
+
+<p>在项目应用中，VO 对应于页面上需要显示的数据（表单），DO 对应于数据库中存储的数据（数据表），DTO 对应于除二者之外需要进行传递的数据。</p>
+
+<h5>一、实体类</h5>
+
+<p>百度百科中对于实体类的定义如下：</p>
+
+<p>实体类的主要职责是存储和管理系统内部的信息，它也可以有行为，甚至很复杂的行为，但这些行为必须与它所代表的实体对象密切相关。</p>
+
+<p>根据以上定义，我们可以了解到，实体类有两方面内容，存储数据和执行数据本身相关的操作。这两方面内容对应到实现上，最简单的实体类是 POJO 类，含有属性及属性对应的 set 和 get 方法，实体类常见的方法还有用于输出自身数据的 toString 方法。</p>
+
+<p><img title="" alt="title" src="images/program-vo/program-vo-005.png"></p>
+
+<h5>二、领域模型中的实体类</h5>
+
+<p>领域模型中的实体类分为四种类型：VO、DTO、DO、PO，各种实体类用于不同业务层次间的交互，并会在层次内实现实体类之间的转化。</p>
+
+<p>业务分层为：视图层（VIEW + ACTION），服务层（SERVICE），持久层（DAO）</p>
+
+<p>相应各层间实体的传递如下图：</p>
+
+<p><img title="" alt="title" src="images/program-vo/program-vo-003.png"></p>
+
+<p>项目中我们并没有严格遵循这种传递关系，但这种和业务层次的关联对我们理解各实体类的作用是有帮助的。（我们没有接触到 PO 的原因，我理解为 ORM 对 PO 进行了封装）</p>
+
+<h5>三、项目中的实体类</h5>
+
+<p>项目中常见的实体类有 VO，DO 和 DTO，命名规则也常是以相应字符串结尾，如 *VO.Java。但是 DTO 不总是遵循这个规则，而通常与他的用途有关，如写成 *Query.java，表示存储了一个查询条件。项目中实体类出现的业务层次也没有这么严格，例如我们可以在视图层就组装一个 DO，也可以将一个 VO 从持久层传出来，所以与业务分层相关联的划分方法显得有些冗余。从项目代码中抽象出的理解是：VO 对应于页面上需要显示的数据，DO 对应于数据库中存储的数据，DTO 对应于除二者之外需要进行传递的数据。</p>
+
+<p>参考链接：</p>
+
+<ul>
+<li><a href="https://blog.csdn.net/paincupid/article/details/49924299?depth_1-utm_source=distribute.pc_relevant.none-task&amp;utm_source=distribute.pc_relevant.none-task" target="_blank">领域模型中的实体类分为四种类型：VO、DTO、DO、PO</a></li>
+</ul>
+
+<h4>三层架构与实体类的关系</h4>
+
+<p><img title="" alt="title" src="images/program-vo/program-vo-003.png"></p>
+
+<p>下面以一个时序图建立简单模型来描述上述对象在三层架构应用中的位置</p>
+
+<p><img title="" alt="title" src="images/program-vo/program-vo-004.png"></p>
+
+<ul>
+<li><p>用户发出请求（可能是填写表单），表单的数据在展示层被匹配为 VO。(FontEnd(VO)—&gt;Controller(DTO))</p></li>
+<li><p>展示层把 VO 转换为服务层对应方法所要求的 DTO，传送给服务层。(Controller(DTO)--&gt;Service(BO))</p></li>
+<li><p>服务层首先根据 DTO 的数据构造（或重建）一个 DO，调用 DO 的业务方法完成具体业务。(Service(BO)-&gt;DO)</p>
+
+<p>DO 可看做 Service 的部分功能被对象化抽出一部分，好处是面向对象编程，自己体会。</p></li>
+<li><p>服务层把 DO 转换为持久层对应的 PO（可以使用 ORM 工具，也可以不用），调用持久层（DAO）的持久化方法，把 PO 传递给它，完成持久化操作。</p>
+
+<p>对于一个逆向操作，如读取数据，也是用类似的方式转换和传递，略。</p></li>
+</ul>
+
+<h5 id="vodto">VO 与 DTO 区别</h5>
+
+<p>大家可能会有个疑问（在笔者参与的项目中，很多程序员也有相同的疑惑）：既然 DTO 是展示层与服务层之间传递数据的对象，为什么还需要一个 VO 呢？对！对于绝大部分的应用场景来说，DTO 和 VO 的属性值基本是一致的，而且他们通常都是 POJO，因此没必要多此一举，但不要忘记这是实现层面的思维，对于设计层面来说，概念上还是应该存在 VO 和 DTO，因为两者有着本质的区别，DTO 代表服务层需要接收的数据和返回的数据，而 VO 代表展示层需要显示的数据。</p>
+
+<p>用一个例子来说明可能会比较容易理解：例如服务层有一个 getUser 的方法返回一个系统用户，其中有一个属性是 gender (性别)，对于服务层来说，它只从语义上定义：1-男性，2-女性，0-未指定，而对于展示层来说，它可能需要用 “帅哥” 代表男性，用 “美女” 代表女性，用 “秘密” 代表未指定。说到这里，可能你还会反驳，在服务层直接就返回 “帅哥美女” 不就行了吗？对于大部分应用来说，这不是问题，但设想一下，如果需求允许客户可以定制风格，而不同风格对于 “性别” 的表现方式不一样，又或者这个服务同时供多个客户端使用（不同门户），而不同的客户端对于表现层的要求有所不同，那么，问题就来了。再者，回到设计层面上分析，从职责单一原则来看，服务层只负责业务，与具体的表现形式无关，因此，它返回的 DTO，不应该出现与表现形式的耦合。</p>
+
+<p>理论归理论，这到底还是分析设计层面的思维，是否在实现层面必须这样做呢？一刀切的做法往往会得不偿失，下面我马上会分析应用中如何做出正确的选择。</p>
+
+<h5 id="vodto">VO 与 DTO 的应用</h5>
+
+<p>上面只是用了一个简单的例子来说明 VO 与 DTO 在概念上的区别，本节将会告诉你如何在应用中做出正确的选择。</p>
+
+<p>在以下才场景中，我们可以考虑把 VO 与 DTO 二合为一（注意：是实现层面）：</p>
+
+<ul>
+<li><p>当需求非常清晰稳定，而且客户端很明确只有一个的时候，没有必要把 VO 和 DTO 区分开来，这时候 VO 可以退隐，用一个 DTO 即可，为什么是 VO 退隐而不是 DTO ？回到设计层面，服务层的职责依然不应该与展示层耦合，所以，对于前面的例子，你很容易理解，DTO 对于 “性别” 来说，依然不能用 “帅哥美女”，这个转换应该依赖于页面的脚本（如 JavaScript）或其他机制（JSTL、EL、CSS）</p>
+
+<p>即使客户端可以进行定制，或者存在多个不同的客户端，如果客户端能够用某种技术（脚本或其他机制）实现转换，同样可以让 VO 退隐</p></li>
+</ul>
+
+<p>以下场景需要优先考虑 VO、DTO 并存：</p>
+
+<p>上述场景的反面场景</p>
+
+<ul>
+<li><p>因为某种技术原因，比如某个框架（如 Flex）提供自动把 POJO 转换为 UI 中某些 Field 时，可以考虑在实现层面定义出 VO，这个权衡完全取决于使用框架的自动转换能力带来的开发和维护效率提升与设计多一个 VO 所多做的事情带来的开发和维护效率的下降之间的比对。</p>
+
+<p>如果页面出现一个 “大视图”，而组成这个大视图的所有数据需要调用多个服务，返回多个 DTO 来组装（当然，这同样可以通过服务层提供一次性返回一个大视图的 DTO 来取代，但在服务层提供一个这样的方法是否合适，需要在设计层面进行权衡）。</p></li>
+</ul>
+
+<h5 id="dtodo">DTO 与 DO 的区别</h5>
+
+<p>首先是概念上的区别，DTO 是展示层和服务层之间的数据传输对象（可以认为是两者之间的协议），而 DO 是对现实世界各种业务角色的抽象，这就引出了两者在数据上的区别，例如 UserInfo 和 User（对于 DTO 和 DO 的命名规则，请参见笔者前面的一篇博文），对于一个 getUser 方法来说，本质上它永远不应该返回用户的密码，因此 UserInfo 至少比 User 少一个 password 的数据。而在领域驱动设计中，正如第一篇系列文章所说，DO 不是简单的 POJO，它具有领域业务逻辑。</p>
+
+<h5 id="dtodo">DTO 与 DO 的应用</h5>
+
+<p>从上一节的例子中，细心的读者可能会发现问题：既然 getUser 方法返回的 UserInfo 不应该包含 password，那么就不应该存在 password 这个属性定义，但如果同时有一个 createUser 的方法，传入的 UserInfo 需要包含用户的 password，怎么办？在设计层面，展示层向服务层传递的 DTO 与服务层返回给展示层的 DTO 在概念上是不同的，但在实现层面，我们通常很少会这样做（定义两个 UserInfo，甚至更多），因为这样做并不见得很明智，我们完全可以设计一个完全兼容的 DTO，在服务层接收数据的时候，不该由展示层设置的属性（如订单的总价应该由其单价、数量、折扣等决定），无论展示层是否设置，服务层都一概忽略，而在服务层返回数据时，不该返回的数据（如用户密码），就不设置对应的属性。</p>
+
+<p>对于 DO 来说，还有一点需要说明：为什么不在服务层中直接返回 DO 呢？这样可以省去 DTO 的编码和转换工作，原因如下：</p>
+
+<ul>
+<li><p>两者在本质上的区别可能导致彼此并不一一对应，一个 DTO 可能对应多个 DO，反之亦然，甚至两者存在多对多的关系。</p></li>
+<li><p>DO 具有一些不应该让展示层知道的数据</p></li>
+<li><p>DO 具有业务方法，如果直接把 DO 传递给展示层，展示层的代码就可以绕过服务层直接调用它不应该访问的操作，对于基于 AOP 拦截服务层来进行访问控制的机制来说，这问题尤为突出，而在展示层调用 DO 的业务方法也会因为事务的问题，让事务难以控制。</p></li>
+<li><p>对于某些 ORM 框架（如 Hibernate）来说，通常会使用 “延迟加载” 技术，如果直接把 DO 暴露给展示层，对于大部分情况，展示层不在事务范围之内（Open session in view 在大部分情况下不是一种值得推崇的设计），如果其尝试在 Session 关闭的情况下获取一个未加载的关联对象，会出现运行时异常（对于 Hibernate 来说，就是 LazyInitiliaztionException）。</p></li>
+<li><p>从设计层面来说，展示层依赖于服务层，服务层依赖于领域层，如果把 DO 暴露出去，就会导致展示层直接依赖于领域层，这虽然依然是单向依赖，但这种跨层依赖会导致不必要的耦合。</p></li>
+</ul>
+
+<p>对于 DTO 来说，也有一点必须进行说明，就是 DTO 应该是一个“扁平的二维对象”，举个例子来说明：如果 User 会关联若干个其他实体（例如 Address、Account、Region 等），那么 getUser() 返回的 UserInfo，是否就需要把其关联的对象的 DTO 都一并返回呢？如果这样的话，必然导致数据传输量的大增，对于分布式应用来说，由于涉及数据在网络上的传输、序列化和反序列化，这种设计更不可接受。如果 getUser 除了要返回 User 的基本信息外，还需要返回一个 AccountId、AccountName、RegionId、RegionName，那么，请把这些属性定义到 UserInfo 中，把一个“立体”的对象树“压扁”成一个“扁平的二维对象”，笔者目前参与的项目是一个分布式系统，该系统不管三七二十一，把一个对象的所有关联对象都转换为相同结构的 DTO 对象树并返回，导致性能非常的慢。</p>
+
+<h5 id="dopo">DO 与 PO 的区别</h5>
+
+<p>DO 和 PO 在绝大部分情况下是一一对应的，PO 是只含有 get/set 方法的 POJO，但某些场景还是能反映出两者在概念上存在本质的区别：</p>
+
+<ul>
+<li><p>DO 在某些场景下不需要进行显式的持久化，例如利用策略模式设计的商品折扣策略，会衍生出折扣策略的接口和不同折扣策略实现类，这些折扣策略实现类可以算是 DO，但它们只驻留在静态内存，不需要持久化到持久层，因此，这类 DO 是不存在对应的 PO 的。</p></li>
+<li><p>同样的道理，某些场景下，PO 也没有对应的 DO，例如老师 Teacher 和学生 Student 存在多对多的关系，在关系数据库中，这种关系需要表现为一个中间表，也就对应有一个 TeacherAndStudentPO 的 PO，但这个 PO 在业务领域没有任何现实的意义，它完全不能与任何 DO 对应上。这里要特别声明，并不是所有多对多关系都没有业务含义，这跟具体业务场景有关，例如：两个 PO 之间的关系会影响具体业务，并且这种关系存在多种类型，那么这种多对多关系也应该表现为一个 DO，又如：“角色”与“资源”之间存在多对多关系，而这种关系很明显会表现为一个 DO ——“权限”。</p></li>
+<li><p>某些情况下，为了某种持久化策略或者性能的考虑，一个 PO 可能对应多个 DO，反之亦然。例如客户 Customer 有其联系信息 Contacts，这里是两个一对一关系的 DO，但可能出于性能的考虑（极端情况，权作举例），为了减少数据库的连接查询操作，把 Customer 和 Contacts 两个 DO 数据合并到一张数据表中。反过来，如果一本图书 Book，有一个属性是封面 cover，但该属性是一副图片的二进制数据，而某些查询操作不希望把 cover 一并加载，从而减轻磁盘 IO 开销，同时假设 ORM 框架不支持属性级别的延迟加载，那么就需要考虑把 cover 独立到一张数据表中去，这样就形成一个 DO 对应对个 PO 的情况。</p></li>
+<li><p>PO 的某些属性值对于 DO 没有任何意义，这些属性值可能是为了解决某些持久化策略而存在的数据，例如为了实现“乐观锁”，PO 存在一个 version 的属性，这个 version 对于 DO 来说是没有任何业务意义的，它不应该在 DO 中存在。同理，DO 中也可能存在不需要持久化的属性。</p></li>
+</ul>
+
+<h5 id="dopo">DO 与 PO 的应用</h5>
+
+<p>由于 ORM 框架的功能非常强大而大行其道，而且 JavaEE 也推出了 JPA 规范，现在的业务应用开发，基本上不需要区分 DO 与 PO，PO 完全可以通过 JPA，Hibernate Annotations/hbm 隐藏在 DO 之中。虽然如此，但有些问题我们还必须注意：</p>
+
+<ul>
+<li><p>对于 DO 中不需要持久化的属性，需要通过 ORM 显式的声明，如：在 JPA 中，可以利用 @Transient 声明。</p></li>
+<li><p>对于 PO 中为了某种持久化策略而存在的属性，例如 version，由于 DO、PO 合并了，必须在 DO 中声明，但由于这个属性对 DO 是没有任何业务意义的，需要让该属性对外隐藏起来，最常见的做法是把该属性的 get/set 方法私有化，甚至不提供 get/set 方法，但对于 Hibernate 来说，这需要特别注意，由于 Hibernate 从数据库读取数据转换为 DO 时，是利用反射机制先调用 DO 的空参数构造函数构造DO实例，然后再利用 JavaBean 的规范反射出 set 方法来为每个属性设值，如果不显式声明 set 方法，或把 set 方法设置为 private，都会导致 Hibernate 无法初始化 DO，从而出现运行时异常，可行的做法是把属性的 set 方法设置为 protected。</p></li>
+<li><p>对于一个 DO 对应多个 PO，或者一个 PO 对应多个 DO 的场景，以及属性级别的延迟加载，Hibernate 都提供了很好的支持，请参考 Hibernate 的相关资料。</p></li>
+</ul>
+
+<p>通过上面的详细分析，我们还可以总结出一个原则：分析设计层面和实现层面完全是两个独立的层面，即使实现层面通过某种技术手段可以把两个完全独立的概念合二为一，在分析设计层面，我们仍然（至少在头脑中）需要把概念上独立的东西清晰的区分开来，这个原则对于做好分析设计非常重要（工具越先进，往往会让我们越麻木）。第一篇系列博文抛砖引玉，大唱领域驱动设计的优势，但其实领域驱动设计在现实环境中还是有种种的限制，需要选择性的使用，正如我在《田七的智慧》博文中提到，我们不能永远的理想化的去选择所谓“最好的设计”，在必要的情况下，我们还是要敢于放弃，因为最合适的设计才是最好的设计。</p>
+
+<p>参考链接：</p>
+
+<ul>
+<li><p><a href="https://www.cnblogs.com/qixuejia/p/4390086.html" target="_blank">领域驱动设计系列文章（2）——浅析VO、DTO、DO、PO的概念、区别和用处</a></p></li>
+<li><p><a href="https://blog.csdn.net/weixin_40171603/article/details/90709262?depth_1-utm_source=distribute.pc_relevant.none-task&amp;utm_source=distribute.pc_relevant.none-task" target="_blank">VO、 PO、DO、DTO、 BO、 QO、DAO、POJO在三层架构中的对应位置</a></p></li>
+</ul>
+
+<h4 id="springmvcjavadaodovobodtopojo">Springmvc-JAVA对象规范：DAO DO VO BO DTO POJO</h4>
+
+<p>假设以个人简历为业务模块，包含了用户基本信息(table<em>user)、教育经历（table</em>edu）、专业技能(table_skill)等为例子</p>
+
+<ul>
+<li><p><strong>DAO</strong></p>
+
+<p>UserDAO 定义了对 table_user 表操作的接口，存放各种增删查改的 api</p></li>
+<li><p><strong>DO</strong></p>
+
+<p>UserDO 一一对应 table_user 表所有字段映射的实体类，只有属性 setter 和 getter 方法，建议仅仅用于操作 DAO 层执行 sql 时的传参</p></li>
+<li><p><strong>DTO</strong></p>
+
+<p>数据层传输对象,UserDTO 用于接受来自 UserPO 的数据，存放业务需要的字段属性，比如 UserDO 有 10 个字段属性，UserDTO 可能存放这 10 个字段中的几个,或者是将 UserVO 数据转换成 UserDTO，再向 UserDO 传输。</p></li>
+<li><p><strong>BO</strong></p>
+
+<p>存放多个业务需要的字段属性(可在对象里面定义其他对象作为属性)，接受来自多个PO 或 多个 DTO 或 DO 组合 DTO,例如前端需要展示用户完整的简历信息可由 UserDTO (或者 UserDO)、EduDTO(或者 EduDO)、SkillDTO(或者 SkillDO)组成一个 ResumeBO 对象返回前端或者是在各服务层传输使用</p></li>
+<li><p><strong>VO</strong></p>
+
+<p>表示层对象,主要用于接收来自前端的数据，将其映射成对象，作用跟 BO 相反，个人建议前端数据字段属性应与 DTO 对象属性(字段)一致</p></li>
+</ul>
+
+<p>参考链接：</p>
+
+<ul>
+<li><a href="https://blog.csdn.net/qq_28455613/article/details/72546494" target="_blank">Springmvc-JAVA对象规范：DAO DO VO BO DTO POJO</a></li>
+</ul>
+
+<h4 id="javavodtoentity">Java 项目中 VO 和 DTO 以及 Entity，各自是在什么情况下应用的</h4>
+
+<p>就是在项目环境下，这三者的应用场景是什么？最好可以举个例子，方便理解！！ </p>
+
+<p>你好，按照标准来说：</p>
+
+<ul>
+<li><p>1、Entity 里的每一个字段，与数据库相对应，</p></li>
+<li><p>2、DTO 里的每一个字段，是和你前台页面相对应，</p></li>
+<li><p>3、VO，这是用来转换从 Entity 到 DTO，或者从 DTO 到 Entity 的中间的东西。</p></li>
+</ul>
+
+<p>举个例子：</p>
+
+<p>你的 HTML 页面上有三个字段，name，pass，age</p>
+
+<p>你的数据库表里，有两个字段，name，pass (注意没有 age 哦)</p>
+
+<p>而你的 DTO 里，就应该有下面三个(因为对应 HTML 页面上三个字段嘛)</p>
+
+<div><div class="syntaxhighlighter  java" id="highlighter_496194"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="java keyword">private</code> <code class="java plain">string name；</code></div><div class="line number2 index1 alt1">&nbsp;</div><div class="line number3 index2 alt2"><code class="java keyword">private</code> <code class="java plain">string pass; </code></div><div class="line number4 index3 alt1">&nbsp;</div><div class="line number5 index4 alt2"><code class="java keyword">private</code> <code class="java plain">string age;</code></div></div></td></tr></tbody></table></div></div>
+
+<p>这个时候，你的 Entity 里，就应该有两个(因为对应数据库表中的 2 个字段嘛)</p>
+
+<div><div class="syntaxhighlighter  java" id="highlighter_564808"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="java keyword">private</code> <code class="java plain">string name；</code></div><div class="line number2 index1 alt1">&nbsp;</div><div class="line number3 index2 alt2"><code class="java keyword">private</code> <code class="java plain">string pass;</code></div></div></td></tr></tbody></table></div></div>
+
+<p>到了这里，好了，业务经理让你做这样一个业务 “年龄大于 20 的才能存入数据库”</p>
+
+<p>这个时候，你就要用到 VO 了</p>
+
+<p>你要先从页面上拿到 DTO，然后判断 DTO 中的 age 是不是大于 20，如果大于 20，就把 DTO 中的 name 和 pass 拿出来，放到 VO 中，然后在把 VO 中的 name 和 pass 原封不懂的给 Entity，然后根据 Entity 的值，在传入数据库，这就是他们三个的区别。</p>
+
+<p>VO 和 Entity 里面的字段应该是一样的，VO 只是 Entity 到 DTO，或者 DTO 到 Entity 的中间过程，如果没有这个过程，你仍然可以做到增删改查，这个就根据具体公司来的。</p>
+
+<p>参考链接：</p>
+
+<ul>
+<li><a href="https://zhidao.baidu.com/question/1734580348598407267.html" target="_blank">Java 项目中 VO 和 DTO 以及 Entity，各自是在什么情况下应用的</a></li>
+</ul>
+
+<h4 id="javavodto">Java 的 VO、DTO 之间的转换，各种工具类</h4>
+
+<h5>一、背景</h5>
+
+<p>领域模型中的实体类分为四种类型：VO、DTO、DO、PO</p>
+
+<h5>二、详细讲解</h5>
+
+<ul>
+<li><p>VO（View Object）</p>
+
+<p>视图对象，用于展示层，它的作用是把某个指定页面（或组件）的所有数据封装起来。</p></li>
+<li><p>DTO（Data Transfer Object）</p>
+
+<p>数据传输对象，这个概念来源于 J2EE 的设计模式，原来的目的是为了 EJB 的分布式应用提供粗粒度的数据实体，以减少分布式调用的次数，从而提高分布式调用的性能和降低网络负载，但在这里，我泛指用于展示层与服务层之间的数据传输对象。</p></li>
+<li><p>DO（Domain Object）</p>
+
+<p>领域对象，就是从现实世界中抽象出来的有形或无形的业务实体。</p></li>
+<li><p>PO（PersistentObject）</p>
+
+<p>持久化对象，它跟持久层（通常是关系型数据库）的数据结构形成一一对应的映射关系，如果持久层是关系型数据库，那么，数据表中的每个字段（或若干个）就对应PO的一个（或若干个）属性。</p></li>
+</ul>
+
+<p>举例：</p>
+
+<p>后端返回个前端的对象，可以 ***VO.java</p>
+
+<p>MyBatis 生成的 dao 表实体对象，可以 ***PO.java</p>
+
+<p>一般是 PO 转换 DO 然后 转换 DTO 提供服务供外部调用</p>
+
+<h6>注意</h6>
+
+<ul>
+<li><p>PO 一般自动生成和表字段一一映射</p></li>
+<li><p>DO 一般和 DO 很多字段是一样带，但很多如类型字段是枚举,有的项目中 DO 是 Model 结尾的类</p></li>
+<li><p>DTO 如 WebService 接口（提供外部服务的），返回结果对象都是 DTO，里面属性的定义比较讲究，易懂安全好扩展，DTO 与 DTO 之间关系是包含还是平级，设计的时候一定要定义清楚，不然后期就是个坑</p></li>
+<li><p>VO 比较简单，前端展示需要什么就怎么定义</p></li>
+</ul>
+
+<h5>三、实体对象间的转换</h5>
+
+<p>一个规范的项目</p>
+
+<p>代码中充满了 VO、From、DTO、DO 等等 POJO 类，这些类作用不一样但类里面的属性值往往一模一样，当属性非常多时，一个个 set 的确非常累人又耗时间，其实强大的 Spring 早为我们准备好了贴心工具，一行搞定以前甚至 30 行的代码量</p>
+
+<h5>四、第一种方法的具体代码例子</h5>
+
+<p>导入依赖</p>
+
+<div><div class="syntaxhighlighter  xml" id="highlighter_928946"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="xml plain">&lt;</code><code class="xml keyword">dependency</code><code class="xml plain">&gt;</code></div><div class="line number2 index1 alt1"><code class="xml spaces">&nbsp;&nbsp;</code><code class="xml plain">&lt;</code><code class="xml keyword">groupId</code><code class="xml plain">&gt;org.springframework&lt;/</code><code class="xml keyword">groupId</code><code class="xml plain">&gt;</code></div><div class="line number3 index2 alt2"><code class="xml spaces">&nbsp;&nbsp;</code><code class="xml plain">&lt;</code><code class="xml keyword">artifactId</code><code class="xml plain">&gt;spring-beans&lt;/</code><code class="xml keyword">artifactId</code><code class="xml plain">&gt;</code></div><div class="line number4 index3 alt1"><code class="xml spaces">&nbsp;&nbsp;</code><code class="xml plain">&lt;</code><code class="xml keyword">version</code><code class="xml plain">&gt;5.1.6.RELEASE&lt;/</code><code class="xml keyword">version</code><code class="xml plain">&gt;</code></div><div class="line number5 index4 alt2"><code class="xml plain">&lt;/</code><code class="xml keyword">dependency</code><code class="xml plain">&gt;</code></div></div></td></tr></tbody></table></div></div>
+
+<p>一个 DTO（接口定义对象一般用 DTO）</p>
+
+<div><div class="syntaxhighlighter  java" id="highlighter_150286"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div><div class="line number15 index14 alt2">15</div><div class="line number16 index15 alt1">16</div><div class="line number17 index16 alt2">17</div><div class="line number18 index17 alt1">18</div><div class="line number19 index18 alt2">19</div><div class="line number20 index19 alt1">20</div><div class="line number21 index20 alt2">21</div><div class="line number22 index21 alt1">22</div><div class="line number23 index22 alt2">23</div><div class="line number24 index23 alt1">24</div><div class="line number25 index24 alt2">25</div><div class="line number26 index25 alt1">26</div><div class="line number27 index26 alt2">27</div><div class="line number28 index27 alt1">28</div><div class="line number29 index28 alt2">29</div><div class="line number30 index29 alt1">30</div><div class="line number31 index30 alt2">31</div><div class="line number32 index31 alt1">32</div><div class="line number33 index32 alt2">33</div><div class="line number34 index33 alt1">34</div><div class="line number35 index34 alt2">35</div><div class="line number36 index35 alt1">36</div><div class="line number37 index36 alt2">37</div><div class="line number38 index37 alt1">38</div><div class="line number39 index38 alt2">39</div><div class="line number40 index39 alt1">40</div><div class="line number41 index40 alt2">41</div><div class="line number42 index41 alt1">42</div><div class="line number43 index42 alt2">43</div><div class="line number44 index43 alt1">44</div><div class="line number45 index44 alt2">45</div><div class="line number46 index45 alt1">46</div><div class="line number47 index46 alt2">47</div><div class="line number48 index47 alt1">48</div><div class="line number49 index48 alt2">49</div><div class="line number50 index49 alt1">50</div><div class="line number51 index50 alt2">51</div><div class="line number52 index51 alt1">52</div><div class="line number53 index52 alt2">53</div><div class="line number54 index53 alt1">54</div><div class="line number55 index54 alt2">55</div><div class="line number56 index55 alt1">56</div><div class="line number57 index56 alt2">57</div><div class="line number58 index57 alt1">58</div><div class="line number59 index58 alt2">59</div><div class="line number60 index59 alt1">60</div><div class="line number61 index60 alt2">61</div><div class="line number62 index61 alt1">62</div><div class="line number63 index62 alt2">63</div><div class="line number64 index63 alt1">64</div><div class="line number65 index64 alt2">65</div><div class="line number66 index65 alt1">66</div><div class="line number67 index66 alt2">67</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="java keyword">public</code> <code class="java keyword">class</code> <code class="java plain">TestDemoDTO {</code></div><div class="line number2 index1 alt1">&nbsp;</div><div class="line number3 index2 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">String name;</code></div><div class="line number4 index3 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">Map&lt;String,String&gt; citys;</code></div><div class="line number5 index4 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">Date gmtStart;</code></div><div class="line number6 index5 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">Boolean flag;</code></div><div class="line number7 index6 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">Integer age;</code></div><div class="line number8 index7 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">List&lt;String&gt; types;</code></div><div class="line number9 index8 alt2">&nbsp;</div><div class="line number10 index9 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">String getName() {</code></div><div class="line number11 index10 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">name;</code></div><div class="line number12 index11 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number13 index12 alt2">&nbsp;</div><div class="line number14 index13 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setName(String name) {</code></div><div class="line number15 index14 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.name = name;</code></div><div class="line number16 index15 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number17 index16 alt2">&nbsp;</div><div class="line number18 index17 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">Map&lt;String, String&gt; getCitys() {</code></div><div class="line number19 index18 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">citys;</code></div><div class="line number20 index19 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number21 index20 alt2">&nbsp;</div><div class="line number22 index21 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setCitys(Map&lt;String, String&gt; citys) {</code></div><div class="line number23 index22 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.citys = citys;</code></div><div class="line number24 index23 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number25 index24 alt2">&nbsp;</div><div class="line number26 index25 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">Date getGmtStart() {</code></div><div class="line number27 index26 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">gmtStart;</code></div><div class="line number28 index27 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number29 index28 alt2">&nbsp;</div><div class="line number30 index29 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setGmtStart(Date gmtStart) {</code></div><div class="line number31 index30 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.gmtStart = gmtStart;</code></div><div class="line number32 index31 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number33 index32 alt2">&nbsp;</div><div class="line number34 index33 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">Boolean getFlag() {</code></div><div class="line number35 index34 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">flag;</code></div><div class="line number36 index35 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number37 index36 alt2">&nbsp;</div><div class="line number38 index37 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setFlag(Boolean flag) {</code></div><div class="line number39 index38 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.flag = flag;</code></div><div class="line number40 index39 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number41 index40 alt2">&nbsp;</div><div class="line number42 index41 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">Integer getAge() {</code></div><div class="line number43 index42 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">age;</code></div><div class="line number44 index43 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number45 index44 alt2">&nbsp;</div><div class="line number46 index45 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setAge(Integer age) {</code></div><div class="line number47 index46 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.age = age;</code></div><div class="line number48 index47 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number49 index48 alt2">&nbsp;</div><div class="line number50 index49 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">List&lt;String&gt; getTypes() {</code></div><div class="line number51 index50 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">types;</code></div><div class="line number52 index51 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number53 index52 alt2">&nbsp;</div><div class="line number54 index53 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setTypes(List&lt;String&gt; types) {</code></div><div class="line number55 index54 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.types = types;</code></div><div class="line number56 index55 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number57 index56 alt2">&nbsp;</div><div class="line number58 index57 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java color1">@Override</code></div><div class="line number59 index58 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">String toString() {</code></div><div class="line number60 index59 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java string">"TestDemoDTO{"</code> <code class="java plain">+ </code><code class="java string">"name='"</code> <code class="java plain">+ name + </code><code class="java string">"'"</code> <code class="java plain">+ </code></div><div class="line number61 index60 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", citys="</code> <code class="java plain">+ citys + </code></div><div class="line number62 index61 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", gmtStart="</code> <code class="java plain">+ gmtStart +</code></div><div class="line number63 index62 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", flag="</code> <code class="java plain">+ flag + </code></div><div class="line number64 index63 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", age="</code> <code class="java plain">+ age + </code></div><div class="line number65 index64 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", types="</code> <code class="java plain">+ types + </code><code class="java string">"}"</code><code class="java plain">;</code></div><div class="line number66 index65 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number67 index66 alt2"><code class="java plain">}</code></div></div></td></tr></tbody></table></div></div>
+
+<p>一个 From（前端入参定义 From）</p>
+
+<div><div class="syntaxhighlighter  java" id="highlighter_278675"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div><div class="line number15 index14 alt2">15</div><div class="line number16 index15 alt1">16</div><div class="line number17 index16 alt2">17</div><div class="line number18 index17 alt1">18</div><div class="line number19 index18 alt2">19</div><div class="line number20 index19 alt1">20</div><div class="line number21 index20 alt2">21</div><div class="line number22 index21 alt1">22</div><div class="line number23 index22 alt2">23</div><div class="line number24 index23 alt1">24</div><div class="line number25 index24 alt2">25</div><div class="line number26 index25 alt1">26</div><div class="line number27 index26 alt2">27</div><div class="line number28 index27 alt1">28</div><div class="line number29 index28 alt2">29</div><div class="line number30 index29 alt1">30</div><div class="line number31 index30 alt2">31</div><div class="line number32 index31 alt1">32</div><div class="line number33 index32 alt2">33</div><div class="line number34 index33 alt1">34</div><div class="line number35 index34 alt2">35</div><div class="line number36 index35 alt1">36</div><div class="line number37 index36 alt2">37</div><div class="line number38 index37 alt1">38</div><div class="line number39 index38 alt2">39</div><div class="line number40 index39 alt1">40</div><div class="line number41 index40 alt2">41</div><div class="line number42 index41 alt1">42</div><div class="line number43 index42 alt2">43</div><div class="line number44 index43 alt1">44</div><div class="line number45 index44 alt2">45</div><div class="line number46 index45 alt1">46</div><div class="line number47 index46 alt2">47</div><div class="line number48 index47 alt1">48</div><div class="line number49 index48 alt2">49</div><div class="line number50 index49 alt1">50</div><div class="line number51 index50 alt2">51</div><div class="line number52 index51 alt1">52</div><div class="line number53 index52 alt2">53</div><div class="line number54 index53 alt1">54</div><div class="line number55 index54 alt2">55</div><div class="line number56 index55 alt1">56</div><div class="line number57 index56 alt2">57</div><div class="line number58 index57 alt1">58</div><div class="line number59 index58 alt2">59</div><div class="line number60 index59 alt1">60</div><div class="line number61 index60 alt2">61</div><div class="line number62 index61 alt1">62</div><div class="line number63 index62 alt2">63</div><div class="line number64 index63 alt1">64</div><div class="line number65 index64 alt2">65</div><div class="line number66 index65 alt1">66</div><div class="line number67 index66 alt2">67</div><div class="line number68 index67 alt1">68</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="java keyword">public</code> <code class="java keyword">class</code> <code class="java plain">TestDemoFrom {</code></div><div class="line number2 index1 alt1">&nbsp;</div><div class="line number3 index2 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">String name;</code></div><div class="line number4 index3 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">Map&lt;String,String&gt; citys;</code></div><div class="line number5 index4 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">Date gmtStart;</code></div><div class="line number6 index5 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">Boolean flag;</code></div><div class="line number7 index6 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">Integer age;</code></div><div class="line number8 index7 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">private</code> <code class="java plain">List&lt;String&gt; types;</code></div><div class="line number9 index8 alt2">&nbsp;</div><div class="line number10 index9 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">String getName() {</code></div><div class="line number11 index10 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">name;</code></div><div class="line number12 index11 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number13 index12 alt2">&nbsp;</div><div class="line number14 index13 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setName(String name) {</code></div><div class="line number15 index14 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.name = name;</code></div><div class="line number16 index15 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number17 index16 alt2">&nbsp;</div><div class="line number18 index17 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">Map&lt;String, String&gt; getCitys() {</code></div><div class="line number19 index18 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">citys;</code></div><div class="line number20 index19 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number21 index20 alt2">&nbsp;</div><div class="line number22 index21 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setCitys(Map&lt;String, String&gt; citys) {</code></div><div class="line number23 index22 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.citys = citys;</code></div><div class="line number24 index23 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number25 index24 alt2">&nbsp;</div><div class="line number26 index25 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">Date getGmtStart() {</code></div><div class="line number27 index26 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">gmtStart;</code></div><div class="line number28 index27 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number29 index28 alt2">&nbsp;</div><div class="line number30 index29 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setGmtStart(Date gmtStart) {</code></div><div class="line number31 index30 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.gmtStart = gmtStart;</code></div><div class="line number32 index31 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number33 index32 alt2">&nbsp;</div><div class="line number34 index33 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">Boolean getFlag() {</code></div><div class="line number35 index34 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">flag;</code></div><div class="line number36 index35 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number37 index36 alt2">&nbsp;</div><div class="line number38 index37 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setFlag(Boolean flag) {</code></div><div class="line number39 index38 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.flag = flag;</code></div><div class="line number40 index39 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number41 index40 alt2">&nbsp;</div><div class="line number42 index41 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">Integer getAge() {</code></div><div class="line number43 index42 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">age;</code></div><div class="line number44 index43 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number45 index44 alt2">&nbsp;</div><div class="line number46 index45 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setAge(Integer age) {</code></div><div class="line number47 index46 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.age = age;</code></div><div class="line number48 index47 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number49 index48 alt2">&nbsp;</div><div class="line number50 index49 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">List&lt;String&gt; getTypes() {</code></div><div class="line number51 index50 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">types;</code></div><div class="line number52 index51 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number53 index52 alt2">&nbsp;</div><div class="line number54 index53 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">setTypes(List&lt;String&gt; types) {</code></div><div class="line number55 index54 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">this</code><code class="java plain">.types = types;</code></div><div class="line number56 index55 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number57 index56 alt2">&nbsp;</div><div class="line number58 index57 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java color1">@Override</code></div><div class="line number59 index58 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java plain">String toString() {</code></div><div class="line number60 index59 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java string">"TestDemoFrom{"</code> <code class="java plain">+ </code><code class="java string">"name='"</code> <code class="java plain">+ name + </code><code class="java string">"'"</code> <code class="java plain">+ </code></div><div class="line number61 index60 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", citys="</code> <code class="java plain">+ citys + </code></div><div class="line number62 index61 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", gmtStart="</code> <code class="java plain">+ gmtStart +</code></div><div class="line number63 index62 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", flag="</code> <code class="java plain">+ flag + </code></div><div class="line number64 index63 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", age="</code> <code class="java plain">+ age + </code></div><div class="line number65 index64 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java string">", types="</code> <code class="java plain">+ types + </code><code class="java string">"}"</code><code class="java plain">;</code></div><div class="line number66 index65 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number67 index66 alt2">&nbsp;</div><div class="line number68 index67 alt1"><code class="java plain">}</code></div></div></td></tr></tbody></table></div></div>
+
+<p>测试类</p>
+
+<div><div class="syntaxhighlighter  java" id="highlighter_699574"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div><div class="line number15 index14 alt2">15</div><div class="line number16 index15 alt1">16</div><div class="line number17 index16 alt2">17</div><div class="line number18 index17 alt1">18</div><div class="line number19 index18 alt2">19</div><div class="line number20 index19 alt1">20</div><div class="line number21 index20 alt2">21</div><div class="line number22 index21 alt1">22</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="java keyword">public</code> <code class="java keyword">class</code> <code class="java plain">TestDemo {</code></div><div class="line number2 index1 alt1">&nbsp;</div><div class="line number3 index2 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">static</code> <code class="java keyword">void</code> <code class="java plain">main(String[] args) {</code></div><div class="line number4 index3 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">TestDemoFrom testDemoFrom = </code><code class="java keyword">new</code> <code class="java plain">TestDemoFrom();</code></div><div class="line number5 index4 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">HashMap&lt;String, String&gt; map = Maps.newHashMap();</code></div><div class="line number6 index5 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">map.put(</code><code class="java string">"001"</code><code class="java plain">,</code><code class="java string">"北京"</code><code class="java plain">);</code></div><div class="line number7 index6 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">map.put(</code><code class="java string">"002"</code><code class="java plain">,</code><code class="java string">"上海"</code><code class="java plain">);</code></div><div class="line number8 index7 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">map.put(</code><code class="java string">"003"</code><code class="java plain">,</code><code class="java string">"广州"</code><code class="java plain">);</code></div><div class="line number9 index8 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setCitys(map);</code></div><div class="line number10 index9 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setFlag(</code><code class="java keyword">true</code><code class="java plain">);</code></div><div class="line number11 index10 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setGmtStart(</code><code class="java keyword">new</code> <code class="java plain">Date());</code></div><div class="line number12 index11 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setName(</code><code class="java string">"诺言"</code><code class="java plain">);</code></div><div class="line number13 index12 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setAge(</code><code class="java value">18</code><code class="java plain">);</code></div><div class="line number14 index13 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setTypes(Lists.newArrayList(</code><code class="java string">"我爱"</code><code class="java plain">,</code><code class="java string">"宝贝"</code><code class="java plain">));</code></div><div class="line number15 index14 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.printf(testDemoFrom.toString()+</code><code class="java string">"\n"</code><code class="java plain">);</code></div><div class="line number16 index15 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">// 下面就可以开始转化了，就一行代码</code></div><div class="line number17 index16 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">TestDemoDTO testDemoDTO = </code><code class="java keyword">new</code> <code class="java plain">TestDemoDTO();</code></div><div class="line number18 index17 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">BeanUtils.copyProperties(testDemoFrom, testDemoDTO);</code></div><div class="line number19 index18 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(testDemoDTO.toString());</code></div><div class="line number20 index19 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number21 index20 alt2">&nbsp;</div><div class="line number22 index21 alt1"><code class="java plain">}</code></div></div></td></tr></tbody></table></div></div>
+
+<p>结果</p>
+
+<div><div class="syntaxhighlighter  python" id="highlighter_109620"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="python plain">TestDemoFrom{name</code><code class="python keyword">=</code><code class="python string">'诺言'</code><code class="python plain">, citys</code><code class="python keyword">=</code><code class="python plain">{</code><code class="python value">001</code><code class="python keyword">=</code><code class="python plain">北京, </code><code class="python value">002</code><code class="python keyword">=</code><code class="python plain">上海, </code><code class="python value">003</code><code class="python keyword">=</code><code class="python plain">广州}, gmtStart</code><code class="python keyword">=</code><code class="python plain">Fri May </code><code class="python value">10</code> <code class="python value">22</code><code class="python plain">:</code><code class="python value">37</code><code class="python plain">:</code><code class="python value">53</code> <code class="python plain">CST </code><code class="python value">2019</code><code class="python plain">, flag</code><code class="python keyword">=</code><code class="python plain">true, age</code><code class="python keyword">=</code><code class="python value">18</code><code class="python plain">, types</code><code class="python keyword">=</code><code class="python plain">[我爱, 宝贝]}</code></div><div class="line number2 index1 alt1"><code class="python plain">TestDemoDTO{name</code><code class="python keyword">=</code><code class="python string">'诺言'</code><code class="python plain">, citys</code><code class="python keyword">=</code><code class="python plain">{</code><code class="python value">001</code><code class="python keyword">=</code><code class="python plain">北京, </code><code class="python value">002</code><code class="python keyword">=</code><code class="python plain">上海, </code><code class="python value">003</code><code class="python keyword">=</code><code class="python plain">广州}, gmtStart</code><code class="python keyword">=</code><code class="python plain">Fri May </code><code class="python value">10</code> <code class="python value">22</code><code class="python plain">:</code><code class="python value">37</code><code class="python plain">:</code><code class="python value">53</code> <code class="python plain">CST </code><code class="python value">2019</code><code class="python plain">, flag</code><code class="python keyword">=</code><code class="python plain">true, age</code><code class="python keyword">=</code><code class="python value">18</code><code class="python plain">, types</code><code class="python keyword">=</code><code class="python plain">[我爱, 宝贝]}</code></div></div></td></tr></tbody></table></div></div>
+
+<p>注意</p>
+
+<p>注意赋值失败情况</p>
+
+<ul>
+<li><p>如果属性名称不同就会赋值不了</p></li>
+<li><p>如果类型不同，名称相同也是会赋值不了</p></li>
+</ul>
+
+<h5 id="dozer">五、第二种方法的具体代码例子（使用dozer）</h5>
+
+<p>导入依赖</p>
+
+<div><div class="syntaxhighlighter  xml" id="highlighter_72475"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="xml plain">&lt;</code><code class="xml keyword">dependency</code><code class="xml plain">&gt;</code></div><div class="line number2 index1 alt1"><code class="xml spaces">&nbsp;&nbsp;</code><code class="xml plain">&lt;</code><code class="xml keyword">groupId</code><code class="xml plain">&gt;net.sf.dozer&lt;/</code><code class="xml keyword">groupId</code><code class="xml plain">&gt;</code></div><div class="line number3 index2 alt2"><code class="xml spaces">&nbsp;&nbsp;</code><code class="xml plain">&lt;</code><code class="xml keyword">artifactId</code><code class="xml plain">&gt;dozer&lt;/</code><code class="xml keyword">artifactId</code><code class="xml plain">&gt;</code></div><div class="line number4 index3 alt1"><code class="xml spaces">&nbsp;&nbsp;</code><code class="xml plain">&lt;</code><code class="xml keyword">version</code><code class="xml plain">&gt;5.4.0&lt;/</code><code class="xml keyword">version</code><code class="xml plain">&gt;</code></div><div class="line number5 index4 alt2"><code class="xml plain">&lt;/</code><code class="xml keyword">dependency</code><code class="xml plain">&gt;</code></div></div></td></tr></tbody></table></div></div>
+
+<p>测试类</p>
+
+<div><div class="syntaxhighlighter  java" id="highlighter_441272"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div><div class="line number12 index11 alt1">12</div><div class="line number13 index12 alt2">13</div><div class="line number14 index13 alt1">14</div><div class="line number15 index14 alt2">15</div><div class="line number16 index15 alt1">16</div><div class="line number17 index16 alt2">17</div><div class="line number18 index17 alt1">18</div><div class="line number19 index18 alt2">19</div><div class="line number20 index19 alt1">20</div><div class="line number21 index20 alt2">21</div><div class="line number22 index21 alt1">22</div><div class="line number23 index22 alt2">23</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="java keyword">public</code> <code class="java keyword">class</code> <code class="java plain">TestDemoDozer {</code></div><div class="line number2 index1 alt1">&nbsp;</div><div class="line number3 index2 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java color1">@Test</code></div><div class="line number4 index3 alt1"><code class="java spaces">&nbsp;&nbsp;</code><code class="java keyword">public</code> <code class="java keyword">void</code> <code class="java plain">test() {</code></div><div class="line number5 index4 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">DozerBeanMapper mapper = </code><code class="java keyword">new</code> <code class="java plain">DozerBeanMapper();</code></div><div class="line number6 index5 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">TestDemoFrom testDemoFrom = </code><code class="java keyword">new</code> <code class="java plain">TestDemoFrom();</code></div><div class="line number7 index6 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">HashMap&lt;String, String&gt; map = Maps.newHashMap();</code></div><div class="line number8 index7 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">map.put(</code><code class="java string">"001"</code><code class="java plain">,</code><code class="java string">"北京"</code><code class="java plain">);</code></div><div class="line number9 index8 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">map.put(</code><code class="java string">"002"</code><code class="java plain">,</code><code class="java string">"上海"</code><code class="java plain">);</code></div><div class="line number10 index9 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">map.put(</code><code class="java string">"003"</code><code class="java plain">,</code><code class="java string">"广州"</code><code class="java plain">);</code></div><div class="line number11 index10 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setCitys(map);</code></div><div class="line number12 index11 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setFlag(</code><code class="java keyword">true</code><code class="java plain">);</code></div><div class="line number13 index12 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setGmtStart(</code><code class="java keyword">new</code> <code class="java plain">Date());</code></div><div class="line number14 index13 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setName(</code><code class="java string">"诺言"</code><code class="java plain">);</code></div><div class="line number15 index14 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setAge(</code><code class="java value">18</code><code class="java plain">);</code></div><div class="line number16 index15 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">testDemoFrom.setTypes(Lists.newArrayList(</code><code class="java string">"我爱"</code><code class="java plain">,</code><code class="java string">"宝贝"</code><code class="java plain">));</code></div><div class="line number17 index16 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.printf(testDemoFrom.toString() + </code><code class="java string">"\n"</code><code class="java plain">);</code></div><div class="line number18 index17 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java comments">// 转换</code></div><div class="line number19 index18 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">TestDemoDTO convert = mapper.map(testDemoFrom, TestDemoDTO.</code><code class="java keyword">class</code><code class="java plain">);</code></div><div class="line number20 index19 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">System.out.println(convert);</code></div><div class="line number21 index20 alt2"><code class="java spaces">&nbsp;&nbsp;</code><code class="java plain">}</code></div><div class="line number22 index21 alt1">&nbsp;</div><div class="line number23 index22 alt2"><code class="java plain">}</code></div></div></td></tr></tbody></table></div></div>
+
+<p>结果</p>
+
+<div><div class="syntaxhighlighter  python" id="highlighter_865473"><div class="toolbar"><span><a class="toolbar_item command_help help" href="#">?</a></span></div><table border="0" cellspacing="0" cellpadding="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="python plain">TestDemoFrom{name</code><code class="python keyword">=</code><code class="python string">'诺言'</code><code class="python plain">, citys</code><code class="python keyword">=</code><code class="python plain">{</code><code class="python value">001</code><code class="python keyword">=</code><code class="python plain">北京, </code><code class="python value">002</code><code class="python keyword">=</code><code class="python plain">上海, </code><code class="python value">003</code><code class="python keyword">=</code><code class="python plain">广州}, gmtStart</code><code class="python keyword">=</code><code class="python plain">Sat May </code><code class="python value">11</code> <code class="python value">00</code><code class="python plain">:</code><code class="python value">30</code><code class="python plain">:</code><code class="python value">02</code> <code class="python plain">CST </code><code class="python value">2019</code><code class="python plain">, flag</code><code class="python keyword">=</code><code class="python plain">true, age</code><code class="python keyword">=</code><code class="python value">18</code><code class="python plain">, types</code><code class="python keyword">=</code><code class="python plain">[我爱, 宝贝]}</code></div><div class="line number2 index1 alt1"><code class="python plain">TestDemoDTO{name</code><code class="python keyword">=</code><code class="python string">'诺言'</code><code class="python plain">, citys</code><code class="python keyword">=</code><code class="python plain">{</code><code class="python value">001</code><code class="python keyword">=</code><code class="python plain">北京, </code><code class="python value">002</code><code class="python keyword">=</code><code class="python plain">上海, </code><code class="python value">003</code><code class="python keyword">=</code><code class="python plain">广州}, gmtStart</code><code class="python keyword">=</code><code class="python plain">Sat May </code><code class="python value">11</code> <code class="python value">00</code><code class="python plain">:</code><code class="python value">30</code><code class="python plain">:</code><code class="python value">02</code> <code class="python plain">CST </code><code class="python value">2019</code><code class="python plain">, flag</code><code class="python keyword">=</code><code class="python plain">true, age</code><code class="python keyword">=</code><code class="python value">18</code><code class="python plain">, types</code><code class="python keyword">=</code><code class="python plain">[我爱, 宝贝]}</code></div></div></td></tr></tbody></table></div></div>
+
+<p>参考链接：</p>
+
+<ul>
+<li><a href="https://blog.csdn.net/chenmingxu438521/article/details/90085401" target="_blank">Java 的 VO、DTO 之间的转换，各种工具类</a></li>
+</ul>
+
+<h4 id="javadtovo">Java 中 DTO、VO 等转换</h4>
+
+<p>在项目中，时常有 DTO、VO、BO 等转换问题。很多时候，我们会写很多 get 和 set 方法，显得代码不够美观。</p>
+
+<p>高级点的方法，我们有使用 Apache 或者 Spring 的 BeanUtils 来做 copy。</p>
+
+<p>下表是对它们之前的性能总结</p>
+
+<p><textarea style="height: 32px; -ms-overflow-x: hidden; -ms-overflow-y: hidden; -ms-word-wrap: break-word;" zoom="8.2"></textarea></p>
+
+<pre><code class="hljs javascript">[<span class="hljs-string"><span class="hljs-string">"场景"</span></span>,<span class="hljs-string"><span class="hljs-string">"耗时（调用100万次）"</span></span>,<span class="hljs-string"><span class="hljs-string">"原理"</span></span>],
+[<span class="hljs-string"><span class="hljs-string">"get/set"</span></span>,<span class="hljs-string"><span class="hljs-string">"20ms"</span></span>,<span class="hljs-string"><span class="hljs-string">"直接调用"</span></span>],
+[<span class="hljs-string"><span class="hljs-string">"BeanCopiers"</span></span>,<span class="hljs-string"><span class="hljs-string">"20ms"</span></span>,<span class="hljs-string"><span class="hljs-string">"基于 cglib，修改字节码"</span></span>],
+[<span class="hljs-string"><span class="hljs-string">"BeanUtils"</span></span>,<span class="hljs-string"><span class="hljs-string">"12000ms"</span></span>,<span class="hljs-string"><span class="hljs-string">"反射"</span></span>],
+[<span class="hljs-string"><span class="hljs-string">"PropertyUtils"</span></span>,<span class="hljs-string"><span class="hljs-string">"4000ms"</span></span>,<span class="hljs-string"><span class="hljs-string">"反射"</span></span>]
+</code></pre>
+
+<p>耗时仅供参考。</p>
+
+<p>参考链接：</p>
+
+<ul>
+<li><a href="https://blog.csdn.net/zhangbomk/article/details/90489850" target="_blank">Java 中 DTO、VO 等转换</a></li>
+</ul></body></html>

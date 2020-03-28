@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>python-async</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### python-async
+
+**`thread_pool.py`**
+
+```python
+from multiprocessing.pool import ThreadPool
+
+def foo(bar, baz) :
+  print 'hello {0}'.format(bar)
+  return 'foo' + baz
+
+pool = ThreadPool(processes = 1)
+
+## tuple of args for foo
+async_result = pool.apply_async(foo, ('world', 'foo'))
+
+## do some other stuff in the main process
+print('- split -')
+
+async_result2 = pool.apply_async(foo, ('ThreadPool', 'foo2'))
+print async_result2.get()
+
+## get the return value from your function.
+return_val = async_result.get()
+print(return_val)
+```
+
+```python
+- split -hello world
+
+hello ThreadPool
+foofoo2
+foofoo
+```
+
+参考连接：
+
+ - <a href="https://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python" target="_blank">How to get the return value from a thread in python?</a>
+
+#### multiprocessing — Process-based “threading” interface
+
+**`pool.py`**
+
+```python
+from multiprocessing import Pool
+
+def f(x) :
+  return x*x
+
+if __name__ == '__main__' :
+  p = Pool(5)
+  print(p.map(f, [1, 2, 3]))
+```
+
+```python
+[1, 4, 9]
+```
+
+**`process.py`**
+
+```python
+from multiprocessing import Process
+
+def f(name) :
+  print 'helo' , name
+
+if __name__ == '__main__' :
+  p = Process(target=f, args=('bob',))
+  p.start()
+  p.join()
+```
+
+```python
+helo bob
+```
+
+**`process-1.py`**
+
+```python
+from multiprocessing import Process
+
+import os
+
+def info(title) :
+  print title
+  print 'module name :', __name__
+  ## only available on unix
+  if hasattr(os, 'getppid') :
+    print 'parent process:', os.getppid()
+  print 'process id:', os.getpid()
+
+def f(name) :
+  info('function f')
+  print 'hello', name
+
+if __name__ == '__main__' :
+  info('main line')
+  p = Process(target=f, args=('bob',))
+  p.start()
+  p.join()
+```
+
+```python
+main line
+module name : __main__
+process id: 6844
+function f
+module name : __main__
+process id: 4772
+hello bob
+```
+
+**`queue.py`**
+
+```python
+from multiprocessing import Process, Queue
+
+def f(q) :
+  q.put([42, None, 'hello'])
+
+if __name__ == '__main__' :
+  q = Queue()
+  p = Process(target=f, args=(q,))
+  p.start()
+  ## prints "[42, None, 'hello']"
+  print q.get()
+  p.join()
+```
+
+```python
+[42, None, 'hello']
+```
+
+**`pipe.py`**
+
+```python
+from multiprocessing import Process, Pipe
+
+def f(conn) :
+  conn.send([42, None, 'hello'])
+  conn.close()
+
+if __name__ == '__main__' :
+  parent_conn, child_conn = Pipe()
+  p = Process(target=f, args=(child_conn,))
+  p.start()
+  ## print "[42, None, 'hello']"
+  print parent_conn.recv()
+  p.join()
+```
+
+```python
+[42, None, 'hello']
+```
+
+#### Synchronization between processes
+
+```python
+from multiprocessing import Process, Lock
+
+def f(l, i) :
+  l.acquire()
+  print 'hello world', i
+  ## if not release , other thread process never be execute
+  l.release()
+
+if __name__ == '__main__' :
+  lock = Lock()
+  ## thread synchronization runing
+  for num in range(10) :
+    Process(target=f, args=(lock, num)).start()
+
+  print '%s end.'% __name__
+```
+
+```python
+__main__ end.
+hello world 6
+hello world 2
+hello world 5
+hello world 3
+hello world 1
+hello world 4
+hello world 9
+hello world 0
+hello world 7
+hello world 8
+```
+
+参考链接：
+
+ - <a href="https://docs.python.org/2/library/multiprocessing.html" target="_blank">multiprocessing — Process-based “threading” interface¶</a>
+
+#### concurrent.futures ThreadPoolExecutor
+
+```python
+pip install futures
+```
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+import threading
+import random
+
+def task() :
+  print 'Executing our Task'
+  result = 0
+  i = 0
+  for i in range(10) :
+    result = result + 1
+    print 'I: {}'.format(result)
+    print 'Task Executed {}'.format(threading.current_thread())
+
+def main() :
+  executor = ThreadPoolExecutor(max_workers=3)
+  task1 = executor.submit(task)
+  task2 = executor.submit(task)
+
+if __name__ == '__main__' :
+```
+
+```python
+Executing our Task
+I: 45
+Executing our Task
+I: 45
+Task Executed <Thread(<concurrent.futures.thread.ThreadPoolExecutor object at 0x102abf358>_1, started daemon 123145333858304)>
+Task Executed <Thread(<concurrent.futures.thread.ThreadPoolExecutor object at 0x102abf358>_0, started daemon 123145328603136)>
+```
+
+##### Context Manager
+
+```python
+with ThreadPoolExecutor(max_workers=3) as executor:
+```
+
+##### Example
+
+**`thread_pool_executor`**
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+def task(n) :
+  print 'Processing {}'.format(n)
+
+def main() :
+  print 'Starting ThreadPoolExecutor'
+  with ThreadPoolExecutor(max_workers=3) as executor :
+    future = executor.submit(task, (2))
+    future = executor.submit(task, (3))
+    future = executor.submit(task, (4))
+  print 'All tasks complete'
+
+if __name__ == '__main__' :
+  main()
+```
+
+```python
+Starting ThreadPoolExecutor
+Processing 2
+Processing 3
+Processing 4
+All tasks complete
+```
+
+参考连接：
+
+ - <a href="https://tutorialedge.net/python/concurrency/python-threadpoolexecutor-tutorial/" target="_blank">Python ThreadPoolExecutor Tutorial</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

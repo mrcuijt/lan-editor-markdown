@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Redis Install</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Redis Install
+
+&amp;#160; &amp;#160;Redis  是一个开源，先进的存储，并用于构建高性能，可扩展的 Web  应用程序的完美解决方案。
+
+Redis  从它的许多竞争继承来的三个主要特点：
+
+ - Redis 数据库完全在内存中，使用磁盘仅用于持久性。
+ 
+ - 相比许多键值数据存储，Redis 拥有一套较为丰富的数据类型。
+ 
+ - Redis 可以将数据复制到任意数量的从服务器。
+ 
+#### 下载及安装 Redis
+
+首先下载，下载方式：
+
+从 github 下载：<a href="https://github.com/MSOpenTech/redis/releases" target="_blank">Redis</a>
+
+下载后的文件为：Redis-x64-2.8.2400.zip，然后解压缩后如下图：
+
+![redis-install](./images/redis-install/redis-install-001.png)
+
+#### 设置密码
+
+&amp;#160; &amp;#160;上次我们出现过一次大规模的 Redis 安全事件，给我们敲响了警钟，因为我们好多项目都是图方便，很少设置密码，而 Redis 的默认配置又是没有密码，导致基本都是没有设置密码。
+
+![redis-install](./images/redis-install/redis-install-002.png)
+
+Redis 设置密码有 2 个办法。
+
+#### 修改配置文件
+
+在刚刚解压的目录下，我们能够找到文件名为：```redis.windows-service.conf```
+
+打开后用 ```Ctrl + F``` 查找：```requirepass```
+
+```python
+################################## SECURITY ###################################
+
+# Require clients to issue AUTH  before processing any other
+# commands.  This might be useful in environments in which you do not trust
+# others with access to the host running redis-server.
+#
+# This should stay commented out for backward compatibility and because most
+# people do not need auth (e.g. they run their own servers).
+#
+# Warning: since Redis is pretty fast an outside user can try up to
+# 150k passwords per second against a good box. This means that you should
+# use a very strong password otherwise it will be very easy to break.
+requirepass <你的密码>
+
+# Command renaming.
+#
+# It is possible to change the name of dangerous commands in a shared
+# environment. For instance the CONFIG command may be renamed into something
+# hard to guess so that it will still be available for internal-use tools
+# but not available for general clients.
+#
+# Example:
+#
+# rename-command CONFIG b840fc02d524045429941cc15f59e41cb7be6c52
+#
+# It is also possible to completely kill a command by renaming it into
+# an empty string:
+#
+# rename-command CONFIG ""
+#
+# Please note that changing the name of commands that are logged into the
+# AOF file or transmitted to slaves may cause problems.
+```
+
+比如我把密码设置为：asdfklfjfasdklfjasdklfjweruoweri。
+
+那么就修改成这样：
+
+```python
+## Redis Password
+requirepass asdfklfjfasdklfjasdklfjweruoweri
+````
+
+然后重启 Redis 即可。
+
+#### 配置临时密码
+
+也就是启动后在控制台 redis-cli.exe 配置，但这种极其不推荐。所以也不说了。
+
+#### IP 绑定
+
+IP 绑定还是在 ```redis.windows-service.conf``` 配置文件里。
+
+ ```Ctrl + F``` 搜索 ```127.0.0.1```能找到如下所示：
+
+```python
+# By default Redis listens for connections from all the network interfaces
+# available on the server. It is possible to listen to just one or multiple
+# interfaces using the "bind" configuration directive, followed by one or
+# more IP addresses.
+#
+# Examples:
+#
+# bind 192.168.1.100 10.0.0.1
+# bind 127.0.0.1
+```
+
+&amp;#160; &amp;#160;支持这 2 种 IP 绑定，我们一般就绑定内网，默认是内网外网都可以访问。所以我们从安全的角度考虑，如果是本机使用就绑定 127.0.0.1 ，如果是局域网内使用请绑定本地 IP ，如：192.168.0.8等。
+
+#### 快速启动运行测试
+
+```python
+## Windows 
+redis-server.exe --maxheap 30M --heapdir ./heap
+```
+
+```textarea
+                _._
+           _.-``__ ''-._
+      _.-``    `.  `_.  ''-._           Redis 2.8.2400 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._
+ (    '      ,       .-`  | `,    )     Running in stand alone mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 6379
+ |    `-._   `._    /     _.-'    |     PID: 14760
+  `-._    `-._  `-./  _.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |           http://redis.io
+  `-._    `-._`-.__.-'_.-'    _.-'
+ |`-._`-._    `-.__.-'    _.-'_.-'|
+ |    `-._`-._        _.-'_.-'    |
+  `-._    `-._`-.__.-'_.-'    _.-'
+      `-._    `-.__.-'    _.-'
+          `-._        _.-'
+              `-.__.-'
+
+[14760] 17 May 12:36:44.872 # Server started, Redis version 2.8.2400
+[14760] 17 May 12:36:44.872 * The server is now ready to accept connections on port 6379
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

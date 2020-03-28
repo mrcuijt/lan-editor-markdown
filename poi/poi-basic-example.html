@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>POI Basic Example</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### POI Basic Example
+
+ - poi 提供 microsoft office 旧版本支持,eg .xls Excel
+ 
+ - poi-ooxml 提供 microsoft office 新版本支持,eg .xlsx Excel
+
+依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi</artifactId>
+        <version>3.17</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml</artifactId>
+        <version>3.17</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml-schemas</artifactId>
+        <version>3.17</version>
+    </dependency>
+</dependencies>
+```
+
+演示
+
+```java
+public void export() throws IOException {
+    List<RegionInfo> regions = datas();
+ 
+    // 创建 Excel 文件(Workbook)
+    HSSFWorkbook workbook = new HSSFWorkbook();
+ 
+    // 创建工作表(Sheet)
+    HSSFSheet sheet = workbook.createSheet("Test");
+ 
+    HSSFCellStyle style = workbook.createCellStyle();
+ 
+    style.setDataFormat(HSSFDataFormat.getBuiltinFormat("m/d/yy h:mm"));
+
+    // 注意：excel 2003 单 sheet 最多支持 65536 行
+    for (int i = 0; i < regions.size(); i++) {
+        HSSFRow row = sheet.createRow(i);
+        RegionInfo region = regions.get(i);
+        row.createCell(0).setCellValue(region.getRegionInfoId());
+        setDateStyle(row.createCell(1), style).setCellValue(region.getGmtModified());
+        setDateStyle(row.createCell(2), style).setCellValue(region.getGmtModified());
+        row.createCell(3).setCellValue(region.getRegionCode());
+        row.createCell(4).setCellValue(region.getRegionName());
+        row.createCell(5).setCellValue(region.getRegionLevel());
+        row.createCell(6).setCellValue(region.getRegionLevel());
+    }
+ 
+    // 文件路径
+    String filePath = "sample.xls";
+    FileOutputStream out = new FileOutputStream(filePath);
+    // 保存 Excel 文件
+    workbook.write(out);
+    // 关闭文件流
+    out.close();
+    logger.info("OK!");
+}
+ 
+public Cell setDateStyle(Cell cell, HSSFCellStyle style) {
+    cell.setCellStyle(style);
+    return cell;
+}
+```
+
+##### Excel 2007 操作
+
+**```PoiUtil.java```**
+
+```java
+package science.mrcuijt.springboot;
+ 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+ 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+ 
+/**
+ * @author Administrator
+ *
+ */
+public class PoiUtil {
+ 
+    /**
+     * 创建工作区
+     * 
+     * @return org.apache.poi.xssf.streaming.SXSSFWorkbook
+     */
+    public static SXSSFWorkbook createSXSSFWorkbook() {
+        SXSSFWorkbook workbook = new SXSSFWorkbook();
+        return workbook;
+    }
+ 
+    /**
+     * 创建工作区
+     * 
+     * @param xlsx xlsx文件所在路径
+     * @return org.apache.poi.xssf.streaming.SXSSFWorkbook
+     * @throws IOException
+     * @throws InvalidFormatException
+     */
+    public static SXSSFWorkbook createSXSSFWorkbook(String xlsx) throws IOException, InvalidFormatException {
+        OPCPackage pkg = OPCPackage.open(new FileInputStream(xlsx));
+        SXSSFWorkbook workbook = new SXSSFWorkbook(new XSSFWorkbook(pkg), 10);
+        return workbook;
+    }
+ 
+    /**
+     * 创建工作区
+     * 
+     * @param xlsx xlsx文件所在路径
+     * @return org.apache.poi.xssf.usermodel.XSSFWorkbook
+     * @throws IOException
+     * @throws InvalidFormatException
+     */
+    public static XSSFWorkbook createXSSFWorkbook(String xlsx) throws IOException, InvalidFormatException {
+        XSSFWorkbook workbook = new XSSFWorkbook(new FileInputStream(xlsx));
+        return workbook;
+    }
+ 
+    /**
+     * 导出 Excel 表格
+     * 
+     * @param workbook 工作区
+     * @param filePath 文件导出地址完整路径
+     * @throws IOException
+     */
+    public static void export(Workbook workbook, String filePath) throws IOException {
+        FileOutputStream out = new FileOutputStream(filePath);
+        workbook.write(out);
+        out.close();
+    }
+ 
+    /**
+     * 设置指定单元格样式
+     * 
+     * @param cell 单元格
+     * @param style 单元格样式
+     * @return
+     */
+    public Cell setDateStyle(Cell cell, CellStyle style) {
+        cell.setCellStyle(style);
+        return cell;
+    }
+ 
+}
+```
+
+**```ExportExcel07```**
+
+```java
+package science.mrcuijt.springboot.poi;
+ 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.List;
+ 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+ 
+import science.mrcuijt.springboot.PoiUtil;
+import science.mrcuijt.springboot.entity.RegionInfo;
+ 
+/**
+ * @author Administrator
+ *
+ */
+@Component
+public class ExportExcel07 {
+ 
+    private static final Logger logger = LoggerFactory.getLogger(ExportExcel07.class);
+ 
+    /**
+     * 导出 地区信息
+     * 
+     * @param regions 地区信息集合
+     * @param output 文件导出地址完整路径
+     * @throws IOException
+     */
+    public void export(List<RegionInfo> regions, String output) throws IOException {
+ 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+ 
+        // 工作区
+        SXSSFWorkbook workbook = new SXSSFWorkbook();
+        SXSSFSheet sheet = workbook.createSheet("test");
+ 
+        for (int i = 0; i < regions.size(); i++) {
+            SXSSFRow row = sheet.createRow(i);
+            RegionInfo region = regions.get(i);
+            row.createCell(0).setCellValue(region.getRegionInfoId().toString());
+            row.createCell(1).setCellValue(sdf.format(region.getGmtCreate()));
+            row.createCell(2).setCellValue(sdf.format(region.getGmtModified()));
+            row.createCell(3).setCellValue(region.getRegionCode());
+            row.createCell(4).setCellValue(region.getRegionName());
+            row.createCell(5).setCellValue(region.getRegionLevel().toString());
+            row.createCell(6).setCellValue((region.getParentRegionId() == null) ? "" : region.getParentRegionId().toString());
+        }
+ 
+        PoiUtil.export(workbook, output);
+        workbook.close();
+    }
+ 
+    /**
+     * 导出指定信息集合
+     * 
+     * @param datas 地区信息集合
+     * @param output 文件导出地址完整路径
+     * @throws IOException
+     */
+    public void exportExcel(List<List<String>> datas, String output) throws IOException {
+ 
+        // 工作区
+        SXSSFWorkbook workbook = PoiUtil.createSXSSFWorkbook();
+        SXSSFSheet sheet = workbook.createSheet("test");
+ 
+        for (int i = 0; i < datas.size(); i++) {
+            SXSSFRow row = sheet.createRow(i);
+            String[] temp = new String[datas.get(i).size()];
+            datas.get(i).toArray(temp);
+            for (int j = 0; j < temp.length; j++) {
+                row.createCell(j).setCellValue(temp[j]);
+            }
+        }
+ 
+        PoiUtil.export(workbook, output);
+        workbook.close();
+    }
+ 
+    public void addExcelRow(List<RegionInfo> regions, String input, String output)
+            throws FileNotFoundException, IOException, InvalidFormatException {
+ 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+ 
+        // 工作区
+        SXSSFWorkbook workbook = PoiUtil.createSXSSFWorkbook(input);
+        XSSFWorkbook xworkbook = workbook.getXSSFWorkbook();
+        XSSFSheet sheet = xworkbook.getSheetAt(0);
+        int lastRowNum = sheet.getLastRowNum();
+ 
+        for (int i = 0; i < regions.size(); i++) {
+            XSSFRow row = sheet.createRow(++lastRowNum);
+            RegionInfo region = regions.get(i);
+            row.createCell(0).setCellValue(region.getRegionInfoId().toString());
+            row.createCell(1).setCellValue(sdf.format(region.getGmtCreate()));
+            row.createCell(2).setCellValue(sdf.format(region.getGmtModified()));
+            row.createCell(3).setCellValue(region.getRegionCode());
+            row.createCell(4).setCellValue(region.getRegionName());
+            row.createCell(5).setCellValue(region.getRegionLevel().toString());
+            row.createCell(6).setCellValue((region.getParentRegionId() == null) ? "" : region.getParentRegionId().toString());
+        }
+ 
+        // 文件路径
+        PoiUtil.export(workbook, output);
+        workbook.close();
+    }
+ 
+}
+```
+
+**```ReadExcel07.java```**
+
+```java
+package science.mrcuijt.springboot.poi;
+ 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+ 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+ 
+import science.mrcuijt.springboot.PoiUtil;
+ 
+/**
+ * @author Administrator
+ *
+ */
+@Component
+public class ReadExcel07 {
+ 
+    private static final Logger logger = LoggerFactory.getLogger(ReadExcel07.class);
+ 
+    /**
+     * 读取纯文本 Excel 到列表中
+     * 
+     * @param input 输入文件完整S路径
+     * @return
+     * @throws IOException
+     * @throws InvalidFormatException
+     */
+    public List<List<String>> readExcel(String input) throws IOException, InvalidFormatException {
+ 
+        List<List<String>> datas = new ArrayList<List<String>>();
+ 
+        SXSSFWorkbook workbook = PoiUtil.createSXSSFWorkbook(input);
+        XSSFWorkbook xworkbook = workbook.getXSSFWorkbook();
+        XSSFSheet sheet = xworkbook.getSheetAt(0);
+        for (Row row : sheet) {
+            String[] array = new String[row.getLastCellNum()];
+            int cellIndex = 0;
+            for (Cell cell : row) {
+                String value = cell.getStringCellValue().trim();
+                array[cellIndex] = value;
+                cellIndex++;
+                if (cellIndex == array.length) {
+                    break;
+                }
+            }
+            datas.add(Arrays.asList(array));
+        }
+        workbook.close();
+ 
+        // 返回函数值
+        return datas;
+    }
+ 
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

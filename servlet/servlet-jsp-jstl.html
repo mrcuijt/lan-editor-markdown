@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Servlet JSP JSTL</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+***```pom.xml```***
+
+```xml
+<dependencies>
+    <!-- JSTL 表达式 -->
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>jstl</artifactId>
+        <version>1.2</version>
+    </dependency>
+    <!-- taglib c 表达式 -->
+    <dependency>
+        <groupId>taglibs</groupId>
+        <artifactId>standard</artifactId>
+        <version>1.1.2</version>
+    </dependency>
+</dependencies>
+```
+
+***```jsp```***
+```xml
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+
+<!-- c:if 标签 -->
+<c:if test="${study.patient.sex eq 'F'.charAt(0)}">女</c:if>
+<c:if test="${study.patient.sex eq 'f'.charAt(0)}">女</c:if>
+<c:if test="${study.patient.sex eq 'M'.charAt(0)}">男</c:if>
+<c:if test="${study.patient.sex eq 'm'.charAt(0)}">男</c:if>
+
+<c:if test="${'男'.charAt(0) eq '男'.charAt(0)}">男</c:if>
+<c:if test="${'女'.charAt(0) eq '女'.charAt(0)}">女</c:if>
+<c:if test="${'你好' == '你好'}">你好</c:if>
+<c:if test="${'男' == '男'}">男</c:if>
+
+<c:if test="${patientFileList.size() > 0}"></c:if>
+
+<!-- c:choose 标签 -->
+<c:choose>
+    <c:when test="${imageType == 'DX'}">DR</c:when>
+    <c:otherwise>${imageType}</c:otherwise>
+</c:choose>
+
+<!-- c:forEach 标签 -->
+<c:forEach items="${provinceList }" var="regionInfo" varStatus="vs">
+    <c:choose>
+        <c:when test="${regionInfo.regionInfoId == province }">
+            <option value="${regionInfo.regionInfoId }" selected="selected">${regionInfo.regionName }</option>
+        </c:when>
+        <c:otherwise>
+            <option value="${regionInfo.regionInfoId }">${regionInfo.regionName }</option>
+        </c:otherwise>
+    </c:choose>
+</c:forEach>
+
+<!-- fmt:formatDate 标签 -->
+<fmt:formatDate value="${houseInfo.pushDate}" pattern="yyyy-MM-dd HH:mm:ss"/>
+
+<!-- fn:escapeXml 函数 -->
+${fn:escapeXml(houseAddress)}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

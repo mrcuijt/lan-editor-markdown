@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Redis DataType Operator</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Redis DataType Operator
+
+#### 一、概述
+
+&amp;#160; &amp;#160;Redis 是速度非常快的非关系型（NoSQL）内存键值数据库，可以存储键和五种不同类型的值之间的映射。
+
+键的类型只能为字符串，值支持的五种类型数据类型为：
+
+ - 字符串
+ - 列表
+ - 集合
+ - 有序集合
+ - 散列表
+ 
+&amp;#160; &amp;#160;Redis 支持很多特性，例如将内存中的数据持久化到硬盘中，使用复制来扩展读性能，使用分片来扩展写性能。
+
+#### 二、数据类型
+
+<text zoom="7.2">╔══════════╤════════════════════════╤════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ 数据类型 │ 可以存储的值           │ 操作                                                                                           ║
+╟──────────┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ STRING   │ 字符串、整数或者浮点数 │ 对整个字符串或者字符串的其中一部分执行操作对整数和浮点数执行自增或者自减操作                   ║
+╟──────────┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ LIST     │ 列表                   │ 从两端压入或者弹出元素读取单个或者多个元素进行修剪，只保留一个范围内的元素                     ║
+╟──────────┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ SET      │ 无序集合               │ 添加、获取、移除单个元素检查一个元素是否存在于集合中计算交集、并集、差集从集合里面随机获取元素 ║
+╟──────────┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ HASH     │ 包含键值对的无序散列表 │ 添加、获取、移除单个键值对获取所有键值对检查某个键是否存在                                     ║
+╟──────────┼────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ ZSET     │ 有序集合               │ 添加、获取、删除元素根据分值范围或者成员来获取元素计算一个键的排名                             ║
+╚══════════╧════════════════════════╧════════════════════════════════════════════════════════════════════════════════════════════════╝</text>
+
+#### 三、每种数据类型具体操作 Demo
+
+#### 3.1 起步
+
+&amp;#160; &amp;#160;首先，我们是在 java 使用 Jedis 对 redis 数据库进行操作的，Maven 下可以直接添加如下依赖就可以使用了。
+
+```xml
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>2.9.0</version>
+</dependency>
+```
+
+#### 接下来是连接 redis 数据库，如下：
+
+```java
+//默认地连接我的 6379 端口，如果什么都不填的话
+Jedis jedis = new Jedis("redis://localhost:6379/9");  
+//删掉之前数据
+jedis.flushDB(); 
+```
+
+或者
+
+```java
+pool = new JedisPool("redis://localhost:6379/10");
+// 需在try-catch中使用
+Jedis jedis = pool.getResource();  
+```
+
+此外，添加一个 print 函数打印结果：
+
+```java
+public static void print(int index, Object obj){
+    System.out.println(String.format("%d, %s",index,obj.toString()));
+}
+```
+
+#### 3.2 String
+
+ - **```set``` : SET key value [EX seconds] [PX milliseconds] [NX|XX]** 
+ 
+  - 将字符串值 ```value``` 关联到 ```key``` 。
+ 
+  - 如果 key 已经持有其他值，SET 就覆写旧值，无视类型。
+  
+  - 当 SET 命令对一个带有生存时间（TTL）的键进行设置之后，该键原有的 TTL 将被清除。
+  
+ - **```get``` : GET key**
+ 
+  - 返回与键 ```key``` 相关联的字符串值。
+ 
+ - **```setex``` : SETEX key seconds value**
+ 
+  - 将键 ```key``` 的值设置为 ```value``` ，并将键 ```key``` 的生存时间设置为 ```seconds``` 秒钟。
+  
+  - 如果键 ```key``` 已经存在， 那么 **```SETEX```** 命令将覆盖已有的值。
+  
+  - **```SETEX```** 命令的效果和以下两个命令的效果类似：
+  
+```python
+SET key value
+EXPIRE key seconds  # 设置生存时间
+```
+ 
+ - **```setnx``` : SETNX key value**
+ 
+  - 只在键 ```key``` 不存在的情况下， 将键 ```key``` 的值设置为 ```value``` 。
+  
+  - 若键 ```key``` 已经存在， 则 **```SETNX```** 命令不做任何动作。
+  
+  - **```SETNX```** 是『SET if Not eXists』的简写(如果不存在，则 SET)。
+ 
+ - **```incr``` : INCR key**
+ 
+  - 为键 ```key``` 储存的数字值加上一。
+  
+  - 如果键 ```key``` 不存在， 那么它的值会先被初始化为 0 ， 然后再执行 **```INCR```** 命令。
+  
+  - 如果键 ```key``` 储存的值不能被解释为数字， 那么 **```INCR```** 命令将返回一个错误。
+  
+  - 本操作的值限制在 64 位有符号数字表示之内。
+ 
+ - **```incrBy``` : INCRBY key increment**
+ 
+  - 为键 ```key``` 储存的数字值加上增量 ```increment``` 。
+  
+  - 如果键 ```key``` 不存在， 那么键 ```key``` 的值会先被初始化为 0 ， 然后再执行 **```INCRBY```** 命令。
+  
+  - 如果键 ```key``` 储存的值不能被解释为数字， 那么 **```INCRBY```** 命令将返回一个错误。
+  
+  - 本操作的值限制在 64 位有符号数字表示之内。
+ 
+ - **```decr```** : DECR key
+ 
+  - 为键 ```key``` 储存的数字值减去一。
+  
+  - 如果键 ```key``` 不存在， 那么键 ```key``` 的值会先被初始化为 0 ， 然后再执行 **```DECR```** 操作。
+  
+  - 如果键 ```key``` 储存的值不能被解释为数字， 那么 **```DECR```** 命令将返回一个错误。
+  
+  - 本操作的值限制在 64 位有符号数字表示之内。
+ 
+ - **```decrBy``` : DECRBY key decrement**
+ 
+  - 将键 ```key``` 储存的整数值减去减量 ```decrement``` 。
+  
+  - 如果键 ```key``` 不存在， 那么键 ```key``` 的值会先被初始化为 0 ， 然后再执行 **```DECRBY```** 命令。
+  
+  - 如果键 ```key``` 储存的值不能被解释为数字， 那么 **```DECRBY```** 命令将返回一个错误。
+  
+  - 本操作的值限制在 64 位有符号数字表示之内。
+
+```java
+public static void main(String[] args) {
+
+    // 连接本地的 Redis 服务
+    Jedis jedis = new Jedis("localhost");
+    System.out.println("连接成功");
+ 
+    // 设置 redis 字符串数据
+    jedis.set("username", "wade");
+    print(1, jedis.get("username"));
+    // 短信的验证时间
+    jedis.setex("hello", 15, "world"); // 只存在15s，不需要自己删除，用在验证码上（带有过期时间）
+
+    // 数字的自增，自减
+    jedis.set("pv", "100"); // 100
+    jedis.incr("pv"); // 数字 +1
+    jedis.incr("pv"); // 数字 +1
+    print(2, jedis.get("pv")); // 102
+    jedis.incrBy("pv", 5); // 数字 +5
+    print(3, jedis.get("pv"));
+    jedis.decr("pv"); // 数字 -1
+    jedis.decrBy("pv", 2); // 数字 -2
+    print(4, jedis.get("pv")); // 104
+ 
+    // 获取存储的数据 Key 并输出
+    print(5, jedis.keys("*"));
+ 
+    jedis.close();
+}
+```
+
+#### 3.3 List
+
+ - **```lpush```** : 从队列入队一个或多个元素。
+
+ - **```lrange```** : 从列表中获取指定的元素。
+ 
+ - **```llen```** : 获取列表长度
+
+ - **```lpop```** : 从队列出队一个元素 
+ 
+ - **```lindex```** : 通过索引获取元素
+
+ - **```linsert```** : 在列表中一个元素的前后插入元素。
+
+```java
+public static void main(String[] args) {
+    // 连接本地的 Redis 服务
+    Jedis jedis = new Jedis("localhost");
+    System.out.println("连接成功");
+ 
+    // 设置 redis 字符串数据
+    String listName = "list";
+    jedis.del(listName);
+    for (int i = 0; i < 10; i++) {
+        // 从队列入队一个或多个元素。
+        jedis.lpush(listName, "a" + String.valueOf(i));
+    }
+    // 从列表中获取指定的元素。
+    print(5, jedis.lrange(listName, 0, 12)); // [a9, a8, a7, a6, a5, a4, a3, a2, a1, a0]
+    // 从列表中获取指定的元素。
+    print(5, jedis.lrange(listName, 0, 3)); // [a9, a8, a7, a6]
+    // 获取列表长度
+    print(6, jedis.llen(listName)); // 10
+    // 从队列出队一个元素
+    print(7, jedis.lpop(listName)); // a9
+    // 获取列表长度
+    print(8, jedis.llen(listName)); // 9
+    // 通过索引获取元素
+    print(9, jedis.lindex(listName, 3)); // a5
+    // 在列表中一个元素的前后插入元素。
+    print(10, jedis.linsert(listName, LIST_POSITION.AFTER, "a4", "xx"));
+    print(10, jedis.linsert(listName, LIST_POSITION.BEFORE, "a4", "yy"));
+    // 从列表中获取指定的元素。
+    print(11, jedis.lrange(listName, 0, 12)); // [a8, a7, a6, a5, yy, a4, xx, a3, a2, a1, a0]
+ 
+    jedis.close();
+}
+```
+
+```textarea
+5, [a9, a8, a7, a6, a5, a4, a3, a2, a1, a0]
+5, [a9, a8, a7, a6]
+6, 10
+7, a9
+8, 9
+9, a5
+10, 10
+10, 11
+11, [a8, a7, a6, a5, yy, a4, xx, a3, a2, a1, a0]
+```
+
+#### 3.5 Set
+
+ - **```sadd```**：添加一个或多个项
+
+ - **```smembers```**：取出 Set 集合所有项
+ 
+ - **```sismember```**：判断 Set 集合中的某一项是否存在
+
+ - 集合操作 ：
+ 
+  - **```sunion```**：合并 Set 集合，返回一个新的 Set 集合
+  
+  - **```sdiff```**：取出两个或多个 Set 集合中**```不同```**的值，返回一个新的 Set 集合
+  
+  - **```sinter```**：取出两个或多个 Set 集合中**```相同```**的值，返回一个新的 Set 集合
+
+ - **```srem```**：删除 Set 集合中一个或多个项
+
+ - **```scard```**：计数 Set 集合里面有几个值
+ 
+ - **```smove```**：将集合中的项移动到另一个集合中
+
+```java
+public static void main(String[] args) {
+    // 连接本地的 Redis 服务
+    Jedis jedis = new Jedis("localhost");
+    System.out.println("连接成功");
+ 
+    // 设置 redis 字符串数据
+    // Set 集合名称
+    String likekey1 = "commentLike1";
+    String likekey2 = "commentLike2";
+ 
+    jedis.del("commentLike1");
+    jedis.del("commentLike2");
+ 
+    for (int i = 0; i < 10; i++) {
+        // Set 集合 commentLike1 添加 i
+        jedis.sadd(likekey1, String.valueOf(i));
+        // Set 集合 commentLike1 添加 i^2
+        jedis.sadd(likekey2, String.valueOf(i * i));
+    }
+ 
+    // 取出 Set 集合 commentLike1
+    print(20, jedis.smembers(likekey1)); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    // 取出 Set 集合 commentLike2
+    print(21, jedis.smembers(likekey2)); // [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+ 
+    // 合并 Set 集合
+    print(22, jedis.sunion(likekey1, likekey2)); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 16, 25, 36, 49, 64, 81]
+ 
+    // 集合求交
+    // 取出两个 Set 集合中不同的值，返回一个新的 Set 集合
+    print(23, jedis.sdiff(likekey1, likekey2)); // [8, 2, 3, 5, 6, 7]
+    // 取出两个 Set 集合中相同的值，返回一个新的 Set 集合
+    print(24, jedis.sinter(likekey1, likekey2)); // [0, 1, 4, 9]
+ 
+    // 判断 Set 集合中的某一项是否存在
+    print(25, jedis.sismember(likekey1, "4")); // true
+    // 判断 Set 集合中的某一项是否存在
+    print(26, jedis.sismember(likekey1, "16")); // false
+ 
+    // 删除 Set 集合中一个或多个项
+    jedis.srem(likekey1, "5");
+    print(27, jedis.smembers(likekey1)); // [0, 1, 2, 3, 4, 6, 7, 8, 9]
+ 
+    // 将集合中的项移动到另一个集合中
+    jedis.smove(likekey2, likekey1, "25"); // 将 likekey2 中的 25 移动到 likekey1 中
+    print(28, jedis.smembers(likekey1)); // [0, 1, 2, 3, 4, 6, 7, 8, 9, 25]
+    print(28, jedis.smembers(likekey2)); // [0, 1, 4, 9, 16, 36, 49, 64, 81]
+ 
+    // 计数，Set 集合里面有几个值
+    print(29, jedis.scard(likekey1)); // 10
+ 
+    jedis.close();
+}
+```
+
+```textarea
+20, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+21, [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+22, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 16, 25, 36, 49, 64, 81]
+23, [8, 2, 3, 5, 6, 7]
+24, [0, 1, 4, 9]
+25, true
+26, false
+27, [0, 1, 2, 3, 4, 6, 7, 8, 9]
+28, [0, 1, 2, 3, 4, 6, 7, 8, 9, 25]
+28, [0, 1, 4, 9, 16, 36, 49, 64, 81]
+29, 10
+```
+
+#### 3.6 Sorted set / Zset （优先队列）
+
+ - **```zadd``` : ZADD key score member [[score member] [score member] …]**
+ 
+  - 将一个或多个 ```member``` 元素及其 ```score``` 值加入到有序集 ```key``` 当中。
+  
+  - 如果某个 ```member``` 已经是有序集的成员，那么更新这个 ```member``` 的 ```score``` 值，并通过重新插入这个 ```member``` 元素，来保证该 ```member``` 在正确的位置上。
+  
+  - ```score``` 值可以是整数值或双精度浮点数。
+  
+  - 如果 ```key``` 不存在，则创建一个空的有序集并执行 **```ZADD```** 操作。
+  
+  - 当 ```key``` 存在但不是有序集类型时，返回一个错误。
+  
+ - **```zcard``` : ZCARD key**
+ 
+  - 返回有序集 ```key``` 的基数。
+ 
+ - **```zcount``` : ZCOUNT key min max**
+ 
+  - 返回有序集 ```key``` 中， ```score``` 值在 ```min``` 和 ```max``` 之间(默认包括 ```score``` 值等于 ```min``` 或 ```max``` )的成员的数量。
+ 
+ - **```zscore``` : ZSCORE key member**
+ 
+  - 返回有序集 ```key``` 中，成员 ```member``` 的 ```score``` 值。
+  
+  - 如果 ```member``` 元素不是有序集 ```key``` 的成员，或 ```key``` 不存在，返回 ```nil``` 。
+ 
+ - **```zrange``` : ZRANGE key start stop [WITHSCORES]**
+ 
+  - 返回有序集 ```key``` 中，指定区间内的成员。
+  
+  - 其中成员的位置按 ```score``` 值递增(从小到大)来排序。
+  
+  - 具有相同 ```score``` 值的成员按字典序 (lexicographical order) 来排列。
+  
+  - 下标参数 ```start``` 和 ```stop``` 都以 0 为底，也就是说，以 0 表示有序集第一个成员，以 1 表示有序集第二个成员，以此类推。 你也可以使用负数下标，以 -1 表示最后一个成员， -2 表示倒数第二个成员，以此类推。
+  
+  - 超出范围的下标并不会引起错误。 比如说，当 ```start``` 的值比有序集的最大下标还要大，或是 ```start > stop``` 时， **```ZRANGE```** 命令只是简单地返回一个空列表。 另一方面，假如 ```stop``` 参数的值比有序集的最大下标还要大，那么 ```Redis``` 将 ```stop``` 当作最大下标来处理。
+  
+  - 可以通过使用 ```WITHSCORES``` 选项，来让成员和它的 ```score``` 值一并返回，返回列表以 ```value1,score1, ..., valueN,scoreN``` 的格式表示。 客户端库可能会返回一些更复杂的数据类型，比如数组、元组等。
+ 
+ - **```zrevrange``` : ZREVRANGE key start stop [WITHSCORES]**
+ 
+  - 返回有序集 ```key``` 中，指定区间内的成员。
+  
+  - 其中成员的位置按 ```score``` 值递减(从大到小)来排列。 具有相同 ```score``` 值的成员按字典序的逆序 (reverse lexicographical order) 排列。
+  
+  - 除了成员按 ```score``` 值递减的次序排列这一点外， **```ZREVRANGE```** 命令的其他方面和 **ZRANGE key start stop [WITHSCORES]** 命令一样。
+ 
+ - **```zrangeByScoreWithScores``` : ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count]**
+ 
+  - 返回有序集 ```key``` 中，所有 ```score``` 值介于 ```min``` 和 ```max``` 之间(包括等于 ```min``` 或 ```max``` )的成员。有序集成员按 ```score``` 值递增(从小到大)次序排列。
+  
+  - 具有相同 ```score``` 值的成员按字典序 (lexicographical order) 来排列(该属性是有序集提供的，不需要额外的计算)。
+  
+  - 可选的 ```LIMIT``` 参数指定返回结果的数量及区间(就像 SQL 中的 SELECT LIMIT offset, count )，注意当 ```offset``` 很大时，定位 ```offset``` 的操作可能需要遍历整个有序集，此过程最坏复杂度为 O(N) 时间。
+  
+  - 可选的 ```WITHSCORES``` 参数决定结果集是单单返回有序集的成员，还是将有序集成员及其 ```score``` 值一起返回。 该选项自 Redis 2.0 版本起可用。
+ 
+ - **```zlexcount``` : ZLEXCOUNT key min max**
+ 
+  - 对于一个所有成员的分值都相同的有序集合键 ```key``` 来说， 这个命令会返回该集合中， 成员介于 ```min``` 和 ```max``` 范围内的元素数量。
+  
+  - 这个命令的 ```min``` 参数和 ```max``` 参数的意义和 **ZRANGEBYLEX key min max [LIMIT offset count]** 命令的 ```min``` 参数和 ```max``` 参数的意义一样。
+ 
+ - **```zremrangeByLex``` : ZREMRANGEBYLEX key min max**
+ 
+  - 对于一个所有成员的分值都相同的有序集合键 key 来说， 这个命令会移除该集合中， 成员介于 ```min``` 和 ```max``` 范围内的所有元素。
+  
+  - 这个命令的 ```min``` 参数和 ```max``` 参数的意义和 **ZRANGEBYLEX key min max [LIMIT offset count]** 命令的 ```min``` 参数和 ```max``` 参数的意义一样。
+
+```java
+public static void main(String[] args) {
+    // 连接本地的 Redis 服务
+    Jedis jedis = new Jedis("localhost");
+    System.out.println("连接成功");
+ 
+    // 设置 redis 字符串数据
+ 
+    // 优先队列 可以用在排行榜
+    String rankKey = "rankKey";
+    jedis.del(rankKey);
+    jedis.zadd(rankKey, 15, "jim");
+    jedis.zadd(rankKey, 60, "ben");
+    jedis.zadd(rankKey, 90, "lee");
+    jedis.zadd(rankKey, 75, "lucy");
+    jedis.zadd(rankKey, 80, "mei");
+ 
+    // 计数
+    print(30, jedis.zcard(rankKey)); // 5
+    // 区间统计
+    print(31, jedis.zcount(rankKey, 61, 100)); // 3
+    // 得到 lucy 值
+    print(32, jedis.zscore(rankKey, "lucy")); // 75.0
+    // 在 lucy 值基础上自增
+    jedis.zincrby(rankKey, 2, "lucy");
+    print(33, jedis.zscore(rankKey, "lucy")); // 77.0
+ 
+    // TOP 11 排序 ASC
+    print(34, jedis.zrange(rankKey, 0, 10)); // [jim, ben, lucy, mei, lee]
+    // TOP 3 排序 ASC
+    print(35, jedis.zrange(rankKey, 0, 2)); // [jim, ben, lucy]
+    // TOP 3 排序 DESC
+    print(36, jedis.zrevrange(rankKey, 0, 2)); // [lee, mei, lucy]
+ 
+    // 取出指定分值范围内的项
+    for (Tuple tuple : jedis.zrangeByScoreWithScores(rankKey, "60", "100")) {
+        print(37, tuple.getElement() + ":" + String.valueOf(tuple.getScore()));
+    }
+ 
+    // 取得具体排名 ASC
+    print(37, jedis.zrank(rankKey, "lee")); // 4
+    // 取得具体排名 DESC
+    print(38, jedis.zrevrank(rankKey, "lee")); // 0
+ 
+    String setKey = "zset";
+    jedis.del(setKey);
+	// 在有序集合中相同分数的元素之间的顺序是通过字典（英文字母字典排序）排列的
+    jedis.zadd(setKey, 1, "a");
+    jedis.zadd(setKey, 1, "c");
+    jedis.zadd(setKey, 1, "b");
+    jedis.zadd(setKey, 1, "d");
+    jedis.zadd(setKey, 1, "e"); 
+ 
+    // 计算有序集合中指定成员之间的成员数量(默认包含自身)
+    // 可以使用 - 和 + 表示得分最小值和最大值
+    print(39, jedis.zlexcount(setKey, "-", "+")); // 5
+    // (b (d 计算有序集合中指定成员之间的成员数量(不包含自身)
+    print(40, jedis.zlexcount(setKey, "(b", "(d")); // 1
+    // [b [d 计算有序集合中指定成员之间的成员数量(包含自身)
+    print(41, jedis.zlexcount(setKey, "[b", "[d")); // 3
+    // 移除指定项
+    jedis.zrem(setKey, "b");
+    // 显示有序集下标区间 0 至 10 的成员
+    // ASC
+    print(42, jedis.zrange(setKey, 0, 10)); // [a, c, d, e]
+    // DESC
+    print(42, jedis.zrevrange(setKey, 0, 10)); // [e, d, c, a]
+ 
+    // 根据字典序删除
+    // 移除所有 score > c 的项(不包含 c)
+    jedis.zremrangeByLex(setKey, "(c", "+");
+    print(43, jedis.zrange(setKey, 0, 10)); // [a, c]
+ 
+    // 移除所有 score > c 的项(包含 c)
+    jedis.zremrangeByLex(setKey, "[c", "+");
+    print(43, jedis.zrange(setKey, 0, 10)); // [a]
+ 
+    jedis.close();
+}
+```
+
+```textarea
+30, 5
+31, 3
+32, 75.0
+33, 77.0
+34, [jim, ben, lucy, mei, lee]
+35, [jim, ben, lucy]
+36, [lee, mei, lucy]
+37, ben:60.0
+37, lucy:77.0
+37, mei:80.0
+37, lee:90.0
+37, 4
+38, 0
+39, 5
+40, 1
+41, 3
+42, [a, c, d, e]
+42, [e, d, c, a]
+43, [a, c]
+43, [a]
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/u012156116/article/details/80682139" target="_blank">Redis 的基本数据类型以及具体操作 Demo</a>
+ 
+ - <a href="http://redisdoc.com/index.html" target="_blank">Redis 命令参考</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

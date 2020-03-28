@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>protocol-https-certificate</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### protocol-https-certificate
+
+#### HTTPS 证书
+
+#### X.509 证书
+
+X.509 证书，是密码学中公钥格式标准。X.509 证书应用比较广 TLS、SLS 等很多 Internet 协议中用的都是 X.509 证书。
+
+X.509 证书，包含有公钥、身份信息、网络主机名（域名）、组织名称/个体名称、签名信息
+
+ - 证书
+ 
+  - 版本号
+  
+  - 序列号
+  
+  - 签名算法
+  
+  - 颁发者
+  
+  - 证书有效期
+  
+   - 此日期前无效
+   
+   - 此日期后无效
+   
+  - 主题
+  
+  - 主体公钥信息
+  
+   - 公钥算法
+   
+   - 主题公钥
+   
+  - 颁发者唯一身份信息（可选项）
+  
+  - 主题唯一身份信息（可选项）
+  
+  - 扩展信息（可选项）
+  
+   - ...
+  
+  - 证书签名算法
+  
+  - 数字签名
+
+X.509 还附带了证书吊销列表和用于从最终对证书进行签名的证书的签发机构直到最终可信点为止的证书合法性校验的算法。
+
+意思就是说使用 X.509 格式签发的证书，它没有到有效期但是我有办法可以提前将它注销掉。
+
+还有 X.509 格式证书，它的签发机构在客户端是没有被记录的不知道它是否可信，但是我有一套机制，检查它发行机构的发行机构，并且可以再接着往上递归一直找到根证书或是找到某个可信人的证书为止。
+
+![title](images/protocol-https-certificate/protocol-https-certificate-001.png)
+
+域名信息是存储在主题下的。
+
+#### X.509 证书编码格式
+
+ - PEM Privacy Enhanced Mail
+ 
+  - Linux/Unix Apache NGINX
+  
+  - openssl x509 -in certificate.pem -text -noout
+ 
+ - DER Distinguished Encoding Rules
+ 
+  - Java Windows
+  
+  - openssl x509 -in certificate.der -inform der -text -noout
+
+##### 证书文件扩展名
+
+ - CRT 证书，Linux/Unix 下常用，大多为 PEM 编码
+ 
+ - DER 证书，Windows 下常用，大多为 DER 编码
+ 
+ - CSR 不是证书，Certificate Signing Request，制作证书前的数据，包含信息和公钥
+ 
+  - 如果我要自己做一个证书，那么我就需要先制作一个 CSR 格式的文件。
+  
+  - 文件中包含了 证书信息，域名信息，组织信息 这些主题信息。
+  
+  - 还包含我自己的公钥。
+  
+  - 将这些信息包含在一起生成一个 CSR 格式文件。
+  
+  - 将 CSR 文件交给 CA ，CA 在审核之后再签名才会形成证书。
+ 
+ - PFX 包含证书和私钥，IIS 使用这种格式，浏览器也可使用。
+ 
+ - P12 包含证书和私钥，客户端浏览器证书一般使用这种格式。
+ 
+ - JKS Java Key Storage，利用 JDK 的 KeyTool 工具可以把 PFX 格式转换成 JKS 格式， Tomcat 中使用这种格式。
+
+#### 证书链
+
+![title](images/protocol-https-certificate/protocol-https-certificate-002.png)
+
+朋友的朋友还是朋友
+ 
+根证书是在浏览器或是操作系统安装的时候就内置进去的。并且会随着浏览器或操作系统的升级而安装新的根证书或修改/移除已安装的根证书。
+
+163 证书链
+
+![title](images/protocol-https-certificate/protocol-https-certificate-003.png)
+
+![title](images/protocol-https-certificate/protocol-https-certificate-004.png)
+
+#### 证书的签发与验证
+
+证书签发过程
+
+![title](images/protocol-https-certificate/protocol-https-certificate-005.png)
+
+证书验证过程
+
+![title](images/protocol-https-certificate/protocol-https-certificate-006.png)
+
+#### SSL 证书的分类
+
+ - 域名验证型 DV
+ 
+ - 组织验证型 OV
+ 
+ - 扩展验证型 EV
+ 
+![title](images/protocol-https-certificate/protocol-https-certificate-007.png)
+
+#### 证书的制作
+
+ - 自制
+ 
+  - 工具：OpenSSL
+  
+  - 缺点：浏览器不信任，需要每个客户端手工添加自己的 CA
+  
+  - 可用于小规模，特别是客户端证书
+  
+ - 购买或申请免费证书
+
+#### 客户端认证和使用 openssl 制作证书
+
+#### HTTPS 握手过程 && HTTPS 双向认证过程
+
+![title](images/protocol-https-certificate/protocol-https-certificate-008.png)
+
+##### 双向认证
+
+![title](images/protocol-https-certificate/protocol-https-certificate-009.png)
+
+##### 认证客户端失败 返回 400
+
+![title](images/protocol-https-certificate/protocol-https-certificate-010.png)
+
+#### 配置客户端认证
+
+```python
+server {
+    listen 443;
+    server_name exam.devmgr.cn;
+    
+    # 配置使用 SSL，服务器端证书
+    ssl on;
+    ssl_certificate /etc/nginx/certs/1_exam.devmgr.cn_bundle.crt;
+    ssl_certificate_key /etc/nginx/certs/2_exam.devmgr.cn.key;
+    ssl_session_timeout 5m;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
+    ssl_prefer_server_ciphers on;
+    
+    # 开启客户端认证
+    # ca 证书的公钥，客户端证书是由 ca 私钥签发的，可以使用 ca 公钥解密
+    ssl_client_certificate /etc/nginx/certs/ca.crt;
+    # 开启客户端验证
+    ssl_verify_client on;
+    
+    root /web/sites/exam;
+}
+```
+
+#### 获取客户端验证信息
+
+ - NGINX (ngx_http_ssl_module 模块)
+ 
+  - $ssl_client_s_dn 客户端证书的主题 DN
+  
+  - $ssl_client_raw_cert 客户端证书，PEM 格式
+  
+  - $ssl_client_i_dn 客户端证书颁发着 DN
+
+签发不同用户持有者的证书，来判断客户端类型。如专用主机。
+
+```python
+location /webapp{
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    # 把客户端证书的主题信息作为 request header (Client-Cert) 传递给应用
+    proxy_set_header Client-Cert $ssl_client_s_dn;
+}
+```
+
+**`ngx_http_ssl_model` 文档**： http://nginx.org/en/docs/http/ngx_http_ssl_module.html
+
+#### OpenSSL 自制证书
+
+![title](images/protocol-https-certificate/protocol-https-certificate-011.png)
+
+ - 制作证书
+
+```python
+## 制作 CA 私钥
+openssl genrsa -out ca.key 2048
+## 制作 CA 根证书（公钥），会要求填写信息
+openssl -req -new -x509 -days 3650 -key ca.key -out ca.crt
+```
+
+ - 制作服务器证书
+
+```python
+## 制作服务器端私钥
+openssl genrsa -out server.key 2048
+openssl rsa -in server.key -out server.public.key
+## 生成 CSR（证书签发请求）
+openssl req -new -key server.public.key -out server.csr
+## 用 CA 私钥签发证书
+openssl x509 -req -sha256 -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days 3650 -out server.crt
+```
+
+ - 制作客户端证书
+
+```python
+## 制作客户端私钥
+openssl genrsa -out client.key 2048
+openssl rsa -in client.key -out client.public.key
+## 生成 CSR （签发请求）
+openssl req -new -key client.public.key -out client.csr
+## 用 CA 私钥签发证书
+openssl x509 -req -sha256 -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days 365 -out client.crt
+## 转成 PFX 格式
+openssl pkcs12 -export -clcerts -in client.crt -inkey client.key -out client.pfx
+```
+
+![title](images/protocol-https-certificate/protocol-https-certificate-012.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

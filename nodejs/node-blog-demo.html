@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Blog Demo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 微博案例1
+
+内容：搭建开发环境和视图制作。
+
+#### 一、创建项目
+
+```python
+## 创建项目
+express -e bolg 
+
+## 进入项目
+cd bolg 
+
+## 加入包的依赖
+npm install 
+```
+
+加入 ejs 视图模板引擎支持
+
+加入文件 expand_modules/ejs/index.js
+
+```javascript
+var engine = require("./expand_modules/ejs");
+
+// 在 app 中改造引擎
+app.engine('ejs',engine);
+```
+
+#### 二、路由规划
+
+路由规划是网站的骨架部门，因为它处于整个架构的纽约位置，相当于各个接口的粘合剂。
+
+```python
+/         ： 首页
+/u/[user] ： 用户的主页
+/reg      ： 用户注册
+/login    ： 用户登录
+/logout   ： 用户退出
+```
+
+首先在 app 当中加入路由规则，然后在 index.js 中写如相应的响应处理函数
+
+#### 三、界面设计
+
+&amp;#160; &amp;#160;作为后台开发者，我们不擅长设计，我们可以利用已有的优秀设计。现在我们在用简洁风格的 Twitter Bootstrap ，他是 Twitter 的设计师和工程师发起的开源项目。它提供了一套与 Twitter 风格一致的简介，优雅的 Web UI。
+
+##### 1、加入 Twitter Bootstrap
+
+解压后将 js、css 和 图片放入 public 指定的目录下，再引入 jQuery.js 的文件。
+ 
+##### 2、制作视图
+
+layout.ejs、index.ejs、login、ejs、reg.ejs
+
+#### 四、准备设置
+
+  - 在 package.json 文件中添加 "express-partials": "*" 依赖，添加对 express layout 模板支持。
+  
+  - npm install 安装 "express-partials": "*"
+  
+  - 修改 app.js 
+  
+   - var partials = require('express-partials');  // 添加引用
+   
+   - app.use(partials()); // 应用到 express 中
+
+#### 微博案例2
+
+#### 一、安装 MongoDB 
+
+http://mongodb.github.io/node-mongodb-native/2.2/quick-start/quick-start/
+
+常用命令：
+
+```python
+## 查看所有库
+show dbs 
+## 使用指定的库
+use blog 
+## 查看所有的文档
+show collections 
+## 查询指定文档的数据
+db.表名.find() 
+## 插入数据
+db.表名.insert({name:'marico'}) 
+```
+
+#### 二、在 blog 项目中加入 MongoDB 的支持
+
+##### 1、加入 MongoDB 的依赖包
+
+修改 package.json 文件中的
+
+```javascript
+dependencies:{
+  "express" : "3.0.0rc4",
+  "ejs" : "*",
+  "connect" : ">=1.x", // 在做 Session 控制上的一个验证
+  "connect-mongo" : ">=0.17", // 在做 Session 控制上的一个验证
+  "mongodb" : "0.99"
+}
+```
+
+执行 npm install 更新依赖包
+
+##### 2、创建 setting.js 用于配置数据库连接信息
+
+```javascript
+module.exports = {
+  cookieSecret="blog",
+  db:"blog",
+  host:"localhost"
+}
+```
+
+```python
+db : 数据库的名称
+host : 数据库的地址
+cookieSecret : 用于 Cookie 加密与数据库无关
+```
+
+```python
+npm install mongodb@2.2 --save
+npm install connect
+npm install connect-mongo
+```
+
+##### 3、创建 db.js ，提供数据库连接对象。
+
+创建 modules/db.js 文件
+
+##### 4、会话支持
+
+&amp;#160; &amp;#160;Express 也提供了会话中间件，默认情况下是把用户信息存储在内存中，我们既然已经有了 MongoDB ，就会把信息存储在数据库中，便于持久维护。我们需要 connect 、 connect-mongo 两个模。前面已经加入了包的支持，我们直接修改 app.js 的程序入口。
+
+引入模块
+
+```javascript
+connect=require("connect");
+MongoStore=require("connect-mongo")(connect);
+// 使用 cookie 中间件
+app.use(express.cookieParse());
+// 会话中间件，存放在 MongoDB 中
+app.use(express.session({
+  secret : settings.cookieSecret,
+  // 把会话信息存储到数据库中。
+  store : new MongoStore({
+    db : settings.db
+  });
+}));
+```
+
+注：
+
+Express4.0 之后已经不再默认提供 session 会话的支持
+
+需要独立进行安装 express-session 包
+
+```javascript
+var session = require('express-session');
+var connect = require('connect');
+var MongoStore = require('connect-mongo')(session); // 将 session 传入给 MongoStore
+// 使用会话 session 的中间件
+app.use(session({
+    secret:settings.cookieSecret,
+    // 把会话信息存储到数据库中。
+    store:new MongoStore({
+        url:'mongodb://'+settings.host+"/"+settings.db
+    })
+}));
+```
+
+#### 微博案例3
+
+##### 一、创建 User 用户的 model 类
+
+ 1. 声明属性
+  
+ 2. 提供 save 共有函数，保存当前用户
+  
+ 3. 提供 find 静态函数，用于根据用户名验证用户是否存在。
+
+##### 二、注册功能实现
+
+ 1. 检验用户两次输入的口令是否一致
+ 
+ 2. 生成口令的散列值，使用 md5 加密
+ 
+ 3. 声明需要添加的用户
+ 
+ 4. 如果用户已存在
+ 
+ 5. 如果不存在则添加用户
+
+##### 三、使用中间件实现信息提示和用户权限控制
+
+ 1. 加入中间件
+ 
+ app.js
+ 
+ 返回成功和失败的信息
+ 
+ user设置成功动态视图助手
+ 
+ 2. 在 layout.js 模板布局中将权限动态去显示
+ 
+ （1）登录后的人可以看到用户名和退出
+ 
+ （2）未登录的人可以看到登录和注册
+ 
+ （3）如果提示信息存在则显示提示信息
+
+##### 三、登录功能实现
+
+ 1. 将登录的密码转成 md5 形式
+ 
+ 2. 根据用户名查询是否存在
+ 
+ 3. 验证密码是否正确
+
+##### 四、退出功能实现
+
+ session 中的 user 设置为空即可。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

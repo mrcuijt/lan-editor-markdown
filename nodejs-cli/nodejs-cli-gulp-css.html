@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>nodejs-cli-gulp-css</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### nodejs-cli-gulp-css
+
+#### 使用 gulp 工具压缩 css
+
+##### 创建项目
+
+```python
+npx mkdirp gulp-css-compress
+ 
+cd gulp-css-compress
+```
+
+##### install gulp, gulp-minify-css
+
+```python
+npm install --save-dev gulp
+
+npm install gulp-minify-css
+
+npm install --save-dev gulp --registry=https://registry.npm.taobao.org
+
+npm install gulp-minify-css --registry=https://registry.npm.taobao.org
+```
+
+##### 创建 gulpfile.js 文件编写代码
+
+```js
+
+// require gulp
+var gulp = require('gulp')
+// require gulp series
+const { series } = require('gulp');
+// require gulp-minify-css （用于压缩 CSS）
+var minifyCSS = require('gulp-minify-css')
+
+
+// 压缩 css 文件
+
+// 在命令行使用 gulp css 启动此任务
+function cssTask(cb){
+    // 1\. 找到文件
+    gulp.src('css/*.css')
+    // 2\. 压缩文件
+        .pipe(minifyCSS())
+    // 3\. 另存为压缩文件
+        .pipe(gulp.dest('dist/css'));
+    cb();
+}
+
+// 在命令行使用 gulp auto 启动此任务
+function autoTask(cb){
+    // 监听文件修改，当文件被修改则执行 css 任务
+    gulp.watch('css/*.css', gulp.series('css'))
+    cb();
+}
+
+exports.css = cssTask;
+exports.auto = autoTask;
+exports.default = series(cssTask);
+```
+
+##### 创建 css 文件
+
+在 `gulpfile.js` 对应目录创建 `css` 文件夹，并在 `css/` 目录下创建 `a.css` 文件。
+
+```css
+/* a.css */
+body a{
+
+    color:pink;
+
+}
+```
+
+##### 运行 gulp 查看效果
+
+在命令行输入 gulp 回车
+
+你将看到命令行出现如下提示
+
+```python
+[08:49:17] Using gulpfile D:\workspace\cssworkspace\gulp-compress\gulpfile.js
+[08:49:17] Starting 'default'...
+[08:49:17] Starting 'cssTask'...
+[08:49:17] Finished 'cssTask' after 49 ms
+[08:49:17] Finished 'default' after 84 ms
+```
+
+`gulp` 会创建 `dist/css` 目录，并创建 `a.css` 文件，此文件存放压缩后的 `css` 代码。
+
+**`a.css`**
+
+```css
+body a{color:pink}
+```
+
+#### Gulp API Getting Started
+
+##### Creating Tasks
+
+Each gulp task is an asynchronous JavaScript function - a function that accepts an error-first callback or returns a stream, promise, event emitter, child process, or observable (<a href="https://gulpjs.com/docs/en/getting-started/async-completion" target="_blank">more on that later</a>). Due to some platform limitations, synchronous tasks aren't supported, though there is a pretty nifty <a href="https://gulpjs.com/docs/en/getting-started/async-completion#using-async-await" target="_blank">alternative</a>.
+
+##### Exporting
+Tasks can be considered **public** or **private**.
+
+ - **Public** tasks are exported from your gulpfile, which allows them to be run by the `gulp` command.
+
+ - **Private** tasks are made to be used internally, usually used as part of `series()` or `parallel()` composition.
+
+A private task looks and acts like any other task, but an end-user can't ever execute it independently. To register a task publicly, export it from your gulpfile.
+
+```js
+const { series } = require('gulp');
+
+// The `clean` function is not exported so it can be considered a private task.
+// It can still be used within the `series()` composition.
+function clean(cb) {
+  // body omitted
+  cb();
+}
+
+// The `build` function is exported so it is public and can be run with the `gulp` command.
+// It can also be used within the `series()` composition.
+function build(cb) {
+  // body omitted
+  cb();
+}
+
+exports.build = build;
+exports.default = series(clean, build);
+```
+
+![docs-gulp-tasks-command.png](images/nodejs-cli-gulp-css/docs-gulp-tasks-command.png)
+
+_In the past, `task()` was used to register your functions as tasks. While that API is still available, exporting should be the primary registration mechanism, except in edge cases where exports won't work._
+
+
+##### Compose tasks
+
+Gulp provides two powerful composition methods, `series()` and `parallel()`, allowing individual tasks to be composed into larger operations. Both methods accept any number of task functions or composed operations. `series()` and `parallel()` can be nested within themselves or each other to any depth.
+
+To have your tasks execute in order, use the `series()` method.
+
+```js
+const { series } = require('gulp');
+
+function transpile(cb) {
+  // body omitted
+  cb();
+}
+
+function bundle(cb) {
+  // body omitted
+  cb();
+}
+
+exports.build = series(transpile, bundle);
+```
+
+For tasks to run at maximum concurrency, combine them with the `parallel()` method.
+
+```js
+const { parallel } = require('gulp');
+
+function javascript(cb) {
+  // body omitted
+  cb();
+}
+
+function css(cb) {
+  // body omitted
+  cb();
+}
+
+exports.build = parallel(javascript, css);
+```
+
+Tasks are composed immediately when either `series()` or `parallel()` is called. This allows variation in the composition instead of conditional behavior inside individual tasks.
+
+```js
+const { series } = require('gulp');
+
+function minify(cb) {
+  // body omitted
+  cb();
+}
+
+
+function transpile(cb) {
+  // body omitted
+  cb();
+}
+
+function livereload(cb) {
+  // body omitted
+  cb();
+}
+
+if (process.env.NODE_ENV === 'production') {
+  exports.build = series(transpile, minify);
+} else {
+  exports.build = series(transpile, livereload);
+}
+```
+
+`series()` and `parallel()` can be nested to any arbitrary depth.
+
+```js
+const { series, parallel } = require('gulp');
+
+function clean(cb) {
+  // body omitted
+  cb();
+}
+
+function cssTranspile(cb) {
+  // body omitted
+  cb();
+}
+
+function cssMinify(cb) {
+  // body omitted
+  cb();
+}
+
+function jsTranspile(cb) {
+  // body omitted
+  cb();
+}
+
+function jsBundle(cb) {
+  // body omitted
+  cb();
+}
+
+function jsMinify(cb) {
+  // body omitted
+  cb();
+}
+
+function publish(cb) {
+  // body omitted
+  cb();
+}
+
+exports.build = series(
+  clean,
+  parallel(
+    cssTranspile,
+    series(jsTranspile, jsBundle)
+  ),
+  parallel(cssMinify, jsMinify),
+  publish
+);
+```
+
+When a composed operation is run, each task will be executed every time it was referenced. For example, a `clean` task referenced before two different tasks would be run twice and lead to undesired results. Instead, refactor the `clean` task to be specified in the final composition.
+
+If you have code like this:
+
+```js
+// This is INCORRECT
+const { series, parallel } = require('gulp');
+
+const clean = function(cb) {
+  // body omitted
+  cb();
+};
+
+const css = series(clean, function(cb) {
+  // body omitted
+  cb();
+});
+
+const javascript = series(clean, function(cb) {
+  // body omitted
+  cb();
+});
+
+exports.build = parallel(css, javascript);
+```
+
+Migrate to this:
+
+```js
+const { series, parallel } = require('gulp');
+
+function clean(cb) {
+  // body omitted
+  cb();
+}
+
+function css(cb) {
+  // body omitted
+  cb();
+}
+
+function javascript(cb) {
+  // body omitted
+  cb();
+}
+
+exports.build = series(clean, parallel(css, javascript));
+```
+
+参考链接：
+
+ - <a href="https://www.w3cschool.cn/qtaitm/pfulzozt.html" target="_blank">用 Gulp 压缩 CSS</a>
+
+ - <a href="https://www.cnblogs.com/enginex/p/7147728.html" target="_blank">用 Gulp 压缩 CSS/JS</a>
+
+ - <a href="https://blog.csdn.net/qq_31975963/article/details/83034450" target="_blank">运行gulp项目报错：AssertionError: Task function must be specified</a>
+
+ - <a href="https://gulpjs.com/docs/en/getting-started/creating-tasks" target="_blank">Gulp API Getting Started</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Basic PackageManger Debug</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 包的管理器和代码调试
+
+#### 一、如何使用包管理器
+
+&amp;#160; &amp;#160;NodeJS 包管理器，即 npm 是 NodeJS 官方提供的包管理工具，它已经成了 NodeJS 包的标准发布平台，用于 NodeJS 包的发布、传播、依赖控制。
+
+##### （1）获取一个包
+
+```python
+## 语法
+npm [install/i] [package_name]
+
+## 例如安装 express 包
+npm i express
+
+## 卸载包:
+npm uninstall 包名 [-g]
+
+## 查看当前包：
+npm list
+```
+
+ - <a href="http://www.cnblogs.com/bluefrog/archive/2012/08/14/2639085.html" target="_blank">帮助连接</a>
+
+##### (2)本地模式和全局模式
+
+&amp;#160; &amp;#160;npm 在默认情况下会从 http://npmjs.org 搜索或下载包，将包安装到当前目录的 node_module
+
+ - 默认是 **npm install 包名** 作为本地模式
+ 
+ - 全局模式 **npm install -g 包名** 
+ 
+ - 区别和用法
+ 
+ 因为本地模式不会注册 Path 环境变量，举例，我们安装 supervisor 是为了在命令行中运行它，譬如直接运行 supervisor script.js
+ 
+ npm 本地模式仅仅把包安装到了 node_modules 子目录下，其中的 bin 目录没有包含在 PATH 变量中，不能直接在命令中调用。
+ 
+ 使用全局模式安装的包并不能在 JavaScript 文件的 require 获得，因为 require 不会搜索 /usr/local/lib/node_modules。
+ 
+&amp;#160; &amp;#160;通俗讲：当我们要把某个包作为工程运行时的部分时，通过本地模式获取，如果在命令行下使用，则使用全局模式。就像我们使用的 supervsior 命令，在命令行下使用 -g 参数进程全局安装，安装完成后可以在命令行下使用 supervisor 命令调试运行文件。
+
+ - 包的发布
+ 
+ 首选确保具备 CommonJS 为基础包的规范，但与 CommJS 并不完全一致，其主要差别在于必填字段不同通过使用 npm init 可以根据交互式问答产生一个符合标准的 package.json
+ 
+ dos 进入这个目录运行 npm init 得到 package.json 的文件，改成自己的文件等信息
+ 
+ 然后进入 package.json 所在目录运行 npm publish 就完成了发布
+ 
+#### 如何更新包？
+
+如果你的包内容有所改动，则在版本上做改动
+
+```python
+## 运行 
+npm publish 
+```
+
+访问 **http://search/npmjs.org/** 就可以找到自己刚刚发布的包了
+
+#### 如何取消发布？
+
+```python
+npm unpublish
+```
+
+#### 二、调试代码
+
+在 eclipse 装插件
+
+地址是 http://chromedevtools.googlecode.com/svn/update/dev/
+
+在 debug 中配置，端口为 5858
+
+在命令运行 js 文件的时候
+
+```python
+node --debug-brk=5858 文件名.js 
+```
+
+现在就在 eclipse 中启动 debug 就可以跟断点了。 
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

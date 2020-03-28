@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>protocol-http-cors</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### protocol-http-cors
+
+#### CORS 跨域资源共享
+
+##### 浏览器同源策略
+
+同源标准
+
+ - 协议相同
+ 
+ - 域名相同
+ 
+ - 端口相同
+
+<text zoom="7.2">╔═══════════════════════════════════════════════╤══════════════════════════════════════╤═══════════╗
+║ 源网址 URL                                    │ 被调用 URL                           │ 同源/跨域 ║
+╟───────────────────────────────────────────────┼──────────────────────────────────────┼───────────╢
+║ http://s1.example.com/                        │ https://s1.example.com/users/2/      │ 跨域      ║
+╟───────────────────────────────────────────────┼──────────────────────────────────────┼───────────╢
+║ http://s1.example.com/                        │ https://s2.example.com/users/2/      │ 跨域      ║
+╟───────────────────────────────────────────────┼──────────────────────────────────────┼───────────╢
+║ http://s1.example.com/                        │ https://s1.example.com:8081/users/2/ │ 跨域      ║
+╟───────────────────────────────────────────────┼──────────────────────────────────────┼───────────╢
+║ http://s1.example.com/usercenter/friends.html │ https://s1.example.com/users/2/      │ 同源      ║
+╚═══════════════════════════════════════════════╧══════════════════════════════════════╧═══════════╝</text>
+
+```
+["源网址 URL","被调用 URL","同源/跨域"],
+["http://s1.example.com/","https://s1.example.com/users/2/","跨域"],
+["http://s1.example.com/","https://s2.example.com/users/2/","跨域"],
+["http://s1.example.com/","https://s1.example.com:8081/users/2/","跨域"],
+["http://s1.example.com/usercenter/friends.html","https://s1.example.com/users/2/","同源"]
+```
+
+限制访问范围
+
+  - Cookie、LocalStorage、IndexDB
+  
+  - DOM 结构
+  
+  - AJAX 请求
+
+#### 浏览器限制跨域的原因
+
+ - 预防部分 CSRF 攻击
+
+#### JSONP
+
+ - JSONP: JSON with padding
+ 
+ - 利用 `<script>` 标签，返回 javascript
+
+s1.example.com 中页面添加 script 标签：
+
+```xml
+<script type="text/javascript"
+    src="http://s2.example.com/RetrieveUser?UserId=123&jsonp=parseResponse">
+</script>
+```
+
+s2.example.com 服务器返回
+```js
+parseResponse({"Name":"小明", "Id":1823, "Rank":7})
+```
+
+缺点：
+
+ - 只支持 GET 请求。
+ 
+ - 服务器和前端的函数名做了绑定，耦合度比较高。
+ 
+ - 增加了安全的风险，如果 s2 服务器被黑返回的结果可能导致任意脚本执行。
+
+#### CORS
+
+ - 跨域资源共享 Cross-Origin Resource Sharing
+ 
+  - （用于避开浏览器同源策略）
+ 
+ - 解决 AJAX 同源策略问题，允许向外部服务器发出 XMLHttpRequest
+ 
+ - 前端 JavaScript 处理跨域和同源 AJAX 完全相同。
+ 
+ - 新版浏览器支持（IE 需 10 以上）
+
+##### CORS 请求分类
+
+ - 简单请求
+ 
+ - 非简单请求
+
+##### 简单请求
+
+请求方式以下三种之一：
+
+ - HEAD
+ 
+ - GET
+ 
+ - POST
+
+HTTP 头信息在以下范围内：
+
+ - Accept
+ 
+ - Accept-Language
+ 
+ - Content-Language
+ 
+ - Last-Event-ID
+ 
+ - Content-Type （仅限以下三个）
+ 
+  - application/x-www-form-urlencoded
+  
+  - mulitpart/form-data
+  
+  - text/plain
+
+##### 请求的处理（简单请求）
+
+直接发送请求，在头中增加 Origin
+
+```
+Origin: http://s1.example.com:8080
+```
+
+ - 表明请求来源
+ 
+  - 协议
+  
+  - 域名
+  
+  - 端口号
+
+服务器如果允许跨域访问，需回应增加几个 Response Header
+
+```
+Access-Control-Allow-Origin: http://s1.example.com:8080
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: X-My-Header
+```
+
+ - Access-Control-Allow-Credentials: true 默认为 true
+
+  - 允许客户端发送 Cookie 给服务器端
+
+ - Access-Control-Expose-Headers
+ 
+  - 支持服务器响应的那些头信息可以允许 JavaScript 获取的。
+  
+ - 除此以外浏览器可以获取一些最基本的响应头 getResponseHeader();
+  
+   - Cache-Control
+   
+   - Content-Language
+   
+   - Content-Type
+   
+   - Expires
+   
+   - Last-Modified
+   
+   - Pragma
+   
+ - 如果需要访问其他头，则需要服务器设置 Access-Control-Expose-Headers 响应头
+
+**`注意:` 不管在浏览器上请求显示是成功了还是失败了，服务器端都会执行完整的操作。**
+
+##### 请求的处理（非简单请求）
+
+非简单请求分为两部分
+
+ - CORS 预检请求
+ 
+ - 正式请求
+
+##### 预检请求
+
+使用 OPTIONS 方法查询是否允许请求 [CORS 预检请求]
+
+非简单请求
+
+ - 请求方法为 PUT
+ 
+ - 添加了自定义请求头 Access-Control-Request-Headers
+
+```
+OPTIONS /cors HTTP/1.1
+Origin: http://s1.example.com
+Access-Control-Request-Method: PUT
+Access-Control-Request-Headers: X-Custom-Header
+```
+
+服务器如果允许跨域访问，需回应增加几个 Response Header
+
+```
+Access-Control-Allow-Methods: GET,POST,PUT,OPTIONS
+Access-Control-Allow-Origin: http://s1.example.com
+Access-Control-Allow-Headers: X-Custom-Header
+Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 86400
+```
+
+允许客户端发送 Cookie 给服务器端
+
+ - Access-Control-Allow-Credentials: true 默认为 true
+
+本次预检请求有效期（单位/秒）
+
+ - Access-Control-Max-Age 在一段时间内可以不用再发送预检请求，直接可以发送正式请求。
+
+##### 正式请求
+
+预检请求完成后发送正式请求（和简单请求相同）
+
+#### 其他解决方法
+
+好处：不用修改服务器端程序。
+
+ - 反向代理服务器（Nginx 等）
+
+  - 限制：不能对服务器返回值做处理
+
+ - 后端程序接口代理 （API 网关）
+
+  - 可以对服务器返回值做处理
+
+#### 跨域的前端交互（iframe，DOM）
+
+s1.example.com 上网页，需要和 s2.example.com 共享 cookie
+
+ - Cookie 
+  
+  - cookie.setDomain(".example.com");
+
+example.com 页面通过 iframe 显示子域内容，可在 iframe 内设置。
+
+document.domain="example.coom"
+
+ - 前端 HTML5 windows.postMessage
+ 
+ - 前端 iframe，利用 url hash 变化或 window.title 变化
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

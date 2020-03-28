@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>protocol-http-request-ext</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### protocol-http-request-ext
+
+最近在调试代码时发现有 **`Request Payload`** 的情况，从网上查一些文件，也都有较多的描述。
+
+下面我只是说明一下大家没有注意的地方
+
+关于 HTTP 请求，都是通过 URL 及参数向后台发送数据。主要方式有 GET, POST。
+
+ - **GET 的参数都会放在 URL 的后面，一般称之为 Query 参数。**
+
+ - **POST 的都放在 HTTP 的报文 BODY 里。**
+ 
+  - **可以是 Query 参数的形式。**
+  
+  - **可以是 Multipart 格式。**
+  
+  - **可以是 JSON 格式，即 Request Payload 格式。**
+
+**Multipart, Request Payload 是通过请求头中的 `Content-Type` 区分的：**
+
+ - **Multipart ：`Content-Type: multipart/form-data;boundary=--xxxxxxx`**
+ 
+ - **Request Payload ：`Content-Type: application/json`**
+
+在后台的处理中对这三种格式的处理是不相同的。
+
+ - GET 请求参数都在 URL 后面，以 **key1=value1&key2=value2** 的 **KV 格式** 存在，且不会很长（协议规定为 1024 个字节，但现在浏览器都会适当加长一些）。后台处理这种参数时可以使用同步处理，因为报文头收到后参数也就收全了。
+
+ - POST 请求参数也可以使用上面的 **KV 格式** 存在，但是会放在报文体中。当数据量不大时，一般也会和报文头一起收到。但数据量大的时会被拆分到多个报文中。因此必须使用异步方式收取。收全后处理同 GET 相同。
+
+  - **对于 Multipart 格式，需要使用流方式边收边解析，因为有可能是大文件上传。**
+  
+  - **对于 Request Payload 格式，可能也是异步发送（这个没有验证过），但数据量一般不会太大。**
+  
+     它是一个 JSON 格式，因此必须等报文收全后才能处理。目前对 JSON 格式的支持比较普遍，都有相关的函数来解析 JSON 字符串，直接生成 JSON 对象，因此这种方式也是最方便的。特别是使用 NodeJS Server 时就可以直接在代码中使用了。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

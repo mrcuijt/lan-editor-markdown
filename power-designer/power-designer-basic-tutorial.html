@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>power-designer-basic-tutorial</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### power-designer-basic-tutorial
+
+#### Power Designer 教程系列
+
+##### Power Designer 教程系列（一）概念数据模型
+
+目标:
+
+本文主要介绍PowerDesigner中概念数据模型 CDM的基本概念。
+
+###### 一、概念数据模型概述
+
+数据模型是现实世界中数据特征的抽象。数据模型应该满足三个方面的要求：
+
+ - 1）能够比较真实地模拟现实世界
+
+ - 2）容易为人所理解
+
+ - 3）便于计算机实现
+
+概念数据模型也称信息模型，它以实体－联系(Entity-RelationShip,简称 E-R)理论为基础，并对这一理论进行了扩充。它从用户的观点出发对信息进行建模，主要用于数据库的概念级设计。
+
+通常人们先将现实世界抽象为概念世界，然后再将概念世界转为机器世界。换句话说，就是先将现实世界中的客观对象抽象为实体(Entity)和联系(Relationship),它并不依赖于具体的计算机系统或某个 DBMS 系统，这种模型就是我们所说的CDM;然后再将CDM转换为计算机上某个 DBMS 所支持的数据模型，这样的模型就是物理数据模型,即 PDM。
+
+CDM 是一组严格定义的模型元素的集合，这些模型元素精确地描述了系统的静态特性、动态特性以及完整性约束条件等，其中包括了数据结构、数据操作和完整性约束三部分。
+
+ - 1）数据结构表达为实体和属性;
+
+ - 2）数据操作表达为实体中的记录的插入、删除、修改、查询等操作;
+
+ - 3）完整性约束表达为数据的自身完整性约束（如数据类型、检查、规则等）和数据间的参照完整性约束（如联系、继承联系等）;
+
+###### 二、实体、属性及标识符的定义
+
+ - **实体（Entity）**
+
+ 也称为实例，对应现实世界中可区别于其他对象的“事件”或“事物”。例如，学校中的每个学生，医院中的每个手术。
+
+ 每个实体都有用来描述实体特征的一组性质，称之为属性，一个实体由若干个属性来描述。如学生实体可由学号、姓名、性别、出生年月、所在系别、入学年份等属性组成。
+
+ - **实体集（Entity Set）**
+
+ 是具体相同类型及相同性质实体的集合。例如学校所有学生的集合可定义为“学生”实体集，“学生”实体集中的每个实体均具有学号、姓名、性别、出生年月、所在系别、入学年份等性质。
+
+ - **实体类型（Entity Type）**
+
+ 是实体集中每个实体所具有的共同性质的集合，例如“患者”实体类型为：患者（门诊号，姓名，性别，年龄，身份证号.............）。实体是实体类型的一个实例，在含义明确的情况下，实体、实体类型通常互换使用。
+
+实体类型中的每个实体包含唯一标识它的一个或一组属性，这些属性称为实体类型的标识符（Identifier），如“学号”是学生实体类型的标识符，“姓名”、“出生日期”、“信址”共同组成“公民”实体类型的标识符。
+
+有些实体类型可以有几组属性充当标识符，选定其中一组属性作为实体类型的主标识符，其他的作为次标识符。
+
+###### 三、实体、属性及标识符的表达
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-001.jpg)
+
+##### PowerDesigner教程系列（二）概念数据模型
+
+目标： 
+
+本文主要介绍 PowerDesigner 概念数据模型以及实体、属性创建。
+
+###### 一、新建概念数据模型
+
+1）选择 File-->New,弹出如图所示对话框，选择 CDM 模型（即概念数据模型）建立模型。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-002.jpg)
+
+2）完成概念数据模型的创建。以下图示，对当前的工作空间进行简单介绍。（以后再更详细说明）
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-003.jpg)
+
+3）选择新增的 CDM 模型，右击，在弹出的菜单中选择 “Properties” 属性项，弹出如图所示对话框。在“General”标签里可以输入所建模型的名称、代码、描述、创建者、版本以及默认的图表等等信息。在“Notes”标签里可以输入相关描述及说明信息。当然再有更多的标签，可以点击 "More>>"按钮，这里就不再进行详细解释。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-004.jpg)
+
+###### 二、创建新实体 
+
+ - 1）在 CDM 的图形窗口中，单击工具选项版上的 Entity 工具，再单击图形窗口的空白处，在单击的位置就出现一个实体符号。点击 Pointer 工具或右击鼠标，
+
+释放 Entitiy 工具。如图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-005.jpg)
+
+2）双击刚创建的实体符号，打开下列图标窗口，在此窗口 “General” 标签中可以输入实体的名称、代码、描述等信息。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-006.jpg)
+
+###### 三、添加实体属性
+
+ - 1）在上述窗口的 “Attribute” 选项标签上可以添加属性，如下图所示。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-007.jpg)
+
+注意： 数据项中的 “添加属性” 和 “重用已有数据项” 这两项功能与模型中 Data Item 的 Unique code 和 Allow reuse 选项有关。 P列表示该属性是否为主标识符; D列表示该属性是否在图形窗口中显示;M列表示该属性是否为强制的，即该列是否为空值。
+
+如果一个实体属性为强制的，那么， 这个属性在每条记录中都必须被赋值，不能为空。
+
+ - 2）在上图所示窗口中，点击插入属性按钮，弹出属性对话框，如下图所示。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-008.jpg)
+
+注意：这里涉及到域的概念，即一种标准的数据结构，它可应用至数据项或实体的属性上。在以下的教程中将另立章节详细说明。
+
+##### PowerDesigner 教程系列（三）概念数据模型
+
+目标： 本文主要介绍属性的标准检查约束、如何定义属性的附加检查。
+
+一、定义属性的标准检查约束 标准检查约束是一组确保属性有效的表达式。在实体属性的特性窗口，打开如图所示的检查选项卡。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-009.jpg)
+
+在这个选项卡可以定义属性的标准检查约束，窗口中每项的参数的含义，如下
+
+<text zoom="8.2">╔════════════════╤════════════════════════════════════════════╗
+║ 参数           │ 说明                                       ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Minimum        │ 属性可接受的最小数                         ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Maximum        │ 属性可接受的最大数                         ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Default        │ 属性不赋值时，系统提供的默认值             ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Unit           │ 单位，如公里、吨、元                       ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Format         │ 属性的数据显示格式                         ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Lowercase      │ 属性的赋值全部变为小写字母                 ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Uppercase      │ 属性的赋值全部变为大写字母                 ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Cannot modify  │ 该属性一旦赋值不能再修改                   ║
+╟────────────────┼────────────────────────────────────────────╢
+║ List Of Values │ 属性赋值列表，除列表中的值，不能有其他的值 ║
+╟────────────────┼────────────────────────────────────────────╢
+║ Label          │ 属性列表值的标签                           ║
+╚════════════════╧════════════════════════════════════════════╝</text>
+
+```
+["参数","说明"],
+["Minimum","属性可接受的最小数"],
+["Maximum","属性可接受的最大数"],
+["Default","属性不赋值时，系统提供的默认值"],
+["Unit","单位，如公里、吨、元"],
+["Format","属性的数据显示格式"],
+["Lowercase","属性的赋值全部变为小写字母"],
+["Uppercase","属性的赋值全部变为大写字母"],
+["Cannot modify","该属性一旦赋值不能再修改"],
+["List Of Values","属性赋值列表，除列表中的值，不能有其他的值"],
+["Label","属性列表值的标签"]
+```
+
+二、定义属性的附加检查
+
+当 Standard checks 或 Rules 不能满足检查的要求时，可以在 Additional Checks 选项卡的 Server 子页上，通过 SQL 语句中使用 %MINMAX%、%LISTVAL%、%RULES%、%UPPER%、%LOWER% 几个变量来定义 Standard 和 Rule,如图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-010.jpg)
+
+%MINMAX%、%LISTVAL%、%UPPER%、%LOWER%
+
+在 Standard Check 中定义的 Minimum 和 Maximum、List values 、uppervalues、lowervalues
+
+%RULES%
+
+在 Rules 特性窗口 Expression 选项卡中定义的有效性规则表达式
+
+##### PowerDesigner教程系列（四）概念数据模型
+
+目标：
+
+本文主要介绍如何定义实体的主、次标识符。
+
+一、标识符 标识符是实体中一个或多个属性的集合，可用来唯一标识实体中的一个实例。要强调的是，CDM 中的标识符等价于 PDM 中的主键或候选键。 每个实体都必须至少有一个标识符。如果实体只有一个标识符，则它为实体的主标识符。如果实体有多个标识符，则其中一个被指定为主标识符，其余的标识符就是次标识符了。
+
+二、如果定义主、次标识符
+
+1）选择某个实体双击弹出实体的属性对话框。在 Identifiers 选项卡上可以进行实体标识符的定义。如下图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-011.jpg)
+
+2）选择第一行“主标识符”，点击属性按钮或双击第一行“主标识符”，弹出属性对话框，如图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-012.jpg)
+
+3）选择 "Attributes" 选项卡，再点击 “Add Attributes” 工具，弹出如图所示窗口，选择某个属性作为标识符就行了。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-013.jpg)
+
+##### PowerDesigner 教程系列（五）概念数据模型
+
+目标：
+
+本文主要介绍数据项、新增数据项、数据项的唯一性代码选项和重用选项等。
+
+一、数据项 数据项（Data Item）是信息存储的最小单位，它可以附加在实体上作为实体的属性。 注意：模型中允许存在没有附加至任何实体上的数据项。
+
+二、新建数据项 
+
+1）使用 “Model”---> Data Items 菜单，在打开的窗口中显示已有的数据项的列表，点击 “Add a Row” 按钮，创建一个新数据项，如图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-014.jpg)
+
+2）当然您可以继续设置具体数据项的 Code、DataType、Length 等等信息。这里就不再详细说明了。
+
+三、数据项的唯一性代码选项和重用选项 使用 Tools--->Model Options->Model Settings。在 Data Item 组框中定义数据项的唯一性代码选项(Unique Code)与重用选项（Allow Reuse）。 注意： 如果选择 Unique Code 复选框 ，每个数据项在同一个命名空间有唯一的代码，而选择 Allow reuse ，一个数据项可以充当多个实体的属性。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-015.jpg)
+
+四、在实体中添加数据项
+
+1）双击一个实体符号，打开该实体的属性窗口。
+
+2）单击 Attributes 选项卡，打开如下图所示窗口 
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-016.jpg)
+
+注意： Add a DataItem 与 Reuse a DataItem 的区别在于 Add a DataItem 情况下，选择一个已经存在的数据项，系统会自动复制所选择的数据项。如果您设置了UniqueCode选项，那系统在复制过程中，新数据项的 Code 会自动生成一个唯一的号码，否则与所选择的数据项完全一致。
+
+Reuse a DataItem 情况下，只引用不新增，就是引用那些已经存在的数据项，作为新实体的数据项。
+
+##### PowerDesigner 教程系列（六）概念数据模型
+
+目标：
+
+本文主要介绍联系的定义及使用。
+
+ 一、 联系 联系（Relationship）是指实体集这间或实体集内部实例之间的连接。
+
+ 实体之间可以通过联系来相互关联。与实体和实体集对应，联系也可以分为联系和联系集，联系集是实体集之间的联系，联系是实体之间的联系，联系是具有方向性的。联系和联系集在含义明确的情况之下均可称为联系。
+
+ 按照实体类型中实例之间的数量对应关系，通常可将联系分为4类，即一对一（ONE TO ONE）联系、一对多（ONE TO MANY）联系、多对一（MANY TO ONE）联系和多对多联系（MANY TO MANY）。
+
+二、 建立联系 在 CDM 工具选项板中除了公共的工具外，还包括如下图所示的其它对象产生工具。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-017.jpg)
+
+在图形窗口中创建两个实体后，单击“实体间建立联系”工具，单击一个实体，在按下鼠标左键的同时把光标拖至别一个实体上并释放鼠标左键，这样就在两个实体间创建了联系，右键单击图形窗口，释放Relationship工具。如下图所示 
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-018.jpg)
+
+三、 四种基本的联系
+
+即一对一（ONE TO ONE）联系、一对多（ONE TO MANY）联系、多对一（MANY TO ONE）联系和多对多联系（MANY TO MANY）。如图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-019.jpg)
+
+四、 其他几类特殊联系
+
+除了4种基本的联系之外，实体集与实体集之间还存在标定联系（Identify Relationship）、非标定联系（Non-Identify RelationShip）和递归联系（Recursive Relationship）。
+
+标定联系： 每个实体类型都有自己的标识符，如果两个实体集之间发生联系，其中一个实体类型的标识符进入另一个实体类型并与该实体类型中的标识符共同组成其标识符时，这种联系则称为标定联系，也叫依赖联系。反之称为非标定联系，也叫非依赖联系。
+
+注意：在非标定联系中，一个实体集中的部分实例依赖于另一个实例集中的实例，在这种依赖联系中，每个实体必须至少有一个标识符。而在标定联系中，一个实体集中的全部实例完全依赖于另个实体集中的实例，在这种依赖联系中一个实体必须至少有一个标识符，而另一个实体却可以没有自己的标识符。没有标识符的实体用它所依赖的实体的标识符作为自己的标识符。
+
+换句话来理解，在标定联系中，一个实体（选课）依赖 一个实体（学生），那么（学生）实体必须至少有一个标识符，而（选课）实体可以没有自己的标识符，没有标标识符的实体可以用实体（学生）的标识符作为自己的标识符。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-020.jpg)
+
+递归联系： 递归联系是实体集内部实例之间的一种联系，通常形象地称为自反联系。同一实体类型中不同实体集之间的联系也称为递归联系。
+
+例如：在“职工”实体集中存在很多的职工，这些职工之间必须存在一种领导与被领导的关系。又如“学生”实体信中的实体包含“班长”子实体集与“普通学生”子实体集，这两个子实体集之间的联系就是一种递归联系。创建递归联系时，只需要单击“实体间建立联系”工具从实体的一部分拖至该实体的别一个部分即可。如图
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-021.jpg)
+
+五、 定义联系的特性
+
+在两个实体间建立了联系后，双击联系线，打开联系特性窗口，如图所示。
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-022.jpg)
+
+六、 定义联系的角色名 在联系的两个方向上各自包含有一个分组框，其中的参数只对这个方向起作用，Role Name为角色名，描述该方向联系的作用，一般用一个动词或动宾组表。 如：“学生 to 课目 ” 组框中应该填写“拥有”，而在“课目To 学生”组框中填写“属于”。（在此只是举例说明，可能有些用词不太合理）。
+
+七、 定义联系的强制性 Mandatory 表洋这个方向联系的强制关系。选中这个复选框，则在联系线上产生一个联系线垂直的竖线。不选择这个复选框则表示联系这个方向上是可选的，在联系线上产生一个小圆圈。
+八、 有关联系的基数 联系具有方向性，每个方向上都有一个基数。
+举例， “系”与“学生”两个实体之间的联系是一对多联系，换句话说“学生”和“系”之间的联系是多对一联系。而且一个学生必须属于一个系，并且只能属于一个系，不能属于零个系，所以从“学生”实体至“系”实体的基数为“1,1”，从联系的另一方向考虑，一个系可以拥有多个学生，也可以没有任何学生，即零个学生，所以该方向联系的基数就为“0,n”,如图所示 
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-023.jpg)
+
+##### PowerDesigner 教程系列（七）概念数据模型
+
+目标：
+
+本文主要介绍继承联系定义及使用。
+
+一、定义
+
+实体之间除了我们之前所讲的联系外，还存在分类关系、继承关系。在CDM中我们统称分类关系、继承关系为继承联系。
+
+通过特殊化或概化方法产生的实体类型之间的联系称为继承联系。
+
+ _特殊化：在实体集内部分组并把这些分组存放在不同的实体类型中的过程称为实体集的特殊化。_
+
+ _概化：从多个实体集的公共属性中抽象出一个公共实体类型的过程为实体集的概化。_
+
+继承联系的一端是具有普遍性的实体集，为父实体集，另一端连接的是具体特殊的一个或多个实体集，为子实体集。
+
+例如：“银行账户”是“借记卡账户”与“信用卡账户”的父实体，相反“借记卡账户”与“信用卡账户”是“银行账户”的子实体。
+
+另外在继承联系中，还可以分为 **`互斥性继承联系`** 和 **`非互斥性继承联系`**。
+
+ _互斥性继承联系：父实体中的一个实例只能在一个子实体中。例如：“帐户”主实体下的“个人账户”与“公司账户”两个子实体之间的联系是互斥的。_
+
+ _非互斥性继承联系：父实体中的一个实例可以在多个子实体中。例如：“职工”父实体下的“干部”与“教师”子实体之间属于非互斥继承联系，教师有可能也是干部，干部有可能也是教师。_
+
+这里我就不再图示了，望大伙要认真理解概念。
+
+二、创建继承联系
+
+ **`注意：PowerDesigner 15 的版本，工具栏上的Inheritance图标默认是禁用的。打开方法如下：`**
+
+ **`Tools->Model Options->Model Settings->Notation 设为“E/R+Merise”就行了。`**
+
+![图示 1](images/power-designer-basic-tutorial/power-designer-basic-tutorial-024.jpg)
+
+![图示 2](images/power-designer-basic-tutorial/power-designer-basic-tutorial-025.jpg)
+
+在 CDM 中创建两个实体，A 与 B,单击工具选项板上的继承工具连接 A 与 B 实体。图示1
+
+A是父实体，B是子实体。再创建实体C以同样的方法连接到C实体上。如图2所示，表示B、C与A之间存在继承联系。
+
+三、定义互斥性继承联系
+
+双击继承联系的半圆符号，打开继承联系的属性窗口。如图3所示
+
+![图示 3](images/power-designer-basic-tutorial/power-designer-basic-tutorial-026.jpg)
+
+**`Mutually exclusive children` 表示父实体中的一条记录只能在一个子实体上出现，子实体之间存在互斥的关系。**
+
+**`Complete` 表示父实体的所有实例必须是子实体之一，例如：“人”实体有“男人”和“女人”两个子实体，每个“人”实体的实例可以是“男人”或“女人”。**
+
+四、定义继承联系的生成模式
+
+![图示 4](images/power-designer-basic-tutorial/power-designer-basic-tutorial-027.jpg)
+
+定义由 CDM 生成 PDM 或者生成 OOM 中的 class 图的生成模式。
+
+说明：
+
+Generate parent：表示继承联系中的父实体会生成 PDM 中的表或 Class 图中的类。
+
+Generate children：
+
+ - 1）选择 Inherit all attributes 表示继承联系中的子实体生成 PDM 中的表或 Class 图中的类，并且继承父实体中的所有实体属性
+
+ - 2）选择 Inherit only primary attributes,表示继承联系中子实体生成 PDM 中的表或 Class 图中的类，但只继承父实体中的标识符属性。
+
+五、继承联系状态表
+
+![图示 5](images/power-designer-basic-tutorial/power-designer-basic-tutorial-028.jpg)
+
+##### PowerDesigner 教程系列（八）概念数据模型
+
+目标：
+
+本文主要介绍域的概念以及使用。
+
+一、概念
+
+域：实际上就是一个取值范围，也可扩展为一个数据类型。域可以定义检查约束、取值范围、最大值、最小值、默认值等。
+
+域是通过用户自定义类型实现的，定义一个域的后，可以实多个实体的属性共享，这也模型设计中非常重要。
+
+例如：“服务生”、“客户”、“操作员”三个实体中都有“姓名”属性，我们就可以定义一个“姓名”域，分别附加到三个实体中，修改域的同时，使用域的实体的相关属性也会随之更新。所图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-029.jpg)
+
+二、域的定义
+
+菜单 Model->Domains,在弹出窗口 “List of Domains” 中,增加新的域。如图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-030.jpg)
+
+三、附加域到实体属性
+
+打开实体的属性选项卡，如图所示，从 Domain 下拉列表中选择一个域
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-031.jpg)
+
+**注：`设置域与数据项的分离关系，Tools->Model Options ->Model，设置“Domain/Attribute”,Enforce non-divergence 下的Data type(数据类型、长度、精度)、Check（检查约束）、Rules（业务规则）、Mandatory等。如果都不选，则表示设置域与数据项是可分离的。默认为Data type 不可分离，可自行设置。如下图所示`**
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-032.jpg)
+
+四、附加域到数据项上
+
+菜单 Model->Data Items,在弹出窗口 “List Data Items” 中，添加数据项以及附加域,所图所示
+
+![title](images/power-designer-basic-tutorial/power-designer-basic-tutorial-033.jpg)
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/advocate/p/3730027.html" target="_blank">Power Designer 教程系列</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

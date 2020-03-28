@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS FileSystem</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### fs 文件操作
+
+&amp;#160; &amp;#160;介绍：fs 模块是文件操作的封装，它提供了文件的读取，写入，更名，删除，遍历目录，链接 POSIX 文件系统操作。与其他模块不同的是，**```fs 模块中所有的操作都提供了异步和同步两个版本```**，例如读取文件内容函数异步方法：readFile() ，同步方法 readFileSync() 。
+
+
+##### 一、 fs.readFile(filename,[encoding],[callback(err,data)])
+
+&amp;#160; &amp;#160;fs.readFile(filename,[encoding],[callback(err,data)]) 是最简单的读取文件的函数。
+
+参数： 
+
+ - **```filename```** ：读取的文件名
+ 
+ - **```encoding```** ：文件的字符编码 ANSI
+ 
+ - **```callback```** ：回调函数提供两个参数 err 和 data ，err 表示有没有错误发生，data 是文件内容。如果指定了 encoding ，data 是一个解析后的字符串，否则将会以 buffer 形式表示的二进制数据。
+
+案例： readFile.js 
+
+```javascript
+// 引入 fs  模块
+var fs = require("fs");
+ 
+// 调用文件读取的方法
+fs.readFile('cc.txt',function(err,data){
+ 
+    if(err){
+        console.log(err);
+    }else{
+        console.log(data);  //  buffer 形式表示二进制的数据
+    }
+ 
+});
+ 
+// 调用文件读取的方法
+fs.readFile('cc.txt','UTF-8',function(err,data){
+ 
+    if(err){
+        console.log(err);
+    }else{
+        console.log(data);  // 以 UTF-8 解析后的一个字符串
+    }
+ 
+});
+ 
+try{
+ 
+    // 同步式读取文件，程序会首先执行，在这之前的函数不会立刻完成文件的读取
+    var data = fs.readFileSync('cc.txt','UTF-8');
+ 
+    console.log(data + ' 同步方式读取文件。');
+ 
+}catch(e){
+    console.log(e)
+}
+```
+
+##### 二、 fs.readFileSync(filename,[encoding]) 
+
+&amp;#160; &amp;#160;同步读取文件它接收的参数和 fs.readFile 相同，而读取到的文件内容会以函数返回值形式返回，出现异常需要 try 和 catch 捕获并处理异常。
+
+##### 三、 fs.open(path,flags,[mode],[callback(err,data)])
+
+&amp;#160; &amp;#160;fs.open(path,flags,[mode],[callback(err,data)]) 是 POSIXopen 函数的封装，与 C 语言标准库中的 fopen 函数类似，它接收两个必选参数， path 为文件路径， 
+
+flags 可以为以下值：
+
+ - **```r```** ：以读取模式打开文件
+ 
+ - **```r+```** ：以读写模式打开文件
+ 
+ - **```w```** ：已写入模式打开文件，如果文件不存在则创建
+ 
+ - **```w+```** ：以读写模式打开文件，如果文件不存在则创建
+ 
+ - **```a```** ：以追加模式打开文件，如果文件不存在则创建
+ 
+ - **```a+```** ：以读取追加模式打开文件，如果文件不存在则创建
+ 
+ - **```mode```** ：用于创建文件时给文件指定权限，默认是 0666 ，回调函数将会传递一个文件描述符 fd 
+
+ - **```0666```** ：文件权限值 POSIX 系统中对文件读取和访问权限的规范，通常用八进制数表示，如：0754 标识文件所有者权限是7（读，写，执行），同组用户权限是 5 （读，执行）其他用户是 4（读）。
+ 
+ - **```fd```** ：文件描述是一个非负整数，表示操作系统内核为当前进程所维护的打开文件的记录表索引，获得到 df （操作系统内核为当前继承所维护的打开文件的记录表索引）后我们就能够很好的去操作文件了。具体如何操作，我们主要通过 fd  去读取这个文件，具体的方法查看 fs.read 函数，根据 fd   文件描述去将数据读取到 buffer 缓存区的这个对象。
+
+###### 四、 fs.read(fd,buffer,offset,length,position,[callback(err,bytesRead,buffer)])
+
+&amp;#160; &amp;#160;fs.read(fd,buffer,offset,length,position,[callback(err,bytesRead,buffer)]) 是 POSIX 中 read 函数的封装，相比 readFile 提供了更底层的接口。从指定的文件描述 fd 中读取数据并写入
+
+ - **```fd```** ：指定的文件描述
+ 
+ - **```buffer```** ：执行的缓存区对象。
+ 
+ - **```offset```** ：是 buffer 的写入偏移量值，每次在原有指针的基础上偏移多个地址进行读取。 0 为按文件流正常的顺序依次向下读取不进行偏移。
+ 
+ - **```length```** ：读取的字节数
+ 
+ - **```position```** ：文件读取的起始数，如果为 null ，则从当前文件指针读取，如果我们已经读取了 8 个字节，那么下一次读取就会从第 8 个字节后开始读取。
+ 
+ - **```callback```** ：回调函数传递 bytesRead 和 buffer ，分别表示本次读取的字节数和缓冲区对象。
+
+API 地址：http://nodejs.org/api/fs.html
+
+**```cc.txt```**
+
+```
+我是一个文本文件。
+```
+
+**```openRead.js```**
+
+```javascript
+var fs = require('fs');
+ 
+// 使用 nodejs 文件系统以只读方式打开 cc.txt 
+fs.open('cc.txt','r',function(err,fd){
+    if(err){
+        console.log(err);
+        return;
+    }
+ 
+    // 创建一个缓冲区对象
+    var buf = new Buffer(8);
+ 
+    // 根据 fd 文件描述从第 0 个字节开始读取，每次读取 8 个字节
+    // 回调函数中的 buffer 对象实际为外层的 buf 对象的一个内容拷贝
+    fs.read(fd,buf,0,8,null,function(err,bytesRead,buffer){
+ 
+        if(err){
+            console.log(err);
+            return;
+        }
+ 
+        console.log('bytesRead :' + bytesRead);
+        console.log(buffer); // 输出 buffer 形式的二进制数据
+        console.log('buffer :' + buffer); // 使用 + 将两个结果集进行拼接， nodejs 会将 buffer 对象转换为文本
+ 
+    });
+});
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>nodejs-cli-gulp</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### nodejs-cli-gulp
+
+#### Quick Start
+
+If you've previously installed gulp globally, run `npm rm --global gulp` before following these instructions. For more information, read this <a href="https://medium.com/gulpjs/gulp-sips-command-line-interface-e53411d4467" target="_blank">Sip</a>.
+
+##### Check for node, npm, and npx
+
+```python
+node --version
+
+## v8.9.4
+```
+
+```python
+npm --version
+
+## 5.6.0
+```
+
+```python
+npx --version
+
+## 9.7.1
+```
+
+If they are not installed, follow the instructions <a href="https://nodejs.org/en/" target="_blank">here</a>.
+
+##### Install the gulp command line utility
+
+```python
+npm install --global gulp-cli
+```
+
+##### Create a project directory and navigate into it
+
+```python
+npx mkdirp my-project
+
+cd my-project
+```
+
+##### Create a package.json file in your project directory
+
+```python
+npm init
+```
+
+This will guide you through giving your project a name, version, description, etc.
+
+##### Install the gulp package in your devDependencies
+
+```python
+npm install --save-dev gulp
+```
+
+##### Verify your gulp versions
+
+```python
+gulp --version
+
+## CLI version: 2.2.0
+## Local version: 4.0.0
+```
+
+Ensure the output matches the screenshot below or you might need to restart the steps in this guide.
+
+##### Create a gulpfile
+
+Using your text editor, create a file named gulpfile.js in your project root with these contents:
+
+```js
+function defaultTask(cb) {
+  // place code for your default task here
+  cb();
+}
+
+exports.default = defaultTask
+```
+
+##### Test it
+
+Run the gulp command in your project directory:
+
+```python
+gulp
+```
+
+##### Result
+
+The default task will run and do nothing. 
+
+```python
+[08:49:17] Using gulpfile D:\workspace\cssworkspace\gulp-compress\gulpfile.js
+[08:49:17] Starting 'default'...
+[08:49:17] Finished 'default' after 1.4 ms
+```
+
+参考链接：
+
+ - <a href="https://gulpjs.com/docs/en/getting-started/quick-start" target="_blank">Quick Start</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

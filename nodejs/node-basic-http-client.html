@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Basic HTTP Client</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### HTTP 客户端
+
+#### 客户端向 HTTP 服务器发起请求
+
+&amp;#160; &amp;#160; http 模块提供了两个函数 **http.request** 和 **http.get** ，功能是作为客户端向 HTTP 服务器发起请求。
+
+相当于 Ext.Ajax.reqeust({}) 发送一个异步请求到服务器端。
+
+ - **```http.request(options,callback)```** 发起 HTTP 请求，接收两个参数， option 是一个类似关联数组对象，表示请求的参数， callback 是请求的回调函数，option 常用的参数如下
+
+  - **```host```** ：请求网站的域名或 IP 地址。
+  
+  - **```port```** ：请求网站的端口，默认是 80。
+  
+  - **```method```** ：请求方法，模式是 GET。
+  
+  - **```path```** ：请求的相对于根的路径，默认是 "/"  。QueryString（请求参数）应该包含在其中，例如 /search?query=marico 。
+  
+  - **```headers```** ：一个管理数组对象，为请求头的内容。
+  
+  - **```callback```** ：传递一个参数，为 http.ClientResponse 的实例
+  
+  - **```http.request 返回一个 http.ClientRequest 的实例
+  
+案例： clientRequest.js 
+
+```javascript
+var http = require('http');
+var querystring = require('querystring');
+// 启动服务
+http.createServer(function(req,res){
+ 
+    console.log('请求到来，解析参数');
+    // 解析 POST 请求参数
+    var post = '';
+    req.on('data',function(chunk){
+        post+=chunk;
+    });
+ 
+    req.on('end',function(){
+        post = querystring.parse(post);
+        // 解析完成
+        console.log('参数解析完毕，返回 name 参数');
+        res.end(post.name);
+    });
+}).listen(3000);
+ 
+ 
+// 客户端请求
+var contents = querystring.stringify({  // 将 JSON 对象转换成字符串模式
+    name:'marico',
+    age:21,
+    address:'beijing'
+});
+ 
+// 声明请求参数
+var options = {
+    host:'localhost',
+    path:"/",
+    port:3000,
+    method:'POST',
+    headers:{
+        'Content-Type':'application/x-www-form-urlencoded',
+        'Content-Length':contents.length
+    }
+};
+ 
+var req = http.request(options,function(res){
+    res.setEncoding('utf-8');
+    res.on('data',function(data){
+        console.log('后台返回数据');
+        console.log(data);
+    });
+});
+// 将请求的参数传递
+req.write(contents);
+// 完成请求的数据传输
+req.end();
+```
+
+ - **```http.get(options,callback)```** http 模块还提供了一个更加简便的方法用于处理 GET 请求， http.get 。 它是 http.request 的简化版，唯一的区别在于 http.get 自动将请求方法设为 GET 请求，同时不需要手动调用 req.end();
+
+案例： clientGet.js 
+
+```javascript
+var http = require('http');
+var url = require('url');
+var util = require('util');
+ 
+// 启动服务
+http.createServer(function(req,res){
+ 
+    console.log('请求到来，解析参数');
+    var params = url.parse(req.url,true);
+    console.log('解析完成');
+    console.log(util.inspect(params));
+    console.log('向客户端返回');
+    res.end(params.query.name);
+ 
+}).listen(3000);
+ 
+// 客户端请求
+http.get({
+        'host':'localhost',
+        path:'/user?name=marico&age=21',
+        port:3000
+    },
+    function(res){
+        console.log('接收到服务器端请求响应');
+        res.setEncoding('utf-8');
+        res.on('data',function(data){
+            console.log('服务端响应回来的数据为：' + data);
+    });
+});
+```
+
+#### 三、 http.ClientResponse
+
+&amp;#160; &amp;#160;http.ClientResponse 是与 http.ServerResponse 相似，提供三个事件， data 、 end 和 close ，分别在数据到达，传输结束和连接结束时触发，其中 data 事件传递一个 chunk ，表示接收到的数据。
+
+属性，表示请求的结果状态
+
+- **```statusCode```** ：HTTP 状态码，如 200 ， 400 ， 500
+
+- **```httpVersion```** ：HTTP 协议版本
+
+- **```headers```** ：HTTP 请求头
+
+- **```trailers```** ：HTTP 请求尾
+
+函数：
+
+- **```response.setEncoding([encoding])```** ：设置默认的编码，当 data 事件被触发时，数据将以 encoding 编码。默认值为 null ，以 buffer 的形式存储。
+
+- **```response.pause()```** ：暂停接收数据和发送事件，方便实现下载功能。
+
+- **```rseponse.resume()```** ：以暂停的状态中恢复
+
+**```requestUrl.js```**
+
+```javascript
+var http = require('http');
+var url = require('url');
+var util = require('util');
+ 
+// http://bugfix.lofter.com/post/b071_37017
+// https://github.com/bnoordhuis/node-iconv
+var iconv = require('iconv-lite'); 
+var BufferHelper = require('bufferhelper');
+ 
+// 引入 cheerio 模块 ，cheerio 模块可以在服务器段想使用Jquery的方式操作Dom结构
+var cheerio=require('cheerio');  
+ 
+http.get({
+    host:'www.stats.gov.cn',
+    path:'/tjsj/tjbz/tjyqhdmhcxhfdm/2016/index.html',
+    port:80
+},function(res){
+    var bufferHelper = new BufferHelper();
+    var html = '';
+    console.log('得到服务器端响应');
+    res.on('data',function(chunk){
+         bufferHelper.concat(chunk);
+    });
+ 
+    res.on('end',function(){
+         html = iconv.decode(bufferHelper.toBuffer(),'GBK');
+ 
+         var $ = cheerio.load(html, {decodeEntities: false});
+         var provincetable = $('.provincetable')[0];
+         //console.log($.html());
+         console.log($(provincetable).html());
+    });
+});
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

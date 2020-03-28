@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>raspberry-ttl</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Raspberry 串口通信
+
+##### 串口传输速率
+
+**串口传输速率为9600bps意味着每分钟最多可传送多少个ASCII码字符?**
+
+**条件：波特率：9600 停止位：1 起始位：1 校验位：0**
+
+**一个ASCII码=1个Byte**
+
+**1Byte=8bit+2=10Bit**
+
+**9600bit/(10) = 960Byte = 960个ASCII码/秒**
+
+**每分钟=960*60 = 57600个字节**
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/hualtium/article/details/73459434" target="_blank">串口传输速率</a>
+
+##### 树莓派3b：TTL串口登录问题
+
+&amp;#160; &amp;#160;相信大家在使用串口登录树莓派 3 的时候应该都遇到了与我一样的问题，串口打开后，等了半天却始终没有反应，如下图： 
+
+**`注：设置完成后，进行链接时需要先按回车做初始数据通信 Enter`**
+
+![title](./images/raspberry-ttl/raspberry-ttl-001.png)
+
+&amp;#160; &amp;#160;后来在网上查到，说树莓派 3b 的主控芯片内部，将串口分配改了芯片内部集成的蓝牙，所以导致串口不能使用。这里我使用的镜像是 `raspbian_0jessie2016_09_23.img`。
+
+&amp;#160; &amp;#160;为了能够使用 TTL 串口登录树莓派，我们需要修改根文件夹下 `boot` 里的 `config.txt` 文件。可以使用网线登录，无线登录，还可以使用读卡器在电脑上直接修改，这里我是用无线登录，然后输入命令
+
+```python
+sudo nano /boot/config.txt
+```
+
+打开 `config.txt` 文件，在最后一行加上
+
+```python
+dtoverlay=pi3-miniuart-bt
+```
+
+保存退出，重启启动树莓派，就可以使用 TTL 串口登录了
+
+![title](./images/raspberry-ttl/raspberry-ttl-002.png)
+
+![title](./images/raspberry-ttl/raspberry-ttl-003.png)
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/feitingfj/article/details/56046188" target="_blank">树莓派3b：TTL串口登录问题</a>
+
+##### 如何通过 USB to TTL来连接树莓派?
+
+##### 设备
+
+ - 树莓派*1（以及相应的）
+ - 杜邦线*1
+ - USB to TTL*1
+
+![title](./images/raspberry-ttl/raspberry-ttl-004.png)
+
+##### 操作步骤
+
+**1、启动树莓派**
+
+&amp;#160; &amp;#160;把树莓派连上显示器、键盘后插上电源，树莓派就启动了（第一次用还在找开机键），如果忘记密码可以考虑重刷系统或者通过 `cmdline` 的方式修改 init 来重置密码。
+
+**2、打开树莓派串口**
+
+&amp;#160; &amp;#160;安装系统，进入树莓派之后 **`sudo raspi-config-> Interfacing Options -> Serial`** 修改为是。 查看 `/boot/config.txt` 最后一行 `enable_uart=1` 是否已经加入。**`重启之后配置生效`**。
+
+**3、连接USB to TTL和树莓派串口**
+
+用杜邦线将树莓派上的串口，根据相应的引脚和 USB to TTL 连接。
+
+四根线：
+
+ - **树莓派5v 对应 USB to TTL 5v**
+ - **树莓派Ground 对应 USB to TTL Ground**
+ - **树莓派TXD 对应 USB to TTL RXD**
+ - **树莓派RXD 对应 USB to TTL TXD**
+
+&amp;#160; &amp;#160;小常识（非常重要）： 
+
+ - **TXD：发送端，一般表示为自己的发送端，正常通信必须接另一个设备的 RXD。**
+ - **RXD：接收端，一般表示为自己的接收端，正常通信必须接另一个设备的 TXD。** 
+
+正常通信时候本身的TXD永远接设备的RXD！
+
+&amp;#160; &amp;#160;自收自发：正常通信时 RXD 接其他设备的 TXD，因此如果要接收自己发送的数据顾名思义，也就是自己接收自己发送的数据，即自身的 TXD 直接连接到 RXD，用来测试本身的发送和接收是否正常，是最快最简单的测试方法，当出现问题时首先做该测试确定是否产品故障。也称回环测试。
+
+![title](./images/raspberry-ttl/raspberry-ttl-005.png)
+
+树莓派 40Pin 引脚对照表
+
+![title](./images/raspberry-ttl/raspberry-ttl-006.png)
+
+GPIO 参考卡片 适用于 Raspberry Pi 3B+/2B/1B+/A+/Zero
+
+![title](./images/raspberry-ttl/raspberry-ttl-007.png)
+
+
+**4、usb to ttl 连接 Ubuntu**
+
+如果连接成功，可以看到 /dev/ttyAMA0 的设备挂载信息。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/think_ycx/article/details/83304197" target="_blank">如何通过 USB to TTL 来连接树莓派?</a>
+ 
+ - <a href="https://detail.tmall.com/item.htm?id=39479435733" target="_blank">CP2102模块 USB转TTL USB转串口</a>
+
+ - <a href="http://shumeipai.nxez.com/raspberry-pi-pins-version-40" target="_blank">树莓派 40Pin 引脚对照表</a>
+
+##### 树莓派 3b+ 串口配置
+
+##### 前言
+
+&amp;#160; &amp;#160;树莓派从大的方向来说一共出了 3 代，每一代的 CPU 外设基本相同，但内核不同，外设里面一共包含两个串口，一个称之为 **`硬件串口（/dev/ttyAMA0）`**，一个称之为 **`mini 串口（/dev/ttyS0）`**。
+
+&amp;#160; &amp;#160;硬件串口由硬件实现，有单独的波特率时钟源，性能高、可靠。
+
+&amp;#160; &amp;#160;mini 串口性能低，功能也简单，并且没有波特率专用的时钟源而是由 CPU 内核时钟提供，因此 mini 串口有个致命的弱点是：波特率受到内核时钟的影响。内核若在智能调整功耗降低主频时，相应的这个 mini 串口的波特率便受到牵连了，虽然你可以固定内核的时钟频率，但这显然不符合低碳、节能的口号。在所有的树莓派板卡中都通过排针将一个串口引出来了，目前除了树莓派 3 代以外 ，引出的串口默认是 CPU 的那个硬件串口。
+
+&amp;#160; &amp;#160;而在树莓派 3 代中，由于板载蓝牙模块，因此这个硬件串口被默认分配给与蓝牙模块通信了，而把那个 mini 串口默认分配给了排针引出的 GPIO Tx Rx。
+
+&amp;#160; &amp;#160;树莓派的串口默认为串口终端调试使用，如要正常使用串口则需要修改树莓派设置。关闭串口终端调试功能后则不能再通过串口登陆访问树莓派，只能通过ssh或者远程桌面连接树莓派后进行控制。
+
+下图是树莓派 3 的接口图
+
+![title](./images/raspberry-ttl/raspberry-ttl-008.png)
+
+&amp;#160; &amp;#160;其中红框中就是引出的串口 IO，如果我们需要通过 UART 外接模块，默认情况下必须得使用性能很低的 mini 串口了，而且随着内核主频的变化，还会造成波特率的变化导致通信的失败，几乎很难使用。所以我们希望恢复硬件串口与 **`GPIO 14/15`** 的映射关系，使得我们能够通过 GPIO 使用高性能的硬件串口来连接我们的串口设备。
+
+##### 步骤
+
+**1、将树莓派 3 的硬件串口与 mini 串口默认映射对换**
+
+&amp;#160; &amp;#160;树莓派可以配置文件来修改设备树，我的理解是可以通过配置文件来修改管脚的映射关系，这在许多 Cortex-M3 内核的单片机中也很常见，可以将同一个串口映射到不同的管脚上，以方便 PCB 的布线。
+
+&amp;#160; &amp;#160;为了在树莓派 3 中通过 GPIO 使用高性能的硬件串口，我们必须将分配给蓝牙使用的硬件串口与分配给 IO 排针的 mini 串口进行对换，这必然会使得蓝牙模块的功能受到影响，但还好，蓝牙并不是必须的。
+
+首先查看有没有相关文件，执行命令
+
+```python
+cd /boot/overlays
+```
+
+&amp;#160; &amp;#160;可以看到有 README 和 **`pi3-miniuart-bt-overlay.dtb`** 或者是 **`pi3-miniuart-bt.dtb`** ，后面的缺了 (overlay) 但是在 README 中的解释是相同的，因此，认为是同一文件。
+
+![title](./images/raspberry-ttl/raspberry-ttl-009.png)
+
+&amp;#160; &amp;#160;**README 文件中说明了此文件的功能是将树莓派 3 的蓝牙切换到 `mini 串口 (ttyS0)` ,并且恢复 `硬件串口 (ttyAMA0)` 到 `GPIO 14 & 15` 引脚中**。
+
+![title](./images/raspberry-ttl/raspberry-ttl-010.png)
+
+**2、查看并修改串口映射关系**
+
+首先在树莓派命令终端中通过命令查看树莓派 3 当前的串口映射关系，执行命令
+
+```python
+ls -l /dev
+```
+
+![title](./images/raspberry-ttl/raspberry-ttl-011.png)
+
+红框里面表示串口映射，有的可能只显示 1 个，没关系，修改之后两个就都显示出来了。
+
+&amp;#160; &amp;#160;红色框中体现的应该是一种映射关系，此处暂时没有做深究，简单理解 serial0 就是 GPIO 映射的串口，此时 GPIO 映射的串口是默认的 `/dev/ttyS0` 这个 `mini 串口` 。
+
+**3、现在来修改配置文件**
+
+执行命令
+
+```python
+sudo nano /boot/config.txt
+```
+
+在该文件中加一行代码
+
+```python
+dtoverlay=pi3-miniuart-bt
+```
+
+![title](./images/raspberry-ttl/raspberry-ttl-012.png)
+
+**Crtl + X** 进行保存操作，选择 y 保存，回车。
+
+执行 `sudo reboot` 重启树莓派，使修改生效。`一定要保存然后重启`。
+
+**4、再通过 ls -l /dev 命令查看修改后的映射关系**
+
+![title](./images/raspberry-ttl/raspberry-ttl-013.png)
+
+&amp;#160; &amp;#160;对比修改前的关系，可以看出 `serial0` 和 `serial1` 与 `ttyAMA0` 和 `ttyS0` 的映射关系对换完成了，也就是 `ttyAMA0` 映射到了引出的 `GPIO Tx(14) Rx(15)` 引脚上。
+
+**5、禁用串口的控制台功能 (如果是使用 串口 登录操作树莓派此步以及以后步骤忽略)**
+
+&amp;#160; &amp;#160;前面的步骤已经交换了硬件串口与 mini 串口的映射关系，但现在想使用树莓派外接串口模块进行通信还不行，因为树莓派 IO 引出的串口默认是用来做控制台使用的，它的初衷是为了在没有网络接口时，通过串口对树莓派进行相关的配置。因此需要禁用这个默认功能，使得串口为我们自由使用。
+
+在树莓派命令窗口中分别通过如下两个命令停止和禁用串口的控制台功能。
+
+由于我们前面已经交换了串口的映射关系，因此这里注意是 `ttyAMA0`。
+
+```python
+sudo systemctl stop serial-getty@ttyAMA0.service
+
+sudo systemctl disable serial-getty@ttyAMA0.service
+```
+
+再执行命令：
+
+```python
+sudo nano /boot/cmdline.txt
+```
+
+然后看到里面类似如下的内容
+
+```python
+dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait
+```
+
+删除语句 **console=serial0,115200**
+
+剩下的内容类似如下：
+
+```python
+dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait
+```
+
+然后重新启动树莓派，使修改生效。`一定要保存然后重启`。
+
+&amp;#160; &amp;#160;到这里，树莓派 3B + 的串口配置就配置了可以直接用了，下面我们用 python-serial 模块做一个 **“树莓派串口与电脑 USB-ttl 串口通信”** 的测试。
+
+ - 1、首先将树莓派的串口和 USB-TTL 串口连接好，并将 USB-TTL 串口插到电脑端上。
+
+ - 2、安装 python-serial 模块，一般都是树莓派系统默认已经安装好，可以直接跳过该步骤。
+
+```python
+sudo apt-get install python-serial
+```
+
+ - 3、输入 phthon3 启动 python IDE。
+ 
+ - 4、创建 serial 实例 ser，端口为 `/dev/ttyAMA0`，波特率设置为 `115200 bps`，第三个为校验位，可以不写。
+ 
+```python
+>>> import serial
+>>> ser = serial.Serial('/dev/ttyAMA0',115200)
+```
+
+ - 5、检验串口是否打开，若未打开则输入 ser.open() 打开
+
+```python
+>>> ser.isOpen()
+True
+```
+
+ - 6、电脑上打开设备管理器查看 USB-TTL的串口号。
+
+![title](./images/raspberry-ttl/raspberry-ttl-014.png)
+
+ - 7、电脑上打开串口调试助手，选择刚刚查看的串口，波特率选择“115200”。
+
+我用的串口助手是“STC-ISP下载软件”里面的串口助手<a href="./data/raspberry-ttl/stc-isp-15xx-v6.86R_noPOP.zip" target="_blank">[下载]</a>。
+
+![title](./images/raspberry-ttl/raspberry-ttl-015.png)
+
+ - 8、然后我们在树莓派的python里发消息，检测发送是否正常：
+
+```python
+>>> ser.write(b'Raspberry pi')
+12
+```
+
+![title](./images/raspberry-ttl/raspberry-ttl-016.png)
+
+可以看到正常接收。
+
+**9、最后我们写一个python脚本代码，实现串口的发送和接收：**
+
+```python
+# -*- coding: utf-8 -*
+import serial
+import time
+ser = serial.Serial('/dev/ttyAMA0', 115200)
+if ser.isOpen == False:
+    ser.open()                # 打开串口
+ser.write(b"Raspberry pi is ready")
+try:
+    while True:
+        size = ser.inWaiting()               # 获得缓冲区字符
+        if size != 0:
+            response = ser.read(size)        # 读取内容并显示
+            print response        
+            ser.flushInput()                 # 清空接收缓存区
+            time.sleep(0.5)                  # 软件延时
+except KeyboardInterrupt:
+    ser.close()
+```
+
+&amp;#160; &amp;#160;将以上代码保存为 `“test_uart_python.py”`，然后执行 `python test_uart_python.py` 运行树莓派端的 python 程序，我们试着发送一串消息过去。
+
+![title](./images/raspberry-ttl/raspberry-ttl-017.gif)
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/tang_chuanlin/article/details/92847343" target="_blank">树莓派 3B + 串口配置</a>
+
+ - <a href="https://blog.csdn.net/u013451404/article/details/80385496" target="_blank">树莓派打开 GPIO 的 TTL 串口</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

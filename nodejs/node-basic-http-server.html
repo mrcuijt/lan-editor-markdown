@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Basic HTTP Server</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### HTTP服务器
+
+&amp;#160; &amp;#160;概念：NodeJS 提供了 http 模块。其中封装了一个高效的 HTTP服务器 和一个建议的 HTTP客户端。
+
+ **```http.server 是一个基于事件的 HTTP服务器。内部由 C++ 实现。接口由 JavaScript 封装。```**
+
+ **```http.request 则是一个 HTTP客户端控制。用户向服务器发送请求。```**
+ 
+#### 一、HTTP服务器
+
+&amp;#160; &amp;#160;http.Server 实现的，它提供了一套封装级别很低的 API ，仅仅是流控制和简单的解析，所有的高级层功能都需要通过它的接口。
+
+前面讲解的 app.js 案例
+
+代码分析：
+
+&amp;#160; &amp;#160;http.createServer 创建了一个 http.Server 的实例，将一个函数作为 HTTP 请求处理函数。这个函数接收两个参数，请求对象 req 和 响应对象 res 。res 显式写入了响应代码 200（表示请求成功） ，指定响应头，写入响应体。调用 end 结束并发送。该实例调用 listen 函数，启动服务器并监听 3000 端口。
+
+##### 1. http.Server 事件
+
+&amp;#160; &amp;#160;http.Server 是一个基于事件的 HTTP 服务器，所有请求都被封装到独立的事件中，开发者只要对它的事件编写相应函数可实现 HTTP服务器 的所有功能，它继承于 EventEmitter ，提供了以下事件：
+
+ - **```request```** ：当客户端请求到来时，该事件被触发，提供两个参数 req 和 res ，分别是 http.ServerRequest 和 http.ServerResponse 的实例，表示请求和响应信息。
+
+ - **```connection```** ： 当 TCP 连接建立时，该事件被触发，提供一个参数 socket ，为 net.Socket 的实例（底层协议对象）。
+
+ - **```close```** ： 当服务器关闭时，该事件被触发。
+
+除此之外还有 checkContinue 、upgrade 、 clientError 事件。
+
+最常用和关系的是： request 事件， http 提供了一个捷径， http.createServer([requestListener]);
+
+显式实现方法：
+
+案例：server.js
+
+```javascript
+var http = require('http');
+ 
+var server = http.createServer(function(req,res){
+    // 相当于 action 都在这里定义
+    console.log(req.url);
+    res.writeHead(200,{'Content-Type':'text/html'});
+    res.write('<h1>Node.js</h1>');
+    res.end('<p>PCAT</p>');
+ 
+});
+ 
+server.listen(3000);
+// 监听服务器请求连接时的事件
+server.on('connection',function(){
+    console.log('server connection request');
+});
+ 
+// 监听服务器关闭时的事件
+server.on('close',function(){
+    console.log('server is close');
+});
+// 关闭 HTTP 服务器模块
+// server.close();
+console.log('HTTP server is listening at port 3000');
+```
+
+##### 2. http.ServerRequest 请求的信息
+
+&amp;#160; &amp;#160;此对象是后端开发者最关注的内容，它一般由 http.Server 的 request 事件发送，作为第一个参数传递，通常简写成 request 或 req 。
+
+&amp;#160; &amp;#160;HTTP 请求分为两部分：请求头 和 请求体。请求内容短的直接在请求头解析完成后立即读取，而请求体可能相对较长，需要一定时间传输，因此提供了 3 个事件用于控制请求体传输。
+
+ - 1) **```data```** ： 当请求体数据到来时，该事件被触发，该事件一共一个参数 chunk ，表示接收到的数据。
+ 
+ - 2) **```end```** ： 当请求体数据传输完成时，该事件被触发，此后将不会再有数据到来。
+ 
+ - 3) **```close```** ： 用户当请求结束时，该事件被触发。不同于 end ，如果用户强制终止了传输，也会触发 close。
+
+ServerRequest 的属性
+
+ - **```complete```** ： 客户端请求是否已经发送完成
+ 
+ - **```httpVersion```** ： HTTP协议版本，通常是 1.0 或 1.1
+ 
+ - **```method```** ： HTTP请求方法，如：GET，POST
+ 
+ - **```url```** ： 原始的请求路径，例如 /pc/getUser 或 /user?name=marico
+ 
+ - **```headers```** ： HTTP请求头
+ 
+ - **```trailers```** ： HTTP请求尾（不常见）
+ 
+ - **```connection```** ： 当前HTTP连接套接字，为 net.Socket 的实例
+ 
+ - **```socket```** ： connection 属性的别名
+ 
+ - **```client```** ： client 属性的别名
+
+##### 3. 获取 GET 请求内容
+
+&amp;#160; &amp;#160;由于 GET 请求直接被嵌入在路径中，URL 完成的请求路径，包括了 ？ 后面的部分，因此你可以手动解析后面的内容作为 GET 的参数， NodeJS 的 url 模块中的 parse 函数提供了这个功能。
+
+案例： get.js 
+
+```javascript
+
+// 引入模块
+var http = require('http');
+var urls = require('url');
+var util = require('util');
+
+// 创建服务
+http.createServer(function(req,res){
+	
+	res.writeHead(200,{'Content-Type':'text/plain'});
+	// 解析并打成字符串形式返回给客户端
+	/*
+	
+	Url {
+	  protocol: null,
+	  slashes: null,
+	  auth: null,
+	  host: null,
+	  port: null,
+	  hostname: null,
+	  hash: null,
+	  search: '?name=marico&password=1',
+	  query: { name: 'marico', password: '1' },  // url.parse(req.url,true) 第二个, true 参数表示是否将请求的参数转换成一个对象
+	  pathname: '/user',
+	  path: '/user?name=marico&password=1',
+	  href: '/user?name=marico&password=1' }
+	
+	*/
+	res.end(util.inspect(urls.parse(req.url,true)));
+	
+	
+}).listen(3000);
+```
+
+##### 4. 获取 POST 请求内容
+
+&amp;#160; &amp;#160;POST 请求的内容全部在请求体中（**```不像是我们的 URL ，参数在路径上可以直接进行解析```），http.ServerRequest 并没有一个属性内容为请求体，原因是等待请求体传输可能是一件耗时的工作。**譬如上传文件。恶意的 POST 请求会大大消耗服务器的资源。所以 NodeJS 是不会解析请求体，当你需要的时候，需要手动来做。
+
+**```post.js```**
+
+```javascript
+var http = require('http');
+ 
+var querystring = require('querystring'); // 相当于 ext 中的 decode 
+ 
+var util = require('util');
+ 
+http.createServer(function(req,res){
+ 
+    var  post = '';
+ 
+    // 注册 data 事件监听函数，每当接收到请求体的数据
+    // data 事件会被多次触发直到 end 事件触发
+    req.on('data',function(chunk){ 
+        post += chunk;
+    });
+ 
+    req.on('end',function(){
+ 
+        // 解析成真正的 post 为真正的 post 请求格式
+        // 相当于 Ext.decode() 会将 post 请求体的内容解析为一个 JSON 类型的格式对象
+        post = querystring.parse(post);
+ 
+        // 向前段返回
+        res.end(util.inspect(post));
+ 
+    });
+
+}).listen(3000);
+```
+
+##### 5. http.ServerResponse 返回给客户端的信息
+
+决定了用户最终能得到的结果，它是由 http.Server 的 request 事件发送的，作为第二个参数传递。一般为 response 或 res
+
+主要的三个函数：
+
+ - **```response.writeHead(statusCode,[headers])```** ：向客户端发送响应头
+ 
+  - **```statusCode```** ：是 HTTP 的状态码，如 200 为成功，404 为未找到等。
+ 
+  - **```headers```** ：是一个类似关联数组的对象，表示响应头的每个属性。
+
+ - **```response.write(data,[encoding])```** 向请求客户端发送响应的内容，data 是 buffer 或字符串，encoding 为编码
+ 
+ - **```response.end([data],[encoding])```** 结束响应，告知用户所有发送已完成，当所有要返回的内容发送完毕，该函数必须被调用一次，如果不调用，客户端永远处于等待状态。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

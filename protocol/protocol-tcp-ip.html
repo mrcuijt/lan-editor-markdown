@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>protocol-tcp-ip</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### protocol-tcp-ip
+
+ - TCP 和 IP 是两个不同层协议
+ 
+ - TCP/IP 常指代 TCP/IP 协议族或 TCP/IP 协议栈
+ 
+  - 是相关的一组协议的集合，而不是一个具体的协议。
+
+ - TCP：Transmission Control Protocol，传输控制协议
+ 
+ - IP：Internet Protocol，网际协议
+
+![title](images/protocol-tcp-ip/protocol-tcp-ip-001.png)
+
+![title](images/protocol-tcp-ip/protocol-tcp-ip-002.png)
+
+#### TCP vs. UDP
+
+![title](images/protocol-tcp-ip/protocol-tcp-ip-003.png)
+
+
+![title](images/protocol-tcp-ip/protocol-tcp-ip-004.png)
+
+TCP 协议面向字节流，UDP 协议面向报文。
+
+UDP 协议每次数据包都会进行选路。
+
+ - 数据报后发现至，程序需要对数据包进行排序
+ 
+ - 传输效率会高一些
+
+ - 实时性
+
+![title](images/protocol-tcp-ip/protocol-tcp-ip-005.png)
+
+#### NAT
+
+ - NAT：NetWork Address Translation
+ 
+ - 解决 IP 地址不足的问题
+ 
+ - 保护内网不被外网攻击
+ 
+ - 外网主机不能主动向客户机发起连接
+ 
+ - NAT 穿透技术弥补
+
+ - 用在服务端，负载均衡和高可用
+ 
+ - 透明代理
+
+客户机使用代理访问示意图
+
+![title](images/protocol-tcp-ip/protocol-tcp-ip-006.png)
+
+ - 在客户机上手动设置代理服务器，客户机是知道要去通过代理服务器访问资源。
+ 
+透明代理
+
+ - 客户机没有设置代理访问
+ 
+ - 客户机不知道自己访问资源时经过了代理服务器
+ 
+ - 透明代理是由网络中间插进来的一台服务器，它起到了一个代理的作用。
+ 
+  - 如有一些网络运营商，为了降低自己向外的流量。它就会增加透明代理，然后将一些资源缓存到自己内部的网络里面。当用户请求的时候通过读取缓存中的数据来达到减少外部流量的目的。
+  
+  - 存在问题，宽带运营商为了节省流量把动态内容缓存后返回给用户的问题。
+  
+  - 1、数据不能及时得到更新。
+  
+  - 2、同数据请求路径，多个不同用户可能会获得到另一个用户查询自己的时候后被运营商缓存下来的结果。
+  
+  - 隐私数据泄露，或其它问题。
+
+这些是会对我们的开发造成影响的。
+
+我们在开发应用程序时会获取客户的 IP 地址信息，当用户使用代理或是透明代理时，我们就无法获取到用户真实的 IP 地址了。
+
+我们在写程序的时候不能使用 IP 地址作为唯一用户的判断。
+
+#### IPV4 vs. IPV6
+
+ - 地址数目 32位升级到 128位
+ 
+ - 地址格式 2001:0db8:85a3:0000:0000:8a2e:0370:7344
+ 
+ - 数据包（增加了 Qos）
+
+##### IPV6 数据地址
+
+分为两部分
+
+ - 64 位网络前缀 + 64 位的主机地址
+ 
+ - 主机地址：主机自动生成。
+ 
+ - 网络前缀：由管理部门统一管理发放。
+
+IPV6 地址数据组中，如果一组数据中的值全部为 0 则是可以省略的，用两个 **`::`** 代替，最多省略 1 组。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

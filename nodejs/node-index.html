@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 统领大纲
+
+#### 五个最佳案例带你解读 Node.js 的前后之道
+
+Node.js 是什么？ 
+
+&amp;#160; &amp;#160;Node.js 采用 C++ 语言编写而成，浏览器内核 V8 做为执行引擎； Node 不是 JS 应用、而是一个 JavaScript 的运行环境。 Node 保留了前端浏览器 js 的接口，没有改写语言本身的任何特性，依旧基于作用域和原型链。 
+
+&amp;#160; &amp;#160;Node.js 是一个为实时 Web （ Real-time Web ）应用开发而诞生的平台，它从诞生之初就充分考虑了在实时响应、超大规模数据要求下架构的可扩展性。这使得它摒弃了传统平台依靠多线程来实现高并发的设计思路，而采用了单线程、异步式 I/O 、事件驱动式的程序设计模型。这些特性不仅带来了巨大的性能提升，还减少了多线程程序设计的复杂性，进而提高了开发效率。 
+
+#### Node.js 的特点 
+
+ 1. 一个 JavaScript 运行环境 
+ 
+ 2. 依赖于 Chrome V8 引擎进行代码解释 
+ 
+ 3. 事件驱动 
+ 
+ 4. 非阻塞 I/O 
+ 
+ 5. 轻量、可伸缩，适于实时数据交互应用 
+ 
+ 6. 单进程，单线程 
+
+Node.js 能做什么？ 
+
+ 1. 具有复杂逻辑的网站 
+ 
+ 2. 基于社交网络的大规模 Web 应用； 
+ 
+ 3. Web Socket 服务器（页游， web IM ）； 
+ 
+ 4. TCP/UDP 套接字应用程序； 
+ 
+ 5. 命令行工具； 
+ 
+ 6. 交互式终端程序； 
+ 
+ 7. 带有图形用户界面的本地应用程序； 
+ 
+ 8. 单元测试工具； 
+ 
+ 9. 客户端 JavaScript 编译器 
+
+#### Node.js 架构 
+
+![Node.js 架构](./images/node-index/node-index-001.png)
+
+#### 事件循环
+
+![Node.js 事件循环](./images/node-index/node-index-002.png)
+
+NodeJs 执行模型: 单线程 Event Loop 
+
+&amp;#160; &amp;#160;当应用请求发生时，首先进入 V8 引擎，然后进入到事件队列，可以理解为他们在不断地在循环，看是否有任务，产生任务就去执行。上图是单线程模型。 
+
+#### NPM 
+
+&amp;#160; &amp;#160;后端在开发其他语言时，都有一些模块的概念或者第三方提供了很实用的小模块。同样， Node.js 当时出来的时候也有这样一个仓库。这个仓库就是专门用来管理中国开发者的一个贡献的模块，而且发展非常的快。同样，前端有一些脚手件，在服务器这边运行的有 debug ， express ， express-session ， thrift ，依托这个插件做 thrift 相关的事情， images 其他的一些你想的到的插件，都是可以从它找到。 
+
+#### 架构体系
+
+![Node.js 架构体系](./images/node-index/node-index-003.png)
+
+&amp;#160; &amp;#160;上图是个推部分 WEB 平台的架构体系，个推有一套云组进资源，通过 Nginx 作为一个分发， Node 可以有多个节点，通过 session 进入。每一个 Node 都有模式，相信大家在部署的时候肯定不可能部署一个节点，部署一个节点，否则这个节点挂了就是挂了。 
+
+#### Thrift 使用 
+
+ 1. 定义接口
+ 
+ 2. 编译，生成对应的包，并上传到相应的库中
+ 
+ 3. 在 Node 中使用
+
+##### 1. 定义接口
+
+![Thrift 使用](./images/node-index/node-index-004.png)
+
+##### 3. 在 Node 中使用
+
+![Thrift 使用](./images/node-index/node-index-005.png)
+
+注意：这里有个坑 
+
+&amp;#160; &amp;#160;thrift 中有个基本类型叫做 double （ 64 位浮点数）。当定义成这个类型时，数据从 java 过来到 Node 会变成全是 0 。 
+
+解决方案 
+
+&amp;#160; &amp;#160;定义成 string 类型，之后特事特办，如必要则在 Node 处再转成浮点数，或者直接由页面端处理。
+
+#### IP 负载（ IP Load Balance ） 
+
+负载均衡 
+
+&amp;#160; &amp;#160;分摊到多个操作单元上进行执行，例如 Web 服务器、 FTP 服务器、企业关键应用服务器和其它关键任务服务器等，从而共同完成工作任务。 
+
+&amp;#160; &amp;#160;原生中其并没有负载均衡的机制，但我们可以采用动态代理的设计模式，基于 thrift client ，利用 JS 的原型链来实现。
+
+&amp;#160; &amp;#160;均衡的方式有很多种，我们使用轮询机制来实现访问多个 Java 节点。 
+
+#### session 管理 
+
+&amp;#160; &amp;#160;Node 本身并无 session 机制，我们可以使用 express-session 包来实现，同时通过 redis 来存储 session 。 
+
+#### 连接池 
+
+传统读取数据库方式： 
+
+![连接池](./images/node-index/node-index-006.png)
+
+连接池需要做什么？ 
+
+ 1. 连接预热 （启动时自动打开 n 个连接以供使用） 
+ 
+ 2. 使用 例如 轮转法 均匀分发 连接请求 
+ 
+ 3. 当池中的连接即将耗尽得时候动态产生新的连接 
+ 
+ 4. 当池中的连接一段时间没有被调用的时候，自动释放连接 
+ 
+ 5. 自动丢弃 已经坏掉的 连接 
+ 
+ 6. 系统关闭的时自动释放所有连接 
+
+&amp;#160; &amp;#160;基于此，我们也可以借助几个插件包（如 generic-pool （ node-pool ）、 node-thrift-pool ，当然，如果你直接 Node 连接的 DB ，基本上那个包里面也会支持连接池）在 Node 使用连接池。 
+
+使用示例 
+
+![连接池 使用示例](./images/node-index/node-index-007.png)
+
+#### 利用 Node 可以做的事情 
+
+ 1. 做一些灰色地带的事情 
+ 
+ 利用 Node 可以做一些灰色地带的事情，因为它拥有前端的优点，可以异步，发起异步请求。给开发者带来很大的好处。不过，你需要管理好你的类型。如果说类型自己如果没有管理好就是会出现一些问题。同时它也可以做后端的一些事情。比如说连接池等等。 
+ 
+ 2. 模块更加分明 
+ 
+ 3. 可前可后便于分工 
+ 
+ 从浏览器过来的数据，通过 Node 把这一层数据转化成 java 需要的一种数据结构，就可以使得分工更加明晰。 
+ 
+ 4. 共用表单输入验证 
+ 
+ 如果你在写系统的时候，出于安全考虑，无论浏览器这边做了多少验证，你都要做输入验证。传统模式下是需要 java 同学写一份，前端同学写一份。因为 Node 跟 java 都是部署在服务器集群或者一个区域，你可以相信这两边之间一个数据。来自浏览器的验证，就可以共用表单输入验证，达到节省成本的目的。 
+ 
+&amp;#160; &amp;#160;以上内容来自个推 web 服务首席架构师姜季廷在 3 月 12 日 SegmentFault D-Day 北京：后端的演讲整理而成。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

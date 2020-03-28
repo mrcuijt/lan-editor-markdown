@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Servlet Filter</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Servlet Filter
+
+#### Servlet Filter 过滤器(重要)
+
+JavaWeb 中的过滤器可以拦截所有访问 web 资源的请求或响应操作。
+
+#### 1、Filter  快速入门
+
+##### 1.1 、 步骤:
+
+ 1. 创建一个类实现 Filter 接口。
+ 2. 重写接口中方法 doFilter 方法是真正过滤的。
+ 3. 在 web.xml 文件中配置。
+
+**`注意`:在 Filter 的 doFilter 方法内如果没有执行 `chain.doFilter(request,response)` 那么资源是不会被访问到的。**
+
+```java
+public class Demo1Filter implements Filter{
+  public void init(FilterConfig filterConfig)thorws ServletException{
+    
+  }
+
+  public void doFilter(ServletRequest request, ServletResponse response,
+                       FilterChain chain)throws IOException, ServletException{
+    System.out.println("开始拦截");
+
+    // 放行
+    chain.doFilter(request, response);
+
+    System.out.println("开始拦截");
+  }
+
+  public void destroy(){
+    
+  }
+}
+```
+
+```xml
+<filter>
+  <filter-name>demo1Filter</filter-name>
+  <filter-class>Demo1Filter</filter-class>
+</filter>
+<filter-mapping>
+  <filter-name>demo1Filter</filter-name>
+  <url-pattern>/demo1</url-pattern>
+</filter-mapping>
+```
+##### 1.2 、FilterChain
+
+&amp;#160; &amp;#160;FilterChain 是 Servlet 容器为开发人员提供的对象，它提供了对某一资源的已
+过滤请求调用链的视图。过滤器使用 FilterChain 调用链中的下一个过滤器，如果调用的过滤器是链中的最后一个过滤器，则调用链末尾的资源。
+
+问题:怎样可以形成一个 Filter 链？
+
+只要多个 Filter 对同一个资源进行拦截就可以形成 Filter 链
+
+问题:怎样确定 Filter 的执行顺序？
+
+由 `<filter-mapping>` 来确定
+
+##### 1.3 、Filter 生命周期
+
+Servlet 生命周期：
+
+实例化 --> 初始化 --> 服务 --> 销毁
+
+ - 当服务器 启动，会创建 Filter 对象，并调用 init 方法，只调用一次。
+ - 当访问资源时，路径与 Filter 的拦截路径匹配，会执行 Filter 中的 doFilter 方法，这个方法是真正拦截操作的方法。
+ - 当服务器关闭时，会调用 Filter 的 destroy 方法来进行销毁操作。
+
+##### 1.4 、FilterConfig
+
+在 Filter 的 init 方法上有一个参数，类型就是 FilterConfig。
+
+FilterConfig 它是 Filter 的配置对象，它可以完成下列功能
+
+ 1. 获取 Filtr 名称
+ 2. 获取 Filter 初始化参数
+ 3. 获取 ServletContext 对象。
+
+![](./images/servlet-filter/servlet-filter-001.png)
+
+问题:怎样在 Filter 中获取一个 FilterConfig 对象？
+
+```java
+public class Demo2Filter implements Filter{
+
+  private FilterConfig config;
+
+  public void init(FilterConfig filterConfig) throws ServletException{
+    this.config = filterConfig;
+  }
+}
+```
+
+##### 1.5 、Filter 
+
+基本配置
+
+```xml
+<filter>
+  <filter-name>filter 名称</filter-name>
+  <filter-class>Filter 类的包名.类名</filter-class>
+</filter>
+<filter-mapping>
+  <filter-name>filter 名称</filter-name>
+  <url-pattern>路径</url-pattern>
+</filter-mapping>
+```
+
+关于其它配置
+
+##### 1、 `<url-pattern>`
+
+ - 完全匹配 以 **`/demo1`**开始，不包含通配符 **` * `** 。
+ - 目录匹配 以 **`/`** 开始 以 **` * `** 结束。
+ - 扩展名匹配 **`*.xxx`** 不能写成 **`/*.xxx`**。
+
+##### 2、 `<servlet-name>`
+
+它是对指定的 servlet 名称的 servlet 进行拦截的。
+
+##### 3、 `<dispatcher>`
+
+可以取的值有 
+
+ - **`REQUEST`**
+ - **`FORWARD`**
+ - **`ERROR`**
+ - **`INCLUDE`**
+
+它的作用是：当以什么方式去访问 web 资源时，进行拦截操作。
+
+ 1. **`REQUEST`** 当是从浏览器直接访问资源，或是重定向到某个资源时进行拦截方式配置的 它也是默认值
+ 2. **`FORWARD`** 它描述的是请求转发的拦截方式配置
+ 3. **`ERROR`** 如果目标资源是通过声明式异常处理机制调用时，那么该过滤器将被调用。除此之外，过滤器不会被调用。
+ 4. **`INCLUDE`** 如果目标资源是通过 RequestDispatcher 的 include() 方法访问时，那么该过滤器将被调用。除此之外，该过滤器不会被调用
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NodeJS Express Freemark Engine</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 模板引擎
+
+#### 一、什么是模板引擎
+
+&amp;#160; &amp;#160;模板引擎是一个从页面模板根据一定的规则生成 HTML 工具，PHP 首发，随后出现了 ASP、JSP 都沿用这个模式，即建立一个 HTML 页面模板，插入可执行的代码。运行时动态生成 HTML。
+
+缺点：
+
+ - 页面功能逻辑与页面布局样式耦合，网站规模变大以后逐渐难以维护
+ 
+ - 语法复杂，对于非技术的网页设计者来说门槛高，难以学习。
+ 
+ - 功能过于全面，页面设计者可以在页面上编程，不利于功能划分，也使模板解析效率降低。
+
+&amp;#160; &amp;#160;后来 MVC 架构的诞生，模板引擎包含在服务器端，控制器得到用户请求后，从模型获取数据，调用模板引擎，模板引擎以数据和页面模板为输入，生成 HTML 页面，然后返回给控制器。
+
+由控制器交回客户端。
+
+![](./images/node-express-freemark-engine/node-express-freemark-engine-001.png)
+
+#### 二、使用模板引擎
+
+&amp;#160; &amp;#160;基于 JavaScript 的模板引擎有许多中实现，我们推荐使用 ejs ，它学习起来简单，与 express 集成良好，它的标准是 JavaScript 的实现，它不仅可以运行在服务器端，还可以运行在浏览器中，服务器端运行 ejs ，这样减少了对浏览器的依赖，而且更符合传统架构的习惯。
+
+分析工程运行：
+
+```javascript
+// 指定页面模板的存放目录。
+app.set("views",__dirname+"/views"); 
+
+// 使用 ejs 模板引擎。
+app.set("view engine","ejs"); 
+
+// 调用模板引擎，接收两个参数。
+// 参数一：模板的名称，即 views 目录下的模板文件名，不包括扩展名。
+// 参数二：传递给模板的数据。
+res.render("index",{"title":"pact"}); 
+```
+
+ejs 标签：
+```python
+## JavaScript 代码（<% var i = "dd" %> , 直接解析渲染 JavaScript 代码）
+1. <%code%> 
+
+## 显示替换过 HTML 特殊字符的内容
+2. <%=code%> 
+
+3. <%-code%> 
+## 显示原始 HTML 内容 可以加载另一个模板包含进来。
+```
+
+#### 三、页面布局（`暂不支持`）
+
+ **```Express 从 2.x 升级到 3.x ， ejs 不支持模板引擎，jade 支持```**
+ 
+&amp;#160; &amp;#160;layout.ejs 是一个布局模板，它描述整个要么的框架架构，**```默认情况下每个单独的页面都继承自这个框架，替换掉 <%-body%> 部分这个功能非常有用。```**
+
+ - 一般为了保持整个网站的一致风格，HTML 的 `<head>` 部分以及底部，的大量内容都是重复的，因此我们可以把它们放到 layout.ejs 中，然后把 body 填充成自定义部分即可。
+ 
+ 如果想关闭它则
+ 
+```javascript
+app.set('view options',{layout:false});
+```
+
+ - 如果网站不止需要一种页面布局，例如后台和前台，那么我们可以在调用视图模板的时候定上 layout（ejs的写法）。
+
+ **```Express 2.x 写法```**
+ 
+```javascript
+// （ejs的写法）
+// 通过加入 layout 属性指定使用的 ejs 布局模板的。
+res.render('userlist',{"title":"后台管理","layout","admin"});
+```
+
+#### ejs 视图模板引擎 
+
+#### 一、版本升级
+
+Express 从 2.0 升级到 3.0 ，将 ejs 的用法忽略，改为用户自定义形式。
+
+引入 ejs/index.js 的模块，来支持 ejs 的模板引擎
+
+#### 二、引入引擎的模块
+
+引入引擎的模块，然后在 app 中调用 engine 函数改造 ejs 引擎
+
+```javascript
+app.engine('ejs',engine);
+
+// 将 layout.ejs 设置成默认的布局模板
+app.locals._layoutFile='layout'
+```
+
+#### 三、如果项目分前后台，那么只有一个布局模板，怎么办？
+
+```javascript
+// 调用模板引擎的时候指定模板
+res.render('pcat',{"_layoutFile":"pcatlayout"});
+```
+
+#### 四、片段视图
+
+&amp;#160; &amp;#160;Express 的视图系统还支持判断视图，它就是一个页面片段，通常是重复的内容，用于迭代显示，通过它你可以将相对独立的页面块分割出去，而且可以避免显示的使用 for 循环。
+
+&amp;#160; &amp;#160;`partial` 是一个可以在视图中使用的函数，它接收两个参数，第一个是片段视图的名称，第二个可以是一个对象或一个数组，如果是一个对象，那么片段视图上下文变量引用的就是这个变量，如果是一个数组，那么其中每个元素一次被迭代应用到片段视图。片段视图中上下文变量名就是视图文件名。
+
+#### 五、视图助手
+
+&amp;#160; &amp;#160;须臾在视图中访问一个全局的函数或对象，不用每次调用视图解析的时候单独传入，视图助手分为两类，分别是静态视图助手和动态视图助手，这两者的差别在于静态视图助手可以是任何类型的对象，包括接收任意参数的函数，但访问到的对象必须是用户请求无关的。而动态视图助手只能是一个函数。这个函数不能接收任何参数，但是可以访问 req 和 res 两个对象。
+
+##### 静态视图助手：
+
+```javascript
+app.locals({
+    inspect:function(){
+        return util.inspect(obj,true)+"  解析成功";
+    }
+});
+```
+
+##### 动态视图助手：
+
+```javascript
+res.locals({
+    headers:function(obj){
+        return req.headres;
+    }
+});
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

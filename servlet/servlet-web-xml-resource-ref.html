@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Servlet web.xml resource-ref 元素</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Servlet web.xml resource-ref 元素
+
+***```resource-ref```*** 元素用于指定对外部资源的 servlet 引用的声明。
+
+```erlang
+<!ELEMENT resource-ref (description?, res-ref-name,
+  res-type, res-auth, res-sharing-scope?)>
+  <!ELEMENT description (#PCDATA)>
+  <!ELEMENT res-ref-name (#PCDATA)>
+  <!ELEMENT res-type (#PCDATA)>
+  <!ELEMENT res-auth (#PCDATA)>
+  <!ELEMENT res-sharing-scope (#PCDATA)>
+```
+
+
+***```resource-ref```*** 子元素的描述如下：
+
+ - ***```res-ref-name```*** 是资源工厂引用名的名称。该名称是一个与 java:comp/env 上下文相对应的 JNDI 名称，并且在整个 Web 应用中必须是惟一的。
+
+ - ***```res-auth```*** 表明：servlet 代码通过编程注册到资源管理器，或者是容器将代表 servlet 注册到资源管理器。
+ 
+  - 该元素的值必须为 Application 或 Container。
+
+ - ***```res-sharing-scope```*** 表明：是否可以共享通过给定资源管理器连接工厂引用获得的连接。
+
+  - 该元素的值必须为 Shareable(默认值)或 Unshareable。
+
+
+使用 JNDI 配置数据源
+
+> 引用 <a href="https://my.oschina.net/angerbaby/blog/360941" target="_blank">The Issue About JNDI Datasource HOW-TO</a>
+
+&#160; &#160;配置 Tomcat 的 JNDI 数据源，是个很“古老”的话题了，网上可以查到 N 多详解，故不再过多阐述。Tomcat 的官方文档里的说明算是全面了，如果你阅读英文无障碍的话，那么可以拜读官方文档。如果想节省脑细胞的话，推荐下面的链接，清楚地说明了 JNDI 数据源的配置手段。
+
+<a href="http://blog.csdn.net/dyllove98/article/details/7706218" target="_blank">Tomcat 配置 JNDI 数据源</a>
+
+&#160; &#160;我在这里想提及的是在配置过程中，遇见的“特殊状况”。我选择的是单个应用配置数据源的“手段”，恰巧官网文档中有 MySQL 的示例，我就拿来用了。
+
+&#160; &#160;在应用的根目录下，创建 META-INF 目录，在目录里创建 context.xml 文件，贴入如下的配置，修改相关属性。
+
+```xml
+<Context>
+
+    <!-- maxActive: Maximum number of database connections in pool. Make sure you
+         configure your mysqld max_connections large enough to handle
+         all of your db connections. Set to -1 for no limit.
+         -->
+
+    <!-- maxIdle: Maximum number of idle database connections to retain in pool.
+         Set to -1 for no limit.  See also the DBCP documentation on this
+         and the minEvictableIdleTimeMillis configuration parameter.
+         -->
+
+    <!-- maxWait: Maximum time to wait for a database connection to become available
+         in ms, in this example 10 seconds. An Exception is thrown if
+         this timeout is exceeded.  Set to -1 to wait indefinitely.
+         -->
+
+    <!-- username and password: MySQL username and password for database connections  -->
+
+    <!-- driverClassName: Class name for the old mm.mysql JDBC driver is
+         org.gjt.mm.mysql.Driver - we recommend using Connector/J though.
+         Class name for the official MySQL Connector/J driver is com.mysql.jdbc.Driver.
+         -->
+
+    <!-- url: The JDBC connection url for connecting to your MySQL database.
+         -->
+
+  <Resource name="jdbc/TestDB" auth="Container" type="javax.sql.DataSource"
+               maxActive="100" maxIdle="30" maxWait="10000"
+               username="javauser" password="javadude" driverClassName="com.mysql.jdbc.Driver"
+               url="jdbc:mysql://localhost:3306/javatest"/>
+
+</Context>
+```
+
+&#160; &#160;关于上面的代码，官网的原话是 “Configure the JNDI DataSource in Tomcat by adding a declaration for your resource to your Context”。所谓“狡兔三窟”，Tomcat 中关于 Context 的配置，随着版本的不同，可以有很多种！那么问题就来了，到底配到哪个 Context 里呢？有这个疑惑，说明我们还对 Context 的理解不够透彻，而在 Tomcat 文档配置数据源之前有段话已经进行了很好的“免责声明”了。所以可以查找相关资料深入了解 Context。
+
+![resource-ref-jndi-001](./images/servlet-web-xml-resource-ref/resource-ref-jndi-001.png)
+
+&#160; &#160;我选用的是很多种的一种，在 META-INF 中使用了context.xml，然后在 web.xml 文件中再配置如下。
+
+```xml
+<resource-ref>
+      <description>DB Connection</description>
+      <res-ref-name>jdbc/TestDB</res-ref-name>
+      <res-type>javax.sql.DataSource</res-type>
+      <res-auth>Container</res-auth>
+</resource-ref>
+```
+
+&#160; &#160;resource-ref 中的配置项的值，应该与 Context 中 Resource 的属性值是一一对应的！到此为止，JNDI 数据源的基础配置已经完成，可以使用了。web.xml 这段配置不配照样可以使用，这个本人还没有摸透是神马原因，摸透后会后续发博文说明。
+
+&#160; &#160;好，这样的配置在本机的开发环境上是运行的“如鱼得水”的。但是，在往服务器上部署后运行时，问题来了，提示“Cannot create JDBC driver of class for connect URL null, cause: java.sql.SQLException: No suitable driver”。网上搜索后，关于这个问题的原因最常见的是配置有问题。
+
+&#160; &#160;我的这种情况，原因不是常见的那种，而是在与项目在部署时，配置了虚拟主机，即在 Tomcat 的 server.xml 中添加了 Host 节点，而项目需要部署在这个虚拟主机里，关键点在于 Host 中还添加 Context 节点，主要目的在于设置项目的 path（这里声明这种配置不是我要干的）。
+
+&#160; &#160;这样原因在于，如果选用在 Host 节点下添加 Context 的方式来部署项目的话，那么项目里的 context.xml 里的配置是不起作用的！如果你部署项目选用的是在 conf 里配置 context 文件方式或是直接将项目放进 webapps 项目部署目录里，那么 META-INF 中 context.xml 配置是管用的！
+
+&#160; &#160;说到这里你是否很是迷惑了，OK，我这里提示几个解惑的要点，有兴趣的可以自己去解惑。
+
+ 1. 了解 Tomcat 的部署方式。
+
+ 2. 了解 Tomcat 的 Context 作用。
+
+如果以上两点你理解了，在遇到问题时，相信你可以做出很快的反应和对策。
+
+&#160; &#160;我提到的出错情况，鉴于不能去大动某人之前的配置，我采用了保守“治疗”手段，将项目里 META-INF 中 context.xml 里的数据源配置剪切出来，贴到 server.xml 文件 Host 节点下的 Context 里即可正常运行了。
+
+
+#### resource-ref in web.xml,Why!
+
+> 引用 <a href="https://my.oschina.net/angerbaby/blog/362429" target="_blank">resource-ref in web.xml,Why!</a>
+
+
+&#160; &#160;在上一篇配置 Tomcat 数据源时遗留一个问题，就是在 web.xml 中的 ```<resource-ref>``` 配置可有可无，但是为什么？在网上搜索了许久，正面直接了当回答问题的没有几个，无奈读取英文文档，在 "JNDI Resources How-To" 一章节有所提及，下面将我的理解记录如下。
+
+&#160; &#160;使用 JNDI 配置数据源，可以在 web.xml 里进行定义，例如 ```<resource-ref>```，也可以在 Context 下进行定义，例如 ```<Resource/>```，如下配置。
+
+```xml
+<resource-ref>
+  <res-ref-name>jdbc/EmployeeDB</res-ref-name>
+  <res-type>javax.sql.DataSource</res-type>
+  <res-auth>Container</res-auth>
+</resource-ref>
+```
+
+&#160; &#160;OK，说到这儿，我的用词是可以，也可以。就是按照文档说明，这两个是二选一的。那么应该有人立马就反驳了，在 Context 下配置 ```<Resource />```，不在 web.xml 里加 ```<resource-ref>``` 可以，反之则不可行的，应该会出现"Cannot create JDBC driver of class for connect URL null"吧！
+
+&#160; &#160;没错！确实会报错。可是，Why？先来看一段文档中的说明。讲的大概意思是，如果没有更进一步的设置需要，那么 Tomcat 会使用 web.xml 中的配置信息来创建资源啦！我们上面提到的报错，恰恰不巧，在配置数据源时需要指定 driverClassName 吧，需要指定最大等待时间吧，等等！那么 web.xml 里的配置项已经无法满足配置数据源的需求了，所以，正如下面的描述，一些特别的选项不能在 web.xml 配置，“转战” Context。在 Context 里配置 ```<Resource/>``` 才是有效的！
+
+![resource-ref-jndi-002](./images/servlet-web-xml-resource-ref/resource-ref-jndi-002.png)
+
+![resource-ref-jndi-003](./images/servlet-web-xml-resource-ref/resource-ref-jndi-003.png)
+
+&#160; &#160;那么我之前一直有个疑惑，既然 Context 配置数据源就可以工作了，为什么 Tomcat 的文档里的示例还指导我们在 web.xml 加段配置呢？不累吗？我想文档里有句话应该可以给我一个合理交代了吧！“to document” 用文件说明，我个人认为在web.xml里的 ```<resource-ref>``` 配置，仅仅起到说明作用，说明这个 Web 应用引用了哪些资源！
+
+![resource-ref-jndi-004](./images/servlet-web-xml-resource-ref/resource-ref-jndi-004.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

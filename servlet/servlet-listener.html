@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Servlet Listener</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Servlet Listener
+
+#### Servlet 监听器
+
+JavaWeb 开发中的监听器，是用于监听 Web 常见对象
+
+ - HttpServletRequest 
+ 
+ - HttpSession
+ 
+ - ServletContext
+
+监听它们的创建与销毁 属性变化 Session 绑定 JavaBean
+
+##### 1 、 监听机制
+
+ - **事件** 就是一个事情
+
+ - **事件源** 产生这个事情的源头
+
+ - **监听器** 用于监听指定的事件的对象
+
+ - **注册监听** 要想让监听器可以监听到事件产生，必须对其进行注册。
+
+##### 2 、Javaweb  开发中常见监听器
+
+2.1 、 监听域对象的创建与销毁
+
+ - 监听 **`ServletContext`** 创建与销毁 **`ServletContextListener`**
+ - 监听 **`HttpSession`** 创建与销毁 **`HttpSessionListener`**
+ - 监听 **`HttpServletRequest`** 创建与销毁 **`ServletRequestListener`**
+
+2.2 、 监听域对象的属性变化
+
+ - 监听 **`ServletContext`** 属性变化 **`ServletContextAttributeListener`**
+ - 监听 **`HttpSession`** 属性变化 **`HttpSessionAttributeListener`**
+ - 监听 **`HttpServletRequest`** 属性变化 **`ServletRequestAttributeListener`**
+
+2.3 、 监听 Session  绑定 JavaBean
+
+ - 它是用于监听 JavaBean 对象是否绑定到了 Session 域 **`HttpSessionBindingListener`**
+ - 它是用于监听 javaBean 对象的活化与钝化 **`HttpSessionActivationListener`**
+
+##### 3 、 监听器的快速入门
+
+关于创建一个监听器的步骤
+
+ 1. 创建一个类，实现指定的监听器接口
+ 
+ 2. 重写接口中的方法
+ 
+ 3. 在 web.xml 文件中对监听器进行注册。
+
+##### 3.1 、 关于域对象创建与销毁的演示
+
+ - 1、ServletContext 
+
+这个对象是在服务器启动时创建的，在服务器关闭时销毁的。
+
+```java
+public class MyServletContextListener implements ServletContextListener{
+  public void contextInitialized(SelectContextEvent sce){
+    System.out.println("ServletContext 对象创建了");
+  }
+
+  public void contextDestroyed(ServletContextEvent sce){
+    System.out.println("ServletContext 对象销毁了");
+  }
+}
+```
+
+ - 2、HttpSession  对象的创建与销毁
+
+HttpSession session = request.getSession();
+
+**Session 销毁**
+
+ - **`1.默认超时 30 分钟`**
+ - **2.关闭服务器**
+ - **3.invalidate() 方法**
+ - **4.setMaxInactiveInterval(int interval) 可以设置超时时间**
+
+问题:直接访问一个 jsp 页面时，是否会创建 session?
+
+会创建，因为我们默认情况下是可以在 jsp 页面中直接使用 session 内置对象的。
+
+```java
+public class MyHttpSessionListener implements HttpSessionListener{
+  public void sessionCreated(HttpSessionEvent se){
+    System.out.println("创建 Session 对象");
+  }
+
+  public void sessionDestroyed(HttpSessionEvent se){
+    System.out.println("销毁 Session 对象");
+  }
+}
+```
+
+ - 3、HttpServletRequest 
+
+Request 对象是发送请求服务器就会创建它，当响应产生时，request 对象就销毁。
+
+```java
+public class MyRequestListener implements ServletRequestListener{
+  public void requestCreated(ServletRequestEvent sre){
+    System.out.println("创建 HttpServletRequest 对象");
+  }
+
+  public void requestDestroyed(ServletRequestEvent sre){
+    System.out.println("销毁 HttpServletRequest 对象");
+  }
+}
+```
+
+##### 3.2 、 演示了 Request 域对象中属性变化
+
+```java
+public class MyRequestAttributeListener implements ServletRequestAttributeListener{
+  public void attributeAdded(ServletRequestAttributeEvent srae){
+    System.out.println("添加了属性");
+  }
+
+  public void attributeRemoved(ServletRequestAttributeEvent srae){
+    System.out.println("删除了属性");
+  }
+
+  public void attributeReplaced(ServletRequestAttributeEvent srae){
+    System.out.println("替换了属性");
+    System.out.println("替换了属性：" + srae.getName());
+  }
+}
+```
+
+&amp;#160; &amp;#160;在 java 的监听机制中，它的监听器中的方法都是有参数的，参数就是事件对象，而我们可以通过事件对象直接获取事件源。
+
+##### 3.3 、 演示 Session 绑定 JavaBean
+
+ - 1、 JavaBean  对象自动感知被绑定到 Session 中.
+
+&amp;#160; &amp;#160;HttpSessionBindingListener 这个接口是由 JavaBean 实现的，并且不需要在 web.xml 文件中注册.
+
+```java
+public class User implements Serializable, HttpSessionBindingListener{
+  public void valueBound(HttpSessionBindingEvent event){
+    System.out.println("向 Session 中绑定了一个 user 对象");
+  }
+
+  public void valueUnbound(HttpSessionBindingEvent event){
+    System.out.println("向 Session 中将 user 对象移除了");
+  }
+}
+```
+
+```java
+<%
+  User user = new User();
+  user.setId(1);
+  user.setUsername("tom");
+  user.setPassword("123");
+  user.setRole("admin");
+
+  // 绑定到 session
+  session.setAttribute("user", user);
+
+  // 解除绑定
+  session.removeAttribute("user");
+%>
+```
+
+ - 2、 JavaBean  对象可以活化或钝化到 Session  中。
+
+&amp;#160; &amp;#160; **`HttpSessionActivationListener`** 如果 JavaBean 实现了这个接口，那么当我们正常关闭服务器时，Session 中的 JavaBean 对象就会被钝化到我们指定的文件中。当下一次在启动服务器，因为我们已经将对象写入到文件中，这时就会自动将 JavaBean 对象活化到 Session 中。
+
+```java
+public class User implements Serializable, HttpSessionBindingListener,
+         HttpSessionActivationListener {
+  public void sessionWillPassivate(HttpSessionEvent se){
+    System.out.println("钝化");
+  }
+
+  public void sessionDidActive(HttpSessionEvent se){
+    System.out.println("活化");
+  }
+}
+```
+
+我们还需要个 context.xml 文件来配置钝化时存储的文件在 meta-inf 目录下创建一个 context.xml 文件
+
+```xml
+<Context>
+  <Manager className="org.apache.catalina.session.PersistentManager" maxIdleSwap="1">
+    <Store className="org.apache.catalina.session.FileStore" directory="it315"/>
+  </Manager>
+</Context>
+```
+
+#### 案例-定时销毁 session
+
+ - 1、 怎样可以将每一个创建的 session 全都保存起来？
+
+  我们可以做一个 HttpSessionListener，当 session 对象创建时，就将这个 session 对象装入到一个集合中.
+
+  将集合 `List<HttpSession>` 保存到 ServletContext 域中。
+
+ - 2、 怎样可以判断 session 过期了?
+
+  在 HttpSession 中有一个方法 public long getLastAccessedTime()
+
+  它可以得到 session 对象最后使用的时间。
+
+  可以使用 invalidate 方法销毁。
+
+我们上面的操作需要使用任务调度功能.
+
+在 Java 中有一个 Timer 定时器类
+
+```java
+public class TimerDemo{
+  public static void main(String[] args){
+    Timer t = new Timer();// 创建一个定时器
+
+    t.schedule(new TimerTask(){
+      @Override
+      public void run(){
+        System.out.println(new Date().toLocaleString());
+      }
+    }, 1000, 1000);
+  }
+}
+```
+
+关于三个域对象获取
+
+如果在 Servlet 中要获取 request ， 在方法上就有
+
+ - `request.getSession();` 获取 session
+ - `request.getSession().getServletContext();` 获取 servletContext
+ 
+&amp;#160; &amp;#160;程序在使用时，需要考虑并发问题,因为我们在 web 中，它一定是一个多线程的，那么我们的程序对集合进行了添加，还有移除操作。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

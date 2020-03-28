@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>quartz-basic</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 第六章实现任务调度
+
+ - 务调度的使用场合有哪些？
+ 
+ - Quartz 框架的使用流程是什么？
+
+ - Spring 整合 Quartz 框架的常用组件有哪些？
+
+使用定时任务实现固定时间间隔的数据查询
+
+使用定时任务实现在指定时间点执行数据统计
+
+##### 本章目标
+
+ - 了解任务调度
+
+ - 了解 Quartz 框架的使用
+
+ - 掌握 Spring 整合 Quartz 实现任务调度
+
+**任务调度概述：**
+
+ - 1.在企业级应用中，经常会制定一些“计划任务”，即在某个时间点做某件事情
+
+  - 1.1 核心是以时间为关注点，即在一个特定的时间点，系统执行指定的一个操作
+
+  - 1.2 任务调度涉及多线程并发、线程池维护、运行时间规则解析、运行现场的保护以恢复等方面
+
+ - 2.Quartz 框架是一个开源的企业级任务调度服务，已经被作为任务调度的良好解决方案
+
+**Quartz 框架核心概念：**
+
+Quartz 对任务调度进行了高度抽象，提出了 3 个核心概念，并在 **`org.quartz`** 包中通过接口和类进行了描述
+
+ - 1 任务：就是执行的工作内容。Quartz提供Job接口来支持任务定义
+
+ 任务就是事件执行的内容。
+
+ 顾名思义，任务就是执行的工作内容。Quartz 提供 Job 接口来支持任务定义。Job 接口的方法声明如下。
+
+ Job 接口中只有一个execute()方法，开发者需要在自己的任务类中实现该方法，完成具体任务的执行。通过该方法中传入的 JobExecutionContext,可以获取调度上下文的各种信息，如任务名称等。
+
+ Quartz 每次执行 Job 时，都会创建一个 Job 实现类的信息的实例，JobDetail 类就是 Job 接口的一个实现类。Quartz 允许对 Job 进行分组。
+
+```java
+package org.quartz;
+
+public interface Job{
+    void execute(JobExecutionContext context) throws JobExecutionExecption;
+}
+```
+
+ - 2 触发器：定义触发 Job 执行的时间触发规则。Quartz 提供 Trigger 类及其子类支持触发器功能，
+
+ 指定到了某个时间点 开始就会被触发。
+
+ 创建的 Job 要在什么时间定时执行呢？在 Quartz 中，触发器 Trigger 类允许定义触发 Job 执行的时间触发规则。例如，每隔 1 小时执行一次，每天 15:00 执行等。Trigger 有两个实现类，分别为 SimpleTrigger 和 CronTrigger，两个不同的应用场景提供支持。
+
+ - 3 调度器：Quartz 提供了 Scheduler 接口，将工作任务和触发器绑定，保证任务可以在正确的时间执行
+
+ 将任务和触发器绑定在一起。
+
+ 保证在触发器触发时，完成任务的执行。
+
+ 如何将工作和触发器绑定，保证任务可以在正确的时间执行呢？Quartz 提供了调度器 Scheduler 类，它是 Quartz 独立运行的容器。Trigger 和 JobDetail 可以注册到 Scheduler 中。Scheduler 定义了多个接口方法，允许通过组及名称访问容器中的 Trigger 和 JobDetail。Scheduler 可以将 Trigger 绑定到一个 JobDetail 上，当 Trigger 被触发后，一个 Job 就会被执行。
+
+ 通过任务、触发器和调度器，就可以通过 Quartz 轻松实现任务调度。除此之外，Quartz 还对一些特殊场景提供了支持，如 Scheduler 对象。
+
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-6-22 上午10:47:31
+ * @author：崔旧涛
+ */
+package cn.jbit.quartz.job;
+  
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+  
+/**
+ * 
+ * 
+ * 创建时间：2016-6-22 上午10:47:31
+ * 
+ * @author 崔旧涛
+ * 
+ */
+public class RemindJob implements Job {
+
+    @Override
+    public void execute(JobExecutionContext jobContext)
+            throws JobExecutionException {
+
+        JobDataMap dataMap = jobContext.getJobDetail().getJobDataMap();
+        String name = dataMap.getString("trueName");
+
+        System.out.println(name + "：您有一封未读的邮件。");
+
+    }
+}
+```
+
+```java
+private static void doRemind() throws SchedulerException,
+        InterruptedException {
+ 
+    // 创建一个任务
+    JobDetail job = new JobDetail("remindJob111", "group1", RemindJob.class);
+ 
+    // 创建一个触发器
+    SimpleTrigger simpleTrigger = new SimpleTrigger("trigRemindJob",
+            SimpleTrigger.REPEAT_INDEFINITELY, 3000);
+ 
+    // 设置第一次调度任务时延迟 1 秒
+    simpleTrigger.setStartTime(new Date(System.currentTimeMillis() + 3000));
+ 
+    // 创建一个调度者
+    SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+    Scheduler scheduler = schedulerFactory.getScheduler();
+ 
+    // 注册并进行调度
+    scheduler.scheduleJob(job, simpleTrigger);
+ 
+    // 启动任务调度
+    scheduler.start();
+ 
+    // sleep 10
+    Thread.sleep(10000);
+ 
+    // 关闭调度
+    scheduler.shutdown();
+}
+```
+
+##### Quartz 框架的使用流程 3-1
+
+在 JBOA 系统中，对员工张三的工作任务进行提醒，实现每 3 秒钟进行一次任务提醒，定时器在 10 秒钟后关闭
+
+添加所需的 jar 文件
+
+ - 这里选用 Quartz 的 1.8.6 版本，此版本在项目中应用较多，也较为稳定
+
+ - 现在最新版本为 2.2 或 2.2 以上
+
+ - 不同版本的框架 不兼容 需要从新编写
+
+在 Quartz 完整的下载包中包括 docs 文件夹和 examples 文件夹。其中 docs 文件夹中可以找到 Quartz 的 API 文档，examples 文件中包括多个示例程序
+
+##### Quartz 框架的使用流程 3-2
+
+系统运行的环境 配置 的对象 称作上下文
+
+资源 变量 环境参数 为 上下文
+
+```java
+/**
+ * 任务的内容
+ */
+public class RemindJob implements Job {
+
+    /** Constructor */
+    public RemindJob(){}
+
+    /** RemindService 提醒服务类，封装提醒业务 */
+    private RemindService remindService;
+
+    /**
+     * Job 接口中只有一个
+     * execute()方法，在实现类中
+     * 实现该方法以执行具体任务
+     */
+    public void execute(JobExecutionContext jobContext) 
+            throws JobExecutionException { 
+
+        /**
+         * 通过参数 JobExecutionContext jobContext
+         * 
+         * 可以获取调度上下文的各种信息，如：任务名称等
+         */
+        remindService = new RemindService(); // 提醒服务类，封装提醒业务
+        remindService.ouputPlan("张三");
+    }
+}
+```
+
+##### Quartz 框架的使用流程 3-3
+
+通过 JobDetail 创建一个任务实例
+
+任务就是执行的工作内容。Quartz 提供 Job 接口来支持任务的定义。
+
+Job 接口中只有一个 execute() 方法，开发者需要在自己的任务类中实现该方法，完成具体的任务执行。
+
+通过该方法中传入的 JobExecutionContext , 可以获取调度上下文的各种信息，如任务名称等。
+
+Quartz 每次执行 Job 时，都会创建一个 Job 实现类的新的实例， JobDetail 类就是 Job 接口的一个实现类。
+
+Quartz 允许对 Job 进行分组。
+
+**`想要实现被 Quartz（任务调度）调用的类，必须实现 Job 接口。`**
+
+所有在 execute() 中编写的方法，都会被 Quartz 进行任务调度时执行。
+
+```java
+// 任务实例
+JobDetail job = new JobDetail("remindJob", "group1", RemindJob.class);
+```
+
+JobDetail 类详解
+
+JobDetail 类，实现了 Job 接口。
+
+JobDetail 类用于创建一个供 Quartz （任务调度）的任务。
+
+常用方法：
+
+ - 构造方法：
+
+  - JobDetail(String name,String group,Class jobClass ); 
+
+    name：任务的名称
+
+    group：指定的任务组
+
+    jobClass : 实现了 Job 接口的类。（类中包含了这个任务的实现内容）
+
+ - get 方法：
+
+  - String getFullName() : 获得这个任务的完整名称,得到：group.name
+
+  - String getDescription() : 获取当前方法的描述
+
+  - String getName() : 获得当前任务的名称
+
+  - String getGroup() : 获得当前任务的组名
+
+  - Class getJobClass() : 获得当前任务的 Class 实例
+
+  - JobDataMap getJobDataMap(); : 获取 JobDataMap 对象
+
+  - Key getKey() : 获取 Key 对象
+
+  - Sting getGroup(); : 可以获得当前任务的组名
+
+  - String getSecond(); : 可以获得当前任务的组名
+
+  - Object getFirst(); : 可以获得当前的任务名
+
+  - String getName(); : 可以获得当前的任务名
+
+  - void setSecond(String name); : 修改在 key 对象中的值。并不会修改真正任务的值。
+
+  - String[] getJobListenerNames 
+
+ - set 方法：
+
+  - setGroup(String group) : 设置组名
+
+  - setName(String name) : 设置任务名
+
+  - setJobClass(Class jobClass) : 设置任务调度实现类。
+
+JobDetail 类中，有一个专门负责存放数据的 Map。
+
+JobDataMap getJobDataMap(); 获得 JobDataMap 对象后，可以通过以 键值对 的形式存放数据。
+
+在构建任务的时候我们可以，预先存放一些数据
+
+```java
+// 创建任务
+JobDetail jobDetail = new JobDetail("remindJob", "g1",RemindJob.class);
+JobDataMap dataMap = jobDetail.getJobDataMap();
+dataMap.put("user", "zhangsan");
+```
+
+在通过 调度器，调度任务的时候。
+
+在实现任务实例，实现 Job 接口的类中，通过 JobExecutionContext 获取 JobDetail 中存放的数据。
+
+```java
+public class RemindJob implements Job {
+ 
+    @Override
+    public void execute(JobExecutionContext jobContext)
+            throws JobExecutionException {
+
+        JobDataMap map = jobContext.getJobDetail().getJobDataMap();
+        String name = map.getString("user");
+        System.out.println(name + "：您有一份邮件未读。");
+
+    }
+}
+```
+
+使用 SimpleTrigger 创建一个触发器
+
+```java
+/** 
+ * "trigRemindJob" 执行的方法
+ * SimpleTrigger.REPEAT_INDEFINITELY 触发器的类型，间隔重复触发
+ * 3000 间隔调用的时间
+ */
+SimpleTrigger simpleTrigger = new SimpleTrigger(
+        "trigRemindJob", SimpleTrigger.REPEAT_INDEFINITELY, 3000);
+ 
+// 设置开始的时间 当前时间 + 1 秒
+simpleTrigger.setStartTime(new Date(System.currentTimeMillis() + 1000));
+ 
+// 创建一个调度器
+ 
+SchedulerFactory schedulerFactory = new StdSchedulerFactory();
+Scheduler scheduler = schedulerFactory.getScheduler();
+ 
+// 注册任务和触发器
+ 
+/**
+ * job      执行的任务
+ * simTrig  开始执行任务的时间
+ */
+scheduler.scheduleJob(job, simpleTrigger);
+ 
+// 启动和关闭调度方法
+scheduler.start();    // 开始事务调度
+scheduler.shutdown(); 
+```
+
+通过 Scheduler.start() 方法，将会开启另一个线程来去调度任务
+
+Quartz 实现任务调度，是通过 多线程 的模式来完成的。
+
+##### Quartz 框架的使用流程
+
+ - 1、创建一个 Quartz 工作
+
+ 要使用 Quartz 进行调度，首先需要实现 Job 接口创建自己的任务类。首先，定义一个计划实体类（Plan），包括计划的时间和计划任务的内容；
+
+ 接下来，创建提醒服务类（RemindService），用于获取用户的提醒信息列表，并进行信息输出。
+
+ - 2、定义调度器任务
+
+ 在创建任务类之后，就可以使用 Quartz API 来进行任务调度了。
+
+ 首先，创建 JobDetail 对象，来配置任务细节，上图中指定任务的名称为 remindJob 任务所属的组为 group1 ，以及需要执行的任务对应的 java 类为 RemindJob.class 。
+
+ JobDetail 类提供多种构造方法，可以通过查阅 API 进行学习。
+
+ 接下来，创建一个 SimpleTrigger 对象来配置调度信息。 SimpleTrigger 也提供了不同的构造方式，上图中定义的触发器的名称为 trigRemindJob ，任务重复的次数是 SimpleTrigger.REPEAT_INDEFINITELY ，即无限次，以及任务重复的间隔时间为 3 秒。
+
+ 另外，SImpleTrigger 不通过 setStartTime 设定第一次执行有 1 秒的延迟。
+
+ 最后，需要创建一个调度器 Scheduler ，并通过它的 scheduleJob 方法将 JobDetail 和 SimpleTrigger 进行绑定，进而实现了用 SimpleTrigger 触发器来运行定义的工作。
+
+ - 3、启动任务调度
+
+ Scheduler 必须被启动，任务才可以被执行。你可以通过 Scheduler 的 start() 启动调度，通过 shutdown() 关闭调度，之后任务执行将终止。观察案例的输出结果，可以很好的帮助了解 Quartz 任务调度的执行过程。
+
+##### 使用 CronTrigger
+
+ - **`CronTrigger`** 同样是 **`Trigger`** 的子类
+
+ - **`CronTrigger`** 和 SimpleTrigger`** 的对比：
+
+<text zoom="8.2">╔═══════════════╤══════════════════════════════════════════════════════╤════════════════════════════════════════════════════════════════╗
+║ 触发器        │ 应用场景                                             │ 使用方式                                                       ║
+╟───────────────┼──────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────╢
+║ SimpleTrigger │ 固定时间间隔的调度任务（例如：每隔 2 小时执行 1 次） │ 通过设置触发器的属性：开始时间、结束时间、重复次数、重复间隔等 ║
+╟───────────────┼──────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────╢
+║ CronTrigger   │ 指定时间点的调度任务（例如：每天凌晨 1:00 执行 1 次  │ 通过定义 Cron 表达式                                           ║
+╚═══════════════╧══════════════════════════════════════════════════════╧════════════════════════════════════════════════════════════════╝</text>
+
+```
+["触发器","应用场景","使用方式"],
+["SimpleTrigger","固定时间间隔的调度任务（例如：每隔 2 小时执行 1 次）","通过设置触发器的属性：开始时间、结束时间、重复次数、重复间隔等"],
+["CronTrigger","指定时间点的调度任务（例如：每天凌晨 1:00 执行 1 次","通过定义 Cron 表达式"]
+```
+
+ - **`CronTrigger`** 允许用户更 **精准地控制任务的运行日期和时间**，而不仅仅是定义工作的频度。
+
+ - CronTrigger 通过 Cron 表达式定义准确的运行时间点。
+
+创建 CronTrigger 的语法如下：
+
+```java
+/** 语法： */
+CronTrigger cronTrig = new CronTrigger("触发器名称", "组名", "Cron 表达式");
+```
+
+##### Cron 表达式
+
+ - Cron 表达式是一个字符串，字符串以 5 或 6 个空格隔开，分为 6 或 7 个域，每一个域代表一个含义，Cron 有如下两种语法格式： 
+
+ **Seconds Minutes Hours DayofMonth Month DayofWeek Year**
+
+ **Seconds Minutes Hours DayofMonth Month DayofWeek**
+
+ **秒  分  时  日期  月份  星期**
+
+<text zoom="8.2">╔══════╤════════════════╤═════════════════╤════════════════╗
+║ 位置 │ 字段含义       │ 范围            │ 允许的特殊字符 ║
+╟──────┼────────────────┼─────────────────┼────────────────╢
+║ 1    │ 秒             │ 0~59            │ * /            ║
+╟──────┼────────────────┼─────────────────┼────────────────╢
+║ 2    │ 分钟           │ 0~59            │ * /            ║
+╟──────┼────────────────┼─────────────────┼────────────────╢
+║ 3    │ 小时           │ 0~23            │ * /            ║
+╟──────┼────────────────┼─────────────────┼────────────────╢
+║ 4    │ 月份中的哪一天 │ 1~31            │ * / ? L        ║
+╟──────┼────────────────┼─────────────────┼────────────────╢
+║ 5    │ 月份           │ 1~12 或 JAN~DEC │ * /            ║
+╟──────┼────────────────┼─────────────────┼────────────────╢
+║ 6    │ 星期几         │ 1~7 或 SUN~SAT  │ * / ? L #      ║
+╟──────┼────────────────┼─────────────────┼────────────────╢
+║ 7    │ 年份           │ 1970~2099       │ * /            ║
+╚══════╧════════════════╧═════════════════╧════════════════╝</text>
+
+```
+["位置","字段含义","范围","允许的特殊字符"],
+["1","秒","0~59","* /"],
+["2","分钟","0~59","* /"],
+["3","小时","0~23","* /"],
+["4","月份中的哪一天","1~31","* / ? L"],
+["5","月份","1~12 或 JAN~DEC","* /"],
+["6","星期几","1~7 或 SUN~SAT","* / ? L #"],
+["7","年份","1970~2099","* /"]
+```
+
+**Cron 表达式的每个字段，都可以显式地规定 `一个值（如 49）`、`一个范围（如 1-6）`、`一个列表（如 1,3,5）` 或者 `一个通配符（如 *）`。**
+
+ - 在星期中 1 表示星期日
+
+ - 在星期中 2 表示星期一
+
+ - 在星期中 3 表示星期二
+
+ - 在星期中 4 表示星期三
+
+ - 在星期中 5 表示星期四
+
+ - 在星期中 6 表示星期五
+
+ - 在星期中 7 表示星期六
+
+##### Cron 表达式中允许出现的特殊字符
+
+Crontab 表达式有几个特殊的字符，说明如下：
+
+ - **-** : 中划线，表示一个范围。
+
+ - **,** : 使用逗号间隔的数据，表示一个列表。
+
+ - **\*** : 表示每一个值，它可以用于所有字段。例如：在小时字段表示每小时。
+
+ 代表任何值，可以为任意值，符合条件的任意值（与没有限制有差别）。
+
+ - **?** 代表对这个值不做限制，不对这个值进行验证。
+
+ - **\*** 与 **?** 区别
+
+ 如：周六允许你去河边。
+
+ 周六允许你去任何地方。
+
+ 小范围看，都可以理解为是允许去河边，但是区别是明显的。
+
+ **?** 仅允许用在 **`月份中的哪一天` 和 `星期几` 这两个字段中的 `其中一个`**。
+
+ 主要是为了标明，月份中的天数在大于 28 天的时候，当月的最后一个星期五，就有可能不在当月的日期表示范围了。
+
+ 是对于存有争议的字段的一个解决方案。按照这个思路如果是使用 **\*** 是否会存在问题。
+
+ 考虑一下，如果一个表达式在日域上有值11，同时在周域上指定了WED。那么是要 trigger 仅在每个月的11号，且正好又是星期三那天被激发？还是在每个星期三的11号被激发呢？**要去除这种不明确性的办法就是不能同时在这两个域上指定值**。
+
+ **只要记住，假如你为这两域的其中一个指定了值，那就必须在另一个字值上放一个 ?**。
+
+ - **/** : 通常表示为 x/y ，x 为起始值，y 表示值的增量。
+
+ - **L** : 表示最后一天，仅在日期和星期字段中使用。
+
+ **5** 为星期四，**5L** 本月的最后一个星期的星期四。
+
+ - **#** : 只能用于 "星期几" 字段，表示这个月的第几个周几。
+
+ 例如：**6#3** 本月第三个星期的星期五。
+
+##### Cron 表达式示例
+
+<text zoom="8.2">╔══════════════════════╤═════════════════════════════════════════════╗
+║ Cron 表达式          │ 含义                                        ║
+╟──────────────────────┼─────────────────────────────────────────────╢
+║ 0 0 8-12 ? * MON-FRI │ 每个工作日的 8 点到 12 点                   ║
+╟──────────────────────┼─────────────────────────────────────────────╢
+║ 0 15 4 * * ?         │ 每天凌晨 4 点 15 分                         ║
+╟──────────────────────┼─────────────────────────────────────────────╢
+║ 30 0 0 1 1 ? 2014    │ 2014年 1月 1日 凌晨过 30 秒                 ║
+╟──────────────────────┼─────────────────────────────────────────────╢
+║ 0 0 14 1,10,20 * ? * │ 每月的 1号、10号、20号的下午 2点            ║
+╟──────────────────────┼─────────────────────────────────────────────╢
+║ 0 0 17 L * ?         │ 每月最后一天 17:00 运行                     ║
+╟──────────────────────┼─────────────────────────────────────────────╢
+║ 0 0 10 ? * 6L        │ 每月最后一个星期五 10:00 运行               ║
+╟──────────────────────┼─────────────────────────────────────────────╢
+║ 0 0/5 15,17 * * ?    │ 每天 15点 到 16点 每 5 分钟运行一次，       ║
+║                      │ 此外，每天 17点 到 18点 每 5 分钟运行一次。 ║
+╟──────────────────────┼─────────────────────────────────────────────╢
+║ 0 30 10 ? * 6#3 2013 │ 2013年每月的第三个星期五上午 10:30 触发     ║
+╚══════════════════════╧═════════════════════════════════════════════╝</text>
+
+```
+["Cron 表达式","含义"],
+["0 0 8-12 ? * MON-FRI","每个工作日的 8 点到 12 点"],
+["0 15 4 * * ?","每天凌晨 4 点 15 分"],
+["30 0 0 1 1 ? 2014","2014年 1月 1日 凌晨过 30 秒"],
+["0 0 14 1,10,20 * ? *","每月的 1号、10号、20号的下午 2点"],
+["0 0 17 L * ?","每月最后一天 17:00 运行"],
+["0 0 10 ? * 6L","每月最后一个星期五 10:00 运行"],
+["0 0/5 15,17 * * ?","每天 15点 到 16点 每 5 分钟运行一次，\n此外，每天 17点 到 18点 每 5 分钟运行一次。"],
+["0 30 10 ? * 6#3 2013","2013年每月的第三个星期五上午 10:30 触发"]
+```
+
+##### Calender 接口
+
+Calender 接口由 CronTrigger 提供
+
+在 OA 系统中，对于计划任务的提醒要求在每个工作日上午 9:30 发出，元旦除外。
+
+ - 这里除了要定义一个精确的任务执行时间还需要排除指定日期。
+
+ - 可以使用 Quartz 提供的 Calender 接口来实现，且 Quartz 提供了多种实现类来满足应用的需求。
+
+<text zoom="8.2">╔═════════════════╤════════════════════════════╗
+║ Calendar名称    │ 作用                       ║
+╟─────────────────┼────────────────────────────╢
+║ WeeklyCalendar  │ 用于排除星期中的一天活多天 ║
+╟─────────────────┼────────────────────────────╢
+║ MonthlyCalendar │ 用于排除月份中的数天       ║
+╟─────────────────┼────────────────────────────╢
+║ AnnualCalendar  │ 用于排除年中的一天或多天   ║
+╟─────────────────┼────────────────────────────╢
+║ HolidayCalendar │ 用于排除节假日             ║
+╚═════════════════╧════════════════════════════╝</text>
+
+```
+["Calendar名称","作用"],
+["WeeklyCalendar","用于排除星期中的一天活多天"],
+["MonthlyCalendar","用于排除月份中的数天"],
+["AnnualCalendar","用于排除年中的一天或多天"],
+["HolidayCalendar","用于排除节假日"]
+```
+
+##### Calender 接口 2-2
+
+实现步骤：
+
+ - 实例化 Calendar ，并加入要排除的日期
+
+```java
+AnnualCalendar cal = new AnnualCalendar(); // 创建 Calendar
+...
+cal.setDayExcluded(myCal, true); // 加入要排除的日期
+```
+
+ - 用 Scheduler 注册 Calendar
+
+```java
+scheduler.addCalendar("NewYearHoliday", cal, true, true);
+```
+
+第一个 true ，表示如果有重复名称的扩展条件将它覆盖。
+
+false ， 如果依存在这个名称的扩展日期条件就会报错。因为这个以存在。
+
+第二个 true ，表示新加入的这个条件是否立刻生效使用。
+
+false ，不立即生效，什么时候生效看程序如何编写
+
+ - 将 Calendar 和对应的 Trigger 进行关联
+
+```java
+cronTrigger.setCalendarName("NewYearHoliday");
+```
+
+完成示例代码
+
+```java
+import java.io.Serializable;
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+  
+import org.quartz.CronTrigger;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SchedulerFactory;
+import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.impl.calendar.AnnualCalendar;
+  
+public class TestJobWithCron implements Serializable {
+  
+    public void doRemind() throws SchedulerException, InterruptedException,
+            ParseException {
+        JobDetail job = new JobDetail("remindJob", "group1", RemindJob.class);
+        JobDataMap dataMap = job.getJobDataMap();
+        dataMap.put("user", "张三");
+        CronTrigger cronTrig = new CronTrigger("remindJob", "group1",
+                "1/3 * * ? * *");
+        SchedulerFactory sfc = new StdSchedulerFactory();
+        Scheduler sched = sfc.getScheduler();
+  
+        // 创建Calendar
+        AnnualCalendar cal = new AnnualCalendar();
+        // 构建日期
+        Calendar myCal1 = GregorianCalendar.getInstance();
+        myCal1.set(Calendar.MONTH, Calendar.APRIL);
+        myCal1.set(Calendar.DATE, 29);
+        Calendar myCal2 = GregorianCalendar.getInstance();
+        myCal2.set(Calendar.MONTH, Calendar.APRIL);
+        myCal2.set(Calendar.DATE, 30);
+        // 设定要排除的日期 如果设置为false则为包含
+        cal.setDayExcluded(myCal1, true);
+        cal.setDayExcluded(myCal2, true);
+        // 注册Calendar replace,updateTriggers
+        // 如果updateTriggers为true，Scheduler中已引用Calendar的Trigger将得到更新。
+        sched.addCalendar("cal1", cal, true, true);
+        // 和触发器进行关联
+        cronTrig.setCalendarName("cal1");
+  
+        sched.scheduleJob(job, cronTrig);
+        sched.start();
+  
+        replaceAndUpdate(sched, cronTrig);
+  
+    }
+  
+    /**
+     * @描述：替换和更新
+     * @开发人员：moshco zhu
+     * @开发时间：2014-10-17 下午12:09:35
+     * @param sched
+     * @param cronTrig
+     * @throws SchedulerException
+     * @throws InterruptedException
+     * @throws ParseException
+     */
+    private void replaceAndUpdate(Scheduler sched, CronTrigger cronTrig)
+            throws SchedulerException, InterruptedException, ParseException {
+  
+        // 创建Calendar
+        AnnualCalendar cal = new AnnualCalendar();
+        // 构建日期
+        Calendar myCal1 = GregorianCalendar.getInstance();
+        myCal1.set(Calendar.MONTH, Calendar.APRIL);
+        myCal1.set(Calendar.DATE, 27);
+        Calendar myCal2 = GregorianCalendar.getInstance();
+        myCal2.set(Calendar.MONTH, Calendar.APRIL);
+        myCal2.set(Calendar.DATE, 28);
+        // 设定要排除的日期 如果设置为false则为包含
+        cal.setDayExcluded(myCal1, true);
+        cal.setDayExcluded(myCal2, true);
+        // 注册Calendar replace,updateTriggers
+        // 如果updateTriggers为true，Scheduler中已引用Calendar的Trigger将得到更新。
+        sched.addCalendar("cal1", cal, true, false);
+  
+            // 第一个 true，表示如果有重复名称的扩展条件将它覆盖。
+            // false ，如果存在这个名称的扩展日期就会报错。因为这个日期已经存在了。
+ 
+            // 第二个 true，表示新加入的这个条件是否立刻生效使用。
+            // false，不立即生效，什么时候生效看程序如何编写
+        cronTrig.setCalendarName("cal1");
+    }
+  
+    /**
+     * @描述：入口函数
+     * @开发人员：moshco zhu
+     * @开发时间：2014-6-30 上午1:32:58
+     * @param args
+     */
+    public static void main(String[] args) {
+        try {
+            TestJobWithCron testJob = new TestJobWithCron();
+            testJob.doRemind();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+##### 在 Spring 中使用 Quartz 2-1
+
+在 Spring 中使用 Quartz 时使用步骤：
+
+ - 任务实例 要 继承 QuartzJobBean 类
+
+ - 重写 executeInternal 方法
+
+ - spring 配置中 配置 任务内容的 bean
+
+
+配置 job 的 bean
+
+ - 在 bean 中注入 任务实例 由 remindJob 的 class 负责生成 任务实例对象
+
+ 根据 java 的 反向生成机制 先获得 class
+
+ - 在配置要完成的任务数据
+
+ 使用 Spring 容器的特性，对 jobDataAsMap 属性注入要实现的任务内容 和 用户属性
+
+```xml
+<!-- 配置 job -->
+<bean id="remindJob" class="org.springframework.scheduling.quartz.JobDetailBean">
+    <!-- 指定 jobClass 是 RemindJob -->
+    <property name="jobClass" value="cn.jbit.test.RemindJob"></property>
+    <!-- 指定任务数据 -->
+    <property name="jobDataAsMap">
+        <map>
+            <entry key="remindService" value-ref="remindService"></entry>
+            <entry key="userName" value="张三"></entry>
+        </map>
+    </property>
+</bean>
+```
+
+配置 触发器
+
+ - 注入 任务实例 任务实例由 remindJob 负责生成
+
+ - 注入 启动延迟时间
+
+ - 注入 重复执行的时间间隔
+
+```xml
+<!-- 配置触发器 -->
+<bean id="myTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+    <!-- 配置 JobDetail -->
+    <property name="jobDetail" ref="remindJob"></property>
+    <!-- 配置启动后延迟时间 1s -->
+    <property name="startDelay" value="1000"></property>
+    <!-- 配置重复执行的时间间隔 3s -->
+    <property name="repeatInterval" value="10000"></property>
+    <!--
+    <property name="endTime">
+        <bean class="java.util.Date">
+            <property name="time" value="1411799327180"></property>
+        </bean>
+    </property>
+    -->
+</bean>
+```
+
+配置 触发器
+
+ - 注入 触发器
+
+```xml
+<!-- 配置调度器 -->
+<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    <property name="triggers">
+        <list>
+            <!-- 指定触发器 -->
+            <ref bean="myTrigger" />
+            <!-- 可以在这里添加其他的触发器 -->
+        </list>
+    </property>
+</bean>
+```
+
+使用 CronTriggerBean
+
+Spring 还提供了 CronTriggerBean 来支持精确的时间规则定义
+
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

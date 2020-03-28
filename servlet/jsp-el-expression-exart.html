@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jsp-el-expression-exart</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### jsp-el-expression-exart
+
+Yes, i have doctype in web.xml
+
+```xml
+<!DOCTYPE web-app PUBLIC 
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" 
+ "java.sun.com/dtd/web-app_2_3.dtd"; >
+```
+
+&amp;#160; &amp;#160;Remove that **`<!DOCTYPE>`** from web.xml and make sure that the **`<web-app>`** is declared conform Servlet 2.4 or newer and all should be well. A valid **`Servlet 3.0`** (Tomcat 7, JBoss AS 6/7, GlassFish 3, etc) compatible **`web.xml`** look like below in its entirety, without any **`<!DOCTYPE>`**:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app 
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    version="3.0">
+
+    <!-- Config here. -->
+
+</web-app>
+```
+
+For **`Servlet 3.1`** (Tomcat 8, WildFly 8/9/10/11, GlassFish/Payara 4, etc) it look like below:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app 
+    xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+    version="3.1">
+
+    <!-- Config here. -->
+
+</web-app>
+```
+
+For **`Servlet 4.0`** (Tomcat 9, WildFly 12, GlassFish/Payara 5, etc) it look like below:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app 
+    xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+    version="4.0">
+
+    <!-- Config here. -->
+
+</web-app>
+```
+
+&amp;#160; &amp;#160;When using **`JSTL 1.1`** or newer, you need to assure that your **`web.xml`** is declared in such way that the webapp runs in at least **`Servlet 2.4`** modus, otherwise EL expressions won't work in the webapp.
+
+&amp;#160; &amp;#160;When still having a **`Servlet 2.3`** or older **`<!DOCTYPE>`** or **`<web-app>`** in **`web.xml`**, even though you already have a **`Servlet 2.4`** or newer XSD, then it would still be forced to run in **`Servlet 2.3`** or older modus, causing the EL expressions to fail.
+
+&amp;#160; &amp;#160;The technical reason is, EL was originally part of **`JSTL 1.0`** and not available in **`Servlet 2.3 / JSP 1.2`** and older. In **`JSTL 1.1`**, EL was removed from **`JSTL`** and integrated in **`JSP 2.0`**, which goes along with **`Servlet 2.4`**. So, if your **`web.xml`** is declared to run the webapp in **`Servlet 2.3`** or older modus, then JSP would expect to find EL in JSTL library, but this would in turn fail if it's a newer JSTL version, lacking EL.
+
+**See also:**
+
+ - <a href="https://stackoverflow.com/questions/4812755/difference-between-jsp-el-jsf-el-and-unified-el" target="_blank">Difference between JSP EL, JSF EL and Unified EL</a>
+
+ - <a href="https://stackoverflow.com/tags/jstl/info" target="_blank">Our JSTL wiki page</a>
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/30080810/el-expressions-not-evaluated-in-jsp" target="_blank">EL expressions not evaluated in JSP</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
