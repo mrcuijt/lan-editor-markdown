@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>windows-net-ip</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### windows-net-ip
+
+##### 查看本机外网 Ip 地址
+
+ - **http://www.net.cn/static/customercare/yourip.asp**
+ 
+ - **http://speedtest.cn**
+ 
+ - **http://www.882667.com/ip_14.131.249.22.html**
+ 
+ - **http://ip138.com/**
+ 
+ - **http://tool.chinaz.com/**
+
+ - **https://ip.cn/**
+
+##### 本机命令行方式
+
+```python
+tracert -4 baidu.com
+
+通过最多 30 个跃点跟踪
+到 baidu.com [39.156.69.79] 的路由:
+
+  1     3 ms     1 ms    16 ms  192.168.1.1
+  2   123 ms     4 ms    19 ms  115.34.192.1
+  3     4 ms     4 ms     2 ms  218.241.254.21
+  4     6 ms     4 ms     2 ms  218.241.246.49
+  5     *       12 ms     *     172.30.30.33
+  6     6 ms     2 ms     2 ms  10.15.83.89
+```
+
+**本机外网 IP : 115.34.206.68**
+
+**内网路由器出口 IP : `192.168.1.1`**
+
+**本机外网路由出口 IP : `115.34.192.1`**
+
+若你是用电脑直接通过宽带（PPPoE）或拨号上网；
+
+```python
+ipconfig
+```
+
+查看自己宽带连接的 IP 地址即为外网 IP 地址；
+
+注意：是创建的宽带连接的的 IP 地址，并非本地连接的 IP 地址；
+
+##### 共享网络通过命令查询外网 IP
+
+无论你是直接连接外网，还是通过路由器共享上网，均可通过以下命令查询公网IP；
+
+依次执行命令：
+
+```python
+telnet smtp.gmail.com 587
+
+STARTTLS
+
+EHLO
+```
+
+You're required to start encrypting the connection first. This is done using the STARTTLS command.
+
+You can use the following command instead of `telnet`:
+
+```python
+openssl s_client -starttls smtp -connect smtp.gmail.com:587
+```
+
+It works like the telnet command, but takes care of starting the encryption first.
+
+即可查询到自己的公网IP；
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

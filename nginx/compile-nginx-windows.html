@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Compile Nginx Windows</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Nginx 技巧之 Windows 下编译
+
+#### 概述
+
+&amp;#160; &amp;#160;众所周知，Nginx 在 Windows 下的表现远落后于 Linux；但奈何公司属于传统业务公司，体量小，加之实施人员水平堪忧，所以系统部署的服务器 95% 都是 Windows Server 操作系统，而且在 Web 应用性能整体要求不高的情况下，把 Nginx 作为一个反向和少量请求逻辑处理的应用还是很方便的。而最近在作的性能调优终于将目光转移到 Nginx 上了，本文就是在这样的背景下产生的。
+
+#### 准备
+
+ - Visual Studio 2015 【<a href="https://msdn.itellyou.cn/" target="_blank">下载地址</a>】
+ 
+  - 网上有说 2013 也是可以的，但如果你之前没有安装过 VS，那么还是推荐使用 VS2015 。
+  
+ - MSYS 【<a href="https://sourceforge.net/projects/mingw/files/Installer/" target="_blank">下载地址</a>】
+ 
+  - 上面的下载链接进去之后，直接下载那个 mingw-get-setup.exe 程序即可。
+  
+ - ActivePerl 【<a href="https://www.activestate.com/activeperl/downloads" target="_blank">下载地址</a>】
+ 
+ - Mercurial安装包【<a href="https://www.mercurial-scm.org/" target="_blank">下载地址</a>】
+ 
+  - 这是除 Git，SVN 之外的另外一款源码管理器。
+  
+  - 其实这个安装包可以不下载，你可以选择直接从 Nginx <a href="http://hg.nginx.org/nginx" target="_blank">源码下载</a> zip 压缩包。
+
+ - SED 安装包 【<a href="http://gnuwin32.sourceforge.net/packages/sed.htm" target="_blank">下载地址</a>】
+ 
+ - Microsoft Windows SDK for Windows 7 【<a href="https://www.microsoft.com/en-us/download/details.aspx?id=8279" target="_blank">下载地址</a>】
+ 
+  - WIN SDK 源码编译安装时需要。
+ 
+ - vcredist_x64.exe 【<a href="https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads" target="_blank">下载地址</a>】
+ 
+  - Visual C++ Redistributable package
+
+ - Microsoft SQL Server Compact 4.0 【<a href="https://www.microsoft.com/zh-CN/download/details.aspx?id=17876" target="_blank">下载地址</a>】
+
+  - 解决 创建或打开 C++ 浏览数据库文件 *.sdf 时发生错误 问题
+
+ - Nginx 依赖模块
+ 
+  - pcre 【<a href="http://www.pcre.org/" target="_blank">下载地址</a>】，笔者使用的是 ```pcre-8.33.tar.gz```
+
+  - zlib 【<a href="http://www.zlib.net/" target="_blank">下载地址</a>】，笔者使用的是 ```zlib-1.2.11.tar.gz```
+
+  - OpenSSL 【<a href="https://www.openssl.org/source/" target="_blank">下载地址</a>】 ，笔者使用的是 ```openssl-1.0.1u.tar.gz```
+ 
+上面的相关安装包下载完毕之后，按照以下规则进行存放
+
+```textarea
+nginx-build 【根目录】
+
+    installer 【本次所需要的安装包】
+    
+        ActivePerl-5.24.3.2404-MSWin32-x64-404865.exe
+        
+        cn_visual_studio_enterprise_2015_with_update_3_x86_x64_dvd_8923298.iso
+        
+        mingw-get-setup.exe
+        
+        tortoisehg-4.7.1-x64.msi  -- 这就是那个Mercurial安装包，可以不下载
+        
+        Everything-1.3.3.657b.x64.zip -- 建议安装，用于安装过程中确认某些文件的存在位置
+        
+        Git-2.18.0-64-bit.exe -- 笔者习惯使用它提供的工具集
+        
+    lib 【本次编译 Nginx 所依赖的】
+    
+        nginx-http-concat.zip -- 本次我们要集成的 concat 组件
+        
+        openssl-1.0.1u.tar.gz -- 需要注意的是openssl如果版本太高的话编译会报错，所以下载openssl的需要注意在官方地址的old目录中找到对应的版本
+        
+        pcre-8.33.tar.gz
+        
+        zlib-1.2.11.tar.gz
+        
+    src 【Nginx 源码，版本为 1.15.4】
+    
+        nginx-87d2ea860f38.zip
+```
+
+#### 操作
+
+#### 安装 SED
+
+#### 安装 VS
+
+![compile-nginx-windows](./images/compile-nginx-windows/compile-nginx-windows-001.png)
+
+&amp;#160; &amp;#160;如果你不幸手速快过脑，那么请参阅下面这个链接 <a href="https://answers.unrealengine.com/questions/545787/error-no-32-bit-compiler-toolchain-found-in-cprogr.html" target="_blank">补救措施</a> ； 既然笔者能给出这个链接，说明也是手速快过脑的成员之一了。
+
+##### 配置系统环境变量
+
+```python
+## INCLUDE C++ 头文件所在目录
+## 以下路径在设置环境变量时需要在一行
+D:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include;
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.16299.0\ucrt;
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.16299.0\um;
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.16299.0\shared;
+D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include;
+C:\Program Files\Microsoft SDKs\Windows\v6.0A\Include;
+D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\lib
+
+## 一行（比对后按需添加）
+D:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\include;C:\Program Files (x86)\Windows Kits\10\Include\10.0.16299.0\ucrt;C:\Program Files (x86)\Windows Kits\10\Include\10.0.16299.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.16299.0\shared;D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\include;C:\Program Files\Microsoft SDKs\Windows\v6.0A\Include;D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\lib
+```
+
+```python
+## LIB C++ 所依赖的一些静态资源库所在的路径
+## 以下路径在设置环境变量时需要在一行
+D:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\lib\x86;
+C:\Program Files (x86)\Windows Kits\10\Lib\10.0.16299.0\ucrt\x86;
+C:\Program Files (x86)\Windows Kits\10\Lib\10.0.16299.0\um\x86;
+D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\lib;
+C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib
+
+## 一行（比对后按需添加）
+D:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.11.25503\lib\x86;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.16299.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\Lib\10.0.16299.0\um\x86;D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\lib;C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib
+```
+
+```python
+## PATH 添加 VS 命令行路径
+C:\Perl64\site\bin;
+C:\Perl64\bin;
+C:\Program Files\Microsoft SQL Server\110\Tools\Binn\;
+c:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;
+c:\Program Files (x86)\Microsoft SQL Server\100\DTS\Binn\;
+D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin;
+D:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE;
+C:\Program Files (x86)\Windows Kits\8.0\bin\x64;
+C:\Program Files (x86)\GnuWin32\bin
+
+## 一行（比对后按需添加）
+C:\Perl64\site\bin;C:\Perl64\bin;C:\Program Files\Microsoft SQL Server\110\Tools\Binn\;c:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files (x86)\Microsoft SQL Server\100\DTS\Binn\;D:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin;D:\Program Files (x86)\Microsoft Visual Studio 11.0\Common7\IDE;C:\Program Files (x86)\Windows Kits\8.0\bin\x64;C:\Program Files (x86)\GnuWin32\bin
+```
+
+#### 安装 MSYS
+
+ - 直接双击上面下载的 ```mingw-get-setup.exe``` 直接执行直接下一步即可。
+ 
+ - 安装完成之后找到文件 ```bin/mingw-get.exe``` 打开
+ 
+ - 点击左侧的 ```Basic Setup```，右侧选择 ```mingw32-base-bin``` 和 ```msys-base-bin```
+ 
+![compile-nginx-windows](./images/compile-nginx-windows/compile-nginx-windows-002.png)
+
+![compile-nginx-windows](./images/compile-nginx-windows/compile-nginx-windows-003.png)
+
+ - 点击菜单 ```Insntallation－> Apply Changes``` 开始下载 
+
+等待安装完成即可。
+
+#### 安装 Perl
+
+ - 这一步就非常简单了，双击上面已经下载好的 ```ActivePerl-5.24.3.2404-MSWin32-x64-404865.exe``` 安装包，依然一路默认下去即可。
+ 
+ - 安装完毕之后， 在 CMD 下使用 ```perl -v```测试 perl 是否安装成功。
+ 
+#### 编译-准备
+
+必要的应用程序已经安装完毕，接下来就开始编译过程。
+
+ - 将 nginx 源码包内容解压到 src 目录下
+
+ - 在 src 目录下新建 build 文件夹
+ 
+  - 在 build 文件夹下新建 lib 文件夹
+  
+  - 在 lib 文件夹下
+  
+     - 解压 openssl-1.0.1u.tar.gz 得到 openssl-1.0.1u
+     
+     - 解压 pcre-8.33.tar.gz 得到 pcre-8.33
+     
+     - 解压 zlib-1.2.11.tar.gz 得到 zlib-1.2.11
+     
+     - 解压 nginx-http-concat.zip 得到 nginx-http-concat
+     
+     - 解压 nginx\_http\_trim\_filter\_cn.zip 得到 http\_trim\_filter
+ - 目录结构如下
+
+```textarea
+nginx-build
+    +
+    +---+src
+    |   |
+    +-------+build
+    |   |   |
+    +-----------+lib
+    |   |   |   |
+    +---------------+http_trim_filter
+    |   |   |   |
+    +---------------+nginx-http-concat
+    |   |   |   |
+    +---------------+openssl-1.0.1u
+    |   |   |   |
+    +---------------+pcre-8.33
+    |   |   |   |
+    +---------------+zlib-1.2.11
+    |   |   |
+    +-------+auto
+    |   |   |
+    +-------+conf
+    |   |   |
+    +-------+contrib
+    |   |   |
+    +-------+docs
+    |   |   |
+    +-------+misc
+    |   |   |
+    +-------+src
+    |   |   |
+    +-------+.hgtags
+    |   |   |
+    +-------+.hg_archival.txt
+```
+
+#### OpenSSL 编译准备
+
+ - 查看 INSTALL.W64 安装说明 执行以下操作
+
+```python
+## build for Windows Win64/x64
+## Windows CMD
+
+## CMD 进入到 openssl 目录下
+cd openssl-1.0.1u
+
+## 执行 Perl 命令对 openssl 进行基本配置
+perl Configure VC-WIN64
+
+## 执行 ms\do_win64a
+ms\do_win64a
+```
+
+#### pcre 编译准备
+
+ - 进入 pcre-8.33 目录
+ 
+  - config.h.generic 复制改名为 config.h
+  
+  - pcre\_chartables.c.dist 复制改名为 pcre\_chartables.c
+  
+ - 生成 dftables.exe
+ 
+```python
+## 使用 cl.exe 生成 dftables.exe
+cl -MD -DHAVE_CONFIG_H dftables.c
+
+## 使用 dftables.exe 处理 pcre_chartables.c 
+dftables.exe pcre_chartables.c
+```
+
+ - 打开 MinGW 下的 msys.bat
+ 
+  - 进入到 pcre 目录下
+  
+  - 执行 ./configure --prefix=/usr/gnu --disable-shared 
+  
+     - 完成 pcre 安装配置
+
+#### Nginx nginx-http-concat 组件 编译准备
+
+ - 进入 nginx-http-concat 目录
+ 
+  - 修改 ngx\_http\_concat\_module.c 文件
+  
+     - 将其中的 ```application/x-javascript``` 更改为 ```application/javascript```
+
+ - 因为 Nginx 在新版本中，使用了标准的 MIME-Type: application/javascript 。
+
+#### 开始编译 Nginx 
+
+ - 打开 MinGW 下的 msys.bat
+
+  - 进入到 nginx-build/src 目录下 执行以下命令完成 Nginx 的安装配置
+  
+```python
+## MinGW/msys/msys.bat
+
+auto/configure --with-cc=cl \
+--builddir=build \
+--prefix= \
+--conf-path=conf/nginx.conf --pid-path=logs/nginx.pid \
+--http-log-path=logs/access.log --error-log-path=logs/error.log \
+--sbin-path=nginx.exe \
+--http-client-body-temp-path=temp/client_body_temp \
+--http-proxy-temp-path=temp/proxy_temp \
+--http-fastcgi-temp-path=temp/fastcgi_temp \
+--with-cc-opt=-DFD_SETSIZE=1024 \
+--with-pcre=build/lib/pcre-8.33 \
+--with-zlib=build/lib/zlib-1.2.11 \
+--with-openssl=build/lib/openssl-1.0.1u \
+--with-select_module \
+--with-http_ssl_module \
+--with-http_sub_module \
+--add-module=build/lib/nginx-http-concat \
+--add-module=build/lib/http_trim_filter
+```
+
+&amp;#160; &amp;#160;以上操作将在 build 目录下会生成一堆文件，其中 Makefile 就是我们生成的编译批处理文件了。
+
+&amp;#160; &amp;#160;以下操作，在编译过程中代码会引用到很多系统自带库，所以我们需要用 visual studio 的命令行工具来执行；
+
+```python
+## Windows CMD
+## 在 nginx-build/src 目录下
+## 使用 VS nmake 命令执行 Makefile 完成 Nginx 的安装
+nmake -f build/Makefile
+```
+
+得到 nginx.exe
+
+#### 启动 Nginx
+
+ - 验证是否编译成功
+ 
+  - 运行 nginx -v 查看版本
+  
+  - 如果有开启 http\_ssl\_module ，可运行：./nginx -V 查看是否支持
+
+```python
+## 运行查看 Nginx 版本
+nginx.exe -v
+
+## 输出
+nginx version: nginx/1.16.0
+
+## 运行查看 Nginx 详细编译配置信息
+nginx.exe -V
+
+## 输出
+nginx version: nginx/1.16.0
+built by cl
+built with OpenSSL 1.0.1u  22 Sep 2016
+TLS SNI support enabled
+configure arguments: --with-cc=cl --builddir=build --prefix= --conf-path=conf/nginx.conf --pid-path=
+logs/nginx.pid --http-log-path=logs/access.log --error-log-path=logs/error.log --sbin-path=nginx.exe
+ --http-client-body-temp-path=temp/client_body_temp --http-proxy-temp-path=temp/proxy_temp --http-fa
+stcgi-temp-path=temp/fastcgi_temp --with-cc-opt=-DFD_SETSIZE=1024 --with-pcre=build/lib/pcre-8.33 --
+with-zlib=build/lib/zlib-1.2.11 --with-openssl=build/lib/openssl-1.0.1u --with-select_module --with-
+http_ssl_module --with-http_sub_module --add-module=build/lib/nginx-http-concat --add-module=build/l
+ib/http_trim_filter
+```
+
+ - 发布
+
+  - 将 生成的 nginx.exe 复制到发布目录
+ 
+  - Nginx 源码目录下的 conf contrib docs html 复制到发布目录
+ 
+  - 在发布目录新建空文件夹，logs temp
+
+ - 运行启动
+ 
+  - 运行 nginx.exe -t 验证 Nginx 配置文件是否正确
+  
+  - 双击 nginx.exe 运行启动 Nginx
+
+```python
+## 验证 Nginx 配置文件是否正确
+nginx.exe -t
+
+nginx: the configuration file D:\development_tools\nginx-bin/conf/nginx.conf syntax is ok
+nginx: configuration file D:\development_tools\nginx-bin/conf/nginx.conf test is successful
+
+## 启动 Nginx
+nginx.exe
+
+## 重启 Nginx
+nginx.exe -s reload
+
+## 停止 Nginx
+nginx.exe -s stop
+```
+
+参考链接
+
+ - <a href="https://blog.csdn.net/lqzkcx3/article/details/82848354" target="_blank">Nginx 技巧之 Windows 下编译</a>
+ 
+ - <a href="http://www.cnblogs.com/mtcnn/archive/2013/03/15/9410113.html" target="_blank">Windows 平台 cl.exe 编译 pcre 8.13</a>
+ 
+ - <a href="https://xuexb.github.io/learn-nginx/guide/linux-install.html#%E9%87%8D%E6%96%B0%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85" target="_blank">Nginx 入门教程</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

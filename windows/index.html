@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Windows Index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+##### Windows 常用快捷命令
+
+打开 计算机管理
+
+```python
+win + r 
+
+compmgmt.msc
+```
+
+打开 控制面板
+
+```python
+win + r
+
+control.exe
+
+or
+
+cmd control
+```
+
+打开 网络链接
+
+```python
+win + r
+
+ncpa.cpl
+```
+
+查看 所有网络连接
+
+```python
+cmd 
+
+netsh interface show interface
+```
+
+打开/关闭 网络连接
+
+```python
+cmd 
+
+netsh interface set interface 无线网络连接 enable
+netsh interface set interface 无线网络连接 disabled
+```
+
+断开/重连 网络连接
+
+```python
+## 断开网络连接
+ipconfig /release
+
+## 重新连接/刷新DHCP租约
+ipconfig /renew
+
+## 重置网络连接
+netsh winsock reset
+
+## 重新连接
+ipconfig /renew
+```
+
+打开 防火墙设置
+```python
+win + r
+
+firewall.cpl
+```
+
+开启/关闭 防火墙
+
+```python
+## "netsh firewall" is deprecated
+netsh firewall set opmode mode=enable
+netsh firewall set opmode mode=disable
+
+netsh advfirewall firewall set 
+netsh advfirewall firewall set 
+```
+
+```textarea
+netsh advfirewall firewall show rule "ftp 21"
+
+规则名称:                             FTP 21
+----------------------------------------------------------------------
+已启用:                               是
+方向:                                 入
+配置文件:                             域,专用,公用
+分组:
+本地 IP:                              任何
+远程 IP:                              任何
+协议:                                 TCP
+本地端口:     　                      21
+远程端口: 　     　                   任何
+边缘遍历:                             否
+操作:                                 允许
+确定。
+
+netsh advfirewall firewall show rule "ftp 21"
+
+Rule Name:                            FTP 21
+----------------------------------------------------------------------
+Enabled:                              Yes
+Direction:                            In
+Profiles:                             Domain,Private,Public
+Grouping:
+LocalIP:                              Any
+RemoteIP:                             Any
+Protocol:                             TCP
+LocalPort:                            21
+RemotePort:                           Any
+Edge traversal:                       No
+Action:                               Allow
+Ok.
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

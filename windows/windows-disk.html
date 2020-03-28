@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>windows-disk</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### windows-disk
+
+#### 软件介绍
+
+下载地址：<a href="./datas/windows-disk/defrag.professional.21.rar" target="_blank">（defrag.professional.21.rar）</a>
+
+O&O Defrag Pro 21 破解版是专为 Windows 平台设计的专业碎片整理工具。它不仅支持本地磁盘的碎片整理，而且可以对 USB 存储设备比如 U 盘、SD 卡进行碎片整理。在整理过程中，O&O Defrag 可以动态块形图片来显示碎片分布与整理进程。O&O Defrag Pro 21 它支持同时整理多个磁盘与磁盘分区、支持设定计划任务自动整理。！
+
+![title](./images/windows-disk/windows-disk-001.png)
+
+#### O&O Defrag Pro 功能
+
+ - 1、Stealth（后台整理）：系统资源占用少，耗费时间长，适用于大文件较多且可用空间较少的磁盘；
+
+ - 2、Space（空间整理）:速度快，整理效率高；此模式不会重组区块大小，意在提高剩余磁盘连续空间大小；
+
+ - 3、Complete/Name(完整整理/按名称)：按文件名重新组织文件；适用于文件变动不大的磁盘；
+
+ - 4、Complete/Modified：（完整整理/按修改时间）以文件修改时间排序来重组文件；意在提高磁盘写入性能；
+
+ - 5、Complete/Access：（完整整理/按访问时间）按文件最后访问时间排序文件，意在提高磁盘读取性能。
+ 
+#### 安装教程
+
+ - 1、断开网络安装O&O Defrag Pro Edition
+
+ - 2、安装完成后，使用防火墙阻止O&O Defrag Pro Edition连接到网络
+
+ - 3、点击注册，用户名和公司输入：www.newasp.net；注册码输入：DPU1-0QQQ-C47U-6Y6E-0SLS
+
+ - 4、点击注册，即可激活。
+
+![title](./images/windows-disk/windows-disk-002.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

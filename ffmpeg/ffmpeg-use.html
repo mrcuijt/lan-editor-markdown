@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ffmpeg-use</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### ffmpeg 安装
+
+ - 下载 ffmpeg <a href="./datas/ffmpeg-use/ffmpeg-20190811-2828f5b-win64-static.zip" target="_blank">ffmpeg-20190811-2828f5b-win64-static.zip</a>
+
+ - 解压到指定目录下（不要带中文和空格）
+ 
+ - 将 FFmpeg 下的 bin 目录添加到环境变量下；
+
+#### 转换 mp4 to mp3
+
+```python
+ffmpeg -i filename.mp4 filename.mp3
+
+ffmpeg -i video.mp4 -b:a 192K -vn music.mp3
+```
+
+ _**The better way to encode MP3 is to use -q:a for variable bit rate.**_
+
+```python
+ffmpeg -i k.mp4 -q:a 0 -map a k.mp3
+```
+
+_**For FFmpeg with Constant Bitrate Encoding (CBR):**_
+
+```python
+ffmpeg -i video.mp4 -vn \
+       -acodec libmp3lame -ac 2 -ab 160k -ar 48000 \
+        audio.mp3
+```
+
+_**or if you want to use Variable Bitrate Encoding (VBR):**_
+
+```python
+ffmpeg -i video.mp4 -vn \
+       -acodec libmp3lame -ac 2 -qscale:a 4 -ar 48000 \
+        audio.mp3
+```
+
+**The VBR example has a target bitrate of 165 Kbit/s with a bitrate range of 140...185.**
+
+#### ffmpeg 使用
+
+ - 下载 m3u8 视频流，并合并为 MP4
+
+```python
+ffmpeg -v debug \
+  -protocol_whitelist "file,http,https,tcp,tls,httpprooxy" \
+  -i B1Wwo.m3u8 binghai.mp4
+
+ffmpeg -i demo.m3u8 demo.mp4
+
+ffmpeg -protocol_whitelist "file,http,https,tcp,tls,httpprooxy" -i demo.m3u8 demo.mp4
+```
+
+```python
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-ALLOW-CACHE:YES
+#EXT-X-TARGETDURATION:11
+#EXTINF:10.450111,
+./binghai-09/out000.ts
+#EXTINF:10.427078,
+./binghai-09/out001.ts
+#EXTINF:10.427089,
+./binghai-09/out002.ts
+```
+
+```python
+## 合并多个 ts 文件到一个 ts 文件中
+copy /b .\*.ts demo.ts
+
+## 合并 001~003 到 demo.ts 中
+copy /b demo-001.ts+demo-002.ts+demo003.ts demo.ts
+
+## 使用 FFmpeg 转换视频格式
+ffmpeg -i demo.ts demo.mp4
+```
+
+ - 合并视频和音轨
+
+```python
+## 清除源视频音轨
+## 得到清除音轨后的 out.mp4
+ffmpeg  -i video.mp4 -vcodec copy -an out.mp4
+
+## 合并视频和音轨
+## 得到合并后的 result.mp4
+ffmpeg -i  out.mp4 -i voice.mp3 result.mp4
+```
+
+#### 转换视频分辨率
+
+#### MP4
+
+```python
+## Can Convert 4K(3840x2160) but have hard lost
+ffmpeg -i orig.mp4 -vf scale=1920:1080 smaller.mp4
+
+## Better Options
+ffmpeg -i orig.mp4 -vf scale=1920:1080 -c:v libx264 -crf 20 -preset slow smaller.mp4
+```
+
+参考链接:
+
+ - <a href="https://video.stackexchange.com/questions/14907/how-to-downsample-4k-to-1080p-using-ffmpeg-while-maintaining-the-quality" target="_blank">How to downsample 4k to 1080p using ffmpeg while maintaining the quality?</a>
+
+#### MKV
+
+Here is an example which should give you the highest quality video (I'm not speaking about the resulting file size). Note that this video might not be playable on all devices or players:
+
+```python
+## example
+ffmpeg -i MyMovie.mkv -vf scale=-1:720 -c:v libx264 -crf 0 -preset veryslow -c:a copy MyMovie_720p.mkv
+```
+
+To get a "visually lossless" quality, you can use:
+
+```python
+## example lossless
+ffmpeg -i MyMovie.mkv -vf scale=-1:720 -c:v libx264 -crf 18 -preset veryslow -c:a copy MyMovie_720p.mkv
+```
+
+
+In case you like to scale in a different size, there are some limitations on the FFMPEG scaling dimensions. It does not accept each height, here is a small list of the best recommendations for dimensions.
+
+Video codecs perform better when the width and height in pixels are multiples of 16. While you can use any width and height in your encoding settings, non-optimal dimensions can result in poor image quality and reduced frame rate. For the best image quality and playback, you should use width and height dimensions for your video that are multiples of 16; your next best choice is multiples of 8, and after that, multiples of 4.
+
+```textarea
+Recommended width and height for videos with 16:9 aspect ratios:
+
+Best Choice:     2nd Best:        3rd Best:
+Multiples of 16  Multiples of 8   Multiples of 4
+1920 x 1080      1792 x 1008      1856 x 1044
+1280 x 720       1152 x 648       1216 x 684
+1024 x 576        896 x 504       1088 x 612
+ 768 x 432        640 x 360        960 x 540
+ 512 x 288        384 x 216        832 x 468
+ 256 x 144        128 x 72         704 x 396
+                                   576 x 324
+                                   448 x 252
+                                   320 x 180
+                                   192 x 108
+```
+
+参考链接:
+
+ - <a href="https://superuser.com/questions/714804/converting-video-from-1080p-to-720p-with-smallest-qualiti-loss-using-ffmpeg" target="_blank">converting-video-from-1080p-to-720p</a>
+
+ - <a href="https://gist.github.com/dvlden/b9d923cb31775f92fa54eb8c39ccd5a9" target="_blank">Convert video files to MP4 through FFMPEG</a>
+ 
+#### 剪切
+
+ **用 `-ss` 和 `-t` 选项， 从第 `30` 秒开始，向后截取 `10` 秒的视频，并保存：**
+
+```python
+ffmpeg -i input.wmv -ss 00:00:30.0 -c copy -t 00:00:10.0 output.wmv
+ffmpeg -i input.wmv -ss 30 -c copy -t 10 output.wmv
+```
+
+达成相同效果，也可以用 -ss 和 -to 选项， 从第 30 秒截取到第 40 秒：
+
+```python
+ffmpeg -i input.wmv -ss 30 -c copy -to 40 output.wmv
+```
+
+值得注意的是，ffmpeg 为了加速，会使用关键帧技术， 所以有时剪切出来的结果在起止时间上未必准确。 通常来说，把 -ss 选项放在 -i 之前，会使用关键帧技术； 把 -ss 选项放在 -i 之后，则不使用关键帧技术。 如果要使用关键帧技术又要保留时间戳，可以加上 -copyts 选项：
+
+```python
+ffmpeg -ss 00:01:00 -i video.mp4 -to 00:02:00 -c copy -copyts cut.mp4
+```
+
+#### 合并
+
+把两个视频文件合并成一个。
+
+简单地使用 concat demuxer，示例：
+
+```python
+$ cat mylist.txt
+file '/path/to/file1'
+file '/path/to/file2'
+file '/path/to/file3'
+ 
+$ ffmpeg -f concat -i mylist.txt -c copy output
+```
+
+更多时候，由于输入文件的多样性，需要转成中间格式再合成：
+
+```python
+ffmpeg -i input1.avi -qscale:v 1 intermediate1.mpg
+ffmpeg -i input2.avi -qscale:v 1 intermediate2.mpg
+cat intermediate1.mpg intermediate2.mpg > intermediate_all.mpg
+ffmpeg -i intermediate_all.mpg -qscale:v 2 output.avi
+```
+
+#### 调整播放速度
+
+加速四倍：
+
+```python
+ffmpeg -i TheOrigin.mp4 -vf  "setpts=0.25*PTS" UpTheOrigin.mp4
+```
+
+四倍慢速：
+
+```python
+ffmpeg -i TheOrigin.mp4 -vf "setpts=4*PTS" DownTheOrigin.mp4
+```
+
+参考链接:
+
+ - <a href="https://blog.csdn.net/angus_17/article/details/80696989" target="_blank">FFmpeg：视频转码、剪切、合并、播放速调整</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

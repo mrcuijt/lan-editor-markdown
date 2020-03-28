@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Windows Control</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+Windows 控制面板调用命令
+
+使用命令打开 Windows 控制面板指定页面
+
+```python
+control.exe /name microsoft.folderoptions 启动资源管理器的 文件夹属性 选项卡
+
+control.exe /name Microsoft.AddHardware 控制面板\所有控制面板项\设备和打印机
+
+control.exe /name Microsoft.AdministrativeTools 控制面板\所有控制面板项\管理工具
+
+control.exe /name Microsoft.PeopleNearMe 网络邻居
+
+control.exe /name Microsoft.AudioDevicesAndSoundThemes 声音
+
+control.exe /name Microsoft.AutoPlay 控制面板\所有控制面板项\自动播放
+
+control.exe /name Microsoft.Personalization 控制面板\所有控制面板项\个性化
+
+control.exe /name Microsoft.BackupAndRestoreCenter 控制面板\所有控制面板项\备份和还原
+
+control.exe /name Microsoft.PhoneAndModemOptions 设置电话和调制调解器的连接向导：位置信息
+
+control.exe /name Microsoft.BitLockerDriveEncryption 控制面板\所有控制面板项\BitLocker 驱动器加密
+
+control.exe /name Microsoft.Printers 控制面板\所有控制面板项\设备和打印机
+
+control.exe /name Microsoft.ColorManagement 颜色管理
+
+control.exe /name Microsoft.ProgramsAndFeatures 控制面板\所有控制面板项\程序和功能：添加/删除程序
+
+control.exe /name Microsoft.DateAndTime 日期和时间
+
+control.exe /name Microsoft.DefaultPrograms 控制面板\所有控制面板项\默认程序
+
+control.exe /name Microsoft.DeviceManager 设备管理器
+
+control.exe /name Microsoft.SecurityCenter 安全中心：控制面板\所有控制面板项\操作中心
+
+control.exe /name Microsoft.SyncCenter 控制面板\所有控制面板项\同步中心
+
+control.exe /name Microsoft.Fonts 控制面板\所有控制面板项\字体
+
+control.exe /name Microsoft.System 控制面板\所有控制面板项\系统：查看Windows版本等
+
+control.exe /name Microsoft.GameControllers 游戏控制器
+
+control.exe /name Microsoft.GetPrograms 控制面板\程序\获得程序
+
+control.exe /name Microsoft.TaskbarAndStartMenu 任务栏和“开始”菜单属性
+
+control.exe /name Microsoft.UserAccounts 控制面板\所有控制面板项\用户帐户
+
+control.exe /name Microsoft.WelcomeCenter 控制面板\所有控制面板项\入门
+
+control.exe /name Microsoft.iSCSIInitiator iSCSI 发起程序 属性
+
+control.exe /name Microsoft.WindowsDefender 启动Windows Defender
+
+control.exe /name Microsoft.Keyboard 启动 键盘 属性 对话框
+
+control.exe /name Microsoft.WindowsFirewall 控制面板\所有控制面板项\Windows 防火墙
+
+control.exe /name Microsoft.MobilityCenter Windows 移动中心
+
+control.exe /name Microsoft.Mouse 鼠标 属性
+
+control.exe /name Microsoft.NetworkAndSharingCenter 控制面板\所有控制面板项\网络和共享中心
+
+control.exe /name Microsoft.WindowsUpdate 控制面板\所有控制面板项\Windows Update
+
+control.exe /name Microsoft.OfflineFiles 脱机文件
+
+control.exe /name Microsoft.ParentalControls 控制面板\所有控制面板项\家长控制
+```
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/aning2015/p/8203594.html" target="_blank">Windows 控制面板调用命令</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

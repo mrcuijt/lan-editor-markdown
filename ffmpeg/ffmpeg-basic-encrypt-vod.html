@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ffmpeg-basic-encrypt-vod</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### ffmpeg-basic-encrypt-vod
+
+In this post, we’ll look at what encryption HLS supports and how to encrypt your videos with ffmpeg.
+
+&amp;#160; &amp;#160;Encryption is the process of encoding information in such a way that only authorised parties can read it. The encryption process requires some kind of secret (key) together with an encryption algorithm.
+
+&amp;#160; &amp;#160;There are many different types of encryption algorithms but HLS only supports AES-128. The Advanced Encryption Standard (AES) is an example of a block cipher, which encrypts (and decrypts) data in fixed-size blocks. It’s a symmetric key algorithm, which means that the key that is used to encrypt data is also used to decrypt it. AES-128 uses a key length of 128 bits (16 bytes).
+
+&amp;#160; &amp;#160;HLS uses AES in cipher block chaining (CBC) mode. This means each block is encrypted using the cipher text of the preceding block, but this gives us a problem: how do we encrypt the first block? There is no block before it! To get around this problem we use what is known as an initialisation vector (IV). In this instance, it’s a 16-byte random value that is used to intialize the encryption process. It doesn’t need to be kept secret for the encryption to be secure.
+
+**`enc.key`**
+```python
+echo 1234567812345678 > enc.key
+```
+
+**`enc.keyinfo`**
+
+```python
+## Format
+Key URI
+Path to key file
+IV (optional)
+```
+
+**`Example 1`**
+
+```python
+http://localhost:8080/fileDownload.do
+enc.key
+```
+
+**`Example 2`**
+
+```python
+http://localhost:8080/fileDownload.do
+enc.key
+30303030303030303030303030303030
+```
+
+生成 AES-CBC-PKCS5Padding(128) 加密视频点播流
+
+```python
+## Windows
+ffmpeg -y ^
+    -i demo.mp4 ^
+    -hls_time 9 ^
+    -hls_key_info_file enc.keyinfo ^
+    -hls_playlist_type vod ^
+    -hls_segment_filename "fileSequence%d.ts" ^
+    prog_index.m3u8
+
+## Linux
+ffmpeg -y \
+    -i demo.mp4 \
+    -hls_time 9 \
+    -hls_key_info_file enc.keyinfo \
+    -hls_playlist_type vod \
+    -hls_segment_filename "fileSequence%d.ts" \
+    prog_index.m3u8
+```
+
+**`prog_index.m3u8`**
+
+```python
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:9
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXT-X-KEY:METHOD=AES-128,URI="https://hlsbook.net/enc.key",IV=0x30303030303030303030303030303030
+#EXTINF:8.33333
+fileSequence0.ts
+#EXTINF:8.33333
+fileSequence1.ts
+#EXTINF:8.33333
+fileSequence2.ts
+#EXTINF:8.33333
+fileSequence3.ts
+#EXTINF:8.33333
+fileSequence4.ts
+#EXTINF:5.66667
+fileSequence5.ts
+#EXT-X-ENDLIST
+```
+
+解密合并加密视频流
+
+```python
+ffmpeg -protocol_whitelist "file,tcp,http,crypto" -i prog_index.m3u8 -c copy output.mp4
+```
+
+#### Java AES Decrypt
+
+Java AES Decrypt For OpenSSL CLI Tools.
+
+This Java Code source for OpenSSL Encrypt Operator Process.
+
+```java
+import javax.crypto.*;
+import javax.crypto.spec.*;
+
+import org.apache.commons.codec.binary.Base64;
+
+import java.security.*;
+import java.security.spec.*;
+
+public class AESCrypt {
+
+  private static final String algorithm = "AES/CBC/PKCS5Padding"; // 算法
+
+  public static void main(String[] args) {
+
+    String input = ".黑猫";
+    byte[] datas = input.getBytes();
+    String password = "1234567812345678";
+
+    byte[] encrypt = encrypt(datas, password);
+    String encryptbase64 = Base64.encodeBase64String(encrypt);
+    byte[] decrypt = decrypt(encrypt, password);
+    System.out.println("Source:" + input);
+    System.out.println("AES Encrypt:" + encryptbase64);
+    System.out.println("AES Decrypt:" + new String(decrypt));
+  }
+
+  public static byte[] encrypt(byte[] datas, String password){
+    try {
+      Cipher cipher = Cipher.getInstance(algorithm);
+      // iv 16byte (128bit)
+	  // iv hexstring 30303030303030303030303030303030
+      String siv = "0000000000000000";
+      Key key = new SecretKeySpec(password.getBytes(), "AES");
+      IvParameterSpec iv = new IvParameterSpec(siv.getBytes());
+      cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+      byte[] encrypt = cipher.doFinal(datas);
+      return encrypt;
+    } catch (Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public static byte[] decrypt(byte[] encrypt, String password){
+    try {
+      Cipher cipher = Cipher.getInstance(algorithm);
+      Key key = new SecretKeySpec(password.getBytes(), "AES");
+      // iv 16byte (128bit)
+	  // iv hexstring 30303030303030303030303030303030
+      String siv = "0000000000000000";
+      IvParameterSpec iv = new IvParameterSpec(siv.getBytes());
+      cipher.init(Cipher.DECRYPT_MODE, key, iv);
+      byte[] decrypt = cipher.doFinal(encrypt);
+      return decrypt;
+    } catch (Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+}
+```
+
+#### OpenSSL CLI Tools
+
+openssl cli parameter:
+
+Command line: openssl enc takes the following form:
+
+```python
+openssl enc -ciphername [-in filename] [-out filename] [-pass arg]
+[-e] [-d] [-a/-base64] [-A] [-k password] [-kfile filename] 
+[-K key] [-iv IV] [-S salt] [-salt] [-nosalt] [-z] [-md] [-p] [-P] 
+[-bufsize number] [-nopad] [-debug] [-none] [-engine id]
+```
+
+Explanation of most useful parameters with regards to your question:
+
+ - **`-e`** : Encrypt the input data: this is the default.
+
+ - **`-d`** : Decrypt the input data.
+
+ - **`-k`** : `<password>`
+
+ Only use this if you want to pass the password as an argument. 
+
+ Usually you can leave this out and you will be prompted for a 
+
+ password. The password is used to derive the actual key which 
+
+ is used to encrypt your data. Using this parameter is typically
+
+ not considered secure because your password appears in 
+
+ plain-text on the command line and will likely be recorded in 
+
+ bash history.
+
+ - **`-kfile`** : `<filename>`
+
+ Read the password from the first line of <filename> instead of
+
+ from the command line as above.
+
+ - **`-a`** : 
+
+ base64 process the data. This means that if encryption is taking 
+
+ place the data is base64 encoded after encryption. If decryption 
+
+ is set then the input data is base64 decoded before being 
+
+ decrypted.
+
+ You likely DON'T need to use this. This will likely increase the
+
+ file size for non-text data. Only use this if you need to send 
+
+ data in the form of text format via email etc.
+
+ - **`-salt`** : 
+
+ To use a salt (randomly generated) when encrypting. You always
+
+ want to use a salt while encrypting. This parameter is actually
+
+ redundant because a salt is used whether you use this or not 
+
+ which is why it was not used in the "Short Answer" above!
+
+ - **`-S`** : salt Salt to use, specified as a hexidecimal string
+
+ - **`-K`** : key
+
+ The actual key to use: this must be represented as a string
+
+ comprised only of hex digits. If only the key is specified, the
+
+ IV must additionally be specified using the -iv option. When 
+
+ both a key and a password are specified, the key given with the
+
+ -K option will be used and the IV generated from the password 
+
+ will be taken. It probably does not make much sense to specify 
+
+ both key and password.
+
+ - **`-iv`** : IV
+
+ The actual IV to use: this must be represented as a string 
+
+ comprised only of hex digits. When only the key is specified 
+
+ using the -K option, the IV must explicitly be defined. When a
+
+ password is being specified using one of the other options, the 
+
+ IV is generated from this password.
+
+##### OpenSSL 数据加密解密示例
+
+```python
+## Linux
+echo "1234567890abc" > plain.txt
+
+## 加密 plain.txt
+openssl enc -aes-128-cbc -in plain.txt -out encrypt.txt -iv f123 -K 1223 -p
+## 使用 -p 参数输出加密使用的 salt, key, iv
+## salt=6000000000000000
+## key=12230000000000000000000000000000
+## iv =F1230000000000000000000000000000
+
+## 输出加密前和加密后内容的十六进制. 这里使用 xxd 和 hexdump 都可以.
+xxd plain.txt
+## 00000000: 3132 3334 3536 3738 3930 6162 630a 1234567890abc.
+xxd encrypt.txt
+## 00000000: c5af 18cb ddee 9923 0374 6a21 9bb6 3f99 …#.tj!..?.
+
+## 解密 plain.txt
+openssl aes-128-cbc -d -in encrypt.txt -out encrypt_decrypt.txt -S 6000000000000000 -iv F1230000000000000000000000000000 -K 12230000000000000000000000000000
+
+openssl enc -aes-128-cbc -d -in encrypt.txt -out encrypt_decrypt.txt -S 6000000000000000 -iv F1230000000000000000000000000000 -K 12230000000000000000000000000000
+
+## 查看解密后的数据和原始数据是否一致
+xxd encrypt_decrypt.txt
+## 00000000: 3132 3334 3536 3738 3930 6162 630a 1234567890abc.
+```
+
+参考链接：
+
+ - <a href="https://hlsbook.net/how-to-encrypt-hls-video-with-ffmpeg/" target="_blank">How to Encrypt Video for HLS</a>
+
+ - <a href="https://stackoverflow.com/questions/47844205/decrypt-aes-128-encrypted-m3u8-playlist-and-ts-files-with-ffmpeg" target="_blank">decrypt AES-128 encrypted .m3u8 playlist and .TS files with ffmpeg</a>
+
+ - <a href="https://stackoverflow.com/questions/16056135/how-to-use-openssl-to-encrypt-decrypt-files" target="_blank">How to use OpenSSL to encrypt/decrypt files?</a>
+
+ - <a href="https://blog.csdn.net/oncealong/article/details/82785447" target="_blank">使用 openssl 命令加解密 aes-128-cbc 的简单示例</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
