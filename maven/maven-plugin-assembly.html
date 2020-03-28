@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maven Assembly Plugin</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Maven Assembly Plugin
+
+```xml
+<!-- Maven Assembly 插件 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <version>3.1.1</version>
+    <!--  -->
+    <configuration>
+        <!-- 配置程序集打包类型 -->
+        <descriptorRefs>
+            <descriptorRef>project</descriptorRef>
+        </descriptorRefs>
+    </configuration>
+    <!--  -->
+    <executions>
+        <execution>
+            <phase>package</phase>
+            <goals>
+                <goal>single</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+**```assembly:single```**
+
+&amp;#160; &amp;#160;简单的说，maven-assembly-plugin 就是用来帮助打包用的，比如说打出一个什么类型的包，包里包括哪些内容等等。
+目前至少支持以下打包类型：
+
+ - zip
+ 
+ - tar
+ 
+ - tar.gz
+ 
+ - tar.bz2
+ 
+ - jar
+ 
+ - dir
+ 
+ - war
+
+&amp;#160; &amp;#160;默认情况下，打jar包时，只有在类路径上的文件资源会被打包到 jar 中，并且文件名是 ${artifactId}-${version}.jar，下面看看怎么用 maven-assembly-plugin 插件来定制化打包。
+
+默认情况下，maven-assembly-plugin 内置了几个可以用的 assembly descriptor：
+
+ - **bin** ： 类似于默认打包，会将 bin 目录下的文件打到包中
+ 
+ - **jar-with-dependencies** ： 会将所有依赖都解压打包到生成物中
+ 
+ - **src** ：只将源码目录下的文件打包
+ 
+ - **project** ： 将整个 project 资源打包
+
+&amp;#160; &amp;#160;要查看它们的详细定义，可以到 maven-assembly-plugin-2.4.jar 里去看，例如对应 bin 的 assembly descriptor 如下：
+
+```xml
+<assembly
+    xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+    xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0
+                        http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+    <id>bin</id>
+    <formats>
+        <format>tar.gz</format>
+        <format>tar.bz2</format>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>${project.basedir}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>README*</include>
+                <include>LICENSE*</include>
+                <include>NOTICE*</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}/site</directory>
+            <outputDirectory>docs</outputDirectory>
+        </fileSet>
+    </fileSets>
+</assembly>
+```
+
+#### 自定义 Assembly Descriptor
+
+&amp;#160; &amp;#160;一般来说，内置的 assembly descriptor 都不满足需求，这个时候就需要写自己的 assembly descriptor 的实现了。先从一个最简单的定义开始：
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<assembly
+    xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0
+                        http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+    <id>demo</id>
+    <formats>
+        <format>jar</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <fileSets>
+        <fileSet>
+            <directory>${project.build.directory}/classes</directory>
+            <outputDirectory>/</outputDirectory>
+        </fileSet>
+    </fileSets>
+</assembly>
+```
+
+这个定义很简单：
+
+ - format：指定打包类型
+ 
+ - includeBaseDirectory：指定是否包含打包层目录（比如 finalName 是 output，当值为 true，所有文件被放在 output 目录下，否则直接放在包的根目录下）
+ 
+ - fileSets：指定要包含的文件集，可以定义多个 fileSet
+ 
+ - directory：指定要包含的目录
+ 
+ - outputDirectory：指定当前要包含的目录的目的地
+ 
+要使用这个 assembly descriptor，需要如下配置：
+
+```xml
+<configuration>
+    <finalName>demo</finalName>
+    <descriptors>
+        <descriptor>assemblies/demo.xml</descriptor>
+    </descriptors>
+    <outputDirectory>output</outputDirectory>
+</configuration>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

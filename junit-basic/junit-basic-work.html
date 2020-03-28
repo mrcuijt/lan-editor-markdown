@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>junit-basic-work</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### junit-basic-work
+
+#### Junit 设计理念与工作原理
+
+##### 概述：
+
+JUnit 是由 Erich Gamma 和 Kent Beck 编写的一个回归测试框架（regression testing framework）,用于帮助Java开发人员编写单元测试。 所谓单元测试也就是白盒测试。单元测试在 XP（极限编程） 社区极为流行，作为测试驱动开发，Junit 是 Java 开发使用最为广泛的框架。该框架也得到了绝大多数 Java IDE 和其他工具（例如，Ant）的集成支持。同时，Junit 还有很多的第三方扩展和增强包可供使用。 Junit 最近的变化比较少，现在的最高版本仍是 3.8.1。
+
+JUnit 的使用很简单，关于 JUnit 使用的文章和例子也很多，本文着重讲解 JUnit 的基本概念和其设计理念和工作原理。
+
+##### 一.Junit 基本概念
+
+JUnit 有几个基本概念：TestCase，TestSuite，TestFixtrue。
+
+ - **TestCase**
+
+ 代表一个测试用例，每一个 TestCase 实例都对应一个测试，这个测试通过这个 TestCase 实例的名字标志，以便在测试结果中指明哪个测试出现了问题。
+
+ - **TestSuite**
+
+ 代表需要测试的一组测试用例。
+
+ - **TestFixtrue**
+
+ TestFixtrue 代表一个测试环境。它用于组合一组测试用例，这组测试用例需要共同的测试运行环境。
+
+##### 二.Junit 的设计
+
+JUnit 的核心是围绕命令模式和组合模式设计的，当然同时使用了模版方法模式，参数收集模式，适配器模式等。这里只是简单介绍。
+
+JUnit 框架中有几个核心的接口和类。
+
+ - **Test 接口**
+
+ 代表一个测试。它是框架的主接口有两个方法：
+
+```java
+int countTestCases();//返回所有测试用例的个数。
+void run(TestResult result);//运行一个测试，并且收集运行结果到TestResult。
+```
+
+ - **TestCase 类**
+
+ TestCase 实现了 Test 接口，是框架提供的供我们继承的类，我们的所有的测试方法都需要在 TestCase 的子类中定义，并且符合特定的设计协议。
+
+一个 TestCase 实例代表一个具体的测试实例，对应一个对某一方法或概念的测试。每个 TestCase 实例都有一个名字。
+
+一个 TestCase 类却定义了一个 TestFixture。
+
+具体的说就是我们自己定义的 TestCase 子类中可以定义很多的 public 没有参数的 testxxx 方法。运行时，每个 testxxx 都在自己的 fixture 中运行。每个运行的 TestCase 都有一个名字，如果不指定，一般是 TestCase 中定义的 test 方法的名字。
+
+ - **TestSuite 类**
+
+ 和 TestCase 一样 TestSuite 也实现了 Test 接口。一个 TestSuite 可以包含一系列的 TestCase。
+
+ 把 testCase 组装入 TestSuite 有几种方式：
+
+  - **A** 通过将 TestCase 的 Class 参数传入 TestSuite 的构造函数，TestSuite 会自动收集 TestCase 中所有的 public 的没有参数的 testxxx 方法加入 TestSuite 中。
+
+  - **B** 构造空的 TestSuite 后通过 void addTest(Test test)方法添加测试。
+
+  - **C** 构造空的 TestSuite 后通过 void addTestSuite(Class testClass) 方法添加测试集。
+
+ - **TestResult 类**
+
+ 主要通过 runProtected 方法运行测试并收集所有运行结果。
+
+ - **TestRunner 类**
+
+ 启动测试的主类，我们可以通过直接调用它运行测试用例，IDE 和其他一些工具一般也通过这个接口集成 JUnit。
+
+ - **Assert 类**
+
+ 用于断言，TestCase 继承自该类，我们的测试方法通过这些断言判断程序功能是否通过测试。
+
+ - **TestListener 接口**
+
+ 测试运行监听器，通过事件机制处理测试中产生的事件，主要用于测试结果的收集。
+
+以上是框架的核心接口和类的介绍，通过上面的介绍我们很容易看出来 Test，TestCase 和 TestSuite 的设计采用了 Composite 模式。这样 JUnit 可以一次运行一个测试用例，也可以一次运行多个测试用例，TestRunner 只关心 Test 接口，而对运行的是单个的 TestCase 还是同时运行多个 TestCase 并不在意。
+
+TestCase 还使用了 Template Method 模式：
+
+```java
+public void run() {
+  setUp();
+  runTest();
+  tearDown();
+}
+
+protected void runTest() {
+
+}
+
+protected void setUp() {
+
+}
+
+protected void tearDown() {
+
+}
+```
+
+JUnit 同时使用了 Command 模式，对于典型的 Command 模式一般有 5 种角色：
+
+ - **命令角色（Command）**
+
+ : 声明执行操作的接口。由 Java 接口或者抽象类来实现。
+
+ Test 接口可以认为是命令模式中的命令角色 Command 接口，void run(TestResult result) 接口方法定义了需要执行的操作；
+
+ - **具体命令角色（Concrete Command）**
+
+ : 将一个接收者对象绑定于一个动作；调用接收者相应的操作，以实现命令角色声明的执行操作的接口。
+
+ TestCase 可以看作是具体命令角色，但又不全是，因为我们还需要自己通过继承 TestCase 类定义测试方法，这样的每一个测试方法都回被包装在一个 TestCase 实例中。
+
+ - **客户角色（Client）**
+
+ : 创建一个具体命令对象（并可以设定它的接收者）。
+
+ TestRunner 就是客户角色（Client），它通过 TestResult result = createTestResult() 构造 TestResult，并通过suite.run(result) 运行测试用例（suite 是一个 Test 接口的具体实例，可以是 TestCase 也可以是 TestSuite，但客户端不关心它是什么，这就是组合模式的好处。同时，suite.run（result）又调用 result.run（test），如果不仔细分析，就会被这种设计搞迷惑）。
+
+ - **请求者角色（Invoker）**
+
+ : 调用命令对象执行这个请求。
+
+ TestResult 可以看作请求者角色（Invoker），它会通过 protected void run(final TestCase test) 运行测试并收集结果。
+
+ - **接收者角色（Receiver）**
+
+ : 知道如何实施与执行一个请求相关的操作。任何类都可能作为一个接收者。
+
+ 我们自己写的 Test 方法可以认为是接收者角色（Receiver），因为我们的方法才具体执行这个命令。
+
+对于 JUnit 的设计，不能明显的区分出这 5 种角色，因为它的设计相对复杂，同时参杂了其他模式。
+
+
+
+##### 三.Junit 的工作原理
+
+知其然还要知其所以然，JUnit 使用比较简单，但为什么要这样使用，什么是 best practices，就需要了解 JUnit 的内部工作原理了。
+
+一个简单的测试的例子：
+
+```java
+/**
+ * A sample test case, testing <code>java.util.Vector</code>.
+ *
+ */
+public class VectorTest extends TestCase {
+
+  protected Vector fEmpty;
+  protected Vector fFull;
+
+  public static void main (String[] args) {
+    junit.textui.TestRunner.run (suite());
+  }
+
+  protected void setUp() {
+    fEmpty = new Vector();
+    fFull = new Vector();
+    fFull.addElement(new Integer(1));
+    fFull.addElement(new Integer(2));
+    fFull.addElement(new Integer(3));
+  }
+
+  public static Test suite() {
+    return new TestSuite(VectorTest.class);
+  }
+
+  public void testCapacity() {
+    int size = fFull.size();
+    for (int i = 0; i < 100; i++)
+    fFull.addElement(new Integer(i));
+    assertTrue(fFull.size() == 100 + size);
+  }
+
+  public void testClone() {
+    Vector clone = (Vector)fFull.clone();
+    assertTrue(clone.size() == fFull.size());
+    assertTrue(clone.contains(new Integer(1)));
+  }
+
+  public void testContains() {
+    assertTrue(fFull.contains(new Integer(1))); 
+    assertTrue(!fEmpty.contains(new Integer(1)));
+  }
+
+  public void testElementAt() {
+    Integer i = (Integer)fFull.elementAt(0);
+    assertTrue(i.intValue() == 1);
+    try {
+      fFull.elementAt(fFull.size());
+    } catch (ArrayIndexOutOfBoundsException e) {
+      return;
+    }
+    fail("Should raise an ArrayIndexOutOfBoundsException");
+  }
+
+  public void testRemoveAll() {
+    fFull.removeAllElements();
+    fEmpty.removeAllElements();
+    assertTrue(fFull.isEmpty());
+    assertTrue(fEmpty.isEmpty());
+  }
+
+  public void testRemoveElement() {
+    fFull.removeElement(new Integer(3));
+    assertTrue(!fFull.contains(new Integer(3)));
+  }
+}
+```
+
+ - 1.主入口。
+
+```java
+public static void main (String[] args) {
+  junit.textui.TestRunner.run (suite());
+}
+```
+
+调用了 TestRunner.run(Test) 方法，该方法执行的操作的结果就是构造 TestResult，然后调用 TestResult.run(Test) 方法。
+
+当然，TestRunner 也有 main 方法，可以在命令行下执行，main 方法执行的结果和 TestRunner.run 相似。
+
+ - 2.suite()
+
+```java
+public static Test suite() {
+  return new TestSuite(VectorTest.class);
+}
+```
+
+这是 JUnit 框架使用 TestSuite 规定的模式，尤其是在命令行或图形界面下，只有定义了 public static Test suite() 方法，框架才会按照我们的定义运行框架。
+
+ - 3.new TestSuite(VectorTest.class)
+
+TestSuite 有三个构造函数一个没有参数，一个以 Class 为参数还有一个以 Class 和名字字符串作为参数。Class 必须是实现了 Test 接口的子类，一般继承自 TestCase，并且该类中定义了以 Test 开头没有参数的测试方法。
+
+```java
+// 构造函数
+while(Test.class.isAssignableFrom(superClass)) {
+  Method[] methods = superClass.getDeclaredMethods();
+  for(int i = 0; i < methods.length; i++) {
+    addTestMethod(methods[i], names, theClass);
+  }
+  superClass= superClass.getSuperclass();
+}
+
+// addTestMethod
+if(!isPublicTestMethod(m)) {
+  if(isTestMethod(m))
+    addTest(warning("Test method isn't public: " + m.getName()));
+   return;
+}
+names.addElement(name);
+addTest(createTest(theClass, name));
+```
+
+```java
+//isTestMethod
+private boolean isTestMethod(Method m) {
+  String name = m.getName();
+  Class[] parameters = m.getParameterTypes();
+  Class returnType = m.getReturnType();
+  return parameters.length == 0 && name.startsWith("test") && returnType.equals(Void.TYPE);
+}
+```
+
+所以，我们必须保证我们要在实现 Test 接口的子类中定义符合以上要求的测试类，否则，框架将不会运行我们的测试方法。
+
+同时我们也看到，当我们将 Test 类传入 TestSuite 后，TestSuite 将所有的 test 构造为 TestCase 实例，每个实例都会有一个名字，和要测试的方法。
+
+```java
+// createTest addTest(createTest(theClass, name)) 时调用
+static public Test createTest(Class theClass, String name) {
+
+  Constructor constructor;
+
+  try {
+    constructor = getTestConstructor(theClass);
+  } catch (NoSuchMethodException e) {
+    return warning("Class " + theClass.getName() + " has no public constructor TestCase(String name) or TestCase()");
+  }
+
+  Object test;
+
+  try {
+    if (constructor.getParameterTypes().length == 0) {
+      test = constructor.newInstance(new Object[0]);
+      if (test instanceof TestCase)
+        ((TestCase) test).setName(name);
+    } else {
+      test = constructor.newInstance(new Object[]{name});
+    }
+  } catch (InstantiationException e) {
+    return(warning("Cannot instantiate test case: " + name + " (" + exceptionToString(e) + ")"));
+  } 
+  return (Test) test;
+}
+```
+
+在 createTest(Class theClass, String name) 方法中 theClass 是实现了 Test 接口的类，一般情况下是 TestCase 的子类。这样 name 就是 TestCase 的名字，用于标志一个测试。
+
+在 TestCase 的 protected void runTest() throws Throwable 方法中：
+
+```java
+runMethod = getClass().getMethod(fName, null); // 获取方法名
+runMethod.invoke(this, new Class[0]); // 运行测试方法。
+```
+
+这也就是上面说的，一个 TestCase 类中可以定义很多 test 方法，但一个 TestCase 实例只对应一个测试方法。
+
+ - 4.运行
+
+Test.run(TestResult) 是实际上调用 TestResult.run(Test)。
+
+```java
+// TestResult.run(test)
+protected void run(final TestCase test) {
+
+  startTest(test);
+
+  Protectable p = new Protectable() {
+    public void protect() throws Throwable {
+      test.runBare();
+    }
+  };
+
+  runProtected(test, p);
+
+  endTest(test);
+}
+```
+
+该方法也是一个模版方法，关键是 runProtected 方法：
+
+```java
+public void runProtected(final Test test, Protectable p) {
+  try {
+    p.protect();
+  } catch (AssertionFailedError e) {
+    addFailure(test, e);
+  } catch (ThreadDeath e) { // don't catch ThreadDeath by accident
+    throw e;
+  } catch (Throwable e) {
+    addError(test, e);
+  }
+}
+```
+
+这个方法起到的作用就是当测试出现异常或错误时会在 TestResult 中记录，如果是 ThreadDeath 就继续抛出异常，程序可能会终止，如果是其他错误和异常，程序将继续运行。这也就是 protect 的含义。因此，我们抛出 Assert 中的异常时，不会影响下面的测试继续运行。
+
+这个方法中传入的 Protectable p 的 protect 方法调用了 test.runBare(); 我们看到，TestRunner 调用了 Test 的 run(TestResult) 方法后，TestResult 实际上是在一个保护的环境下调用 TestCase 的 runBase 方法。也就是说如果我们自己的测试类没有继承 TestCase，也要定义一个 runBase 方法，执行基本的操作。基于这一点，我们的测试类应该继承自 TestCase。
+
+ - 5.一个比较绕的地方
+
+TestSuite 也是一个 Test，也有我们的例子中是调用 TestSuite 的 void run(TestResult result) 方法。
+
+```java
+public void run(TestResult result) {
+  for (Enumeration e = tests(); e.hasMoreElements(); ) {
+    if (result.shouldStop())
+      break;
+    Test test = (Test)e.nextElement();
+    runTest(test, result);
+  }
+}
+
+public void runTest(Test test, TestResult result) {
+  test.run(result);
+}
+```
+
+上面的代码首先是一个循环，其次看起来好像形成了一个环：run(TestResult result) -> runTest(test, result)-> test.run(result)-> run(TestResult result)，这就要求我们必须对 Java 的运行时类型比较熟悉才能比较容易的理解。
+
+tests() 是在 TestSuite 构造时构造的所有的 tests，一般情况下这些 test 都是 TestCase 子类的实例。不过也有可能是另一个 TestSuite，比如通过 public void addTestSuite(Class testClass) 方法：
+
+```java
+public void addTestSuite(Class testClass) {
+  addTest(new TestSuite(testClass));
+}
+```
+
+如果 test 是 TestCase，就直接调用按照 4 中说明的方法运行。如果是 TestSuite 就会递归调用 TestSuite 中定义的 void run(TestResult result) 方法，直到没有了 suite 中的所有的 Test 都不是 suite (因为 suite 在构造时就会将 suite 解析为单个的 TestCase 的集合，可以通过 tests() 方法取出所有的 test)。
+
+这里不太容易说清楚，仔细看看代码思考一下就明白了。
+
+##### 总结：
+
+以上介绍了 JUnit 的基本概念和设计理念及工作原理。Junit 当然也有很多不尽人意的地方。不过由于它是 Java 中使用的最广泛的单元测试框架，我们还是需要仔细研究一下的。另外，TestNG 是一个比较不错的框架，原先了结果，由于当时没有写笔记，现在差不多都忘了，如果有机会可以了解一下。
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/growing/archive/2010/10/14/1851273.html" target="_blank">Junit 设计理念与工作原理</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

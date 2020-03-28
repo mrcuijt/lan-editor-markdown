@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAX-WS Provider</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### JAX-WS Provider
+
+&amp;#160; &amp;#160;在之前的文章中，涉及到了 WebService 的搭建。所有的 EndPoint 均是高度面向对象，面向逻辑了。Server 与 Client 之间交互的消息，均由 JAXB 转为 JAVA 类型。如果想对消息的原始数据进行修改，可以使用 Handler Chain。
+
+&amp;#160; &amp;#160;然而，JAXWS 也提供了另一种编程方式，Provider 和 Dispatch，让我们抛开高度抽象的 EndPoint 和 JAXB，抛开了工具 wsgen,wsimport，直接面向消息编程。
+
+#### Provider
+
+##### 介绍
+
+&amp;#160; &amp;#160;Provider 是 server 端直接面向消息编程的接口。我们先看下 Provider 接口中的方法：
+
+```java
+package javax.xml.ws.Provider
+
+public interface Provider<T> {
+  public T invoke(T request);
+}
+```
+
+&amp;#160; &amp;#160;服务端 EndPoint 必须实现此接口。Provider 就像是 HttpServlet，invoke() 就像是 service()。invoke 方法参数是接收的原始消息，返回值是返回的消息。
+
+&amp;#160; &amp;#160;T 是对消息封装的一种泛型。结合 Provider 的 Annotation @ServiceMode，它可以为三种封装类型：
+
+ - ```javax.xml.transform.Source``` 将消息中的 Payload 封装为 XML 类型 Source。适用于 @ServiceMode(value=Service.Mode.PAYLOAD)。
+
+ - ```javax.xml.soap.SOAPMessage``` 将消息整体封装为 SOAPMessage。适用于 @ServiceMode(value=Service.Mode.MESSAGE)。
+
+ - ```javax.activation.DataSource```
+
+&amp;#160; &amp;#160;Provider 无法使用 wsgen 命令生成 WSDL 文件，所以，只能先用 WebService Interface 生成 WSDL，然后再编写 Provider。
+
+&amp;#160; &amp;#160;下面的例子是基于之前的图书馆系统而修改的，所以复用之前图书馆系统的 WSDL 文件。
+
+#### 创建 Java Web Project
+
+创建一个 JavaWeb Project，取名叫 LibraryProvider。然后将之前图书馆系统的 WSDL 文件复制到新项目的 WEB-INF 目录下面。
+
+![](./images/jax-ws-provider/jax-ws-provider-001.png)
+
+#### 创建 Provider
+
+创建 Java 类，LibraryProvider：
+
+```java
+@ServiceMode(value=Service.Mode.PAYLOAD)
+@WebServiceProvider()
+public class LibraryProvider implements Provider<Source> {
+    private static int currentId = 0;
+    private static Map<Integer, Book> books= new HashMap<Integer, Book>();
+    private static class Book {
+        public int getId() {
+            return id;
+        }
+        public void setId(int id) {
+            this.id = id;
+        }
+        public String getName() {
+            return name;
+        }
+        public void setName(String name) {
+            this.name = name;
+        }
+        public String getAuthor() {
+            return author;
+        }
+        public void setAuthor(String author) {
+            this.author = author;
+        }
+        private int id;
+        private String name;
+        private String author;
+    }
+
+    @Override
+    public Source invoke(Source request) {
+        try {
+            DOMResult dom = new DOMResult();
+            Transformer trans = TransformerFactory.newInstance().newTransformer();
+            trans.transform(request, dom);
+            Node node = dom.getNode();
+            Node root = node.getFirstChild();
+            String operation = root.getLocalName();
+            if ("addRawBook".equals(operation)) {
+                return addRawBook(root);
+            }
+            
+            if ("getRawBook".equals(operation)) {
+                return getRawBook(root);
+            }
+
+            if ("deleteBook".equals(operation)) {
+                return deleteBook(root);
+            }
+            
+            return request;
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error in provider endpoint", e);
+        }
+    }
+
+    private Source addRawBook(Node root) {
+        String name = root.getChildNodes().item(0).getChildNodes().item(0).getNodeValue();
+        String author = root.getChildNodes().item(1).getChildNodes().item(0).getNodeValue();
+        Book b = new Book();
+        b.setName(name);
+        b.setAuthor(author);
+        b.setId(++currentId);
+        books.put(b.getId(), b);
+        String body =
+                "<ns2:addRawBookResponse xmlns:ns2=\"http://library.mycompany.com\"><id>"
+                +currentId
+                +"</id></ns2:addRawBookResponse>";
+        Source source = new StreamSource(new ByteArrayInputStream(body.getBytes()));
+        return source;
+    }
+    
+    private Source getRawBook(Node root) {
+        String idString = root.getChildNodes().item(0).getChildNodes().item(0).getNodeValue();
+        Book b = books.get(Integer.parseInt(idString));
+        String body =
+                "<ns2:getRawBookResponse xmlns:ns2=\"http://library.mycompany.com\"><rawBook>"
+                +b.toString()
+                +"</rawBook></ns2:getRawBookResponse>";
+        Source source = new StreamSource(new ByteArrayInputStream(body.getBytes()));
+        return source;
+    }
+    
+    private Source deleteBook(Node root) {
+        // 略
+    }
+}
+```
+
+***```sun-jaxws.xml```***
+
+在 WEB-INF 下创建 sun-jaxws.xml 文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<endpoints
+    xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime"
+    version="2.0">
+
+    <endpoint
+        name="provider"
+        implementation="com.mycompany.library.LibraryProvider"
+        wsdl="WEB-INF/wsdl/LibraryService.wsdl"
+        service="{http://library.mycompany.com}LibraryService"
+        port="{http://library.mycompany.com}LibraryPort"
+        url-pattern="/service" />
+
+</endpoints>
+```
+
+#### 打包部署运行
+
+&amp;#160; &amp;#160;将 Project 导出为 war 包 library.war，部署到 tomcat 下。访问 <a href="http://127.0.0.1:8080/library/service?wsdl" target="_blank">http://127.0.0.1:8080/library/service?wsdl</a>
+
+&amp;#160; &amp;#160;然后使用 wsimport，产生 client 端的代码。对 client 端进行调用，查看结果。
+
+```textarea
+provider.server.AddNumbersImpl.invoke (Unknown Source)
+provider.server.AddNumbersImpl.invoke (Unknown Source)
+com.sun.xml.ws.api.server.InstanceResolver$1.invokeProvider(InstanceResolver.java:260)
+com.sun.xml.ws.server.InvokerTube$2.invokeProvider(InvokerTube.java:159)
+com.sun.xml.ws.server.provider.SyncProviderInvokerTube.processRequest(SyncProviderInvokerTube.java:85)
+com.sun.xml.ws.api.pipe.Fiber.__doRun(Fiber.java:1136)
+com.sun.xml.ws.api.pipe.Fiber._doRun(Fiber.java:1050)
+com.sun.xml.ws.api.pipe.Fiber.doRun(Fiber.java:1019)
+com.sun.xml.ws.api.pipe.Fiber.runSync(Fiber.java:877)
+com.sun.xml.ws.server.WSEndpointImpl$2.process(WSEndpointImpl.java:419)
+com.sun.xml.ws.transport.http.HttpAdapter$HttpToolkit.handle(HttpAdapter.java:868)
+com.sun.xml.ws.transport.http.HttpAdapter.handle(HttpAdapter.java:422)
+com.sun.xml.ws.transport.http.servlet.ServletAdapter.invokeAsync(ServletAdapter.java:225)
+com.sun.xml.ws.transport.http.servlet.WSServletDelegate.doGet(WSServletDelegate.java:161)
+com.sun.xml.ws.transport.http.servlet.WSServletDelegate.doPost(WSServletDelegate.java:197)
+com.sun.xml.ws.transport.http.servlet.WSServlet.doPost(WSServlet.java:81)
+javax.servlet.http.HttpServlet.service(HttpServlet.java:647)
+javax.servlet.http.HttpServlet.service(HttpServlet.java:728)
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:305)
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:243)
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:222)
+org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:123)
+org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:502)
+org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:171)
+org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:100)
+org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:953)
+org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:118)
+org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:408)
+org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1041)
+org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:603)
+org.apache.tomcat.util.net.AprEndpoint$SocketProcessor.doRun(AprEndpoint.java:2430)
+org.apache.tomcat.util.net.AprEndpoint$SocketProcessor.run(AprEndpoint.java:2419)
+java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+java.lang.Thread.run(Thread.java:748)
+```
+
+```textarea
+efficient_handler.server.AddNumbersImpl.addNumbers(AddNumbersImpl.java:-1)
+sun.reflect.NativeMethodAccessorImpl.invoke0(NativeMethodAccessorImpl.java:-2)
+sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+java.lang.reflect.Method.invoke(Method.java:498)
+sun.reflect.misc.Trampoline.invoke(MethodUtil.java:71)
+sun.reflect.NativeMethodAccessorImpl.invoke0(NativeMethodAccessorImpl.java:-2)
+sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+java.lang.reflect.Method.invoke(Method.java:498)
+sun.reflect.misc.MethodUtil.invoke(MethodUtil.java:275)
+sun.reflect.NativeMethodAccessorImpl.invoke0(NativeMethodAccessorImpl.java:-2)
+sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+java.lang.reflect.Method.invoke(Method.java:498)
+com.sun.xml.ws.api.server.MethodUtil.invoke(MethodUtil.java:83)
+com.sun.xml.ws.api.server.InstanceResolver$1.invoke(InstanceResolver.java:250)
+com.sun.xml.ws.server.InvokerTube$2.invoke(InvokerTube.java:149)
+com.sun.xml.ws.server.sei.SEIInvokerTube.processRequest(SEIInvokerTube.java:88)
+com.sun.xml.ws.api.pipe.Fiber.__doRun(Fiber.java:1136)
+com.sun.xml.ws.api.pipe.Fiber._doRun(Fiber.java:1050)
+com.sun.xml.ws.api.pipe.Fiber.doRun(Fiber.java:1019)
+com.sun.xml.ws.api.pipe.Fiber.runSync(Fiber.java:877)
+com.sun.xml.ws.server.WSEndpointImpl$2.process(WSEndpointImpl.java:419)
+com.sun.xml.ws.transport.http.HttpAdapter$HttpToolkit.handle(HttpAdapter.java:868)
+com.sun.xml.ws.transport.http.HttpAdapter.handle(HttpAdapter.java:422)
+com.sun.xml.ws.transport.http.servlet.ServletAdapter.invokeAsync(ServletAdapter.java:225)
+com.sun.xml.ws.transport.http.servlet.WSServletDelegate.doGet(WSServletDelegate.java:161)
+com.sun.xml.ws.transport.http.servlet.WSServletDelegate.doPost(WSServletDelegate.java:197)
+com.sun.xml.ws.transport.http.servlet.WSServlet.doPost(WSServlet.java:81)
+javax.servlet.http.HttpServlet.service(HttpServlet.java:647)
+javax.servlet.http.HttpServlet.service(HttpServlet.java:728)
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:305)
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:243)
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:222)
+org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:123)
+org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:502)
+org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:171)
+org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:100)
+org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:953)
+org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:118)
+org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:408)
+org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1041)
+org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:603)
+org.apache.tomcat.util.net.AprEndpoint$SocketProcessor.doRun(AprEndpoint.java:2430)
+org.apache.tomcat.util.net.AprEndpoint$SocketProcessor.run(AprEndpoint.java:2419)
+java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+java.lang.Thread.run(Thread.java:748)
+```
+
+```textarea
+efficient_handler.common.LoggingHandler.handleMessage(LoggingHandler.java:-1)
+efficient_handler.common.LoggingHandler.handleMessage(LoggingHandler.java:64)
+com.sun.xml.ws.handler.HandlerProcessor.callHandleMessageReverse(HandlerProcessor.java:341)
+com.sun.xml.ws.handler.HandlerProcessor.callHandlersResponse(HandlerProcessor.java:212)
+com.sun.xml.ws.handler.ServerMessageHandlerTube.callHandlersOnResponse(ServerMessageHandlerTube.java:111)
+com.sun.xml.ws.handler.HandlerTube.processResponse(HandlerTube.java:174)
+com.sun.xml.ws.api.pipe.Fiber.__doRun(Fiber.java:1147)
+com.sun.xml.ws.api.pipe.Fiber._doRun(Fiber.java:1050)
+com.sun.xml.ws.api.pipe.Fiber.doRun(Fiber.java:1019)
+com.sun.xml.ws.api.pipe.Fiber.runSync(Fiber.java:877)
+com.sun.xml.ws.server.WSEndpointImpl$2.process(WSEndpointImpl.java:419)
+com.sun.xml.ws.transport.http.HttpAdapter$HttpToolkit.handle(HttpAdapter.java:868)
+com.sun.xml.ws.transport.http.HttpAdapter.handle(HttpAdapter.java:422)
+com.sun.xml.ws.transport.http.servlet.ServletAdapter.invokeAsync(ServletAdapter.java:225)
+com.sun.xml.ws.transport.http.servlet.WSServletDelegate.doGet(WSServletDelegate.java:161)
+com.sun.xml.ws.transport.http.servlet.WSServletDelegate.doPost(WSServletDelegate.java:197)
+com.sun.xml.ws.transport.http.servlet.WSServlet.doPost(WSServlet.java:81)
+javax.servlet.http.HttpServlet.service(HttpServlet.java:647)
+javax.servlet.http.HttpServlet.service(HttpServlet.java:728)
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:305)
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:243)
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:222)
+org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:123)
+org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:502)
+org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:171)
+org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:100)
+org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:953)
+org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:118)
+org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:408)
+org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1041)
+org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:603)
+org.apache.tomcat.util.net.AprEndpoint$SocketProcessor.doRun(AprEndpoint.java:2430)
+org.apache.tomcat.util.net.AprEndpoint$SocketProcessor.run(AprEndpoint.java:2419)
+java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+java.lang.Thread.run(Thread.java:748)
+
+Demo
+Stack trace for thread http-apr-8080-exec-9
+efficient_handler.common.LoggingHandler.handleMessage(LoggingHandler.java:-1)
+efficient_handler.common.LoggingHandler.handleMessage(LoggingHandler.java:64)
+com.sun.xml.ws.handler.HandlerProcessor.callHandleMessage(HandlerProcessor.java:297)
+com.sun.xml.ws.handler.HandlerProcessor.callHandlersRequest(HandlerProcessor.java:140)
+com.sun.xml.ws.handler.ServerMessageHandlerTube.callHandlersOnRequest(ServerMessageHandlerTube.java:126)
+com.sun.xml.ws.handler.HandlerTube.processRequest(HandlerTube.java:127)
+com.sun.xml.ws.api.pipe.Fiber.__doRun(Fiber.java:1136)
+com.sun.xml.ws.api.pipe.Fiber._doRun(Fiber.java:1050)
+com.sun.xml.ws.api.pipe.Fiber.doRun(Fiber.java:1019)
+com.sun.xml.ws.api.pipe.Fiber.runSync(Fiber.java:877)
+com.sun.xml.ws.server.WSEndpointImpl$2.process(WSEndpointImpl.java:419)
+com.sun.xml.ws.transport.http.HttpAdapter$HttpToolkit.handle(HttpAdapter.java:868)
+com.sun.xml.ws.transport.http.HttpAdapter.handle(HttpAdapter.java:422)
+com.sun.xml.ws.transport.http.servlet.ServletAdapter.invokeAsync(ServletAdapter.java:225)
+com.sun.xml.ws.transport.http.servlet.WSServletDelegate.doGet(WSServletDelegate.java:161)
+com.sun.xml.ws.transport.http.servlet.WSServletDelegate.doPost(WSServletDelegate.java:197)
+com.sun.xml.ws.transport.http.servlet.WSServlet.doPost(WSServlet.java:81)
+javax.servlet.http.HttpServlet.service(HttpServlet.java:647)
+javax.servlet.http.HttpServlet.service(HttpServlet.java:728)
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:305)
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:243)
+org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:222)
+org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:123)
+org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:502)
+org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:171)
+org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:100)
+org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:953)
+org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:118)
+org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:408)
+org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1041)
+org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:603)
+org.apache.tomcat.util.net.AprEndpoint$SocketProcessor.doRun(AprEndpoint.java:2430)
+org.apache.tomcat.util.net.AprEndpoint$SocketProcessor.run(AprEndpoint.java:2419)
+java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+java.lang.Thread.run(Thread.java:748)
+```
+
+参考链接
+
+ - <a href="https://my.oschina.net/xpbug/blog/228285?utm_source=tuicool" target="_blank">JAX-WS Provider 和 Dispatch</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

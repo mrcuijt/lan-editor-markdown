@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>log4j-properties-example</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### log4j-properties-example
+
+##### Log4j
+
+ ***`pom.xml`***
+
+```xml
+<dependencies>
+    <!-- 引入 Apache Log4j Jar -->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.17</version>
+    </dependency>
+</dependencies>
+```
+
+ ***`log4j.properties`***
+
+```python
+log4j.rootLogger = INFO, File, stdout
+ 
+log4j.appender.File=org.apache.log4j.FileAppender
+log4j.appender.File.File=C:\\logs\\logs.log
+log4j.appender.File.layout=org.apache.log4j.PatternLayout
+log4j.appender.File.layout.conversionPattern=%d{dd/MMM/yyyy HH:mm:ss,SSS}- %c{1}: %m%n
+ 
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target=System.out
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{dd/MMM/yyyy HH:mm:ss,SSS}- %c{1}: %m%n
+```
+
+```python
+log4j.rootLogger=debug,stdout
+
+###############Log4j 4 SQL Output start#################
+log4j.logger.com.springframework=DEBUG
+log4j.logger.com.ibatis=DEBUG
+log4j.logger.com.ibatis.common.jdbc.SimpleDataSource=DEBUG
+log4j.logger.com.ibatis.common.jdbc.ScriptRunner=DEBUG
+log4j.logger.com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate=DEBUG
+log4j.logger.java.sql=DEBUG
+log4j.logger.java.sql.Connection=DEBUG
+log4j.logger.java.sql.Statement=DEBUG
+log4j.logger.java.sql.PreparedStatement=DEBUG
+log4j.logger.java.sql.ResultSet=DEBUG
+log4j.logger.org.apache.ibatis.logging.commons.JakartaCommonsLoggingImpl=DEBUG
+
+log4j.logger.jdbc.sqltiming=DEBUG
+log4j.logger.jdbc.connection=DEBUG
+
+log4j.category.druid.sql=debug
+log4j.logger.druid.sql=DEBUG
+log4j.logger.druid.sql.DataSource=DEBUG
+log4j.logger.druid.sql.Connection=DEBUG
+log4j.logger.druid.sql.Statement=DEBUG
+log4j.logger.druid.sql.ResultSet=DEBUG
+
+log4j.logger.science.mrcuijt.loh.mapper=DEBUG
+###############Log4j 4 SQL Output end###################
+
+## 3rdparty Loggers ##
+log4j.logger.cn.springboot=debug
+log4j.logger.org.springframework=debug
+log4j.logger.org.springframework.web=debug
+log4j.logger.org.springframework.boot.autoconfigure=debug
+log4j.logger.org.springframework.boot.autoconfigure.web.servlet.WelcomePageHandlerMapping=debug
+log4j.logger.org.jboss=debug
+log4j.logger.org.fasterxml=debug
+log4j.logger.org.hibernate=debug
+log4j.logger.javax.el=debug
+log4j.logger.org.apache=debug
+log4j.logger.com.alibaba=debug
+log4j.logger.druid.sql=debug
+log4j.logger.freemarker=debug
+log4j.logger.org.mybatis=debug
+
+## print sql log
+log4j.logger.com.ibatis
+log4j.logger.com.ibatis.common.jdbc.SimpleDataSource=debug
+log4j.logger.org.apache.ibatis.jdbc.ScriptRunner=debug
+log4j.logger.com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate=debug
+log4j.logger.org.springframework.jdbc.core.JdbcTemplate=debug
+log4j.logger.java.sql.ResultSet=debug
+log4j.logger.java.sql.Connection=debug
+log4j.logger.java.sql.Statement=debug
+log4j.logger.java.sql.PreparedStatement=debug
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %p [%c] %m%n
+```
+
+##### Log4j2
+
+ ***`pom.xml`***
+
+```xml
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-api</artifactId>
+    <version>2.6.1</version>
+</dependency>
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
+    <version>2.6.1</version>
+</dependency>
+```
+
+ ***`log4j2.properties`***
+
+```python
+status = error
+name = PropertiesConfig
+ 
+filters = threshold
+ 
+filter.threshold.type = ThresholdFilter
+filter.threshold.level = debug
+ 
+appenders = console
+ 
+appender.console.type = Console
+appender.console.name = STDOUT
+appender.console.layout.type = PatternLayout
+appender.console.layout.pattern = %d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+ 
+rootLogger.level = debug
+rootLogger.appenderRefs = stdout
+rootLogger.appenderRef.stdout.ref = STDOUT
+```
+
+ ***`log4j2.properties – rolling file appender`***
+
+```python
+status = error
+name = PropertiesConfig
+ 
+#Make sure to change log file path as per your need
+property.filename = C:\\logs\\debug.log
+ 
+filters = threshold
+ 
+filter.threshold.type = ThresholdFilter
+filter.threshold.level = debug
+ 
+appenders = rolling
+ 
+appender.rolling.type = RollingFile
+appender.rolling.name = RollingFile
+appender.rolling.fileName = ${filename}
+appender.rolling.filePattern = debug-backup-%d{MM-dd-yy-HH-mm-ss}-%i.log.gz
+appender.rolling.layout.type = PatternLayout
+appender.rolling.layout.pattern = %d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+appender.rolling.policies.type = Policies
+appender.rolling.policies.time.type = TimeBasedTriggeringPolicy
+appender.rolling.policies.time.interval = 1
+appender.rolling.policies.time.modulate = true
+appender.rolling.policies.size.type = SizeBasedTriggeringPolicy
+appender.rolling.policies.size.size=10MB
+appender.rolling.strategy.type = DefaultRolloverStrategy
+appender.rolling.strategy.max = 20
+ 
+loggers = rolling
+ 
+#Make sure to change the package structure as per your application
+ 
+logger.rolling.name = com.howtodoinjava
+logger.rolling.level = debug
+logger.rolling.additivity = false
+logger.rolling.appenderRef.rolling.ref = RollingFile
+```
+
+参考链接：
+
+ - <a href="https://www.mkyong.com/logging/log4j-log4j-properties-examples/" target="_blank">log4j.properties example</a>
+
+ - <a href="https://examples.javacodegeeks.com/enterprise-java/log4j/log4j-properties-example/" target="_blank">log4j properties example</a>
+
+ - <a href="https://howtodoinjava.com/log4j2/log4j2-properties-example/" target="_blank">Log4j2 properties file example</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

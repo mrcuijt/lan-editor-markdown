@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maven Dependency</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+***```引入系统绝对路径```***
+```xml
+<dependency>  
+    <groupId>org.wltea</groupId>  
+    <artifactId>IKAnalyzer</artifactId>  
+    <version>3.2.8</version>  
+    <scope>system</scope> 
+    <systemPath>C:\Users\yangping\Desktop\a\IKAnalyzer3.2.8.jar</systemPath>  
+</dependency>
+```
+
+***```引入项目相对路径```***
+```xml
+<dependency>
+    <groupId>DPSDK-Manager</groupId>
+    <artifactId>DPSDK-Manager</artifactId>
+    <version>0.2.1</version>
+    <scope>system</scope>
+    <systemPath>${project.basedir}/libs/DPSDK-Manager-0.2.1.jar</systemPath>
+</dependency>       
+```
+
+```xml
+<!-- Maven Dependency 插件环境配置 -->
+<!-- mvn dependency:copy-dependencies -->
+<!-- mvn dependency:copy-dependencies -Dclassifier=javadoc -->
+<!-- mvn dependency:copy-dependencies -Dclassifier=sources -->
+<!-- mvn dependency:resolve -Dclassifier=javadoc -->
+<!-- mvn dependency:sources -->
+<!-- mvn dependency:tree -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <version>2.7</version>
+    <executions>
+        <execution>
+            <phase>process-resources</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <!-- 引入依赖的范围 -->
+        <includeScope>system</includeScope>
+        <!-- 项目依赖的输出目录 -->
+        <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib</outputDirectory>
+    </configuration>
+</plugin>
+```
+
+includeScope 的配置说明
+
+```textarea
+runtime scope gives runtime and compile dependencies,
+compile scope gives compile, provided, and system dependencies,
+test (default) scope gives all dependencies,
+provided scope just gives provided dependencies,
+system scope just gives system dependencies.
+```
+
+解决方案
+
+```xml
+<executions>
+    <execution>
+        <id>copy-dependencies-runtime</id>
+        <phase>process-resources</phase>
+        <goals>
+            <goal>copy-dependencies</goal>
+        </goals>
+        <configuration>
+            <!--http://maven.apache.org/plugins/maven-dependency-plugin/copy-dependencies-mojo.html#includeScope-->
+            <includeScope>runtime</includeScope>
+            <!--依赖传递-->
+            <excludeTransitive>false</excludeTransitive>
+        </configuration>
+    </execution>
+    <execution>
+        <id>copy-dependencies-system</id>
+        <phase>process-resources</phase>
+        <goals>
+            <goal>copy-dependencies</goal>
+        </goals>
+        <configuration>
+            <includeScope>system</includeScope>
+            <!--过滤依赖传递-->
+            <excludeTransitive>true</excludeTransitive>
+        </configuration>
+    </execution>
+    <execution>
+        <id>install</id>
+        <phase>install</phase>
+        <goals>
+            <goal>sources</goal>
+        </goals>
+    </execution>
+</executions>
+```
+
+参考链接:
+
+ - <a href="https://www.v2ex.com/t/427215" target="_blank">maven-dependency-plugin 的 excludeScope 问题</a>
+
+```xml
+<!-- Maven Surefire 测试用例插件环境配置 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.22.1</version>
+    <configuration>
+        <includes>
+            <!-- 在执行测试用例时引入外部依赖 Jar -->
+            <include>${project.basedir}/libs/*</include>
+        </includes>
+    </configuration>
+</plugin>
+```
+
+***```在打包时引入项目外部 Jar```***
+```xml
+<!-- 设置打包时过滤的文件 -->
+<plugin>
+    <artifactId>maven-war-plugin</artifactId>
+    <configuration>
+        <!-- 过滤 resource 资源目录下指定的文件 -->
+        <!-- packagingExcludes 中指定的文件位于 src/main/resources 目录中 -->
+        <packagingExcludes></packagingExcludes>
+        <!-- 过滤 webapp 目录下指定的文件 -->
+        <!-- warSourceExcludes 中指定的文件位于 src/main/webapp 目录中 -->
+        <warSourceExcludes></warSourceExcludes>
+        <!-- 引入 Web 资源 -->
+        <webResources>
+            <resource>
+                <directory>${basedir}/libs/</directory>
+                <targetPath>WEB-INF/lib</targetPath>
+            </resource>
+        </webResources>
+    </configuration>
+</plugin>
+```
+
+```xml
+                
+
+<plugin>
+    <artifactId>maven-war-plugin</artifactId>
+    <version>2.4</version>
+    <configuration>
+        <includeEmptyDirs>true</includeEmptyDirs>
+        <webResources>
+            <resource>
+                <directory>ui</directory>
+                <targetPath></targetPath>
+                <includes>
+                    <include>**</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>lib</directory>
+                <targetPath>WEB-INF</targetPath>
+                <includes>
+                    <include>**/*.xml</include>
+                    <include>**/log4j.properties</include>
+                </includes>
+            </resource>
+            <!-- edited below -->
+            <resource>
+                <directory>lib</directory>
+                <targetPath>WEB_INF/lib</targetPath>
+                <includes>
+                    <include>**/*.jar</include>
+                </includes>
+            </resource>
+        </webResources>
+        <webXml>${project.basedir}/WEB-INF/web.xml</webXml>
+    </configuration>
+</plugin>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

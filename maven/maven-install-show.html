@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><style type="text/css">h1,h2,h3,h4,h5,h6,p,blockquote{margin:0;padding:0}body{font-family:"Helvetica Neue",Helvetica,"Hiragino Sans GB",Arial,sans-serif;font-size:13px;line-height:18px;color:#737373;margin:10px 13px 10px 13px}a{color:#0069d6}a:hover{color:#0050a3;text-decoration:none}a img{border:0}p{margin-bottom:9px}h1,h2,h3,h4,h5,h6{color:#404040;line-height:36px}h1{margin-bottom:18px;font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:16px}h5{font-size:14px}h6{font-size:13px}hr{margin:0 0 19px;border:0;border-bottom:1px solid #ccc}blockquote{padding:13px 13px 21px 15px;margin-bottom:18px;font-family:georgia,serif;font-style:italic}blockquote:before{content:"C";font-size:40px;margin-left:-10px;font-family:georgia,serif;color:#eee}blockquote p{font-size:14px;font-weight:300;line-height:18px;margin-bottom:0;font-style:italic}code,pre{font-family:Monaco,Andale Mono,Courier New,monospace}code{background-color:#fee9cc;color:rgba(0,0,0,0.75);padding:1px 3px;font-size:12px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px}pre{display:block;padding:14px;margin:0 0 18px;line-height:16px;font-size:11px;border:1px solid #d9d9d9;white-space:pre-wrap;word-wrap:break-word}pre code{background-color:#fff;color:#737373;font-size:11px;padding:0}@media screen and (min-width:768px){body{width:748px;margin:10px auto}}</style><title>maven-install</title></head><body><h4 id="maveninstall">maven-install</h4>
+
+<h4 id="downloadapachemaven">Download Apache Maven</h4>
+
+<p>Visit <a href="http://maven.apache.org/download.cgi" target="_blank">Maven official website</a>, download the Maven zip file, for example : <code>apache-maven-3.6.0-bin.zip</code>.</p>
+
+<p><img src="./images/maven-install/maven-install-001.png" alt="title" title="" /></p>
+
+<p>Unzip it to a folder. In this article, we are using <code>c:\opt\apache-maven-3.6.0</code></p>
+
+<p><img src="./images/maven-install/maven-install-002.png" alt="title" title="" /></p>
+
+<p><strong>Note</strong></p>
+
+<ul>
+<li>That’s all, just download and unzip, installation is NOT required. </li>
+</ul>
+
+<h4 id="addmaven_homesystemvariable">Add MAVEN_HOME system variable</h4>
+
+<p>Add a <strong><code>MAVEN_HOME</code></strong> system variables, and point it to the Maven folder.</p>
+
+<p>Press Windows key, type <strong><code>adva</code></strong> and clicks on the <strong><code>View advanced system settings</code></strong></p>
+
+<p><img src="./images/maven-install/maven-install-003.png" alt="title" title="" /></p>
+
+<p>In System Properties dialog, select <strong><code>Advanced</code></strong> tab and clicks on the <strong><code>Environment Variables...</code></strong> button.</p>
+
+<p><img src="./images/maven-install/maven-install-004.png" alt="title" title="" /></p>
+
+<p>In “Environment variables” dialog, <strong><code>System variables</code></strong>, Clicks on the <strong><code>New...</code></strong> button and add a <strong><code>MAVEN_HOME</code></strong> variable and point it to <strong><code>c:\opt\apache-maven-3.6.0</code></strong></p>
+
+<p><img src="./images/maven-install/maven-install-005.png" alt="title" title="" /></p>
+
+<h4 id="addmaven_homebintopath">Add %MAVEN_HOME%\bin To PATH</h4>
+
+<p>In system variables, find <strong><code>PATH</code></strong>, clicks on the <strong><code>Edit...</code></strong> button. In “Edit environment variable” dialog, clicks on the <strong><code>New</code></strong> button and add this <strong><code>%MAVEN_HOME%\bin</code></strong></p>
+
+<h4 id="verification">Verification</h4>
+
+<p>Done, start a new command prompt, type <strong><code>mvn –version</code></strong> :</p>
+
+<pre><code class="python">mvn -version
+Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-25T02:41:47+08:00)
+Maven home: C:\opt\apache-maven-3.6.0\bin\..
+Java version: 10.0.1, vendor: Oracle Corporation, runtime: C:\opt\Java\jdk-10
+Default locale: en_MY, platform encoding: Cp1252
+OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
+
+echo %MAVEN_HOME%
+C:\opt\apache-maven-3.6.0
+</code></pre>
+
+<p>The Apache Maven is installed successfully on Windows.</p>
+
+<p>参考连接：</p>
+
+<ul>
+<li><a href="https://www.mkyong.com/maven/how-to-install-maven-in-windows/" target="_blank">How to install Maven on Windows</a></li>
+</ul></body></html>

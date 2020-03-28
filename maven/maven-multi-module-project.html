@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>maven-multi-module-project</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### maven-multi-module-project
+
+#### Maven 多模块使用技巧
+
+##### Maven 多模块项目编译单个模块，同时编译这个模块所需依赖的其它模块
+
+mvn -pl 
+
+Yes, it's possible to do this. Take a look at mvn --help:
+
+```python
+ -pl,--projects <arg>       Comma-delimited list of specified
+    reactor projects to build instead
+    of all projects. A project can be
+    specified by [groupId]:artifactId
+    or by its relative path.
+```
+
+Note in particular that an artifactId without a leading groupId still has a leading colon.
+
+So, for example in a case where the artifactId is the same as the directory name, these three lines would all refer to the same module in Maven:
+
+```python
+mvn -pl maven-core
+mvn -pl :maven-core
+mvn -pl org.apache.maven:maven-core
+```
+
+mvn seems to take the list you provide with **`-pl`** to the heart and not build any dependencies automatically.
+
+So in addition to Joe's answer: If the project/module you're trying to build depends on other modules then you can ask **`mvn`** to build them as well with **`-am`**.
+
+If project list is specified = if -pl option is used
+
+So examples become:
+
+```python
+mvn -pl maven-core -am
+mvn -pl :maven-core -am
+mvn -pl org.apache.maven:maven-core -am
+```
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/26429476/define-modules-list-which-shall-be-build-in-maven-multiproject-build/26439938#26439938" target="_blank">Define modules list which shall be build in Maven multiproject build</a>
+
+Use the Maven <a href="http://www.sonatype.com/people/2009/10/maven-tips-and-tricks-advanced-reactor-options/" target="_blank">advanced reactor options</a>, more specifically:
+
+```python
+-pl, --projects
+        Build specified reactor projects instead of all projects
+-am, --also-make
+        If project list is specified, also build projects required by the list
+```
+
+So just cd into the parent P directory and run:
+
+```python
+mvn install -pl B -am
+```
+
+And this will build B and the modules required by B.
+
+Note that you need to use a colon if you are referencing an artifactId which differs from the directory name:
+
+```python
+mvn install -pl :B -am
+```
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/1114026/maven-modules-building-a-single-specific-module" target="_blank">Maven Modules + Building a Single Specific Module</a>
+
+##### Maven 多模块项目执行 exec:java
+
+执行 **`examples`** 模块中的 **`com.googlecode.mp4parser.SimpleParse`** 类
+
+```python
+mvn -pl examples exec:java -Dexec.mainClass=com.googlecode.mp4parser.SimpleParse
+```
+
+```xml
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>1.6.0</version>
+</plugin>
+```
+
+I'm trying to run exec-maven-plugin's exec:java goal on a simple two-module project where one module depends on the other. So far I can't find a configuration that works. Here's a boiled-down test case:
+
+ - exec-multi-module-test/
+  - module1/ 
+     - src/
+         - main/
+             - java/
+                 - HelloPrinter.java
+     - pom.xml
+
+  - module2/ 
+     - src/
+         - main/
+             - java/
+                 - MyMain.java
+     - pom.xml
+  - pom.xml
+
+
+Here's the parent pom:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.mkscrg.sandbox</groupId>
+    <artifactId>exec-multi-module-test</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>module1</module>
+        <module>module2</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+module1's pom:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>exec-multi-module-test</artifactId>
+        <groupId>com.mkscrg.sandbox</groupId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>module1</artifactId>
+</project>
+```
+
+module2's pom:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>exec-multi-module-test</artifactId>
+        <groupId>com.mkscrg.sandbox</groupId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>module2</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.mkscrg.sandbox</groupId>
+            <artifactId>module1</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+This project compiles successfully from the top, but running mvn exec:java -Dexec.mainClass=myMain fails:
+
+```java
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] exec-multi-module-test
+[INFO] module1
+[INFO] module2
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building exec-multi-module-test 1.0
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] >>> exec-maven-plugin:1.2.1:java (default-cli) @ exec-multi-module-test >>>
+[INFO] 
+[INFO] <<< exec-maven-plugin:1.2.1:java (default-cli) @ exec-multi-module-test <<<
+[INFO] 
+[INFO] --- exec-maven-plugin:1.2.1:java (default-cli) @ exec-multi-module-test ---
+[WARNING] 
+java.lang.ClassNotFoundException: MyMain
+        at java.net.URLClassLoader$1.run(URLClassLoader.java:202)
+        at java.security.AccessController.doPrivileged(Native Method)
+        at java.net.URLClassLoader.findClass(URLClassLoader.java:190)
+        at java.lang.ClassLoader.loadClass(ClassLoader.java:306)
+        at java.lang.ClassLoader.loadClass(ClassLoader.java:247)
+        at org.codehaus.mojo.exec.ExecJavaMojo$1.run(ExecJavaMojo.java:285)
+        at java.lang.Thread.run(Thread.java:680)
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] exec-multi-module-test ............................ FAILURE [0.363s]
+[INFO] module1 ........................................... SKIPPED
+[INFO] module2 ........................................... SKIPPED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 0.566s
+[INFO] Finished at: Mon Jun 18 14:11:54 PDT 2012
+[INFO] Final Memory: 3M/81M
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.codehaus.mojo:exec-maven-plugin:1.2.1:java (default-cli) on project exec-multi-module-test: An exception occured while executing the Java class. MyMain -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
+```
+
+What's the right way to configure this project to allow exec:java to see MyMain?
+
+EDIT: Here's a gist if you'd like to try this yourself: https://gist.github.com/2950830
+
+EDIT: Clarification: I know it's possible to mvn install and then either run exec:java from module2's directory or use the -pl flag from the top. However, I'd like to avoid running mvn install. It shouldn't be necessary to modify my local repository in order to run this goal in a multi-module project. Just as mvn compile "just works" with a multi-module project, so should other goals/phases.
+
+Goals in a multi-module project, when run from the parent, will run against all modules. I don't think that's what you want. You can try:
+
+```java
+mvn exec:java -pl module2 -Dexec.mainClass=MyMain
+```
+
+That might work? More info:
+
+ - <a href="https://stackoverflow.com/questions/3459928/running-a-specific-maven-plugin-goal-from-the-command-line-in-a-sub-module-of-a/3460241#3460241" target="_blank">Running a specific Maven plugin goal from the command line in a sub-module of a multi-module reactor project</a>
+
+However, I think it's more intuitive to change directory to the sub-module containing the executable before running it.
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/11091311/maven-execjava-goal-on-a-multi-module-project" target="_blank">Maven exec:java goal on a multi-module project</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAXWS BindingType Example</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### JAXWS BindingType Example
+
+#### 图书馆服务接口
+
+首先定义图书馆提供了哪些服务，让我用接口表示：
+
+```java
+@WebService(name="Library", targetNamespace="http://library.mycompany.com")
+public interface Library {
+    @WebResult(name="result",targetNamespace="http://library.mycompany.com")
+    public Book addBook(@WebParam(name="book", targetNamespace="http://library.mycompany.com")Book book);
+    @WebResult(name="result",targetNamespace="http://library.mycompany.com")
+    public Book getBook(@WebParam(name="id")int id);
+    @WebResult(name="bookArray")
+    public Book[] getBooksArray();
+    @WebResult(name="bookList")
+    public List<Book> getBookList();
+    @WebResult(name="bookMap")
+    public Map<Integer, Book> getBookMap();
+    @WebResult(name="result")
+    public boolean deleteBook(@WebParam(name="id")int id);
+}
+```
+
+&amp;#160; &amp;#160;由上可以看到，新的图书馆系统所提供的服务，接收和返回的均是封装好的 Book 类型或者 Book 的集合。这需要参数和返回类型符合 JAXB 的规范，JAVA 类型和 XML 可以通过 JAXB 相互转换。
+
+#### 实现 Book 类型
+
+&amp;#160; &amp;#160;在 JAXB2.0 的时候，List和Array可以被转为 XML，但 Map 不可以，但在 2.1 中，Map 已经可以被转为 XML。Array 型的 XML 在被转为 Java 时，会封装成 List。
+
+&amp;#160; &amp;#160;由于 Array，List 和 Map 均可以被 JAXB 转为 XML，只剩下 Book 类型，需要做一些设计，才可以被 JAXB 转为 XML。
+
+```java
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+@XmlRootElement(name="book", namespace="library.mycompany.com")
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name="book", namespace="library.mycompany.com")
+public class Book {
+    @XmlElement(name = "id", namespace = "")
+    private int id;
+    @XmlElement(name = "name", namespace = "")
+    private String name;
+    @XmlElement(name = "author", namespace = "")
+    private String author;
+    
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getAuthor() {
+        return author;
+    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+}
+```
+
+&amp;#160; &amp;#160;我们的 Book 类型还算简单，有时候需要更加复杂的自定义类型，这时候可能需要 @XmlJavaTypeAdapter 的支持，详细内容请学习 JAXB。
+
+#### 实现图书馆 SEI
+
+```java
+@WebService(endpointInterface="com.mycompany.Library")
+public class LibraryImpl implements Library {
+    private static Map<Integer, Book> store = new HashMap<Integer, Book>();
+    private static int currentId=0;
+
+    @Override
+    public Book addBook(Book book) {
+        book.setId(++currentId);
+        store.put(book.getId(), book);
+        return book;
+    }
+
+    @Override
+    public Book getBook(int id) {
+        return store.get(id);
+    }
+
+    @Override
+    public Book[] getBooksArray() {
+        List<Book> l = new ArrayList<Book>();
+        Iterator<Integer> it = store.keySet().iterator();
+        while(it.hasNext()) {
+            l.add(store.get(it.next()));
+        }
+        Book[] r = l.toArray(new Book[1]);
+        System.out.println(r.length);
+        return r;
+    }
+    
+    @Override
+    public List<Book> getBookList() {
+        List<Book> l = new ArrayList<Book>();
+        Iterator<Integer> it = store.keySet().iterator();
+        while(it.hasNext()) {
+            l.add(store.get(it.next()));
+        }
+        return l;
+    }
+    
+    @Override
+    public Map<Integer, Book> getBookMap() {
+        return store;
+    }
+
+    @Override
+    public boolean deleteBook(int id) {
+        if (store.containsKey(id)) {
+            store.remove(id);
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+```
+
+***```sun-jaxws.xml```***
+
+在 WEB-INF 下创建 sun-jaxws.xml 文件：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<endpoints xmlns='http://java.sun.com/xml/ns/jax-ws/ri/runtime' version='2.0'>
+    <endpoint
+        name='library'
+        implementation='com.mycompany.LibraryImpl'
+        url-pattern='/service'/>
+</endpoints>
+```
+
+#### 部署
+
+&amp;#160; &amp;#160;使用 wsgen 命令，产生 WSDL，XSD 和相应的 Java 文件。我创建的是 Maven project，所以使用的是 Maven 中的 wsgen 插件。
+
+```xml
+<plugin>
+  <groupId>org.jvnet.jax-ws-commons</groupId>
+  <artifactId>jaxws-maven-plugin</artifactId>
+  <version>2.3</version>
+  <executions>
+    <execution>
+      <id>wsgen-from-jdk</id>
+      <phase>process-classes</phase>
+      <goals>
+        <goal>wsgen</goal>
+      </goals>
+      <configuration>
+        <executable>${tool.wsgen}</executable>
+        <sei>com.mycompany.LibraryImpl</sei>
+        <genWsdl>true</genWsdl>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
+
+运行命令： mvn package
+
+得到可部署的 war 包 ibrary.war. War 包的内部结构如图：
+
+![jax-ws-binding-example](./images/jax-ws-binding-example/jax-ws-binding-example-001.png)
+
+&amp;#160; &amp;#160;最后将产生的 library.war 丢到 tomcat 下。验证 WebService 已经产生： <a href="http://localhost:8080/library/service" target="_blank">http://localhost:8080/library/service</a>
+
+#### 生成客户端
+
+&amp;#160; &amp;#160;因为客户端也是用 Maven 创建的项目，所以 wsimport 命令使用的是 Maven 中的插件。在 pom.xml 中：
+
+```xml
+<plugin>
+  <groupId>org.jvnet.jax-ws-commons</groupId>
+  <artifactId>jaxws-maven-plugin</artifactId>
+  <version>2.3</version>
+  <executions>
+    <execution>
+      <id>wsimport-from-jdk</id>
+      <goals>
+        <goal>wsimport</goal>
+      </goals>
+      <configuration>
+        <executable>${tool.wsimport}</executable>
+        <wsdlUrls>
+          <wsdlUrl>http://localhost:8080/library/service?wsdl</wsdlUrl>
+        </wsdlUrls>
+        <verbose>true</verbose>
+        <xdebug>true</xdebug>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
+
+&amp;#160; &amp;#160;运行 mvn generate-sources, 得到 wsdl 生成的 java 文件。将 java 文件 copy 到项目中：
+
+![jax-ws-binding-example](./images/jax-ws-binding-example/jax-ws-binding-example-002.png)
+
+&amp;#160; &amp;#160;上面红色框中，除了 AuthorHandler 和 LoggerHandler 是自己写的，其它的都是 wsimport 产生的。
+
+最后填写 App.java 中的 main 函数
+
+```java
+public class App {
+    public static void main( String[] args ) {
+        Book newBook = new Book();
+        newBook.setAuthor("xpbug");
+        newBook.setName("java");
+        Book rBook = createPort().addBook(newBook);
+        printBook(rBook);
+        
+        newBook = new Book();
+        newBook.setAuthor("cat");
+        newBook.setName("c++");
+        rBook = createPort().addBook(newBook);
+        printBook(rBook);
+        
+        System.out.println(createPort().deleteBook(rBook.getId()));
+        
+        rBook = createPort().getBook(1);
+        printBook(rBook);
+        
+        List<Book> list = createPort().getBooksArray();
+        System.out.println(list.size());
+        for (Book i : list) {
+            printBook(i);
+        }
+        
+        list = createPort().getBookList();
+        System.out.println(list.size());
+        for (Book i : list) {
+            printBook(i);
+        }
+        
+        BookMap map = createPort().getBookMap();
+        for (Entry i : map.getEntry()) {
+            System.out.println(i.getKey());
+            printBook(i.getValue());
+        }
+    }
+    
+    public static Library createPort() {
+        Library port = new LibraryImplService().getLibraryImplPort();
+        return port;
+    }
+    
+    public static void printBook(Book book) {
+        System.out.println("[id="+book.getId()+"; name="+book.getName()+"; author="+book.getAuthor()+"]");
+    }
+}
+```
+
+可以直接在 eclipse 中运行 App。
+
+#### 常见问题
+
+&amp;#160; &amp;#160;在编写 WebService 的过程中，明明逻辑正确，参数也正确，但后台总是报 NullPointException, 这种时候，就需要注意 namespace 了。查看 client 端发出的参数的 namespace 是否跟 server 端接收方参数类型的 namespace 一致。如果不一致，接收方只会接到一个 null 参数。
+
+参考链接
+
+ - <a href="https://my.oschina.net/xpbug/blog/228888" target="_blank">JAX-WS 传递自定义的 Java 类型</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAXWS SoapMessage</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+ ```JAXWS Client Request```
+```xml
+POST /jax-ws/discoverIndia HTTP/1.1
+Accept: application/soap+xml, multipart/related
+Content-Type: application/soap+xml; charset=utf-8;action="http://ws.mrcuijt.science/EmployeeDataIf/getEmployeeRequest"
+User-Agent: JAX-WS RI 2.2.8 svn-revision#13980
+Host: localhost:8080
+Connection: keep-alive
+Content-Length: 252
+
+<?xml version='1.0' encoding='UTF-8'?>
+<S:Envelope xmlns:S="http://www.w3.org/2003/05/soap-envelope">
+    <S:Body>
+        <ns3:getEmployee
+            xmlns:ns2="http://bemach.com"
+            xmlns:ns3="http://ws.mrcuijt.science/">
+            <emplNo>2</emplNo>
+        </ns3:getEmployee>
+    </S:Body>
+</S:Envelope>
+```
+ ```JAXWS Server Response```
+```xml
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: application/soap+xml;charset=utf-8
+Transfer-Encoding: chunked
+Date: Mon, 04 Mar 2019 11:33:33 GMT
+
+<?xml version='1.0' encoding='UTF-8'?>
+<S:Envelope xmlns:S="http://www.w3.org/2003/05/soap-envelope">
+    <S:Body>
+        <ns2:getEmployeeResponse
+            xmlns:ns2="http://ws.mrcuijt.science/"
+            xmlns:ns3="http://bemach.com">
+            <return>
+                <empNo>2</empNo>
+                <firtsName>Cui</firtsName>
+                <lastName>san</lastName>
+                <birthDate>1998-12-11T00:00:00+08:00</birthDate>
+                <gender>F</gender>
+                <hireDate>2018-02-11T00:00:00+08:00</hireDate>
+            </return>
+        </ns2:getEmployeeResponse>
+    </S:Body>
+</S:Envelope>
+```
+
+ ```CXF-WebService Client Request```
+```xml
+POST /ws/hello HTTP/1.1
+Content-Type: text/xml; charset=UTF-8
+Accept: */*
+SOAPAction: ""
+User-Agent: Apache CXF 3.0.1
+Cache-Control: no-cache
+Pragma: no-cache
+Host: localhost:8080
+Connection: keep-alive
+Content-Length: 203
+
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <ns2:sayHello xmlns:ns2="http://service.cxf.mrcuijt.science/">
+            <arg0>Jack</arg0>
+        </ns2:sayHello>
+    </soap:Body>
+</soap:Envelope>
+```
+ 
+ ```CXF-WebService Server Response```
+```xml
+HTTP/1.1 200 OK
+Content-Type: text/xml;charset=UTF-8
+Transfer-Encoding: chunked
+Server: Jetty(8.1.15.v20140411)
+
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">  
+  <soap:Body> 
+    <ns2:sayHelloResponse xmlns:ns2="http://service.cxf.mrcuijt.science/">  
+      <return>Jack,Welcome to CXFWebService</return> 
+    </ns2:sayHelloResponse> 
+  </soap:Body> 
+</soap:Envelope>
+```
+
+ ```AXIS2 Client Requset```
+```xml
+POST /axis2/services/HelloWorldService HTTP/1.1
+Content-Type: text/xml; charset=UTF-8
+SOAPAction: ""
+User-Agent: Axis2
+Host: localhost:8080
+Transfer-Encoding: chunked
+
+<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">  
+  <soapenv:Header/>  
+  <soapenv:Body> 
+    <sayHello xmlns="http://ws.apache.org/axis2">  
+      <arg0 xmlns="">jack</arg0> 
+    </sayHello> 
+  </soapenv:Body> 
+</soapenv:Envelope>
+```
+
+ ```AXIS2 Server Response```
+```xml
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: text/xml;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Mon, 04 Mar 2019 14:08:38 GMT
+
+<?xml version='1.0' encoding='UTF-8'?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">  
+  <soapenv:Header/>  
+  <soapenv:Body> 
+    <ns:sayHelloResponse xmlns:ns="http://ws.apache.org/axis2">  
+      <return>jack say: hello [axis2]</return> 
+    </ns:sayHelloResponse> 
+  </soapenv:Body> 
+</soapenv:Envelope>
+```
+
+ ```JAXWS Client```
+ 
+ - ***With out prefix*** ``` ns```
+ - ```Convert to List<String>```
+```xml
+<?xml version='1.0' encoding='UTF-8'?>
+<S:Envelope
+    xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Body>
+        <ns2:getListResponse xmlns:ns2="http://service.jaxws.mrcuijt.science">
+            <ns2:string>demo1</ns2:string>
+            <ns2:string>demo2</ns2:string>
+            <ns2:string>demo3</ns2:string>
+            <ns2:string>demo4</ns2:string>
+            <ns2:string>demo5</ns2:string>
+            <ns2:string>demo6</ns2:string>
+        </ns2:getListResponse>
+    </S:Body>
+</S:Envelope>
+```
+ ```JAXWS Client```
+ 
+ - ***With out prefix*** ``` ns```
+ - ```Convert to List<Region>```
+ - ```Region.alias is List<String>```
+```xml
+<?xml version='1.0' encoding='UTF-8'?>
+<S:Envelope
+    xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+    <S:Body>
+        <ns2:getRegionListResponse xmlns:ns2="http://service.jaxws.mrcuijt.science">
+            <ns2:region>
+                <alias>北京</alias>
+                <alias>北京市</alias>
+            </ns2:region>
+            <ns2:region>
+                <alias>天津</alias>
+                <alias>天津市</alias>
+            </ns2:region>
+            <ns2:region>
+                <alias>河北</alias>
+                <alias>河北市</alias>
+            </ns2:region>
+            <ns2:region>
+                <alias>郑州</alias>
+                <alias>郑州市</alias>
+            </ns2:region>
+        </ns2:getRegionListResponse>
+    </S:Body>
+</S:Envelope>
+```
+
+ ```JAXWS Client```
+ 
+ - ***With not out prefix***
+ - ```Convert to List<String>```
+```xml
+<soap:Envelope
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Body>
+        <getSupportProvinceResponse
+            xmlns="http://WebXml.com.cn/">
+            <string>直辖市</string>
+            <string>特别行政区</string>
+            <string>黑龙江</string>
+        </getSupportProvinceResponse>
+    </soap:Body>
+</soap:Envelope>
+```
+ ```JAXWS Client```
+ 
+ - ***With out prefix*** ``` ns```
+ - ```Convert to List<Region>```
+ - ```Region.string is List<String>```
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Body>
+        <ns2:getSupportProvinceResponse
+            xmlns:ns2="http://WebXml.com.cn/">
+            <ns2:SupportProvinceResult>
+                <string>直辖市</string>
+                <string>特别行政区</string>
+                <string>黑龙江</string>
+                <string>吉林</string>
+                <string>辽宁</string>
+            </ns2:SupportProvinceResult>
+        </ns2:getSupportProvinceResponse>
+    </soap:Body>
+</soap:Envelope>
+```
+
+ ```JAXWS Client```
+ 
+ - ***With not out prefix***
+ - ```Convert to List<Region>```
+ - ```Region.string is List<String>```
+ - ***Need modify SEI method add*** ```@WebResult```
+  - ```name```:```getSupportProvinceResult``` ***Mapping to SOAPMessage ```<getSupportProvinceResult>``` Element***
+  - ```targetNamespace```:```http://WebXml.com.cn/``` ***Mapping to ```<getSupportProvinceResponse>``` Element ```xmlns``` attribute***
+```java
+@WebService(name = "WeatherWebService", targetNamespace = "http://WebXml.com.cn/", wsdlLocation = "http://ws.webxml.com.cn/WebServices/WeatherWebService.asmx?wsdl")
+public interface WeatherWebService {
+
+	@WebMethod
+	@WebResult(name = "getSupportProvinceResult", targetNamespace = "http://WebXml.com.cn/")
+	public SupportProvinceResponse getSupportProvince();
+}
+ 
+```
+ - ***Need Modify JavaBean add*** ```@XmlAccessorType```
+  - ***Modify PUBLIC_MEMBER add*** ```@XmlElement```
+     - ```name```:```string``` ***Mapping to ```<getSupportProvinceResult>``` children Element ```<string>```***
+     - ```targetNamespace```:```http://WebXml.com.cn/``` ***Mapping to ```<getSupportProvinceResponse>``` Element ```xmlns``` attribute***
+
+```java
+@XmlAccessorType
+public class SupportProvinceResponse {
+
+	private List<String> province;
+
+	/**
+	 * @return the province
+	 */
+	@XmlElement(name = "string", namespace = "http://WebXml.com.cn/")
+	public List<String> getProvince() {
+		return province;
+	}
+
+	/**
+	 * @param province the province to set
+	 */
+	public void setProvince(List<String> province) {
+		this.province = province;
+	}
+
+}
+```
+ 
+ - ***AXIS2 Server Response ```with not out prefix```***
+```xml
+<soap:Envelope
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Body>
+        <getSupportProvinceResponse
+            xmlns="http://WebXml.com.cn/">
+            <getSupportProvinceResult>
+                <string>直辖市</string>
+                <string>特别行政区</string>
+                <string>黑龙江</string>
+                <string>吉林</string>
+                <string>辽宁</string>
+            </getSupportProvinceResult>
+        </getSupportProvinceResponse>
+    </soap:Body>
+</soap:Envelope>
+```
+	
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

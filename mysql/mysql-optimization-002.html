@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MySQL Optimization 002</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### MySQL 优化
+
+#### 索引优化
+
+##### 索引字段选择
+
+ - 字段类型优先级：
+  
+  - 整形> date,time > char,varchar > blob
+  
+  - 原因：整形，time 运算快节省空间。
+  
+  - Char/varchar 要考虑字符集的转换与排序时的校对集，速度慢。
+  
+  - blob 无法使用内存临时表。
+
+ - 够用就行，不要慷慨（如 smallint,varchar(N)）
+ 
+  - 原因：大的字段浪费内存，影响速度
+  
+  - 以 varchar(10),varchar(300) 存储的内容相同，但在表联查时，varchar(300) 要花更多内存。
+ 
+ - 尽量避免使用 NULL
+ 
+  - 原因：NULL 不利于索引，要用特殊的字节来标注 NULL。
+  
+  - 在磁盘上占据的空间其实更大。
+
+##### Enum 列说明
+
+ - enum 列内部是用整型来存储的。
+ 
+ - enum 列与 enum 列相关联速度最快。
+ 
+ - enum 列比（var）char 的弱势---在碰到与 char 关联时，要转化，要花时间
+ 
+ - 优势在于，当 char 非常长时，enum 依然是整型补丁长度。
+ 
+ 当查询的数据量越大时，enum 的优势越明显。
+ 
+ - enum 与 char/varchar 关联，因为要转化，速度要比 enum>enum,char>char 要慢。
+ 
+ 但有时也可以这样用---就是在数据量特别大时，可以节省 IO。
+
+#### 索引优化策略
+
+##### 索引类型
+
+B-tree 索引
+
+注：名叫 btree 索引，大的方面看，都用的平衡树。但具体实现上，各引擎稍有不同。比如，严格的说，NDB 引擎，使用的是 T-tree。
+
+Myisam,innodb 中，默认使用 B-tree 索引。
+
+但抽象一下---B-tree 系统，可理解为“排好序的快速查找结构”。
+
+btree 索引常见的误区
+
+ - 在 where 条件上的列都加上索引
+ 
+  - 例：where cat_id=3 and price>100; // 查询第 3 个栏目，100元以上的商品
+ 
+  - 误：cat_id 上，和，price 上都加上索引。
+ 
+  - 错：只能用上 cat_id 或 price 索引因为是独立的索引，同时只能用上 1 个。
+
+ - 在多列上建立索引后，查询哪个列索引都将发挥作用
+ 
+  - 误：多列索引上，索引发挥作用。**`需要满足左前缀要求`**。
+  
+  - 以 index(a,b,c) 为例：
+
+<text zoom="7.2">╔═══════════════════════════════════════════╤════════════════════════════════════════╗
+║ 语句                                      │ 索引是否发挥作用                       ║
+╟───────────────────────────────────────────┼────────────────────────────────────────╢
+║ WHERE a=3                                 │ 是，只是用来 a 列。                    ║
+╟───────────────────────────────────────────┼────────────────────────────────────────╢
+║ WHERE a=3 AND b=5                         │ 是，使用了 a,b 列。                    ║
+╟───────────────────────────────────────────┼────────────────────────────────────────╢
+║ WHERE a=3 AND b=5 AND c=4                 │ 是，使用了 a,b,c 列。                  ║
+╟───────────────────────────────────────────┼────────────────────────────────────────╢
+║ WHERE b=5 | WHERE c=4                     │ 否。                                   ║
+╟───────────────────────────────────────────┼────────────────────────────────────────╢
+║ WHERE a=3 AND c=4                         │ a 列能发挥索引，c不能。                ║
+╟───────────────────────────────────────────┼────────────────────────────────────────╢
+║ WHERE b=5 AND b>10 and c=7                │ a 能利用索引，b 能利用索引，c 不能利用 ║
+╟───────────────────────────────────────────┼────────────────────────────────────────╢
+║ 同上, WHERE a=3 and b like 'xxx%' and c=7 │ a 能用，b 能用，c 不能                 ║
+╚═══════════════════════════════════════════╧════════════════════════════════════════╝</text>
+
+index(a,b,c) 这三列作为索引是逐个发挥作用的，如果在开始或在中间没有用到这个列或者对某一个列的查询条件没有给出确切的值，给的是一个范围(like,&gt;,&lt;)那么后面的索引就无法使用。
+
+##### 分组统计
+
+ - 一般分组统计，先按分组的栏目进行排序。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maven Plugin</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+目录
+
+ - <a href="#001" target="_self">Maven Resources 插件</a>
+
+ - <a href="#002" target="_self">Maven Compiler 插件</a>
+
+ - <a href="#003" target="_self">Maven Dependency 插件</a>
+
+ - <a href="#004" target="_self">Maven Surefire Plugin</a>
+
+ - <a href="#005" target="_self">Maven War Plugin</a>
+
+ - <a href="#006" target="_self">Maven Jar Plugin</a>
+
+ - <a href="#007" target="_self">Maven Source Plugin</a>
+
+ - <a href="#008" target="_self">Maven JavaDoc Plugin</a>
+
+ - <a href="#009" target="_self">Maven mybatis-generator Plugin</a>
+
+ - <a href="#010" target="_self">Maven Ant Plugin</a>
+
+ - <a href="#011" target="_self">Maven Tomcat Plugin</a>
+
+ - <a href="#012" target="_self">Maven Assembly Plugin</a>
+
+ - <a href="#013" target="_self">Maven Jetty Plugin</a>
+
+<span id="001">***```Maven Resources 插件```***</span>
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-resources-plugin</artifactId>
+    <configuration>
+        <encoding>UTF-8</encoding>
+    </configuration>
+</plugin>
+```
+
+<span id="002">***```Maven Compiler 插件```***</span>
+```xml
+<!-- Maven Compiler 插件环境配置 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.8.1</version>
+    <!-- 设置详细信息 -->
+    <configuration>
+        <source>1.7</source>
+        <target>1.7</target>
+        <encoding>UTF-8</encoding>
+        <skip>true</skip>
+    </configuration>
+</plugin>
+```
+
+<span id="003">***```Maven Dependency 插件```***</span>
+```xml
+<!-- Maven Dependency 插件环境配置 -->
+<!-- mvn dependency:copy-dependencies -->
+<!-- mvn dependency:copy-dependencies -Dclassifier=javadoc -->
+<!-- mvn dependency:copy-dependencies -Dclassifier=sources -->
+<!-- mvn dependency:resolve -Dclassifier=javadoc -->
+<!-- mvn dependency:sources -->
+<!-- mvn dependency:tree -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <version>3.1.1</version>
+    <executions>
+        <execution>
+            <id>download-doc</id>
+            <phase>compile</phase>
+            <goals>
+                <goal>resolve</goal>
+            </goals>
+            <configuration>
+                <classifier>javadoc</classifier>
+            </configuration>
+        </execution>
+        <execution>
+            <id>download-source</id>
+            <phase>compile</phase>
+            <goals>
+                <goal>sources</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>copy-dependencies-runtime</id>
+            <phase>process-resources</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+                <!--http://maven.apache.org/plugins/maven-dependency-plugin/copy-dependencies-mojo.html#includeScope-->
+                <includeScope>runtime</includeScope>
+                <!--依赖传递-->
+                <excludeTransitive>false</excludeTransitive>
+            </configuration>
+        </execution>
+        <execution>
+            <id>copy-dependencies-system</id>
+            <phase>process-resources</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+                <includeScope>system</includeScope>
+                <!--过滤依赖传递-->
+                <excludeTransitive>true</excludeTransitive>
+                <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib</outputDirectory>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+```python
+## 下载源码
+mvn dependency:sources
+## 下载 JavaDoc
+mvn dependency:resolve -Dclassifier=javadoc
+```
+
+***```settings.xml```***
+
+```xml
+<profiles>  
+    <profile>  
+        <id>downloadSources</id>  
+        <properties>  
+            <downloadSources>true</downloadSources>  
+            <downloadJavadocs>true</downloadJavadocs>             
+        </properties>  
+    </profile>  
+</profiles>  
+  
+<activeProfiles>  
+    <activeProfile>downloadSources</activeProfile>  
+</activeProfiles>
+```
+
+<span id="004">***```Maven Surefire Plugin```***</span>
+
+The Surefire plugin builds the test classpath in the following order:
+
+ 1. _The test-classes directory_
+ 
+ 2. _The classes directory_
+ 
+ 3. _The project dependencies_
+ 
+ 4. _Additional classpath elements_
+
+它会去得到所有项目依赖的 _jar_ 。但是不包括 _scope_ 为 _system_ 和 _procided_ 等
+
+```xml
+<!-- Maven Surefire 测试用例插件环境配置 -->
+<!-- mvn surefire:test -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.0.0-M3</version>
+    <configuration>
+        <includes>
+            <!-- 在执行测试用例时引入外部依赖 Jar -->
+            <include>${project.basedir}/libs/*</include>
+            <!-- 程序编译打包时跳过测试阶段 -->
+			<skipTests>true</skipTests>
+        </includes>
+    </configuration>
+</plugin>
+```
+
+<span id="005">***```Maven War Plugin```***</span>
+```xml
+<!-- 设置打包时过滤的文件 -->
+<plugin>
+    <artifactId>maven-war-plugin</artifactId>
+    <configuration>
+        <!-- 过滤 resource 资源目录下指定的文件 -->
+        <!-- packagingExcludes 中指定的文件位于 src/main/resources 目录中 -->
+        <packagingExcludes></packagingExcludes>
+        <!-- 过滤 webapp 目录下指定的文件 -->
+        <!-- warSourceExcludes 中指定的文件位于 src/main/webapp 目录中 -->
+        <warSourceExcludes>
+            upload_file/** ,
+            temp_dir/**
+        </warSourceExcludes>
+		<!-- 引入 Web 资源 -->
+		<webResources>
+			<resource>
+				<directory>${basedir}/libs/</directory>
+				<targetPath>WEB-INF/lib</targetPath>
+			</resource>
+		</webResources>
+    </configuration>
+</plugin>
+```
+
+***```<resource>```*** 元素引入资源
+
+```xml
+<build>
+    <!-- https://blog.csdn.net/huangyuhuangyu/article/details/80657480 -->
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+        </resource>
+        <resource>
+            <directory>src/main/webapp</directory>
+        </resource>
+    </resources>
+</build>
+```
+
+<span id="006">***```Maven Jar Plugin```***</span>
+```xml
+<!-- jar包插件 -->  
+<plugin>  
+    <groupId>org.apache.maven.plugins</groupId>  
+    <artifactId>maven-jar-plugin</artifactId>  
+    <version>2.4</version>  
+    <configuration>  
+        <archive>  
+            <manifest>  
+                <!-- 告知 maven-jar-plugin添加一个 Class-Path元素到 MANIFEST.MF文件，以及在Class-Path元素中包括所有依赖项 -->  
+                <addClasspath>true</addClasspath>  
+                <!-- 所有的依赖项应该位于 lib文件夹 -->  
+                <classpathPrefix>lib/</classpathPrefix>  
+                <!-- 当用户使用 lib命令执行JAR文件时，使用该元素定义将要执行的类名 -->  
+                <mainClass>com.zhengtian.tools.service.phone.MobilePhoneTool</mainClass>  
+            </manifest>  
+        </archive>  
+    </configuration>  
+</plugin>
+```
+
+<span id="007">***```Maven Source Plugin```***</span>
+```xml
+<!--配置生成源码包 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-source-plugin</artifactId>
+    <version>3.0.1</version>
+    <executions>
+        <execution>
+            <id>attach-sources</id>
+            <phase>process-resources</phase>
+            <goals>
+                <goal>jar</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+<span id="008">***```Maven JavaDoc Plugin```***</span>
+```xml
+<!--配置生成Javadoc包 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-javadoc-plugin</artifactId>
+    <version>2.10.4</version>
+    <configuration>
+        <encoding>UTF-8</encoding>
+        <aggregate>true</aggregate>
+        <charset>UTF-8</charset>
+        <docencoding>UTF-8</docencoding>
+    </configuration>
+    <executions>
+        <execution>
+            <id>attach-javadocs</id>
+            <phase>process-resources</phase>
+            <goals>
+                <goal>jar</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+<span id="009">***```Maven mybatis-generator Plugin```***</span>
+```xml
+<build>
+    <plugins>
+        <!-- mybatis 生成工具 -->
+        <plugin>
+            <groupId>org.mybatis.generator</groupId>
+            <artifactId>mybatis-generator-maven-plugin</artifactId>
+            <version>1.3.2</version>
+            <configuration>
+                <verbose>true</verbose>
+                <overwrite>true</overwrite>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+```xml
+<plugin>
+    <groupId>org.mybatis.generator</groupId>
+    <artifactId>mybatis-generator-maven-plugin</artifactId>
+    <version>1.3.2</version>
+    <configuration>
+        <!-- mybatis用于生成代码的配置文件 -->
+        <configurationFile>generatorConfig.xml</configurationFile>
+        <verbose>true</verbose>
+        <overwrite>true</overwrite>
+    </configuration>
+    <dependencies>
+        <dependency>
+            <groupId>tk.mybatis</groupId>
+            <artifactId>mapper</artifactId>
+            <version>4.0.0-beta3</version>
+        </dependency>
+ 
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <!-- 引用依赖库的版本 -->
+            <version>5.1.9</version>
+        </dependency>
+    </dependencies>
+</plugin>
+```
+
+***```generatorConfig.xml```***
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+  <!--<classPathEntry location="D:/soft/mysql-connector-java-5.1.9.jar" />  -->
+  <context id="context1">
+    <property name="javaFileEncoding" value="utf-8"></property>
+    <property name="beginningDelimiter" value="`"/>
+    <property name="endingDelimiter" value="`"/>
+    <property name="mergeable" value="false"></property>
+    <plugin type="org.mybatis.generator.plugins.SerializablePlugin"/>
+ 
+    <plugin type="tk.mybatis.mapper.generator.MapperPlugin">
+      <property name="mappers" value="tk.mybatis.mapper.common.Mapper,tk.mybatis.mapper.common.special.InsertListMapper"></property>
+    </plugin>
+ 
+    <commentGenerator>
+      <!-- 是否去除自动生成的注释 true：是 ： false:否 -->
+      <property name="suppressAllComments" value="true"/>
+    </commentGenerator>
+ 
+    <jdbcConnection connectionURL="jdbc:mysql://127.0.0.1:3306/usm" 
+                    driverClass="com.mysql.jdbc.Driver"
+                    password="root" userId="root" />
+ 
+    <javaModelGenerator  targetPackage="com.lwx.usm.model" 
+                         targetProject="src/main/java" >
+      <property name="trimStrings" value="true"/>
+    </javaModelGenerator>
+ 
+    <sqlMapGenerator targetPackage="com.lwx.usm.mapping.mysql" 
+                     targetProject="src/main/resources" />
+ 
+    <javaClientGenerator targetPackage="com.lwx.usm.mapper" 
+                         targetProject="src/main/java" type="XMLMAPPER" />
+ 
+    <table tableName="login_log" schema="" 
+           enableCountByExample="false" 
+           enableUpdateByExample="false" 
+           enableDeleteByExample="false"
+           enableSelectByExample="false" 
+           selectByExampleQueryId="false">
+    </table>
+  </context>
+</generatorConfiguration>
+```
+
+在 _resource_ 下添加 _generatorConfig.xml_ 配置文件
+
+_mvn mybatis-generator:generate_ 反向生成 _entity_ ，_mapper-interface_ ，_mapper.xml_
+
+<span id="010">***```Maven Ant Plugin```***</span>
+
+```python
+mvn antrun:run
+```
+
+```xml
+<build>
+    <plugins>
+        <!-- Maven Ant 插件环境配置 -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+        </plugin>
+    </plugins>
+    <pluginManagement>
+        <plugins>
+            <!-- Maven Ant 插件环境配置 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <configuration>
+                    <target>
+						<ant antfile="${basedir}/build-main.xml">
+							<target name="system_info" />
+						</ant>
+                    </target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+</build>
+```
+
+***```build-main.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+	<target name="system_info">
+		<echo message="hello ant, from Maven!" />
+		<echo>Maybe this will work?</echo>
+		<echo>用户目录： ${user.home}</echo>
+		<echo>项目基础（根）目录： ${basedir}</echo>
+		<echo>项目文件地址： ${project.baseUri}</echo>
+		<echo>项目目录： ${project.build.directory}</echo>
+		<echo>项目版本： ${project.version}</echo>
+		<echo>项目打包文件名： ${project.build.finalName}</echo>
+		<echo>项目打包类型： ${project.packaging}</echo>
+		<echo>项目打包时间格式： ${maven.build.timestamp.format}</echo>
+		<echo>项目打包时间： ${maven.build.timestamp}</echo>
+		<echo>项目主源码路径： ${project.build.directory}</echo>
+		<echo>项目主源码编码格式： ${project.build.sourceEncoding}</echo>
+		<echo>项目主源码路径： ${project.build.sourceDirectory}</echo>
+		<echo>Setting 变量引用：</echo>
+		<echo>Maven 仓库配置： ${settings.localRepository}</echo>
+		<echo>系统环境变量引用：</echo>
+		<echo>使用 mvn help:system 可查看所有系统环境变量</echo>
+		<echo>操作系统名称： ${os.name}</echo>
+		<echo>操作系统版本： ${os.version}</echo>
+		<echo>操作系统架构： ${os.arch}</echo>
+		<echo>系统文件分割符： ${path.separator}</echo>
+		<echo>文件分隔符： ${file.separator}</echo>
+		<echo>路径分隔符： ${path.separator}</echo>
+		<echo>行分隔符： ${line.separator}</echo>
+		<echo>用户的账户名称： ${user.name}</echo>
+		<echo>用户的主目录： ${user.home}</echo>
+		<echo>用户当前工作目录： ${user.dir}</echo>
+	</target>
+</project>
+```
+
+<span id="011">***```Maven Tomcat Plugin```***</span>
+
+***```maven tomcat8 plugin pluginRepositories```***
+```xml
+<pluginRepositories>
+    <pluginRepository>
+        <id>alfresco-public</id>
+        <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+    </pluginRepository>
+    <pluginRepository>
+        <id>alfresco-public-snapshots</id>
+        <url>https://artifacts.alfresco.com/nexus/content/groups/public-snapshots</url>
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>daily</updatePolicy>
+        </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+        <id>beardedgeeks-releases</id>
+        <url>http://beardedgeeks.googlecode.com/svn/repository/releases</url>
+    </pluginRepository>
+</pluginRepositories>
+```
+
+***```maven tomcat6~8 plugin```***
+
+```xml
+<properties>
+    <!-- 指定 Tomcat 版本 -->
+    <tomcat-version>8.0.53</tomcat-version>
+</properties>
+```
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.tomcat.maven</groupId>
+            <artifactId>tomcat8-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+ 
+    <pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat8-maven-plugin</artifactId>
+                <version>3.0-r1655215</version>
+                <configuration>
+                    <server>tomcat8</server>
+                    <charset>UTF-8</charset>
+                    <!-- 指定端口 -->
+                    <port>8080</port>
+                    <!-- 请求路径 -->
+                    <path>/</path>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.tomcat.embed</groupId>
+                        <artifactId>tomcat-embed-core</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-util</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-coyote</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-api</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-jdbc</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-dbcp</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-servlet-api</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-jsp-api</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-jasper</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-jasper-el</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-el-api</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-catalina</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-tribes</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-catalina-ha</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-annotations-api</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat</groupId>
+                        <artifactId>tomcat-juli</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat.embed</groupId>
+                        <artifactId>tomcat-embed-logging-juli</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.tomcat.embed</groupId>
+                        <artifactId>tomcat-embed-logging-log4j</artifactId>
+                        <version>${tomcat-version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <charset>UTF-8</charset>
+                    <!-- 指定端口 -->
+                    <port>8080</port>
+                    <!-- 请求路径 -->
+                    <path>/</path>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat6-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <charset>UTF-8</charset>
+                    <!-- 指定端口 -->
+                    <port>8080</port>
+                    <!-- 请求路径 -->
+                    <path>/</path>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+</build>
+```
+
+<span id="012">***```Maven Assembly Plugin```***</span>
+
+```xml
+<!-- Maven Assembly 插件 -->
+<plugin>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <version>3.1.1</version>
+    <configuration>
+        <descriptorRefs>
+            <descriptorRef>project</descriptorRef>
+        </descriptorRefs>
+    </configuration>
+</plugin>
+```
+
+ - **bin** ： 类似于默认打包，会将 bin 目录下的文件打到包中
+ 
+ - **jar-with-dependencies** ： 会将所有依赖都解压打包到生成物中
+ 
+ - **src** ：只将源码目录下的文件打包
+ 
+ - **project** ： 将整个 project 资源打包
+
+***```“assembly”```*** 是把一组文件、目录、依赖元素组装成一个归档文件
+
+参考链接:
+
+ - <a href="http://blog.csdn.net/WANGYAN9110/article/details/38646677" target="_blank">Assembly Plugin 使用</a>
+ 
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-assembly-plugin</artifactId>
+    <version>3.1.1</version>
+    <executions>
+        <execution>
+            <id>make-zip</id>
+            <!-- 绑定到package生命周期阶段上 -->
+            <phase>package</phase>
+            <goals>
+                <!-- 绑定到package生命周期阶段上 -->
+                <goal>single</goal>
+            </goals>
+            <configuration>
+                <descriptors> <!--描述文件路径 -->
+                    <descriptor>src/assembly/assembly.xml</descriptor>
+                </descriptors>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+***```assembly.xml```***
+```xml
+<assembly
+    xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>distribution</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>${project.basedir}\src\main\resources</directory>
+            <outputDirectory>\</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}\src\bin</directory>
+            <outputDirectory>\bin</outputDirectory>
+        </fileSet>
+    </fileSets>
+    <dependencySets>
+        <dependencySet>
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <!-- 将scope为runtime的依赖包打包到lib目录下。 -->
+            <scope>runtime</scope>
+        </dependencySet>
+    </dependencySets>
+</assembly>
+```
+
+<span id="013">***```Maven Jetty Plugin```***</span>
+```xml
+<plugin>
+  <groupId>org.eclipse.jetty</groupId>
+  <artifactId>jetty-maven-plugin</artifactId>
+  <version>9.3.7.v20160115</version>
+</plugin>
+```
+
+##### jetty 插件的运行
+
+```python
+mvn jetty:run
+```
+
+&amp;#160; &amp;#160;```jetty:run``` 命令会直接使用源代码运行 web 程序，不将其打包成 war 文件。jetty 插件会保证在运行前所有的类和资源都是最新的。如果你修改了代码，插件会自动重新部署。
+
+```python
+mvn jetty:run-war
+```
+
+&amp;#160; &amp;#160;```jetty:run-war``` 会先将程序打包成 war 文件然后再将其部署。如果有代码修改，会重新打包 war 文件并部署。
+
+##### jetty 插件的配置
+
+&amp;#160; &amp;#160;在 pom.xml 中配置
+
+&amp;#160; &amp;#160;在 plugin 节点下，添加 configuration 节点就可以配置 jetty 插件了。
+
+```xml
+<configuration>
+    <httpConnector>
+        <port>8080</port>
+        <host>localhost</host>
+    </httpConnector>
+    <scanIntervalSeconds>1</scanIntervalSeconds>
+</configuration>
+```
+
+ - ```idleTimeout```: 一次连接的最大空闲时间。
+ 
+ - ```port```: jetty 服务器的端口号。
+ 
+ - ```host```: jetty 服务器监听的地址。
+ 
+ - ```scanIntervalSeconds```: 扫描进行热部署的间隔时间。
+
+在 jetty 配置文件中配置
+
+&amp;#160; &amp;#160;jetty 插件也支持将 jetty 配置到相应的配置文件中，然后在 pom.xml 中引用这些配置文件。就像这样：
+
+```xml
+<plugin>
+  <groupId>org.eclipse.jetty</groupId>
+  <artifactId>jetty-maven-plugin</artifactId>
+  <version>9.3.7.v20160115</version>
+  <configuration>
+    <jettyXml>jetty.xml,jetty-ssl.xml,jetty-https.xml</jettyXml>
+  </configuration>
+</plugin>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>maven-install</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### maven-install
+
+#### Download Apache Maven
+
+Visit <a href="http://maven.apache.org/download.cgi" target="_blank">Maven official website</a>, download the Maven zip file, for example : `apache-maven-3.6.0-bin.zip`.
+
+![title](./images/maven-install/maven-install-001.png)
+
+Unzip it to a folder. In this article, we are using `c:\opt\apache-maven-3.6.0`
+
+![title](./images/maven-install/maven-install-002.png)
+
+**Note**
+
+ - That’s all, just download and unzip, installation is NOT required. 
+
+#### Add MAVEN_HOME system variable
+
+Add a **`MAVEN_HOME`** system variables, and point it to the Maven folder.
+
+Press Windows key, type **`adva`** and clicks on the **`View advanced system settings`**
+
+![title](./images/maven-install/maven-install-003.png)
+
+In System Properties dialog, select **`Advanced`** tab and clicks on the **`Environment Variables...`** button.
+
+![title](./images/maven-install/maven-install-004.png)
+
+In “Environment variables” dialog, **`System variables`**, Clicks on the **`New...`** button and add a **`MAVEN_HOME`** variable and point it to **`c:\opt\apache-maven-3.6.0`**
+
+![title](./images/maven-install/maven-install-005.png)
+
+#### Add %MAVEN_HOME%\bin To PATH
+
+In system variables, find **`PATH`**, clicks on the **`Edit...`** button. In “Edit environment variable” dialog, clicks on the **`New`** button and add this **`%MAVEN_HOME%\bin`**
+
+#### Verification
+
+Done, start a new command prompt, type **`mvn –version`** :
+
+```python
+mvn -version
+Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-25T02:41:47+08:00)
+Maven home: C:\opt\apache-maven-3.6.0\bin\..
+Java version: 10.0.1, vendor: Oracle Corporation, runtime: C:\opt\Java\jdk-10
+Default locale: en_MY, platform encoding: Cp1252
+OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
+
+echo %MAVEN_HOME%
+C:\opt\apache-maven-3.6.0
+```
+
+The Apache Maven is installed successfully on Windows.
+
+参考连接：
+
+ - <a href="https://www.mkyong.com/maven/how-to-install-maven-in-windows/" target="_blank">How to install Maven on Windows</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

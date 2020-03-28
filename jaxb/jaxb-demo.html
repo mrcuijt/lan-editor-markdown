@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAXB Demo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+JAXB 是 JavaEE 的规范.全称 Java Architecture for XML Binding. 
+
+&amp;#160; &amp;#160;可以根据 XML Schema 产生 Java 类的技术。JAXB 也提供了将 XML 实例文档反向生成 Java 对象树的方法，并能将 Java 对象树的内容重新写到 XML 实例文档. 
+
+&amp;#160; &amp;#160; JAXB 2.0 是 JDK 1.6 的组成部分。JAXB 2.2.3 是 JDK 1.7 的组成部分。在实际使用不需要引入新的 jar。
+
+我一般使用都是配合 JPA 使用,下面例子也是按 JPA+JAXB 来说明. 
+
+因此我需要引入 jpa 的实现包. hibernate-validator 随便. 做验证用的.
+
+```xml
+<dependency>
+    <groupId>org.hibernate.javax.persistence</groupId>
+    <artifactId>hibernate-jpa-2.0-api</artifactId>
+    <version>1.0.1.Final</version>
+</dependency>
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-validator</artifactId>
+    <version>5.0.1.Final</version>
+</dependency>
+```
+
+##### JDK 中 JAXB 相关的重要 Class 和 Interface：
+
+ - JAXBContext 类，是应用的入口，用于管理 XML/Java 绑定信息。
+ 
+ - Marshaller 接口，将 Java 对象序列化为 XML 数据。
+ 
+ - Unmarshaller 接口，将 XML 数据反序列化为 Java 对象。
+
+##### 常用注解说明
+
+常用的annotation有：
+
+ - @XmlType
+ 
+ - @XmlElement
+ 
+ - @XmlRootElement
+ 
+ - @XmlAttribute
+ 
+ - @XmlAccessorType
+ 
+ - @XmlAccessorOrder
+ 
+ - @XmlTransient
+ 
+ - @XmlJavaTypeAdapter
+ 
+ - @Temporal(TemporalType.XXXX) -->JPA中的时间处理注解,非JAXB
+ 
+ - @XmlElementWrapper
+
+
+&amp;#160; &amp;#160;注意：@XmlAccessorType 的默认访问级别是 XmlAccessType.PUBLIC_MEMBER，因此，如果 Java 对象中的 private 成员变量设置了 public 权限的 getter/setter 方法，就不要在 private 变量上使用 @XmlElement 和 @XmlAttribute 注解，否则在由 Java 对象生成 xml 时会报同一个属性在 Java 类里存在两次的错误。同理，如果 @XmlAccessorType 的访问权限为 XmlAccessType.NONE，如果在 Java 的成员变量上使用了 @XmlElement 或 @XmlAttribute 注解，这些成员变量依然可以映射到 xml 文件。
+
+#### 最终案例(模拟 XML--系统 --DB)
+
+例子 XML 示例.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<userinfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<id>110</id>
+	<name>Credo</name>
+	<address>China BeiJing</address>
+	<job>programmer</job>
+	<overinfos>
+		<overinfo>
+			<hobby>Accompany my girlfriend.</hobby>
+			<!--开始日期 dateTime-->
+			<beginDate>2009-06-02T12:00:00</beginDate>
+			<!--结束日期 dateTime-->
+			<endDate>2109-06-02T12:00:00</endDate>
+		</overinfo>
+		<overinfo>
+			<hobby>Write some code.</hobby>
+			<!--开始日期 dateTime-->
+			<beginDate>2009-06-02T12:00:00</beginDate>
+			<!--结束日期 dateTime-->
+			<endDate>2029-06-02T12:00:00</endDate>
+		</overinfo>
+	</overinfos>
+</userinfo>
+```
+
+Model 层( JAXB + JPA):
+
+```java
+package org.credo.jaxb.model;
+
+import java.io.Serializable;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.hibernate.validator.constraints.Length;
+
+/**
+ * @author Credo
+ */
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+@Entity
+@Table(name = "USERINFO")
+public class Userinfo implements Serializable{
+	
+	private static final long serialVersionUID = 7870351249722416047L;
+	
+	@Id
+	@Column(name = "ID", nullable = false)
+	private Long id;
+	
+	@Column(name = "NAME", length = 50)
+	@Length(max = 50)
+	private String name;
+	
+	@Column(name = "ADDRESS", length = 50)
+	@Length(max = 50)
+	private String address;
+	
+	@Column(name = "JOB", length = 50)
+	@Length(max = 50)
+	private String job;
+	
+	@XmlElementWrapper(name = "overinfos")
+	@OneToMany(cascade = CascadeType.ALL)
+	@XmlElements(value = { @XmlElement(name = "overinfo", type = Overinfo.class) })
+	private List<Overinfo> overinfos;
+	
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
+	public String getJob() {
+		return job;
+	}
+	public void setJob(String job) {
+		this.job = job;
+	}
+	public List<Overinfo> getOverinfos() {
+		return overinfos;
+	}
+	public void setOverinfos(List<Overinfo> overinfos) {
+		this.overinfos = overinfos;
+	}
+}
+```
+
+Overinfo.class
+
+```java
+package org.credo.jaxb.model;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
+
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "overinfo")
+@Entity
+@Table(name = "OVERINFO")
+public class Overinfo implements Serializable {
+
+	private static final long serialVersionUID = 2579971237985854291L;
+
+	@XmlTransient
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "ID")
+	private Long id;
+	
+	@XmlTransient
+	@ManyToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "UserinfoId")
+	private Userinfo userinfo;
+	
+	@Column(name = "hobby", length = 20)
+	private String hobby;
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "beginDate", length = 20)
+	private Date beginDate;
+	
+	@Temporal(TemporalType.DATE)
+	@Column(name = "endDate", length = 20)
+	private Date endDate;
+
+	public String getHobby() {
+		return hobby;
+	}
+
+	public void setHobby(String hobby) {
+		this.hobby = hobby;
+	}
+
+	public Date getBeginDate() {
+		return beginDate;
+	}
+
+	public void setBeginDate(Date beginDate) {
+		this.beginDate = beginDate;
+	}
+
+	public Date getEndDate() {
+		return endDate;
+	}
+
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public Userinfo getUserinfo() {
+		return userinfo;
+	}
+
+	public void setUserinfo(Userinfo userinfo) {
+		this.userinfo = userinfo;
+	}
+}
+```
+
+JAXB 并发处理:
+
+```java
+package org.credo.jaxb;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+
+public final class JAXBCache {
+
+	private static final JAXBCache instance = new JAXBCache();
+
+	private final ConcurrentMap<String, JAXBContext> contextCache = new ConcurrentHashMap<String, JAXBContext>();
+
+	private JAXBCache() {
+
+	}
+
+	public static JAXBCache instance() {
+
+		return instance;
+	}
+
+	JAXBContext getJAXBContext(Class<?> clazz) throws JAXBException {
+
+		JAXBContext context = contextCache.get(clazz.getName());
+		if ( context == null )
+		{
+			context = JAXBContext.newInstance(clazz);
+			contextCache.putIfAbsent(clazz.getName(), context);
+		}
+		return context;
+	}
+}
+```
+
+JAXBExportSchema 导出 JAXB 的 class 的 结构
+
+```java
+package org.credo.jaxb;
+ 
+import java.io.File;
+import java.io.IOException;
+ 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.SchemaOutputResolver;
+import javax.xml.transform.Result;
+import javax.xml.transform.stream.StreamResult;
+ 
+import org.credo.jaxb.model.Userinfo;
+ 
+/**
+ * JAXB 导出 Schema。
+ * 
+ * @author: Credo
+ * @date: 2013-6-25
+ */
+public class JAXBExportSchema {
+ 
+    public static void main(String[] args) {
+ 
+        JAXBContext jct;
+        try
+        {
+            jct = JAXBContext.newInstance(Userinfo.class);
+            // 生成 Schema
+            jct.generateSchema(new Resolver());
+        }
+        catch ( Exception ex )
+        {
+            ex.printStackTrace();
+        }
+    }
+}
+ 
+class Resolver extends SchemaOutputResolver {
+ 
+    @Override
+    public Result createOutput(String namespaceUri, String suggestedFileName) throws IOException {
+ 
+        File file = new File("d:\\", suggestedFileName);
+        StreamResult result = new StreamResult(file);
+        result.setSystemId(file.toURI().toURL().toString());
+        return result;
+    }
+ 
+}
+```
+
+JAXBUtil 以及 main 方法测试:
+
+```java
+package org.credo.jaxb;
+ 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+ 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+ 
+import org.apache.commons.io.IOUtils;
+import org.credo.jaxb.model.Overinfo;
+import org.credo.jaxb.model.Userinfo;
+ 
+/**
+ * marshal对象和unmarshal对象都是由JAXBContext创建.所以一开始需要初始化JAXBContext.
+ * @author Credo
+ */
+public class JAXBUtil {
+ 
+    /**
+     * 生成xml文件的二进制数据
+     * @param obj 对象
+     */
+    public static byte[] marshal(Object obj) throws JAXBException {
+ 
+        JAXBContext context = JAXBCache.instance().getJAXBContext(obj.getClass());
+        Marshaller m = context.createMarshaller();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        m.marshal(obj, outputStream);
+        byte[] result = outputStream.toByteArray();
+        return result;
+    }
+ 
+    /**
+     * @param data xml stream
+     * @param classe 类
+     * @return jaxb生成xml的java 类对象
+     */
+    public static Object unmarshal(byte[] data, Class<?> classe) throws JAXBException {
+ 
+        JAXBContext context = JAXBCache.instance().getJAXBContext(classe);
+        Unmarshaller m = context.createUnmarshaller();
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+        Object obj = m.unmarshal(inputStream);
+        return obj;
+    }
+ 
+    /**
+     * @param data xml stream
+     * @param classe 类
+     * @return jaxb生成xml的java 类对象
+     */
+    public static Object unmarshal(InputStream in, Class<?> classe) throws JAXBException, IOException {
+ 
+        JAXBContext context = JAXBCache.instance().getJAXBContext(classe);
+        byte[] data = IOUtils.toByteArray(in);
+        Unmarshaller m = context.createUnmarshaller();
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
+        Object obj = m.unmarshal(inputStream);
+        return obj;
+    }
+ 
+    public static void main(String[] args) throws JAXBException {
+ 
+        Userinfo userinfo = new Userinfo();
+        userinfo.setId(Long.valueOf(11));
+        List<Overinfo> list = new ArrayList<Overinfo>();
+        Overinfo e = new Overinfo();
+        e.setHobby("陪女友");
+        list.add(e);
+        Overinfo e1 = new Overinfo();
+        e1.setHobby("写代码");
+        list.add(e1);
+        userinfo.setOverinfos(list);
+ 
+        byte[] b = JAXBUtil.marshal(userinfo);
+        System.out.println(new String(b));
+        userinfo = (Userinfo) JAXBUtil.unmarshal(b, Userinfo.class);
+ 
+        System.out.println(userinfo.getOverinfos().get(0).getHobby());
+ 
+    }
+}
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<userinfo>
+    <id>11</id>
+    <overinfos>
+        <overinfo>
+            <hobby>陪女友</hobby>
+        </overinfo>
+        <overinfo>
+            <hobby>写代码</hobby>
+        </overinfo>
+    </overinfos>
+</userinfo>
+
+陪女友
+```
+
+下面是使用 JAXBExportSchema 导出 JAXB 的 class 的 结构
+
+```xml
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="userinfo" type="userinfo"/>
+
+  <xs:complexType name="userinfo">
+    <xs:sequence>
+      <xs:element name="id" type="xs:long" minOccurs="0"/>
+      <xs:element name="name" type="xs:string" minOccurs="0"/>
+      <xs:element name="address" type="xs:string" minOccurs="0"/>
+      <xs:element name="job" type="xs:string" minOccurs="0"/>
+      <xs:element name="overinfos" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="overinfo" type="overinfo" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="overinfo">
+    <xs:sequence>
+      <xs:element name="hobby" type="xs:string" minOccurs="0"/>
+      <xs:element name="beginDate" type="xs:dateTime" minOccurs="0"/>
+      <xs:element name="endDate" type="xs:dateTime" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>
+```
+
+参考连接：
+
+ - <a href="https://my.oschina.net/zhaoqian/blog/179334" target="_blank">Jaxb 完全手册</a>
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

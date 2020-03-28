@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAX-WS 使用</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+### 发布简单的 Web 服务
+
+只需要编写一个带有 ```@WebService``` 注解的类就可以完成
+
+```java
+@WebService
+public class HelloService{
+    public String sayHell(){
+        return "Hello WebService";
+    }
+}
+```
+
+发布
+```java
+public class Main(){
+    final String address = "http://localhost:1111/helloService";
+    public static void main(String[] args){
+        Endpoint.publish(address,new HelloService());
+    }
+}
+```
+
+访问 <a href="http://localhost:1111/helloService?wsdl" target="_blank">http://localhost:1111/helloService?wsdl</a> 就可以看到生成 wsdl 文件
+
+### 使用工具生成 Web-Service Client
+
+##### CXF TOOLS
+```text
+CXF Tools: wsdl2java -p demo -o "D:/webservice" -autoNameResolution http://?wsdl
+```
+
+##### JAVA TOOLS
+```text
+Java Tools: wsimport -p demo -encoding UTF-8 -s "D:/webservice" http://?wsdl
+```
+
+### 编写 Web-Service Client
+```java
+package cn.jbit.ws.test;
+
+import java.io.Serializable;
+import java.net.URL;
+
+import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
+
+/**
+ * 调用 WebService服务 的实现
+ *
+ * 创建时间：2016-7-22 下午6:07:14
+ *
+ * @author 崔旧涛
+ *
+ */
+public class CityWServiceTestDriver implements Serializable {
+
+    // Web服务 访问的完整路径
+    protected static final QName SERVICE_NAME = new QName(
+            "http://localhost:1111/helloService", "helloService");
+    // Web服务 的端口名（Endpoint 名称）
+    protected static final QName SERVICE_PORT = new QName(
+            "http://localhost:1111/helloService", "helloServicePort");
+     // 发布 Web服务 的地址
+    protected static final String WSDL_LOCATION = "http://localhost:8002/helloService?wsdl";
+
+    /**
+     * 入口函数值
+     *
+     * 开发时间：2016-7-22 下午6:07:14
+     *
+     * @author：崔旧涛
+     * @param：args-传入的参数
+     * @return void
+     * @param args
+     */
+    public static void main(String[] args) {
+
+        try {
+
+            // 创建 url
+            URL wsdl = new URL(WSDL_LOCATION);
+
+            // 根据 WSDL_LOCATION 和 SERVICE_PORT
+            // 创建 Service 服务对象，动态生成 HelloService 代理
+            Service service = Service.create(wsdl, SERVICE_NAME);
+
+            // 获取 HelloService 的代理对象
+            HelloService helloService = service.getPort(SERVICE_PORT,
+                    HelloService.class);
+
+            // 通过代理对象远程调用 Web服务端 的方法
+            String message = helloService.sayHello();
+
+            System.out.println(message);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+#### JAX-WS(JDK默认使用 SOAP1.1 的协议)
+
+ ```SOAP1.1``` ```xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"```
+
+JAX-WS(需要发布 SOAP1.2 协议的 Webservice 需要再实现类中使用 @BindType 注解)
+
+```java
+@BindingType("http://java.sun.com/xml/ns/jaxws/2003/05/soap/bindings/HTTP/")
+OR
+@BindingType(SOAPBinding.SOAP12HTTP_BINDING)
+```
+ ``` SOAP1.2 ``` ``` xmlns:soap12="http://www.w3.org/2003/05/soap-envelope" ```
+
+C# 在一定版本后将会调用 SOAP1.2 版本的协议
+
+### Creating SOAP Web Services using JAX-WS
+<a href="https://jaxenter.com/creating-soap-web-services-using-jax-ws-117689.html" target="_blank">link</a>
+
+&#160; &#160;Here is the ```Service Endpoint Interface (SEI)``` for the service
+
+```java
+@WebService
+public interface Country {
+
+    @WebMethod
+    String getCapital(String s);
+
+    @WebMethod
+    String getLanguages(String s);
+
+    @WebMethod
+    String getAirports(String s);
+
+    @WebMethod
+    int getDistricts(String s);
+
+    @WebMethod
+    String getPlacesToVisit(String s);
+
+    @WebMethod
+    String getInterestingFacts(String s);
+}
+```
+
+&#160; &#160;CountryImpl is the ```Service Implementation Bean (SIB)``` that implements all the methods of the SEI.
+
+```java
+@WebService
+public class CountryImpl implements Country {
+    private Utility states;
+    public CountryImpl(){
+        states=new Utility();
+        states.loadData();
+    }
+    @WebMethod
+    public String getCapital(String stateName) {
+        return states.getState(stateName).getCapital();
+    }
+    @WebMethod
+    public String getLanguages(String stateName) {
+        return states.getState(stateName).getLanguages();
+    }
+    @WebMethod
+    public String getAirports(String stateName) {
+        return states.getState(stateName).getAirports();
+    }
+    @WebMethod
+    public int getDistricts(String stateName) {
+        return states.getState(stateName).getDistricts();
+    }
+    @WebMethod
+    public String getPlacesToVisit(String stateName) {
+        return states.getState(stateName).getPlacesToVisit();
+    }
+    @WebMethod
+    public String getInterestingFacts(String stateName) {
+        return states.getState(stateName).getInterestingFacts();
+    }
+}
+```
+
+&#160; &#160;**Note** that in ```CountryImpl``` class we have a ```member``` of ```Utility``` class which stores the information of ```states``` in a ```Map```.
+
+&#160; &#160;Here is the ```State``` class which represents a state of the country with getters and setters.
+
+```java
+public class State {
+    private String name;
+    private String capital;
+    private int districts;
+    private String languages;
+    private String airports;
+    private String placesToVisit;
+    private String interestingFacts;
+
+    State(String name,String capital,int districts,String languages,String airports,String placesToVisit,String interestingFacts){
+        this.name=name;
+        this.capital=capital;
+        this.districts=districts;
+        this.languages=languages;
+        this.airports=airports;
+        this.placesToVisit=placesToVisit;
+        this.interestingFacts=interestingFacts;
+    }
+
+    public String getName(){
+        return name;
+    }
+    public void setName(String name){
+        this.name=name;
+    }
+    public String getAirports() {
+        return airports;
+    }
+    public void setAirports(String airports) {
+        this.airports = airports;
+    }
+    public String getCapital() {
+        return capital;
+    }
+    public void setCapital(String capital) {
+        this.capital = capital;
+    }
+    public String getLanguages() {
+        return languages;
+    }
+    public void setLanguages(String languages) {
+        this.languages = languages;
+    }
+    public int getDistricts() {
+        return districts;
+    }
+    public void setDistricts(int districts) {
+        this.districts = districts;
+    }
+    public String getPlacesToVisit() {
+        return placesToVisit;
+    }
+    public void setPlacesToVisit(String placesToVisit) {
+        this.placesToVisit = placesToVisit;
+    }
+    public String getInterestingFacts() {
+        return interestingFacts;
+    }
+    public void setInterestingFacts(String interestingFacts) {
+        this.interestingFacts = interestingFacts;
+    }
+
+}
+```
+
+&#160; &#160;We have a utility class which have a Map<String,State> state_map to store a State information with state name as key. The Utility class also has a loadData() method which populates the state_map.
+
+```java
+public class Utility {
+
+    Map<String, State> state_map;
+
+    Utility() {
+        state_map = new HashMap<String, State>();
+    }
+
+    void loadData(){
+
+        State rajasthan=new State("Rajasthan","Jaipur",33,"Hindi, Rajasthani","Jaipur, Jodhpur, Udaipur","Ajmer, Udaipur, Jaipur","Rajasthan is famous for its marbles");
+        State punjab=new State("Punjab","Chandigarh",22,"Hindi, Punjabi","Amritsar","Amritsar, Ludhiana","Punjab is popular for its joyful punjabi people");
+        State mp=new State("Madhya Pradesh","Bhopal",51 ,"Hindi","Bhopal, Gwalior","Bhopal, Gwalior","Madhya Pradesh is well known for its wildlife and monuments");
+        State haryana=new State("Haryana","Chandigarh",21 ,"Hindi, Haryanvi","","Hisar, Rohtak, Fridabad","Haryana is popular for its haryanvi language");
+        State gujrat=new State("Gujrat","Gandhinagar",33 ,"Hindi, Gujrati","Ahmedabad, Vadodara, Gandhinagar","Ahmedabad, Vadodara","Gujrat is famous for its rich culture and dandiya nights");
+
+        state_map.put("Rajasthan", rajasthan);
+        state_map.put("Punjab", punjab);
+        state_map.put("Madhya Pradesh", mp);
+        state_map.put("Haryana", haryana);
+        state_map.put("Gujrat", gujrat);
+
+    }
+
+    State getState(String stateName) {
+        State state = null;
+        state = state_map.get(stateName);
+        return state;
+    }
+
+}
+```
+
+Configuring the Web Service
+
+&#160; &#160;Since we are going to deploy this ```web service``` in a ```web container``` in this case **Apache Tomcat**, we have to configure our web service in ```web.xml``` file as below.
+
+```xml
+<listener>
+        <listener-class>
+            com.sun.xml.ws.transport.http.servlet.WSServletContextListener
+        </listener-class>
+</listener>
+<servlet>
+        <servlet-name>xyz</servlet-name>
+        <servlet-class>
+            com.sun.xml.ws.transport.http.servlet.WSServlet
+        </servlet-class>
+        <load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+        <servlet-name>xyz</servlet-name>
+        <url-pattern>/discoverIndia</url-pattern>
+</servlet-mapping>
+```
+
+&#160; &#160;One last configuration is required – creating a file ```sun-jaxws.xml``` in ```WEB-INF``` folder which defines Service implementation class.
+
+```xml
+<endpoints xmlns="http://java.sun.com/xml/ns/jax-ws/ri/runtime"
+           version="2.0">
+    <endpoint name="WebServicImpl"
+              implementation="net.mahtabalam.ws.CountryImpl"
+              url-pattern="/discoverIndia" />
+</endpoints>
+```
+&#160; &#160;**Note** that you will ```require extra jax-ws libraries``` to publish SOAP based web service under **Tomcat**. You can download these libraries from jax-ws.net and put them in the ```WEB-INF/lib``` folder.
+
+```xml
+<dependencies>
+    <!-- https://mvnrepository.com/artifact/com.sun.xml.ws/jaxws-rt -->
+    <dependency>
+        <groupId>com.sun.xml.ws</groupId>
+        <artifactId>jaxws-rt</artifactId>
+        <version>2.2.8</version>
+        <!-- <type>pom</type> -->
+    </dependency>
+</dependencies>
+```
+
+&#160; &#160;Now run the project and your web service will be deployed and available at whatever URL you mentioned in ```web.xml``` file (in this case ```/discoverIndia```).
+
+![webservice-info](./images/jax-ws-use/webservice-info.png)
+
+![wsdl](./images/jax-ws-use/wsdl.png)
+
+&#160; &#160;Once the web service is published you can write a client against web service in any language Python, Perl, C#, Java etc.
+That’s the beauty of web services, they are language independent. Let’s write a Java client to consume the web service.
+We will use the ```wsimport``` utility which comes with ```JDK6``` to **generate client side artifacts** to make it easy to write a client against the discoverIndia web service.
+
+![project-info](./images/jax-ws-use/project-info.png)
+
+![project-info](./images/jax-ws-use/wsimport.png)
+
+```python
+wsimport -keep -p wsclient http://127.0.0.1:8080/DiscoverIndia/discoverIndia?wsdl
+```
+
+&#160; &#160;The above command will generate artefacts that we will use to write a simple client.
+
+&#160; &#160;Here is the Client.java which uses ***```wsimport```*** generated classes to write a simple web service client.
+
+```java
+package wsclient;
+ public class Client {
+
+    public static void main(String[] args) {
+        CountryImplService service=new CountryImplService();
+        CountryImpl country=service.getCountryImplPort();
+        System.out.println("Capital of Kerala : "+country.getCapital("Kerala"));
+        System.out.println("No. of districts in Telangna : "+country.getDistricts("Telangna"));
+        System.out.println("Local languages of Gujrat : "+country.getLanguages("Gujrat"));
+        System.out.println("Airports in Uttrakhand : "+country.getAirports("Uttrakhand"));
+        System.out.println("Places to visit in Rajasthan : "+country.getPlacesToVisit("Rajasthan"));
+        System.out.println("Interesting Facts about Meghalaya : "+country.getInterestingFacts("Meghalaya"));
+    }
+ }
+```
+
+&#160; &#160;Now compile Client.java and run it.
+
+![wsdl](./images/jax-ws-use/command-run.png)
+
+&#160; &#160;Remember that if you call web service with a state name that is not handled by web service you will get SOAP Fault as response.
+
+&#160; &#160;Get the source code: If you are interested in trying the code yourself, you can get it from [GitHub](https://github.com/eMahtab/discoverIndia-soap-web-service).
+
+&#160; &#160;Play with the live Web Service: This web service is deployed live at [mathabalam.net](http://mahtabalam.net/articles/web-service/stateForm) and WSDL file is available [here](http://mahtabalam.net/web-service/discoverIndia?wsdl).
+
+[参考链接](https://jaxenter.com/creating-soap-web-services-using-jax-ws-117689.html)
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

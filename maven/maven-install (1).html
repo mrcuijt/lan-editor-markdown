@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><style type="text/css">h1,h2,h3,h4,h5,h6,p,blockquote{margin:0;padding:0}body{font-family:"Helvetica Neue",Helvetica,"Hiragino Sans GB",Arial,sans-serif;font-size:13px;line-height:18px;color:#737373;margin:10px 13px 10px 13px}a{color:#0069d6}a:hover{color:#0050a3;text-decoration:none}a img{border:0}p{margin-bottom:9px}h1,h2,h3,h4,h5,h6{color:#404040;line-height:36px}h1{margin-bottom:18px;font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:16px}h5{font-size:14px}h6{font-size:13px}hr{margin:0 0 19px;border:0;border-bottom:1px solid #ccc}blockquote{padding:13px 13px 21px 15px;margin-bottom:18px;font-family:georgia,serif;font-style:italic}blockquote:before{content:"C";font-size:40px;margin-left:-10px;font-family:georgia,serif;color:#eee}blockquote p{font-size:14px;font-weight:300;line-height:18px;margin-bottom:0;font-style:italic}code,pre{font-family:Monaco,Andale Mono,Courier New,monospace}code{background-color:#fee9cc;color:rgba(0,0,0,0.75);padding:1px 3px;font-size:12px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px}pre{display:block;padding:14px;margin:0 0 18px;line-height:16px;font-size:11px;border:1px solid #d9d9d9;white-space:pre-wrap;word-wrap:break-word}pre code{background-color:#fff;color:#737373;font-size:11px;padding:0}@media screen and (min-width:768px){body{width:748px;margin:10px auto}}</style><title>maven-install</title></head><body><h4 id="maveninstall">maven-install</h4>
+
+<pre><code class="python">## 下载 Maven
+wget http://mirrors.tuna.tsinghua.edu.cn/apache/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz
+
+## 解压 Maven 到 /usr/local 目录下
+sudo tar -zxvf apache-maven-3.6.1-bin.tar.gz /usr/local
+
+## 建立硬链接到 /usr/local/maven
+sudo ln -s /usr/local/apache-maven-3.6.1/ /usr/local/maven
+
+## 添加 Maven 环境变量
+sudo nano /etc/profile.d/maven.sh
+</code></pre>
+
+<pre><code class="bash">## 设置 Maven Home
+export MAVEN_HOME=/usr/local/maven
+## 添加 Maven 到 PATH 环境变量中
+export PATH=${PATH}:${MAVEN_HOME}/bin
+</code></pre>
+
+<pre><code class="python">## 更新环境变量
+source /etc/profile.d/maven.sh
+
+## 查看 Maven 版本
+mvn -v
+
+## 编辑 Maven 配置文件
+sudo nano usr/local/apache-maven-3.6.1/conf/settings.xml
+</code></pre>
+
+<pre><code class="xml">&lt;!-- 设置本地 Maven 仓库目录 --&gt;
+&lt;localRepository&gt;/usr/local/maven-repo&lt;/localRepository&gt;
+
+&lt;!-- 设置 Maven 仓库镜像 --&gt;
+&lt;mirror&gt;
+   &lt;id&gt;nexus-aliyun&lt;/id&gt;
+   &lt;name&gt;aliyun central mirror&lt;/name&gt;
+   &lt;!--  阿里云的镜像  --&gt;
+   &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public/&lt;/url&gt;
+   &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;
+&lt;/mirror&gt;
+</code></pre>
+
+<pre><code class="python">## 修改 本地 Maven 仓库目录访问权限
+sudo chmod o+w /usr/local/maven-repo/
+
+## 使用 Maven 创建 Java 项目
+mvn -B archetype:generate \
+  -DarchetypeGroupId=org.apache.maven.archetypes \
+  -DgroupId=science.dependency \
+  -DartifactId=customer-dependency
+
+## 使用 Maven 创建 Java Web 项目
+mvn -B archetype:generate \
+  -DarchetypeGroupId=org.apache.maven.archetypes \
+  -DarchetypeArtifactId=maven-archetype-webapp \
+  -DgroupId=science.dependency \
+  -DartifactId=customer-dependency
+</code></pre></body></html>

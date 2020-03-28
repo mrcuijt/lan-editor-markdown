@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAXWS HTTP Header</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+```java
+// Add HTTP request Headers
+Map<String, List<String>> requestHeaders = new HashMap<>();
+requestHeaders.put("Username", Collections.singletonList("mkyong"));
+requestHeaders.put("Password", Collections.singletonList("password"));
+Map<String, Object> requestContext = ((BindingProvider)client).getRequestContext();
+requestContext.put(MessageContext.HTTP_REQUEST_HEADERS, requestHeaders);
+```
+
+ - JAX-WS BindingProvider Example <a href="https://examples.javacodegeeks.com/enterprise-java/jws/jax-ws-bindingprovider-example/" target="_blank">link</a>
+
+ <a href="https://javaee.github.io/metro/doc/user-guide/ch05.html" target="_blank">Sending HTTP headers</a>
+```java
+@Override
+public boolean handleMessage(SOAPMessageContext context) {
+    // https://stackoverflow.com/questions/30129827/add-http-headers-to-jax-ws-service-response
+    boolean request = ((Boolean) context.get(SOAPMessageContext.MESSAGE_OUTBOUND_PROPERTY)).booleanValue();
+    SOAPMessage message = context.getMessage();
+    if (request) {
+        Map<String, List<String>> headers = (Map<String, List<String>>) context
+            .get(MessageContext.HTTP_REQUEST_HEADERS);
+        for (String key : headers.keySet()) {
+            logger.info(" key : {} value : {}", key, headers.get(key));
+        }
+    }
+    return true;
+}
+```
+
+Request Header
+
+```textarea
+POST /helloService HTTP/1.1
+Accept: text/xml, multipart/related
+Content-Type: text/xml; charset=utf-8
+Password: password
+SOAPAction: "http://mrcuijt.science/ws/HelloService/sayHelloRequest"
+User-Agent: JAX-WS RI 2.2.8 svn-revision#13980
+Username: mkyong
+Host: localhost:8080
+Connection: keep-alive
+Content-Length: 205
+
+```
+
+```textarea
+key : Accept value : [text/xml, multipart/related]
+key : Connection value : [keep-alive]
+key : Host value : [localhost:8080]
+key : User-agent value : [JAX-WS RI 2.2.8 svn-revision#13980]
+key : Content-type value : [text/xml; charset=utf-8]
+key : Username value : [mkyong]
+key : Soapaction value : ["http://mrcuijt.science/ws/HelloService/sayHelloRequest"]
+key : Content-length value : [205]
+key : Password value : [password]
+```
+
+<text>╔════════════════╤════════════════════════════════════════════════════════╗
+║ key            │ value                                                  ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ Accept         │ text/xml, multipart/related                            ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ Connection     │ keep-alive                                             ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ Host           │ localhost:8080                                         ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ User-agent     │ JAX-WS RI 2.2.8 svn-revision#13980                     ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ Content-type   │ text/xml; charset=utf-8                                ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ Username       │ mkyong                                                 ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ Soapaction     │ http://mrcuijt.science/ws/HelloService/sayHelloRequest ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ Content-length │ 205                                                    ║
+╟────────────────┼────────────────────────────────────────────────────────╢
+║ Password       │ password                                               ║
+╚════════════════╧════════════════════════════════════════════════════════╝</text>
+
+```java
+@Override
+public boolean handleMessage(SOAPMessageContext context) {
+    // https://stackoverflow.com/questions/30129827/add-http-headers-to-jax-ws-service-response
+    boolean response = ((Boolean) context.get(SOAPMessageContext.MESSAGE_OUTBOUND_PROPERTY)).booleanValue();
+ 
+    if (!response) {
+        // 客户端接收到服务器端响应时，记录日志信息
+        SOAPMessage message = context.getMessage();
+        Map<String, List<String>> headers = (Map<String, List<String>>) context
+                .get(MessageContext.HTTP_RESPONSE_HEADERS);
+        for (String key : headers.keySet()) {
+            logger.info(" key : {} value : {}", key, headers.get(key));
+        }
+    }
+ 
+    return true;
+}
+```
+
+Response Header
+
+```textarea
+HTTP/1.1 200 OK
+Date: Fri, 19 Apr 2019 20:48:05 GMT
+Transfer-encoding: chunked
+Content-type: text/xml; charset=utf-8
+
+```
+
+```textarea
+key : null value : [HTTP/1.1 200 OK]
+key : Content-type value : [text/xml; charset=utf-8]
+key : Date value : [Fri, 19 Apr 2019 20:48:05 GMT]
+key : Transfer-encoding value : [chunked]
+```
+
+<text>╔═══════════════════╤═════════════════════════════════╗
+║ null              │ [HTTP/1.1 200 OK]               ║
+╟───────────────────┼─────────────────────────────────╢
+║ Content-type      │ [text/xml; charset=utf-8]       ║
+╟───────────────────┼─────────────────────────────────╢
+║ Date              │ [Fri, 19 Apr 2019 20:48:05 GMT] ║
+╟───────────────────┼─────────────────────────────────╢
+║ Transfer-encoding │ [chunked]                       ║
+╚═══════════════════╧═════════════════════════════════╝</text>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

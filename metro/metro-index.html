@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Metro Index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+#### 什么是 WSIT？
+
+&amp;#160; &amp;#160;三年（并且持续）Sun 与 Microsoft 密切合作，以确保 Web 服务企业技术的互操作性，例如**安全性，可靠消息传递和原子事务**。Metro 的那部分被称为 WSIT（Web 服务互操作性技术）。```Metro``` 的 ```WSIT 子系统``` 是许多开放 Web 服务规范的实现，以支持企业功能。除安全性，可靠消息传递和原子事务外，Metro 还包括引导和配置技术。Metro 的 WSIT Web 服务功能显示了为每种技术实现的基础服务。
+
+图1.1 Metro 的 WSIT Web 服务功能
+
+![Metro 的 WSIT Web 服务功能](./images/metro-index/metro-index-001.png)
+
+&amp;#160; &amp;#160;从当前内置于 Java 平台的核心 XML 支持开始，Metro 使用或扩展现有功能，并为可互操作的 Web 服务添加新的支持。有关每个功能的概述，请参阅以下部分：
+
+ - <a href="#metro-001" target="_self">引导和配置</a>
+
+ - <a href="#metro-002" target="_self">消息优化技术</a>
+
+ - <a href="#metro-003" target="_self">可靠的消息传递技术</a>
+
+ - <a href="#metro-004" target="_self">安全技术</a>
+
+#### <span id = "metro-001">引导和配置</span>
+
+&amp;#160; &amp;#160;引导和配置包括使用 URL 访问 Web 服务，检索其 WSDL 文件，以及使用 WSDL 文件创建可以访问和使用 Web 服务的 Web 服务客户端。该过程包括以下步骤，这些步骤在引导和配置中显示。
+
+图1.2 引导和配置
+
+![引导和配置](./images/metro-index/metro-index-002.png)
+
+ 1. 客户端获取其要访问和使用的 Web 服务的 URL。如何获取 URL 超出了本教程的范围。例如，您可以在 Web Services 注册表中查找 URL。
+
+ 2. 客户端使用 URL 和 wsimport 工具发送 WS-MetadataExchange 请求以访问 Web 服务并检索 WSDL 文件。WSDL 文件包含 Web 服务端点的描述，包括描述服务的安全性，可靠性，事务性等，功能和要求的 WS-Policy 断言。描述描述了访问和使用 Web 服务必须满足的要求。
+
+ 3. 客户端使用 WSDL 文件来创建 Web 服务客户端。
+
+ 4. Web 服务客户端访问和使用 Web 服务。
+
+&amp;#160; &amp;#160;Bootstrapping 和 Configuration 解释了如何引导和配置使用 Metro的 WSIT 技术的 Web 服务客户端和 Web 服务端点。
+
+#### <span id = "metro-002">消息优化技术</span>
+
+&amp;#160; &amp;#160;Web 服务应用程序的主要功能是通过 Internet 在应用程序之间共享数据。共享的数据可以在格式上变化，并且包括大的二进制有效载荷，例如文档，图像，音乐文件等。当大型二进制对象被编码为XML格式以包含在 SOAP 消息中时，甚至会生成更大的文件。当 Web 服务通过网络处理和传输这些大型文件时，Web 服务应用程序和网络的性能会受到负面影响。在最坏的情况下，效果如下：
+
+ - Web 服务应用程序的性能降低到不再有用的程度。
+ 
+ - 网络陷入困境的流量超过分配的带宽可以处理的流量。
+
+&amp;#160; &amp;#160;解决此问题的一种方法是对二进制对象进行编码，以便优化 SOAP 应用程序处理时间和通过网络传输 SOAP 消息所需的带宽。简而言之，XML 需要针对 Web 服务进行优化。这正是 Message Optimization 技术所做的。它确保以最有效的方式通过 Internet 传输 Web 服务消息。
+
+&amp;#160; &amp;#160;如果您的 Web 服务客户端或 Web 服务端点需要处理大于 1KB 的二进制编码 XML 文档，Sun 建议您使用消息优化。
+
+有关如何使用消息优化技术的说明，请参阅消息优化。
+
+#### <span id = "metro-003">可靠的消息传递技术</span>
+
+&amp;#160; &amp;#160;可靠消息传递是一种服务质量（QoS）技术，用于构建更可靠的 Web 服务。可靠性（就 WS-ReliableMessaging 提供的内容而言）是通过系统从 A 点向 B 点传递消息的能力来衡量的。可靠消息传递的主要目的是确保将应用程序消息传递到 Web 服务端点。
+
+&amp;#160; &amp;#160;可靠的消息传递技术确保给定消息序列中的消息至少传送一次且不多于一次，并且可选地以正确的顺序传送。当给定序列中的消息在传输过程中丢失或无序传送时，该技术使系统能够从这些故障中恢复。如果消息在传输过程中丢失，则发送系统重新发送该消息，直到接收系统确认其接收为止。如果无序地接收消息，则接收系统可以将消息重新排序为正确的顺序。
+
+如果 Web 服务遇到以下类型的问题，您应该考虑使用可靠的消息传递：
+
+ - 发生通信故障导致网络不可用或连接被丢弃
+ 
+ - 应用程序消息在传输过程中丢失
+ 
+ - 应用程序消息无法到达目的地，并且需要按顺序交付
+
+为了帮助决定是否使用可靠的消息，请权衡以下优点和缺点：
+
+ - 启用可靠的消息传递可确保消息从源到目标只传送一次，如果启用了 ordered-delivery 选项，则可确保按顺序传递消息。
+
+ - 启用可靠消息传递会占用更多内存（特别是在启用了已订购的交付选项的情况下），因为必须存储消息（即使在发送消息之后），直到确认收据为止。
+ 
+ - 不可靠的消息传递客户端无法与启用了可靠消息传递的 Web 服务进行互操作。
+
+有关如何使用 Reliable Messaging 技术的说明，请参阅使用可靠消息传递。
+
+#### <span id = "metro-004">安全技术</span>
+
+&amp;#160; &amp;#160;到目前为止，Web 服务依赖于基于传输的安全性（如 SSL）来提供点对点安全性。Metro 实现 WS-Security，以便提供可互操作的消息内容完整性和机密性，即使消息在到达其目标端点之前通过中间节点也是如此。Metro 提供的 WS-Security 是现有传输级安全性的补充，可能仍然可以使用。
+
+&amp;#160; &amp;#160;Metro 还通过实施 WS-Secure Conversation 来增强安全性，这使得消费者和提供商能够在首次启动多消息交换序列时建立共享安全上下文。后续消息使用派生的会话密钥，可提高整体安全性，同时降低每条消息的安全处理开销。
+
+此外，Metro 还实现了两项附加功能，以提高 Web 服务的安全性：
+
+ - Web 服务信任：使 Web 服务应用程序能够使用 SOAP 消息来请求安全令牌，然后可以使用这些令牌在客户端和 Web 服务之间建立可信通信。
+ 
+ - Web 服务安全策略：使 Web 服务能够使用安全断言清楚地表示 Web 服务端点的安全首选项和要求。
+ 
+&amp;#160; &amp;#160; Metro 以这样的方式实现这些功能，以确保 WSDL 文件中定义的 Web 服务绑定安全性要求可以与 Metro 和 WCF 端点互操作并由其使用。
+
+有关如何使用 WS-Security 技术的说明，请参阅使用 WSIT 安全性。
+
+#### 引导和配置规范
+
+&amp;#160; &amp;#160;引导和配置涉及客户端获取 Web 服务 URL（可能来自服务注册表）并获取构建能够通过 Internet 访问和使用 Web 服务的 Web 服务客户端所需的信息。此信息通常从 WSDL 文件中获取。 引导和配置规范显示了为支持引导和配置而实现的规范。
+
+图1.3 引导和配置规范
+
+![引导和配置规范](./images/metro-index/metro-index-003.png)
+
+除了 Core XML 规范之外，还使用以下规范实现了引导和配置：
+
+ - WSDL：WSDL 是用于描述网络服务的标准化 XML 格式。描述包括服务的名称，服务的位置以及与服务通信的方式，即使用什么传输。WSDL 描述可以存储在服务注册表中，在 Internet 上发布，或两者都有。
+ 
+ - 网络服务政策：此规范提供了灵活且可扩展的语法，用于表达 Web 服务的功能，要求和一般特征。它提供了使 Web 服务应用程序以标准化方式指定策略信息所需的机制。但是，本规范未提供构成 Web 服务的协商或消息交换解决方案的协议。相反，它指定与 WS-Metadata Exchange 协议一起使用的构建块。在 Web 服务模型中应用时，策略用于传达两个 Web 服务端点之间的交互条件。通常，Web 服务的提供者公开策略以传达其提供服务的条件。请求者可以使用该策略来决定是否使用该服务。
+ 
+ - Web 服务元数据交换：此规范定义了一种协议，使消费者能够获取 Web 服务的元数据，即其 WSDL 和策略。它可以被认为是用于通信的引导机制。
+
+除了 Core XML 规范之外，还使用以下规范实现了优化：
+
+ - SOAP：使用 SOAP 实现，客户端请求和 Web 服务响应通常通过 HTTP 作为 SOAP 消息传输，以实现客户端和 Web 服务之间的完全可互操作的交换，所有这些交换都在不同平台上和 Internet 上的不同位置运行。HTTP 是用于通过 Internet 发送消息的熟悉的请求和响应标准，SOAP 是遵循 HTTP 请求和响应模型的基于 XML 的协议。在 SOAP 1.1中，传输消息的 SOAP 部分处理以下内容：
+ 
+  - 定义基于 XML 的信封，以描述消息中的内容以及如何处理消息。
+
+  - 包括基于 XML 的编码规则，用于表示消息中应用程序定义的数据类型的实例。
+
+  - 定义基于 XML 的约定，用于表示对远程服务的请求以及生成的响应。
+
+  在 SOAP 1.2 实现中，Web 服务端点地址可以包含在基于 XML 的 SOAP 信封中，而不是包含在传输头中（例如在 HTTP 传输头中），从而使 SOAP 消息能够独立于传输。
+  
+ - Web 服务寻址：此规范定义端点引用表示。Web 服务端点是可以引用的实体，处理器或资源，以及可以寻址的Web服务消息。端点引用传达了解决 Web 服务端点所需的信息。该规范定义了两种结构：消息寻址属性和端点引用，它们以独立于任何特定传输或消息传递系统的方式规范化通常由传输协议和消息传递系统提供的信息。这是通过定义 XML 标记来实现的，该标记用于在 SOAP 消息中包含Web服务地址，而不是 HTTP 标头。这些功能的实现使消息传递系统能够通过包括端点管理器，防火墙和网关等处理节点的网络以与传输无关的方式支持消息传输。
+ 
+ - Web 服务安全对话：此规范以标准化方式在多消息交换中提供更好的消息级安全性和效率。它定义了基本机制，在此基础上可以为多消息交换定义安全消息传递语义，并允许建立上下文并可能更高效的密钥或新的密钥材料进行交换，从而提高后续交换的整体性能和安全性。
+ 
+ - SOAP MTOM：SOAP 消息传输优化机制（MTOM）与 XML 二进制优化打包（XOP）配合使用，提供了标准机制，通过有选择地编码 SOAP 消息的一部分来优化 SOAP 消息的传输格式，同时仍然提供 XML Infoset SOAP 应用程序。此机制允许在 SOAP 消息路径中定义 SOAP 节点与下一个 SOAP 节点之间的逐跳协定，以便有效地传递包含在中继的 SOAP 消息的头或体内的优化数据。由中间人。进一步，
+
+#### 可靠的消息传递规范
+
+&amp;#160; &amp;#160;可靠性（就 WS-ReliableMessaging 而言）是通过系统将消息从 A 点传送到 B 点的能力来衡量的，而不管网络错误如何。可靠消息传递规范显示了为确保在两个 Web 服务端点之间可靠地传递消息而实施的规范。
+
+图1.5 可靠的消息传递规范
+
+![可靠的消息传递规范](./images/metro-index/metro-index-004.png)
+
+&amp;#160; &amp;#160;除了核心 XML 规范和支持标准（Web 服务安全性和 Web 服务策略，这些都是必需的构建块）之外，还使用以下规范实现可靠性功能：
+
+ - Web 服务可靠消息传递：此规范定义了一种标准化方法，用于识别，跟踪和管理正确的双方（源和目标）之间的可靠消息传递，以便从丢失或无序接收的消息中恢复故障中恢复。该规范也是可扩展的，因此它允许紧密集成附加功能，例如安全性。此规范的实现集成并补充了 Web 服务安全性和 Web 服务策略实现。
+ 
+ - Web 服务协调：此规范定义了一个框架，用于提供协调分布式应用程序操作的协议。Web服务原子事务使用此框架。该规范的实现支持以下功能：
+ 
+  - 使应用程序服务能够创建将活动传播到其他服务以及注册协调协议所需的上下文。
+
+  - 使现有的事务处理，工作流和其他协调系统能够隐藏其专有协议并在异构环境中运行。
+
+  - 定义上下文的结构和需求，以便可以在协作服务之间传播上下文。
+ 
+ - Web 服务原子事务：此规范定义了一种支持两阶段提交语义的标准化方法，以便在原子事务中调用的所有操作都成功或全部回滚。本规范的实现需要实现 Web 服务协调规范。
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

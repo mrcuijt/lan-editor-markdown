@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>mysql-linux-install</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### mysql-linux-install
+
+大纲：
+
+ - 1、下载安装 MySQL 数据库
+ - 2、初始化安装 MySQL 数据库
+ - 3、查看 MySQL 是否启动
+ - 4、启动 MySQL 数据库服务
+  - 4.1、设置 MySQL 自启服务
+ - 5、登录 MySQL 数库
+  - 5.1、获得 MySQL 初始密码
+  - 5.2、登录 MySQL 数据库并修改初始密码
+  - 5.3、快速登录
+  - 5.4、切换正在使用的数据库
+ - 6、设置 MySQL 数库用户登录密码
+ - 7、MySQL 数库基本安全设置
+ - 8、设置防火墙
+  - 8.1、在防火墙中添加对 MySQL 数库使用的 3306 端口号，添加信任
+ - 9、MySQL 数库库登录用户设置
+  - 9.1、添加登录用户
+ - 10、分派 MySQL 用户权限
+
+##### 1、下载安装 MySQL 数据库
+
+1.Download and add the repository, then update
+
+```python
+wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+sudo rpm -ivh mysql-community-release-el7-5.noarch.rpm
+yum update
+```
+
+2.Install MySQL as usual and start the service. During installation, you will be asked if you want to accept the results from the .rpm file’s GPG verification. If no error or mismatch occurs, enter y.
+
+```python
+sudo yum install mysql-server
+sudo systemctl start mysqld
+```
+
+```python
+yum install mysql
+yum install mysql-server
+yum install mysql-workbench
+```
+
+##### 2、初始化安装 MySQL 数据库
+
+`mysql_install_db` initializes the MySQL data directory and creates the system tables that it contains, if they do not exist.
+
+```python
+># mysql_install_db
+
+## OR
+
+># bin/mysql_install_db --user=mysql \
+    --basedir=/opt/mysql/mysql \
+    --datadir=/opt/mysql/mysql/data
+```
+
+##### 3、查看 MySQL 服务是否启动
+    
+Linux 中 MySQL 的服务名为 mysqld    
+
+```python
+ps auxww| grep mysqld
+```
+
+##### 4、启动 MySQL 服务
+
+```python    
+service mysqld start
+service mysqld stop
+service mysqld restart
+
+systemctl start mysqld.service
+systemctl restart mysqld.service
+systemctl stop mysqld.service
+
+systemctl enable mysqld.service
+systemctl disable mysqld.service 
+```
+
+##### 4.1、设置 MySQL 自启服务
+
+```python
+## 查看 MySQL 服务是否自动启动
+># chkconfig --list | grep mysqld
+
+## 设置 MySQL 服务自启
+># chkconfig mysqld on
+
+OR
+
+># systemctl enable mysqld.service
+```
+
+##### 5、登录 MySQL 数据库
+
+##### 5.1、获得 MySQL 初始密码
+
+```python
+># grep 'temporary password' /var/log/mysqld.log
+2015-10-23T06:48:10.113065Z [Note] A temporary password is generated for root@localhost: HnAs.9<zpiZr
+```
+
+##### 5.2、登录 MySQL 数据库并修改初始密码
+
+```python
+># mysql -uroot -p HnAs.9<zpiZr
+mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY 'newpassword'
+mysql> exit
+
+## MySQL 5.7.20 以上版本设置用户密码：
+mysql> update user set authentication_string=password('123456') where user='root' and Host = 'localhost';
+mysql> select user,host,authentication_string from user;
+```
+
+##### 5.3、快速登录
+
+**mysql test**  -> 使用 root 用户登录在本机登录，使用 test 数据库
+
+相当于：
+
+```python
+mysql -u root -p -h localhsot
+mysql> use test
+```
+
+**mysql mysql**
+    
+相当于：
+
+```python
+mysql -u root -p -h localhost
+mysql> use mysql 
+```
+
+前提条件：
+
+ - 1、root 用户没有设置登录密码，不需要密码就可以登录
+ - 2、mysql 数据库中，需要有这个用户的登录账号
+ - 3、必须是在本机登录，使用的主机名是 localhost 
+
+##### 5.4 切换正在使用的数据库
+
+MySQL 数据库，安装完毕后，默认会有几个数库
+    
+登录 MySQL 数据库后，使用 use 数据库名; 
+
+ - 进行对数据库的切换
+ - 如：use mysql;
+ use test;
+
+可以使用 show databases; 查看所有的数据库。
+
+##### 6、设置 MySQL 数据库 root 身份的密码
+
+简单的用户登录：
+
+1、在没有 root 用户没有密码的情况下：
+
+```python
+mysqladmin -u root password 'root12'
+```
+
+2、修改已存在密码的用户的密码：
+
+```python
+mysqladmin -u root -p password 'root'
+```
+
+输入后，会提示输入 原来的 root 密码
+
+**注意**：每一个 MySQL 的登录账号对应一台电脑。
+
+ - 以上操作的用户主机对应的默认是 localhost
+
+ - 不是本机登录的账户需要显示标明
+
+如：
+
+```python
+mysqladmin -u demo1 -p -h mrcuijt password 'demo12'
+```
+
+完整的用户登录：
+    
+```python
+mysql -u root -h localhost -proot12
+```
+
+ - 需要指定 用户名、密码、主机名
+
+ - 注意：**`-p`** 参数后面必须紧跟用户密码，不能有 空格
+
+##### 7、设置 MySQL 数据基本的安全设置
+
+```python
+sudo mysql_source_installation
+```
+
+->下一步 -> 下一步 -> 完成
+
+##### 8、设置防火墙
+
+##### 8.1、在防火墙中添加对 MySQL 数库使用的 3306 端口号，添加信任
+
+```python
+## 仅本次开机有效
+># iptables -I INPUT 1 -p TCP --dport 3306 -j ACCEPT 
+
+## 将本次对防火墙的修改保存在系统中
+iptables save
+
+OR
+
+># /etc/init.d/iptables save
+```
+
+##### 9、MySQL 数库库登录用户设置
+
+##### 9.1、添加数据库登录用户
+
+ - 使用 root 用户登录到 MySQL 数据库 
+
+```python
+mysql -u root -proot12 -hlocalhsot
+```
+ - 使用 mysql 数库 
+
+```python
+mysql> use mysql
+```
+
+ - 创建新的用户
+
+```python
+create user 'testuser'@'localhost' identified by 'password';
+```
+
+ - 更新用户密码
+
+```python
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'mypassword';
+```
+
+##### 10、分派 MySQL 用户权限
+
+```python
+## 授予用户 mrcuijt 允许在本机登录且拥有对所有数据库的全部操作权限
+grant all on *.* to mrcuijt@'localhost' identified by '1234';
+## 刷新权限
+flush privileges;
+```
+
+参考链接：
+
+ - <a href="https://www.linode.com/docs/databases/mysql/how-to-install-mysql-on-centos-7/" target="_blank">How to Install MySQL on CentOS 7</a>
+
+ - <a href="https://linux.die.net/man/1/mysql_install_db" target="_blank">mysql_install_db(1) - Linux man page</a>
+
+ - <a href="http://segmentfault.com/a/1190000003049498" target="_blank">CentOS 6.5/6.6 安装（install）mysql 5.7 最完整版教程</a>
+
+ - <a href="https://dev.mysql.com/doc/refman/5.7/en/linux-installation-yum-repo.html" target="_blank">Installing MySQL on Linux Using the MySQL Yum Repository</a>
+
+ - <a href="http://blog.csdn.net/yyTomson/article/details/50073951" target="_blank">Windows 下 MySQL 5.7 安装方法</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

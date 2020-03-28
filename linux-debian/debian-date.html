@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>debian-date</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### debian-date 时区修改
+
+先查看当前系统时间
+
+```python
+$ date -R
+```
+
+结果时区是：-0500
+我需要的是东八区，这儿显示不是，所以需要设置一个时区
+
+##### 1、运行 tzselect
+
+```python
+$ tzselect
+```
+
+&amp;#160; &amp;#160;在出现的时间地区列表中我们选择 `亚洲 Asia`，确认之后选择 `中国 China` 最后选择 `北京 Beijing`。
+
+##### 2、复制选择的时间地区到 /etc 目录下
+
+```python
+$ sudo cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+```
+
+##### 3、再次查看时间 data -R ，已经修改为北京时间
+
+```python
+$ date -R
+```
+
+#### 修改系统时间
+
+```python
+$ sudo date -s MM/DD/YY 修改日期
+$ sudo date -s hh:mm:ss 修改时间
+```
+
+**`在修改时间后，修改硬件 CMOS 的时间`**
+
+```python
+$ sudo hwclock --systohc ## 非常重要，如果没有这一步的话后面时间还是不准
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/zhengchaooo/article/details/79500032" target="_blank">Ubuntu修改时区和更新时间</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

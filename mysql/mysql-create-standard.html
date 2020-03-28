@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MySQL Create Table Standard</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### MySQL Create Table Standard
+
+##### 一、 表设计规范
+
+ - 库名、表名、字段名必须使用小写字母，“_”分割。
+ 
+ - 库名、表名、字段名必须不超过 12 个字符。
+ 
+ - 库名、表名、字段名见名知意,建议使用名词而不是动词。
+ 
+ - 建议使用 InnoDB 存储引擎。
+ 
+ - 存储精确浮点数必须使用 DECIMAL 替代 FLOAT 和 DOUBLE。
+ 
+ - 建议使用 UNSIGNED 存储非负数值。
+ 
+ - 建议使用 INT UNSIGNED 存储 IPV4。
+
+```sql
+SELECT INET_ATON('209.207.224.40'); -- 3520061480
+
+SELECT INET_NTOA(3520061480); -- 209.207.224.40
+```
+ - 整形定义中不添加长度，比如使用 INT，而不是 INT(4)。
+ 
+ - 使用短数据类型，比如取值范围为 0-80 时，使用 TINYINT UNSIGNED。
+ 
+ - 不建议使用 ENUM 类型，使用 TINYINT 来代替。
+ 
+ - 尽可能不使用 TEXT、BLOB 类型。
+ 
+ - VARCHAR(N)，N 表示的是字符数不是字节数，比如 VARCHAR(255)，可以最大可存储 255 个汉字，需要根据实际的宽度来选择 N。
+ 
+ - VARCHAR(N)，N 尽可能小，因为 MySQL 一个表中所有的 VARCHAR 字段最大长度是 65535 个字节，进行排序和创建临时表一类的内存操作时，会使用 N 的长度申请内存。
+ 
+ - 表字符集选择 UTF8。
+ 
+ - 使用 VARBINARY 存储变长字符串。
+ 
+ - 存储年使用 YEAR 类型。
+ 
+ - 存储日期使用 DATE 类型。
+ 
+ - 存储时间（精确到秒）建议使用 TIMESTAMP 类型，因为 TIMESTAMP 使用 4 字节，DATETIME 使用 8 个字节。
+ 
+ - 建议字段定义为 NOT NULL。
+ 
+ - 将过大字段拆分到其他表中。
+ 
+ - 禁止在数据库中使用 VARBINARY、BLOB 存储图片、文件等。
+ 
+ - 表结构变更需要通知 DBA 审核。
+
+二、 索引规范
+
+ - 非唯一索引必须按照“idx\_字段名称\_字段名称[\_字段名]”进行命名。
+ 
+ - 唯一索引必须按照“uniq\_字段名称\_字段名称[\_字段名]”进行命名。
+ 
+ - 索引名称必须使用小写。
+ 
+ - 索引中的字段数建议不超过 5 个。
+ 
+ - 单张表的索引数量控制在 5 个以内。
+ 
+ - 唯一键由 3 个以下字段组成，并且字段都是整形时，使用唯一键作为主键。
+ 
+ - 没有唯一键或者唯一键不符合 5 中的条件时，使用自增（或者通过发号器获取）id 作为主键。
+ 
+ - 唯一键不和主键重复。
+ 
+ - 索引字段的顺序需要考虑字段值去重之后的个数，个数多的放在前面。
+ 
+ - ORDER BY，GROUP BY，DISTINCT 的字段需要添加在索引的后面。
+ 
+ - 使用 EXPLAIN 判断 SQL 语句是否合理使用索引，尽量避免 extra 列出现：Using File Sort，UsingTemporary。
+ 
+ - UPDATE、DELETE 语句需要根据 WHERE 条件添加索引。
+ 
+ - 不建议使用 % 前缀模糊查询，例如 LIKE “%weibo”。
+ 
+ - 对长度过长的 VARCHAR 字段建立索引时，添加 crc32 或者 MD5 Hash 字段，对 Hash 字段建立索引。
+
+  - 下面的表增加一列 url\_crc32，然后对 url\_crc32 建立索引，减少索引字段的长度，提高效率。
+
+```sql
+CREATE TABLE url(
+
+    url VARCHAR(255) NOT NULL DEFAULT 0,
+    url_crc32 INT UNSIGNED NOT NULL DEFAULT 0,
+
+    index idx_url(url_crc32)
+);
+```
+
+ - 合理创建联合索引（避免冗余），(a,b,c) 相当于 (a) 、(a,b) 、(a,b,c)。
+ 
+ - 合理利用覆盖索引。
+ 
+ - SQL 变更需要确认索引是否需要变更并通知 DBA。
+
+三、 SQL语句规范
+
+ - 使用 prepared statement，可以提供性能并且避免 SQL 注入。
+ 
+ - SQL 语句中IN包含的值不应过多。
+ 
+ - UPDATE、DELETE 语句不使用 LIMIT。
+ 
+ - WHERE 条件中必须使用合适的类型，避免 MySQL 进行隐式类型转化。
+ 
+ - SELECT 语句只获取需要的字段。
+ 
+ - SELECT、INSERT 语句必须显式的指明字段名称，不使用 SELECT *，不使用 INSERT INTO table()。
+ 
+ - 使 用 SELECT column\_name1, column\_name2 FROM table WHERE [condition] 
+ 
+  - 而不是 SELECT column\_name1 FROM table WHERE [condition] 
+  
+  - 和 SELECT column\_name2 FROM table WHERE [condition]。
+ 
+ - WHERE 条件中的非等值条件（IN、BETWEEN、<、<=、>、>=）会导致后面的条件使用不了索引。
+ 
+ - 避免在 SQL 语句进行数学运算或者函数运算，容易将业务逻辑和 DB 耦合在一起。
+ 
+ - INSERT 语句使用 batch 提交（INSERT INTO tableVALUES(),(),()……），values 的个数不应过多。
+ 
+ - 避免使用存储过程、触发器、函数等，容易将业务逻辑和DB耦合在一起，并且 MySQL 的存储过程、触发器、函数中存在一定的 bug。
+ 
+ - 避免使用 JOIN。
+ 
+ - 使用合理的 SQL 语句减少与数据库的交互次数。
+ 
+ - 不使用 ORDER BY RAND()，使用其他方法替换。
+ 
+ - 建议使用合理的分页方式以提高分页的效率。
+ 
+  - 推荐分页方式：
+
+```sql
+-- 
+SELECT * FROM table WHERE TIME < last_TIME ORDER BY TIME DESC LIMIT 10.
+
+SELECT * FROM table inner JOIN(SELECT id FROM table ORDER BY TIME LIMIT 10000,10) as t USING(id)
+```
+ 
+ - 统计表中记录数时使用 COUNT(*)，而不是 COUNT(primary_key) 和 COUNT(1)。
+ 
+ - 禁止在从库上执行后台管理和统计类型功能的 QUERY。
+
+四、 散表规范
+
+ - 每张表数据量建议控制在 5000w 以下。
+ 
+ - 可以结合使用 hash、range、lookup table 进行散表。
+ 
+ - 散表如果使用 md5（或者类似的 hash 算法）进行散表，表名后缀使用 16 进制，比如 user_ff。
+ 
+ - 推荐使用 CRC32 求余（或者类似的算术算法）进行散表，表名后缀使用数字，数字必须从0开始并等宽，比如散 100 张表，后缀从 00-99。
+ 
+ - 使用时间散表，表名后缀必须使用特定格式，比如按日散表 user\_20110209、按月散表 user\_201102。
+ 
+五、 其他
+
+ - 批量导入、导出数据需要 DBA 进行审查，并在执行过程中观察服务。
+ 
+ - 批量更新数据，如 update,delete 操作，需要 DBA 进行审查，并在执行过程中观察服务。
+ 
+ - 产品出现非数据库平台运维导致的问题和故障时，如前端被抓站，请及时通知 DBA，便于维护服务稳定。
+ 
+ - 业务部门程序出现 bug 等影响数据库服务的问题,请及时通知 DBA，便于维护服务稳定。
+
+ - 业务部门推广活动，请提前通知 DBA 进行服务和访问评估。
+ 
+ - 如果出现业务部门人为误操作导致数据丢失，需要恢复数据，请在第一时间通知 DBA，并提供准确时间，误操作语句等重要线索。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/qq_40884473/article/details/78432967" target="_blank">MySQL建表规范与注意事项(个人精华)</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

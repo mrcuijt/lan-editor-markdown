@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maven</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+目录
+
+ - <a href="#001" target="_self">指定项目编译插件</a>
+
+ - <a href="#002" target="_self">配置 setting.xml 环境，配置仓库镜像</a>
+
+ - <a href="#003" target="_self">在 pom.xml 添加多个仓库进行引入 jar 包依赖的自动匹配</a>
+
+ - <a href="#004" target="_self">添加在打 war 包时对一些文件过滤不打包的配置</a>
+
+ - <a href="#005" target="_self">程序打包时添加除 .class 文件以外的项目配置文件到 war 包中。</a>
+
+ - <a href="#006" target="_self">添加 Maven tomcat 插件</a>
+
+ - <a href="#007" target="_self">在指定 Maven 生命周期过程中加入其它 Maven 插件运行配置</a>
+
+ - <a href="#008" target="_self">跳过测试</a>
+
+ - <a href="#009" target="_self">跳过编译</a>
+
+ - <a href="#010" target="_self">设置项目字符编码格式（resource）</a>
+
+ - <a href="#011" target="_self">输出查看 Maven 中的变量值</a>
+
+ - <a href="#012" target="_self">maven-assembly-plugin 的使用</a>
+
+ - <a href="#013" target="_self">Maven profiles 切换测试环境和正式环境</a>
+
+ - <a href="#014" target="_self">Maven doc 文档生成</a>
+
+ - <a href="#015" target="_self">Maven source 源码包生成</a>
+
+ - <a href="#016" target="_self">Maven 安装本地 Jar 包</a>
+
+ - <a href="#017" target="_self">父项目依赖关系</a>
+
+ - <a href="#018" target="_self">Maven 依赖排除 禁止依赖传递 取消依赖的方法</a>
+
+#### <span id="001">指定项目编译插件</span>
+```xml
+<properties>
+    <java.version>1.8</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+</properties>
+```
+```xml
+<!-- 配置 Maven 项目的构建环境 -->
+<build>
+    <plugins>
+ 
+        <!-- Maven Compiler 插件环境配置 -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.3.2</version>
+            <!-- 设置详细信息 -->
+            <configuration>
+                <source>1.8</source>
+                <target>1.8</target>
+                <encoding>UTF-8</encoding>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+#### <span id="002">配置 setting.xml 环境，配置仓库镜像</span>
+```xml
+ <mirror>
+    <id>nexus-aliyun</id>
+    <name>aliyun central mirror</name>
+    <!--  阿里云的镜像  -->
+    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    <mirrorOf>central</mirrorOf>
+ </mirror>
+```
+
+&#160; &#160;原理 ***```Maven```*** 有一个 ***```Super POM.xml```*** 配置文件
+
+&#160; &#160;默认指定了一个仓库，名称（id）为 ***```centeral```***，通过在 ***```setting.xml```*** 中配置 ***```mirrorOf central```*** 来进行配置该仓库的镜像仓库。
+
+***```Super pom.xml```***
+```xml
+<repositories>
+    <repository>
+        <id>central</id>
+        <name>Central Repository</name>
+        <url>https://repo.maven.apache.org/maven2</url>
+        <layout>default</layout>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+#### <span id="003">在 ***```pom.xml```*** 添加多个仓库进行引入 ```jar``` 包依赖的自动匹配</span>
+```xml
+<!-- Maven official repository -->
+<repositories>
+    <repository>
+        <id>maven</id>
+        <name>Maven Repository Switchboard</name>
+        <layout>default</layout>
+        <url>http://repo1.maven.org/maven2</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+    <repository>
+        <id>nexus-Atlassian</id>
+        <name>Atlassian 3rd-P Old</name>
+        <url>https://maven.atlassian.com/3rdparty/</url>
+    </repository>
+</repositories>
+```
+
+#### <span id="004">添加在打 ```war``` 包时对一些文件过滤不打包的配置</span>
+```xml
+<!-- 设置打包时过滤的文件 -->
+<plugin>
+    <artifactId>maven-war-plugin</artifactId>
+    <configuration>
+        <!-- 过滤 resource 资源目录下指定的文件 -->
+        <packagingExcludes></packagingExcludes><!-- packagingExcludes 中指定的文件位于 
+            src/main/resources 目录中 -->
+        <!-- 过滤 webapp 目录下指定的文件 -->
+        <warSourceExcludes><!-- warSourceExcludes 中指定的文件位于 src/main/webapp 目录中 -->
+            upload_file/** ,
+            temp_dir/**
+        </warSourceExcludes>
+    </configuration>
+</plugin>
+```
+
+#### <span id="005">程序打包时添加除 ```.class``` 文件以外的项目配置文件到 ```war``` 包中。</span>
+```xml
+<build>
+    <!-- 添加资源文件包含 -->
+    <resources>
+        <resource>
+            <directory>src/main/java</directory>
+            <includes>
+                <include>**/*.properties</include>
+                <include>**/*.xml</include>
+            </includes>
+            <filtering>false</filtering>
+        </resource>
+        <resource>
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>**/*.properties</include>
+                <include>**/*.xml</include>
+            </includes>
+            <filtering>false</filtering>
+        </resource>
+    </resources>
+</build>
+```
+
+#### <span id="006">添加 ```Maven tomcat``` 插件</span>
+***```maven tomcat8 plugin pluginRepositories```***
+```xml
+<pluginRepositories>
+    <pluginRepository>
+        <id>alfresco-public</id>
+        <url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+    </pluginRepository>
+    <pluginRepository>
+        <id>alfresco-public-snapshots</id>
+        <url>https://artifacts.alfresco.com/nexus/content/groups/public-snapshots</url>
+        <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>daily</updatePolicy>
+        </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+        <id>beardedgeeks-releases</id>
+        <url>http://beardedgeeks.googlecode.com/svn/repository/releases</url>
+    </pluginRepository>
+</pluginRepositories>
+```
+
+***```maven tomcat6~8 plugin```***
+```xml
+<build>
+    <pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat8-maven-plugin</artifactId>
+                <version>3.0-r1655215</version>
+                <configuration>
+                    <server>tomcat8</server>
+                    <charset>UTF-8</charset>
+                    <!-- 指定端口 -->
+                    <port>8080</port>
+                    <!-- 请求路径 -->
+                    <path>/</path>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run-war-only</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat7-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <charset>UTF-8</charset>
+                    <!-- 指定端口 -->
+                    <port>8080</port>
+                    <!-- 请求路径 -->
+                    <path>/</path>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.tomcat.maven</groupId>
+                <artifactId>tomcat6-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <charset>UTF-8</charset>
+                    <!-- 指定端口 -->
+                    <port>8080</port>
+                    <!-- 请求路径 -->
+                    <path>/</path>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+</build>
+```
+运行 tomcat 服务器插件
+```python
+tomcat8:run
+```
+
+```python
+tomcat7:run
+```
+
+```python
+## Maven 会在运行插件中搜索 tomcat 插件
+tomcat:run 
+```
+运行 springboot 项目
+```python
+spring-boot:run
+```
+
+#### <span id="007">在指定 ```Maven``` 生命周期过程中加入其它 ```Maven``` 插件运行配置</span>
+
+ - 在完成 ***```package```*** 操作后，执行拷贝依赖操作
+ 
+```xml
+<!-- Maven Dependency 插件环境配置 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <version>2.7</version>
+    <executions>
+        <execution>
+            <phase>package</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <includeScope>system</includeScope>
+        <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib</outputDirectory>
+    </configuration>
+</plugin>
+```
+
+#### <span id="008">跳过测试</span>
+```python
+mvn -Dtest package
+```
+
+```python
+mvn -Dmaven.test.skip=true
+```
+
+```python
+-DskipTests=true
+```
+
+```xml
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+```
+
+#### <span id="009">跳过编译</span>
+```python
+mvn test -skipping compile -skipping test-compile
+```
+
+#### <span id="010">设置项目字符编码格式（resource）</span>
+```xml
+<project> 
+    … 
+    <properties> 
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+    </properties> 
+    … 
+</project>
+```
+
+ - 设置项目字符编码格式（src）
+ 
+```xml
+<build>
+  ...
+    <plugin>
+      <artifactId>maven-compiler-plugin</artifactId>
+      <configuration>
+        <encoding>UTF-8</encoding>
+      </configuration>
+    </plugin>
+  ...
+</build>
+```
+
+#### <span id="011">输出查看 Maven 中的变量值</span>
+```python
+mvn antrun:run
+```
+
+```xml
+<build>
+    <plugins>
+        <!-- Maven Compiler 插件环境配置 -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.3.2</version>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+        </plugin>
+    </plugins>
+    <pluginManagement>
+        <plugins>
+            <!-- Maven Compiler 插件环境配置 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <!-- 设置详细信息 -->
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <target>
+                        <echo message="hello ant, from Maven!" />
+                        <echo>Maybe this will work?</echo>
+                        <echo>用户目录： ${user.home}</echo>
+                        <echo>项目基础（根）目录： ${basedir}</echo>
+                        <echo>项目文件地址： ${project.baseUri}</echo>
+                        <echo>项目目录： ${project.build.directory}</echo>
+                        <echo>项目版本： ${project.version}</echo>
+                        <echo>项目打包文件名： ${project.build.finalName}</echo>
+                        <echo>项目打包类型： ${project.packaging}</echo>
+                        <echo>项目打包时间格式： ${maven.build.timestamp.format}</echo>
+                        <echo>项目打包时间： ${maven.build.timestamp}</echo>
+                        <echo>项目主源码路径： ${project.build.directory}</echo>
+                        <echo>项目主源码编码格式： ${project.build.sourceEncoding}</echo>
+                        <echo>项目主源码路径： ${project.build.sourceDirectory}</echo>
+                        <echo>Setting 变量引用：</echo>
+                        <echo>Maven 仓库配置： ${settings.localRepository}</echo>
+                        <echo>系统环境变量引用：</echo>
+                        <echo>使用 mvn help:system 可查看所有系统环境变量</echo>
+                        <echo>操作系统名称： ${os.name}</echo>
+                        <echo>操作系统版本： ${os.version}</echo>
+                        <echo>操作系统架构： ${os.arch}</echo>
+                        <echo>系统文件分割符： ${path.separator}</echo>
+                        <echo>文件分隔符： ${file.separator}</echo>
+                        <echo>路径分隔符： ${path.separator}</echo>
+                        <echo>行分隔符： ${line.separator}</echo>
+                        <echo>用户的账户名称： ${user.name}</echo>
+                        <echo>用户的主目录： ${user.home}</echo>
+                        <echo>用户当前工作目录： ${user.dir}</echo>
+                        <echo></echo>
+                    </target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+</build>
+```
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <version>2.4</version>
+    <configuration>
+        <archive>
+            <manifest>
+                <!-- 告知 maven-jar-plugin 添加一个 Class-Path 元素到 MANIFEST.MF 文件，以及在 Class-Path 元素中包括所有依赖项 -->
+                <addClasspath>true</addClasspath>
+                <!-- 所有的依赖项应该位于 lib文件夹 -->
+                <classpathPrefix>lib/</classpathPrefix>
+                <!-- 当用户使用 lib 命令执行JAR文件时，使用该元素定义将要执行的类名 -->
+                <mainClass>com.zhengtian.tools.service.phone.MobilePhoneTool</mainClass>
+            </manifest>
+        </archive>
+    </configuration>
+</plugin>
+```
+
+#### <span id="012">maven-assembly-plugin 的使用</span>
+
+***```“assembly”```*** 是把一组文件、目录、依赖元素组装成一个归档文件
+
+参考链接:
+
+ - <a href="http://blog.csdn.net/WANGYAN9110/article/details/38646677" target="_blank">Assembly Plugin 使用</a>
+ 
+```xml
+<plugin>
+    <artifactId>maven-assembly-plugin</artifactId>
+    <version>2.4.1</version>
+    <executions>
+        <execution>
+            <id>make-zip</id>
+            <!-- 绑定到package生命周期阶段上 -->
+            <phase>package</phase>
+            <goals>
+                <!-- 绑定到package生命周期阶段上 -->
+                <goal>single</goal>
+            </goals>
+            <configuration>
+                <descriptors> <!--描述文件路径 -->
+                    <descriptor>src/assembly/assembly.xml</descriptor>
+                </descriptors>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+***```assembly.xml```***
+```xml
+<assembly
+    xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>distribution</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <fileSet>
+            <directory>${project.basedir}\src\main\resources</directory>
+            <outputDirectory>\</outputDirectory>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}\src\bin</directory>
+            <outputDirectory>\bin</outputDirectory>
+        </fileSet>
+    </fileSets>
+    <dependencySets>
+        <dependencySet>
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <!-- 将scope为runtime的依赖包打包到lib目录下。 -->
+            <scope>runtime</scope>
+        </dependencySet>
+    </dependencySets>
+</assembly>
+```
+
+#### <span id="013">Maven profiles 切换测试环境和正式环境</span>
+
+***``` compiler plugin ```***
+```xml
+<!-- 配置 Maven 项目的构建环境 -->
+<build>
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <!-- 开启项目 profile 处理 -->
+            <filtering>true</filtering>
+        </resource>
+    </resources>
+    <plugins>
+        <!-- Maven Compiler 插件环境配置 -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+```
+***``` maven profile ```***
+```xml
+<profiles>
+    <profile>
+        <!-- 本地环境 -->
+        <id>local</id>
+        <properties>
+            <env>dev</env>
+            <databaseUrl>
+            <![CDATA[jdbc:mysql://127.0.0.1:3306/usm?useUnicode=true&characterEncoding=utf-8&relaxAutoCommit=true&zeroDateTimeBehavior=convertToNull]]>
+            </databaseUrl>
+            <databaseUserName>usm</databaseUserName>
+            <databasePassword>usm</databasePassword>
+            <ebsdatabaseUrl>
+            <![CDATA[jdbc:mysql://10.0.73.117:3306/epay?useUnicode=true&characterEncoding=utf-8&relaxAutoCommit=true&zeroDateTimeBehavior=convertToNull]]>
+            </ebsdatabaseUrl>
+            <ebsdatabaseUserName>mer_user</ebsdatabaseUserName>
+            <ebsdatabasePassword>mer_user</ebsdatabasePassword>
+            <version>${version}</version>
+            <task>true</task>
+        </properties>
+        <!-- 默认激活本环境 -->
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+    </profile>
+    <profile>
+        <!-- 开发环境 -->
+        <id>dev</id>
+        <properties>
+            <env>dev</env>
+            <version>${version}</version>
+        </properties>
+    </profile>
+    <profile>
+        <!-- 测试环境 -->
+        <id>test</id>
+        <properties>
+            <version>${version}</version>
+            <env>test</env>
+        </properties>
+    </profile>
+</profiles>
+```
+
+**配置文件中的 _```${}```_ 由 _```Maven```_ 在编译时动态注入**
+```python
+#mysql database setting
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=${databaseUrl}
+jdbc.username=${databaseUserName}
+jdbc.password=${databasePassword}
+ebs.jdbc.url=${databaseUrl}
+#jdbc.username=purtest@
+#jdbc.password=tX1fm5Mk3
+ebs.jdbc.driver=com.mysql.jdbc.Driver
+ebs.jdbc.username=${databaseUserName}
+ebs.jdbc.password=${databasePassword}
+```
+参考链接:
+
+ - <a href="https://www.cnblogs.com/0201zcr/p/6262762.html" target="_blank">maven profile 动态选择配置文件</a>
+ 
+```xml
+<profiles>
+    <profile>
+        <!-- 本地开发环境 -->
+        <id>dev</id>
+        <properties>
+            <profiles.active>dev</profiles.active>
+        </properties>
+        <activation>
+            <!-- 设置默认激活这个配置 -->
+            <activeByDefault>true</activeByDefault>
+        </activation>
+    </profile>
+    <profile>
+        <!-- 发布环境 -->
+        <id>release</id>
+        <properties>
+            <profiles.active>release</profiles.active>
+        </properties>
+    </profile>
+    <profile>
+        <!-- 测试环境 -->
+        <id>beta</id>
+        <properties>
+            <profiles.active>beta</profiles.active>
+        </properties>
+    </profile>
+</profiles> 
+ 
+<build>
+    <finalName>helloworld</finalName>
+    <resources>
+        <!-- 先全部不包含 -->
+        <resource>
+            <directory>src/main/resources</directory>
+            <excludes>
+                <exclude>config/</exclude>
+            </excludes>
+        </resource>
+        <!-- 再指定需要包含的文件夹 -->
+        <resource>
+            <directory>src/main/resources/config/${profiles.active}</directory>
+            <targetPath>.</targetPath>
+        </resource>
+    </resources>
+</build>
+```
+
+&#160; &#160;***```id```*** 代表这个环境的唯一标识，在 ***```mvn install -Pdev```*** 来指定。 
+
+&#160; &#160;此 ***```properties```*** 定义了三个环境，分别是 ```dev（开发环境）、beta（测试环境）、release（发布环境）``` 
+
+&#160; &#160;***```activeByDefault=true```*** 代表如果不指定某个固定 ```id``` 的 ```profile```，那么就使用这个环境
+
+&#160; &#160;使用 ***```mvn install -Pdev```*** 会将 ***```id```*** 为 ***```dev```*** 的 ***```profile```*** 中的 ```<properties>``` 定义的属性 ***```profiles.active```*** 自动替换 ***```${profiles.active}```*** 占位符的变量。最终 ```build``` 到 ***```classpath```*** 的资源文件由 ***```maven-resources-plugin```*** 来指定，为 ***```src/main/resources/config/dev```*** 文件下的所有文件。
+
+参考链接:
+
+ - <a href="https://juejin.im/entry/5b0fa70af265da090e3df499" target="_blank">Maven 整体认识——详细介绍</a>
+ 
+#### <span id="014">Maven doc 文档生成</span>
+
+```xml
+<!--配置生成Javadoc包 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-javadoc-plugin</artifactId>
+    <version>2.10.4</version>
+    <configuration>
+        <encoding>UTF-8</encoding>
+        <aggregate>true</aggregate>
+        <charset>UTF-8</charset>
+        <docencoding>UTF-8</docencoding>
+    </configuration>
+    <executions>
+        <execution>
+            <id>attach-javadocs</id>
+            <phase>package</phase>
+            <goals>
+                <goal>jar</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+#### <span id="015">Maven source 源码包生成</span>
+```xml
+<!--配置生成源码包 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-source-plugin</artifactId>
+    <version>3.0.1</version>
+    <executions>
+        <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+                <goal>jar</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+#### <span id="016">Maven 安装本地 Jar 包</span>
+
+这里以 _IKAnalyzer.jar_ 包为例进行讲解。
+
+ - 第一步：将 _IKAnalyzer.jar_ 包存放在一个文件夹中，比如 mylib 文件夹
+ 
+ - 第二步：建立一个 _IKAnalyzer.jar_ 包相关的 _pom.xml_ 文件，需要在 _pom.xml_ 文件中定义其 _maven_ 坐标及其相应的依赖代码即可，同样将 _pom_ 文件存放在上述jar文件同一文件夹下，_IKAnalyzer.jar_ 坐标及依赖代码如下：
+ 
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"   
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0   
+   
+http://maven.apache.org/xsd/maven-4.0.0.xsd">  
+   
+    <modelVersion>4.0.0</modelVersion>  
+    <groupId>org.wltea.ik-analyzer</groupId>  
+    <artifactId>ik-analyzer</artifactId>  
+    <version>3.2.8</version>  
+    <name>IK Analyzer 3</name>  
+    <description>A dictionary and grammar-based Chinese segmenter</description>  
+    <dependencies>  
+        <dependency>  
+            <groupId>org.apache.lucene</groupId>  
+            <artifactId>lucene-core</artifactId>  
+            <version>3.0.3</version>  
+            <optional>true</optional>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.apache.solr</groupId>  
+            <artifactId>solr-core</artifactId>  
+            <version>1.4.1</version>  
+            <optional>true</optional>  
+        </dependency>  
+        <dependency>  
+            <groupId>junit</groupId>  
+            <artifactId>junit</artifactId>  
+            <version>3.8.2</version>  
+            <scope>test</scope>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.apache.lucene</groupId>  
+            <artifactId>lucene-analyzers</artifactId>  
+            <version>3.0.3</version>  
+            <scope>test</scope>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.apache.lucene</groupId>  
+            <artifactId>lucene-smartcn</artifactId>  
+            <version>3.0.3</version>  
+            <scope>test</scope>  
+        </dependency>  
+    </dependencies>  
+</project>
+```
+
+ - 第三步：打开 _CMD_，进入到 _mylib_ 文件夹，运行下面的命令：
+ 
+```python
+mvn install:install-file               \  
+    -Dfile=IKAnalyzer3.2.8.jar         \  
+    -DgroupId=org.wltea.ik-analyzer    \  
+    -DartifactId=ik-analyzer           \  
+    -Dversion=3.2.8                    \  
+    -Dpackaging=jar   
+```
+
+&#160; &#160;这样你就可以将 _IKAnalyzer3.2.8.jar_ 安装到您本地的 _Maven_ 仓库中了，你可以根据你的实际情况修改上面的参数即可。之后你可以在 _pom.xml_ 文件中通过以下依赖在项目中引入自定义的 _jar_ 包，如下：
+
+```xml
+<dependency>  
+     <groupId>org.wltea.ik-analyzer</groupId>  
+     <artifactId>ik-analyzer</artifactId>  
+     <version>3.2.8</version>  
+</dependency>  
+```
+
+&#160; &#160;当然你也可以不将 _IKAnalyzer3.2.8.jar_ 发布到您本地的 _Maven_ 库中，而是通过下面的配置引入，效果和上面的差不多：
+
+```xml
+<dependency>  
+    <groupId>org.wltea</groupId>  
+    <artifactId>IKAnalyzer</artifactId>  
+    <version>3.2.8</version>  
+    <scope>system</scope> 
+    <systemPath>C:\Users\yangping\Desktop\a\IKAnalyzer3.2.8.jar</systemPath>  
+</dependency>
+```
+
+直接引用时存在的问题：
+
+&#160; &#160;用 _mvn clean package_ 打成 _jar_ 包后运行就是报错，正式找不到这些 _jar_ 包中的相关类。把 _jar_ 包解压后在 _WEB-INF/lib_ 里面也确实没有发现用上述方式引入的 _jar_ 包，看来是没有把 _src/lib_ 目录里面的 _jar_ 打进去，后来通过查找也终于找到方法了。
+
+&#160; &#160;修改 _pom_ 文件，在 _build_ 标签下增加如下配置
+
+```xml
+<!--设置 maven-war-plugins 插件，否则外部依赖无法打进 war 包 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-war-plugin</artifactId>
+    <configuration>
+        <webResources>
+            <resource>
+                <directory>${project.basedir}/src/lib</directory>
+                <targetPath>WEB-INF/lib/</targetPath>
+                <includes>
+                    <include>**/*.jar</include>
+                </includes>
+            </resource>
+        </webResources>
+    </configuration>
+</plugin>
+```
+
+```xml
+<dependency>
+    <groupId>DPSDK-Manager</groupId>
+    <artifactId>DPSDK-Manager</artifactId>
+    <version>0.2.1</version>
+    <scope>system</scope>
+    <systemPath>${project.basedir}/libs/DPSDK-Manager-0.2.1.jar</systemPath>
+</dependency>       
+```
+
+```xml
+<!-- Maven Surefire 测试用例插件环境配置 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.22.1</version>
+    <configuration>
+        <includes>
+            <!-- 在执行测试用例时引入外部依赖 Jar -->
+            <include>${project.basedir}/libs/*</include>
+        </includes>
+    </configuration>
+</plugin>
+```
+
+```xml
+<!-- Maven Dependency 插件环境配置 -->
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <version>2.7</version>
+    <executions>
+        <execution>
+            <phase>process-resources</phase>
+            <goals>
+                <goal>copy-dependencies</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <includeScope>system</includeScope>
+        <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib</outputDirectory>
+    </configuration>
+</plugin>
+```
+
+#### <span id="017">父项目依赖关系</span>
+
+ - 父模块中 dependencies 内的 dependency 可以自动继承到子模块中；但是 dependencyManagement 标签下的 dependencies 中的 dependency 不会自动继承到子模块，子模块需要显示引用 dependency 的 groupId 和 artifactId，version 则可选（建议放在父模块中管理）。
+
+ - 父模块 dependencyManagement 主要管理 dependencies 中的 dependency 的信息（包括 version 和 values）。
+
+ - 父模块 dependencyManagement 管理的 dependencies 中的 dependency 不会再子模块默认继承，子模块继承，需要显示定义 dependencies 中的具体 dependency 的 groupId 和 artifactId（version 可选，建议在父模块管理）。 
+ 
+ 这样父模块既可以统一管理 dependency 的版本，避免jar包冲突；子模块也可以自由选择，不会冗余加载子模块用不到的 jar。
+
+#### <span id="018">Maven 依赖排除 禁止依赖传递 取消依赖的方法</span>
+
+项目间传递
+
+&amp;#160; &amp;#160;如果我的当前项目是 project1，project1 要依赖 project2，project1 依赖 project2 的配置中加上 ```<optional>true</optional>```，表示依赖可选。
+
+```xml
+<dependency>  
+    <groupId>com.projecct</groupId>  
+    <artifactId>project2</artifactId>  
+    <version>1.0</version>  
+    <scope>compile</scope>  
+	<!-- 表示该依赖可选，该依赖不会主动被其它项目依赖，需要显示声明 -->
+    <optional>true</optional>
+</dependency>  
+```
+
+&amp;#160; &amp;#160;那么以后所有声明依赖 project1 的项目如果也依赖 project2，就必须写手动声明。比如 project3 依赖 project1 和 project2，如果 project3 只声明了对 project1 的依赖，那么 project2 不会自动加入依赖，需要重新声明对 project2 的依赖。
+
+依赖过滤
+
+（1）单依赖过滤
+
+&amp;#160; &amp;#160;同依赖过滤直接处理：可以过滤一个或者多个，如果过滤多个要写多个 ```<exclusion>```。这个也解决不了我的问题，或者说解决太麻烦，我那里知道 hbase 要依赖那些包，记不住。
+
+```xml
+<dependency>
+     <groupId>org.apache.hbase</groupId>
+     <artifactId>hbase</artifactId>
+     <version>0.94.17</version>
+     <exclusions>
+           <exclusion>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+           </exclusion>
+     </exclusions>
+</dependency>
+```
+
+（2）多依赖过滤
+
+把所以依赖都过滤了。手起刀落~啊，世界都安静了。
+
+```xml
+<dependency>
+    <groupId>org.apache.hbase</groupId>
+    <artifactId>hbase</artifactId>
+    <version>0.94.17</version>
+    <exclusions>
+        <exclusion>
+            <groupId>*</groupId>
+            <artifactId>*</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
+
+参考链接
+
+ - <a href="https://chwshuang.iteye.com/blog/2069937" target="_blank">Maven依赖排除 禁止依赖传递 取消依赖的方法</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

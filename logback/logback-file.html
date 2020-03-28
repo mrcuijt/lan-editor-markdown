@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Logback Mail</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+***```pom.xml```***
+```xml
+<!-- 引入 SLF4j Jar -->
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.7.25</version>
+</dependency>
+ 
+<!-- 引入 Logback Jar -->
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-core</artifactId>
+    <version>1.2.3</version>
+</dependency>
+ 
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>1.2.3</version>
+</dependency>
+ 
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-access</artifactId>
+    <version>1.2.3</version>
+</dependency>
+```
+
+***```logback.xml```*** 配置文件（如下）
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>
+				%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %C %method \(%F:%L\) - [%msg]%n
+			</pattern>
+		</encoder>
+	</appender>
+
+	<!-- 配置输出到文件的 Appender -->
+	<appender name="file_appender" class="ch.qos.logback.core.FileAppender">
+		<!--  -->
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<!-- 指定输出文件的布局 -->
+			<layout class="ch.qos.logback.classic.html.HTMLLayout">
+				<!-- 配置输出内容的格式 -->
+				<pattern>%date{yyyy-MM-dd HH:mm:ss} [%-5level] %thread %logger{16} %line %message %n</pattern>
+			</layout>
+		</encoder>
+		<file>test.html</file>
+	</appender>
+
+	<!-- 设置 DEBUG 级别文件日志输出 Appender -->
+	<appender name="debug_file_appender" class="ch.qos.logback.core.FileAppender">
+		<!-- 设置输出到日志文件 -->
+		<file>./logs/debug.log</file>
+		<!-- 设置日志布局格式编码 -->
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>
+				%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger.%method line %line - [%msg]%n
+			</pattern>
+		</encoder>
+		<!-- 设置日志级别过滤器 -->
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>DEBUG</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+	</appender>
+
+    <!-- 按照每天生成日志文件 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_HOME}/TestWeb.log.%d{yyyy-MM-dd}.log</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>30</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+        <!--日志文件最大的大小-->
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>10MB</MaxFileSize>
+        </triggeringPolicy>
+    </appender>
+
+	<!-- ref logback 中的 PatternLayout https://blog.csdn.net/liupengfei123456/article/details/82347583 -->
+	
+	<root level="DEBUG">
+		<appender-ref ref="CONSOLE" />
+		<appender-ref ref="file_appender" />
+		<appender-ref ref="debug_file_appender" />
+	</root>
+
+</configuration>
+```
+ ***```Run```***
+```java
+package science.mrcuijt.slf4j;
+ 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+ 
+/**
+ * @author Administrator
+ *
+ */
+public class Slf4jLogbackDemo {
+ 
+    private static final Logger logger = LoggerFactory.getLogger(Log4jDemo.class);
+ 
+    public static void main(String[] args) {
+ 
+        logger.trace("trace");
+        logger.debug("debug");
+        logger.info("info");
+        logger.warn("warn");
+        logger.error("error");
+ 
+    }
+}
+```
+ ***```Console```***
+```textarea
+2019-04-04 22:23:05.998 [main] TRACE science.mrcuijt.slf4j.demo.Slf4jLogbackDemo.main (Slf4jLogbackDemo.java:19) - [trace]
+2019-04-04 22:23:06.009 [main] DEBUG science.mrcuijt.slf4j.demo.Slf4jLogbackDemo.main (Slf4jLogbackDemo.java:20) - [debug]
+2019-04-04 22:23:06.009 [main] INFO  science.mrcuijt.slf4j.demo.Slf4jLogbackDemo.main (Slf4jLogbackDemo.java:21) - [info]
+2019-04-04 22:23:06.011 [main] WARN  science.mrcuijt.slf4j.demo.Slf4jLogbackDemo.main (Slf4jLogbackDemo.java:22) - [warn]
+2019-04-04 22:23:06.011 [main] ERROR science.mrcuijt.slf4j.demo.Slf4jLogbackDemo.main (Slf4jLogbackDemo.java:23) - [error]
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

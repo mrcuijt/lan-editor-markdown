@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maven Super Pom</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+	
+##### Maven Super POM & 生命周期几个重要的配置文件
+
+ - <a href="https://www.cnblogs.com/a-ray-of-sunshine/p/5011111.html" target="_blank">maven 的几个重要的配置文件：super pom & 生命周期默认绑定的配置文件</a>
+ 
+这几个配置文件都在 maven 的 安装 目录的 lib 目录中
+
+***```super pom.xml```***
+
+在 _maven-model-builder-{version}.jar_ 包的
+
+_org/apache/maven/model_ 中的 _pom-4.0.0.xml_ 这个文件
+
+所有的 _pom_ 文件都继承该 _pom_ 文件。摘抄如下：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+ 
+    http://www.apache.org/licenses/LICENSE-2.0
+ 
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+ 
+<!-- START SNIPPET: superpom -->
+<project>
+  <modelVersion>4.0.0</modelVersion>
+ 
+  <repositories>
+    <repository>
+      <id>central</id>
+      <name>Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+      <layout>default</layout>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+ 
+  <pluginRepositories>
+    <pluginRepository>
+      <id>central</id>
+      <name>Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+      <layout>default</layout>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+    </pluginRepository>
+  </pluginRepositories>
+ 
+  <build>
+    <directory>${project.basedir}/target</directory>
+    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+    <finalName>${project.artifactId}-${project.version}</finalName>
+    <testOutputDirectory>${project.build.directory}/test-classes</testOutputDirectory>
+    <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+    <scriptSourceDirectory>${project.basedir}/src/main/scripts</scriptSourceDirectory>
+    <testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+      </testResource>
+    </testResources>
+    <pluginManagement>
+      <!-- NOTE: These plugins will be removed from future versions of the super POM -->
+      <!-- They are kept for the moment as they are very unlikely to conflict with lifecycle mappings (MNG-4453) -->
+      <plugins>
+        <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.3</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2-beta-5</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>2.8</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.3.2</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+ 
+  <reporting>
+    <outputDirectory>${project.build.directory}/site</outputDirectory>
+  </reporting>
+ 
+  <profiles>
+    <!-- NOTE: The release profile will be removed from future versions of the super POM -->
+    <profile>
+      <id>release-profile</id>
+ 
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+ 
+      <build>
+        <plugins>
+          <plugin>
+            <inherited>true</inherited>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <inherited>true</inherited>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <inherited>true</inherited>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <configuration>
+              <updateReleaseInfo>true</updateReleaseInfo>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+ 
+</project>
+<!-- END SNIPPET: superpom -->
+```
+
+***```生命周期绑定文件```***
+
+在 _maven-core-{version}.jar_ 包中
+
+_META-INF/plexus/components.xml_ 中。重要的几个绑定：
+
+_packing_ 类型 为 ***```war```*** 时的默认绑定
+
+```xml
+<component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>war</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+             
+            <phases>
+              <process-resources>
+                org.apache.maven.plugins:maven-resources-plugin:2.6:resources
+              </process-resources>
+              <compile>
+                org.apache.maven.plugins:maven-compiler-plugin:3.1:compile
+              </compile>
+              <process-test-resources>
+                org.apache.maven.plugins:maven-resources-plugin:2.6:testResources
+              </process-test-resources>
+              <test-compile>
+                org.apache.maven.plugins:maven-compiler-plugin:3.1:testCompile
+              </test-compile>
+              <test>
+                org.apache.maven.plugins:maven-surefire-plugin:2.12.4:test
+              </test>
+              <package>
+                org.apache.maven.plugins:maven-war-plugin:2.2:war
+              </package>
+              <install>
+                org.apache.maven.plugins:maven-install-plugin:2.4:install
+              </install>
+              <deploy>
+                org.apache.maven.plugins:maven-deploy-plugin:2.7:deploy
+              </deploy>
+            </phases>
+             
+          </lifecycle>
+        </lifecycles>
+      </configuration>
+    </component>
+```
+
+_packing_ 类型 为 ***```jar```*** 时的默认绑定
+
+```xml
+<component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>jar</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+             
+            <phases>
+              <process-resources>
+                org.apache.maven.plugins:maven-resources-plugin:2.6:resources
+              </process-resources>
+              <compile>
+                org.apache.maven.plugins:maven-compiler-plugin:3.1:compile
+              </compile>
+              <process-test-resources>
+                org.apache.maven.plugins:maven-resources-plugin:2.6:testResources
+              </process-test-resources>
+              <test-compile>
+                org.apache.maven.plugins:maven-compiler-plugin:3.1:testCompile
+              </test-compile>
+              <test>
+                org.apache.maven.plugins:maven-surefire-plugin:2.12.4:test
+              </test>
+              <package>
+                org.apache.maven.plugins:maven-jar-plugin:2.4:jar
+              </package>
+              <install>
+                org.apache.maven.plugins:maven-install-plugin:2.4:install
+              </install>
+              <deploy>
+                org.apache.maven.plugins:maven-deploy-plugin:2.7:deploy
+              </deploy>
+            </phases>
+             
+          </lifecycle>
+        </lifecycles>
+      </configuration>
+    </component>
+```
+
+_packing_ 类型 为 ***```pom```*** 时的默认绑定
+
+```xml
+<component>
+      <role>org.apache.maven.lifecycle.mapping.LifecycleMapping</role>
+      <role-hint>pom</role-hint>
+      <implementation>org.apache.maven.lifecycle.mapping.DefaultLifecycleMapping</implementation>
+      <configuration>
+        <lifecycles>
+          <lifecycle>
+            <id>default</id>
+             
+            <phases>
+              <install>
+                org.apache.maven.plugins:maven-install-plugin:2.4:install
+              </install>
+              <deploy>
+                org.apache.maven.plugins:maven-deploy-plugin:2.7:deploy
+              </deploy>
+            </phases>
+             
+          </lifecycle>
+        </lifecycles>
+      </configuration>
+    </component>
+```
+
+_maven_ 中的三大生命周期
+
+```xml
+<component>
+      <role>org.apache.maven.lifecycle.Lifecycle</role>
+      <implementation>org.apache.maven.lifecycle.Lifecycle</implementation>
+      <role-hint>default</role-hint>
+      <configuration>
+        <id>default</id>
+         
+        <phases>
+          <phase>validate</phase>
+          <phase>initialize</phase>
+          <phase>generate-sources</phase>
+          <phase>process-sources</phase>
+          <phase>generate-resources</phase>
+          <phase>process-resources</phase>
+          <phase>compile</phase>
+          <phase>process-classes</phase>
+          <phase>generate-test-sources</phase>
+          <phase>process-test-sources</phase>
+          <phase>generate-test-resources</phase>
+          <phase>process-test-resources</phase>
+          <phase>test-compile</phase>
+          <phase>process-test-classes</phase>
+          <phase>test</phase>
+          <phase>prepare-package</phase>
+          <phase>package</phase>
+          <phase>pre-integration-test</phase>
+          <phase>integration-test</phase>
+          <phase>post-integration-test</phase>
+          <phase>verify</phase>
+          <phase>install</phase>
+          <phase>deploy</phase>
+        </phases>
+         
+      </configuration>
+    </component><component>
+      <role>org.apache.maven.lifecycle.Lifecycle</role>
+      <implementation>org.apache.maven.lifecycle.Lifecycle</implementation>
+      <role-hint>clean</role-hint>
+      <configuration>
+        <id>clean</id>
+         
+        <phases>
+          <phase>pre-clean</phase>
+          <phase>clean</phase>
+          <phase>post-clean</phase>
+        </phases>
+        <default-phases>
+          <clean>
+            org.apache.maven.plugins:maven-clean-plugin:2.5:clean
+          </clean>
+        </default-phases>
+         
+      </configuration>
+    </component><component>
+      <role>org.apache.maven.lifecycle.Lifecycle</role>
+      <implementation>org.apache.maven.lifecycle.Lifecycle</implementation>
+      <role-hint>site</role-hint>
+      <configuration>
+        <id>site</id>
+         
+        <phases>
+          <phase>pre-site</phase>
+          <phase>site</phase>
+          <phase>post-site</phase>
+          <phase>site-deploy</phase>
+        </phases>
+        <default-phases>
+          <site>
+            org.apache.maven.plugins:maven-site-plugin:3.3:site
+          </site>
+          <site-deploy>
+            org.apache.maven.plugins:maven-site-plugin:3.3:deploy
+          </site-deploy>
+        </default-phases>
+         
+      </configuration>
+    </component>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maven Plugin Cargo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Maven Cargo Plugin
+
+<a href="https://codehaus-cargo.github.io/cargo/Home.html" target="_blank">Cargo</a>
+
+Maven 使用 Cargo 实现自动化部署
+
+&amp;#160; &amp;#160;由于公司配置的垃圾台式机，根本就没法开发，开一个 sts，跑一个内嵌的 tomcat 就卡出翔，测试每次想在我机器上测试，所以弄了下 Maven 下使用 Cargo 实现自动化部署，这样就可以把本地的应用部署到远程服务器上去，省的垃圾电脑卡出翔。
+
+&amp;#160; &amp;#160;先在 settings.xml 里面的 pluginGroups 节点增加 ```<pluginGroup>org.codehaus.cargo</pluginGroup> ``` 以便命令行调用，然后增加 ```server```。
+
+***```settings.xml```***
+```xml
+<pluginGroup>org.codehaus.cargo</pluginGroup>
+```
+
+```xml
+<server>
+    <id>tomcat7x</id>
+    <username>admin</username>
+    <password>password</password>
+</server>
+```
+
+#### 部署到本地 Web 容器
+
+##### standalone 模式
+
+&amp;#160; &amp;#160;在 standalone 模式，Cargo 会从 Web 容器的安装目录复制一份配置到用户指定的目录，然后在此基础上部署应用，每次重新构建的时候，这个目录都会被清空，所有配置被重新生成
+
+```xml
+<plugin>
+    <groupId>org.codehaus.cargo</groupId>
+    <artifactId>cargo-maven2-plugin</artifactId>
+    <version>1.4.9</version>
+    <configuration>
+        <container>
+            <containerId>tomcat7x</containerId>
+            <home>/usr/local/devtools/apache-tomcat-7.0.55</home>
+        </container>
+        <configuration>
+            <type>standalone</type>
+            <home>${project.build.directory}/tomcat7x</home>
+            <properties>
+                <cargo.servlet.port>8088</cargo.servlet.port>
+            </properties>
+        </configuration>
+    </configuration>
+</plugin>
+```
+
+启动
+
+```python
+mvn cargo:run
+```
+
+```python
+mvn cargo:start
+```
+
+&amp;#160; &amp;#160;然后用 ```mvn cargo:run``` 启动，关于 ```cargo:run``` 于 ```cargo:start``` 有什么区别，后续会讲到。
+
+##### existing 模式
+
+&amp;#160; &amp;#160;在 existing 模式下，用户需要指定现有的 web 容器配置目录，然后 Cargo 会直接使用这些配置并将应用部署到其对应的位置
+
+```xml
+<plugin>
+    <groupId>org.codehaus.cargo</groupId>
+    <artifactId>cargo-maven2-plugin</artifactId>
+    <version>1.4.9</version>
+    <configuration>
+        <container>
+            <containerId>tomcat7x</containerId>
+            <home>/usr/local/devtools/apache-tomcat-7.0.55</home>
+        </container>
+        <configuration>
+            <type>existing</type>
+            <home>/usr/local/devtools/apache-tomcat-7.0.55</home>
+        </configuration>
+    </configuration>
+</plugin>
+```
+
+运行
+
+```python
+mvn cargo:run
+```
+
+然后运行 ```cargo:run``` 之后在对应的 ```tomcat``` 的 ```webapps``` 目录下能够看到被部署的应用
+
+#### 部署到远程 Web 容器
+
+&amp;#160; &amp;#160;这里注意在远程部署模式下，```container``` 元素的 ```type``` 子元素的值必须为 ```remote```，如果不指定，Cargo 会默认使用 installed，并寻找对应的容器安装目录或者安装包，一般我们远程部署的服务器上都有设定好的 Web 容器了，并不需要再去安装。
+
+***```pom.xml```***
+
+```xml
+<!-- tomcat7 -->
+<plugin>
+    <groupId>org.apache.tomcat.maven</groupId>
+    <artifactId>tomcat7-maven-plugin</artifactId>
+    <version>2.2</version>
+    <configuration>
+        <url>http://localhost:8080/manager/text</url>
+        <URIEncoding>UTF-8</URIEncoding>
+        <server>tomcat7x</server>
+        <username>admin</username>
+        <password>password</password>
+        <path>/${project.artifactId}</path>
+    </configuration>
+</plugin>
+```
+
+```xml
+<plugin>
+    <groupId>org.codehaus.cargo</groupId>
+    <artifactId>cargo-maven2-plugin</artifactId>
+    <version>1.4.9</version>
+    <configuration>
+        <container>
+            <containerId>tomcat7x</containerId>
+            <type>remote</type>
+        </container>
+        <configuration>
+            <type>runtime</type>
+            <properties>
+                <cargo.tomcat.manager.url>http://localhost:8080/manager/text</cargo.tomcat.manager.url>
+                <cargo.remote.username>admin</cargo.remote.username>
+                <cargo.remote.password>password</cargo.remote.password>
+            </properties>
+        </configuration>
+        <deployables>
+            <deployable>
+                <groupId>io.steveguoshao</groupId>
+                <artifactId>webapp</artifactId>
+                <type>war</type>
+                <properties>
+                    <context>/${project.artifactId}</context>
+                </properties>
+                <!-- 可选：验证是否部署成功 -->
+                <pingURL>http://localhost:8080/webapp</pingURL>
+                <!-- 可选：验证超时时间，默认是120000 毫秒-->
+                <pingTimeout>60000</pingTimeout>
+            </deployable>
+        </deployables>
+    </configuration>
+    <executions>
+        <execution>
+            <id>verify-deployer</id>
+            <phase>install</phase>
+            <goals>
+                <goal>deployer-redeploy</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>clean-deployer</id>
+            <phase>clean</phase>
+            <goals>
+                <goal>deployer-undeploy</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+&amp;#160; &amp;#160;在 ```tomcat7``` 的 ```conf/tomcat-users.xml``` 中增加角色和用户， 不然会报 403，没法访问
+
+```xml
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>
+<role rolename="admin-gui"/>
+<user username="admin" password="password" roles="admin-gui,manager-gui,manager-script,manager-status"/>
+```
+
+另外还有一点要注意的是 ```url``` ,```tomcat7``` 是
+
+```python
+http://localhost:8080/manager/text
+```
+
+tomcat6 是
+
+```python
+http://localhost:8080/manager/html
+```
+
+&amp;#160; &amp;#160;配置好之后就可以运行 ```mvn cargo:redeploy``` 来部署应用了（必须保证 ```tomcat``` 是 ```running``` 状态，否则没法部署），如果容器中已经部署的当前应用，Cargo 会先卸载掉原来的应用，然后再重新部署。
+
+为什么在配置了
+
+```xml
+<goal>deployer-undeploy</goal>
+```
+
+的时候，明明刚刚 ```install``` 的时候已经生成了，但是却每次 ```clean``` 都报找不到 ```target``` 目录下 war 包呢？
+
+#### Cargo 插件中各个命令的之间的异同
+
+<text zoom="7.2">
+╔════════════════════════════════════════════════════╤══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Goals                                              │ Description                                                                                                                                                                                                                                                                                                                          ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:start                                        │ Start a container.                                                                                                                                                                                                                                                                                                                   ║
+║                                                    │ That goal will:If the plugin configuration requires so, installs the container.                                                                                                                                                                                                                                                      ║
+║                                                    │ If the plugin configuration defines a container with a?standalone local configuration, it will create the configuration.                                                                                                                                                                                                             ║
+║                                                    │ If the plugin configuration contains one or more?deployables, it will deploy these to the container automatically.                                                                                                                                                                                                                   ║
+║                                                    │ If the plugin configuration contains no?deployables?but the project's packaging is Java EE (WAR, EAR, etc.), it will deploy the project's deployable to to the container automatically.                                                                                                                                              ║
+║                                                    │ And, of course, start the container.                                                                                                                                                                                                                                                                                                 ║
+║                                                    │ Note: A container that's started with?cargo:start?will automatically shut down as soon as the parent Maven instance quits (i.e., you see a?BUILD SUCCESSFUL?or?BUILD FAILED?message). If you want to start a container and perform manual testing, see our next goal?cargo:run.                                                      ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:run                                          │ Start a container and wait for the user to press?CTRL + C?to stop. That goal will:                                                                                                                                                                                                                                                   ║
+║                                                    │ If the plugin configuration requires so, installs the container.                                                                                                                                                                                                                                                                     ║
+║                                                    │ If the plugin configuration defines a container with a?standalone local configuration, it will create the configuration.                                                                                                                                                                                                             ║
+║                                                    │ If the plugin configuration contains one or more?deployables, it will deploy these to the container automatically.                                                                                                                                                                                                                   ║
+║                                                    │ If the plugin configuration contains no?deployables?but the project's packaging is Java EE (WAR, EAR, etc.), it will deploy the project's deployable to to the container automatically.                                                                                                                                              ║
+║                                                    │ And, of course, start the container and wait for the user to press?CTRL + C?to stop.                                                                                                                                                                                                                                                 ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:stop                                         │ Stop a container.                                                                                                                                                                                                                                                                                                                    ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:restart                                      │ Stop and start again a container. If the container was not running before calling?cargo:restart, it will simply be started.                                                                                                                                                                                                          ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:configure                                    │ Create the configuration for a?local container, without starting it. Note that the?cargo:start?and?cargo:run?goals will also install the container automatically (but will not call?cargo:install).                                                                                                                                  ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:package                                      │ Package the?local container.                                                                                                                                                                                                                                                                                                         ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:daemon-start                                 │ Start a container via the daemon. Read more on:?Cargo Daemon                                                                                                                                                                                                                                                                         ║
+║                                                    │ Note: The?daemon:start?goal is actually equivalent to a?restart?in CARGO's terms; in the case a container with the same?cargo.daemon.handleid?already exists then it will be stopped first before your container is started. This also implies that in the case the new container fails to start, the old one will?not?be restarted. ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:daemon-stop                                  │ Stop a container via the daemon. Read more on:?Cargo Daemon                                                                                                                                                                                                                                                                          ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:deployer-deploy (aliased to?cargo:deploy)    │ Deploy a deployable to a running container.                                                                                                                                                                                                                                                                                          ║
+║                                                    │ Note: The?cargo:start?and?cargo:run?do already deploy the deployables specified in the configuration to the container; as a result calling?cargo:deploy?for a container which has been started by CARGO in the same Maven2/Maven3 project will most likely cause a second deployment of the same deployables (and might even fail).  ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:deployer-undeploy(aliased to?cargo:undeploy) │ Undeploy a deployable from a running container.                                                                                                                                                                                                                                                                                      ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:deployer-start                               │ Start a deployable already installed in a running container.                                                                                                                                                                                                                                                                         ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:deployer-stop                                │ Stop a deployed deployable without undeploying it.                                                                                                                                                                                                                                                                                   ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:deployer-redeploy(aliased to?cargo:redeploy) │ Undeploy and deploy again a deployable. If the deployable was not deployed before calling?cargo:deployer-redeploy?(or its alias?cargo:redeploy) it will simply be deployed.                                                                                                                                                          ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:uberwar                                      │ Merge several WAR files into one.                                                                                                                                                                                                                                                                                                    ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:install                                      │ Installs a container distribution on the file system. Note that the?cargo:start?goal will also install the container automatically (but will not call?cargo:install).                                                                                                                                                                ║
+╟────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ cargo:help                                         │ Get help (list of available goals, available options, etc.).                                                                                                                                                                                                                                                                         ║
+╚════════════════════════════════════════════════════╧══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+</text>
+
+&amp;#160; &amp;#160;从上面可以看出，```cargo:start``` 于 ```cargo:run``` 的不同之处了吧？```cargo:start``` 的生命周期依赖于 maven 实例的生命周期，也就是说，maven 构建成功或者失败之后，cargo 插件的生命周期也自动停止了；而 ```cargo:run``` 不同，不管 maven 是否构建成功或者失败，都必须手工去按 ```Ctrl + C``` 来停止。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

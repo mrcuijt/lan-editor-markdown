@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jetty-diagram 2</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### jetty-diagram 2
+
+#### 概览
+
+Jetty Server 是一个 Connector 集合和一个 Handler 集合间的管道，Connector 用于接收 HTTP 连接，Handler 服务来自连接的请求并作出响应，Jetty Server 使用来自一个线程池的线程来处理这些工作。
+
+![title](./images/jetty-diagram2/jetty-diagram-001.png)
+
+&amp;#160; &amp;#160;当 Jetty 请求/响应源自 Servlet API 时，Servelet API 的完整特征只有你配置适当的 handler 才是可用的。例如，在请求中的 Session API 只有当请求被传递给一个 Session Handler 时才被激活。如果 Servlet 不被要求，只有很少的开销用于 Servlet 请求/响应API。因此你能构建一个仅用 connector 和 handler 的 Jetty Server，不用 Servlet。
+
+&amp;#160; &amp;#160;配置 Jetty 的工作是构建一个 connector 和 handler 的网络，并提供他们各自的配置。由于 Jetty 这句践是简单的POJO（Plain Old Java Object），你能完成通过各种方法完成组件的集成和配置：
+
+ - 1）代码；
+
+ - 2）使用 Jetty XML；
+
+ - 3）使用依赖注入框架：Spring 或者 XBean；
+
+ - 4）使用 Jetty WebApp 和 Context Deployer。
+
+#### 模式
+
+&amp;#160; &amp;#160;Jetty 的实现使用了一些标准模式。最抽象的概念例如 Connector、Handler 和 Buffer 都通过接口定义。对这些接口的通常处理是提供一个抽象的实现，例如：AbstractConnector、AbstractHandler 和 AbstractBuffer。
+
+![title](./images/jetty-diagram2/jetty-diagram-002.png)
+
+&amp;#160; &amp;#160;激发大部分 Jetty 组件的生命周期的 JSR77 被表示为 LifeCycle 接口和它的实现 AbstractLifeCycle，作为许多 Jetty 组件的基类。
+
+&amp;#160; &amp;#160;Jetty 在 String 之上提供它自己的 IO 缓存抽象。这为 Jetty 提供更大的便捷，同时也隐藏了一些NIO层和他的高级特征的复杂性。
+
+#### Connector
+
+这个图有点过时，作为连接接口已经抽取出 HttpConnector，允许 AJP 协议支持。
+
+&amp;#160; &amp;#160;连接器代表协议处理器，负责接收连接、解析请求和产生响应。不同类型的连接器的使用是基于协议、调度模式和使用的 IO API：
+
+![title](./images/jetty-diagram2/jetty-diagram-003.png)
+
+ - 1）SocketConnector：为少量忙连接或者当 NIO 不可用时
+
+ - 2）BlockingChannelConnector：当 NIO 可用时为少量忙连接
+
+ - 3）SelectChannelConnector：为一些大部分空闲的连接或者 Ajax 请求的异步处理
+
+ - 4）SslSocketConnector：没有 NIO 的 SSL
+
+ - 5）SslSelectChannelConnector：非阻塞 NIO 支持的 SSL
+
+ - 6）AJPConnector：AJP 协议支持，为来自 apache mod_jk 或者 mod_proxy_ajp 的连接
+
+#### Handler
+
+Handler 是处理收到请求的组件。
+
+![title](./images/jetty-diagram2/jetty-diagram-004.png)
+
+Handler 的核心 API 是 handle 方法：
+
+```java
+public void handle(String target, Request baseRequest, 
+    HttpServletRequest request, HttpServletResponse response) 
+  throws IOException, ServletException
+```
+
+参数：
+
+ - 1）target：请求的目标，一个 URI 或者一个 name；
+
+ - 2）baseRequest：原始的未封装的请求对象；
+
+ - 3）request：Request 对象或者请求的包装者。
+ 
+ 如有必要，你能用 HttpConnection.getCurrentConnection() 方法得到 Request 对象；
+
+ - 4）response：Response 对象或者请求的包装者。
+ 
+ 如有必要，你能用 HttpConnection.getCurrentConnection() 方法得到 Response 对象。
+
+&amp;#160; &amp;#160;这个方法的实现能处理请求，传递请求到另一个 Handler（或者 Servlet）或者他可以修改和/或包装请求，然后传递它。存在 3 中类型的 Handler：
+
+ - 1）协调 Handler：传递请求到其它 Handler 的 Handler（HandlerCollection、ContextHandlerCollection）
+
+ - 2）过滤 Handler：增强一个请求并传递它到其它 Handler 的 Handler（HandlerWrapper、ContextHandler、SessionHandler）
+
+ - 3）生产 Handler：产生内容的 Handler（ResourceHandler 、ServletHandler）
+
+#### 嵌套 Handler 和 Handler 顺序调用
+
+你能组合多个 Handler 处理一个请求的不同方面，通过嵌套他们、依次调用它们、或者两种方式的融合。
+
+![title](./images/jetty-diagram2/jetty-diagram-005.png)
+
+顺序调用 Handler履行的行为不依赖 next 调用，也不依赖 Handler 顺序。它们处理一个请求并产生一个响应，不和其它 Handler 交互。为这个模型，主要的类是 Handler Collection。
+
+嵌套 Handler根据 before/invokeNext/after 模式来调用。为嵌套 Handler，主要的类是 Handler Wrapper。嵌套 Handler 比顺序调用更为通用。
+
+更多信息请看 <a href="http://blog.csdn.net/tomato__/article/details/38018143" target="_blank">`写自定义的 Handlers`</a>。
+
+#### Servlet Handler
+
+ServletHandler 是一个 Handler，通过传递请求到任何配置的 filter，然后通过 URI 模式匹配到一个 Servlet，最后生成结果。
+
+![title](./images/jetty-diagram2/jetty-diagram-006.png)
+
+ServletHandler 通常被部署在一个 Servlet Context 的范围内，ContextHandler 为映射 URI 到 Servlet 提供了便利的方法。
+
+Filter 和 Servlet 也能使用一个 RequestDispatcher 重定向一个请求到另一个上下文或者另一个在当前上下文中的 Servlet。
+
+#### Context
+
+Context 是 Handler，用于将特定 URI 上下文路径或者一个虚拟主机下的其它 Handler 组织在一起。通常一个 context 具有：
+
+ - 1）一个上下文路径，定义哪个请求被上下文处理（例如：/myapp）
+
+ - 2）静态内容的资源路径（一个文档根路径）
+
+ - 3）一个类加载器，获取指定到上下文的类（通常为 docroot/WEB-INF/classes）
+
+ - 4）虚拟主机名
+
+Context 实现包括：
+
+ - 1）ContextHandler
+
+ - 2）Servlet Context
+
+ - 3）Web Application Context
+
+一个 Web Application Context 在一个单元融合多个 Handler，包括安全、连接和 Servlet，你能使用 web.xml 配置。
+
+#### Web 应用
+
+WebApp 上下文是 servlet 上下文的派生，支持 web 应用的标准化布局和 session、security、listener、filter、servlet 和 JSP 的配置，配置使用 web.xml 文件，通常在 web 应用的 WEB-INF 目录下。
+
+![title](./images/jetty-diagram2/jetty-diagram-007.png)
+
+本质上 WebAppContext 是一个便利的类，帮助其它 Handler 的构造和配置以达到一个标准 web 应用配置。配置实际上被 Configuration 类（其中最主要的是 WebXmlConfiguration ）的可插拔实现完成。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/tomato__/article/details/38440737" target="_blank">Jetty 架构</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

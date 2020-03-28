@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAX-WS Raw Client</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### JAX-WS Raw Client
+
+&amp;#160; &amp;#160;抛弃各种平台所提供的标准或框架（如 JAX-WS, Axis, Spring-WS) ，我们回到最原始的 WebService 技术。我们只需要操控 SOAP 协议数据，用 HTTP 的方式传送于 Client 和 Server 之间，也可以享受到 WebService 所提供的服务。只是比较麻烦。
+
+#### UDDI
+
+&amp;#160; &amp;#160;首先需要寻找我们需要的 WebService 服务. 对于提供商来说，要想让别人能过发现自己提供的服务，就需要将自己的服务注册到某一类公共的发布栏中去。这一系列的标准，被称为 UDDI。我们可以通过在 UDDI 目录中搜索，得到我们想要的服务。
+
+这里，我们使用一个全球天气预报的
+
+WebService: http://www.webservicex.net/globalweather.asmx?WSDL
+
+#### WSDL
+
+WSDL 的结构示意图如下：
+
+![jax-ws-raw-client](./images/jax-ws-raw-client/jax-ws-raw-client-001.png)
+
+现在，我们要对天气预报的 WSDL 进行分析。
+
+查看 WebService 的描述文件，看看提供了什么样子的接口。
+
+首先查看 WSDL 提供的 Service：
+
+![jax-ws-raw-client](./images/jax-ws-raw-client/jax-ws-raw-client-002.png)
+
+&amp;#160; &amp;#160;从上面可以看出，WSDL 中，Service 提供了 4 个 port，每个 port 声明一个 binding 与 address 的绑定。注意，不同的协议在展示地址的时候所用的标签命名空间也不同, 例如 soap, soap12, http.
+
+&amp;#160; &amp;#160;我们打算使用 Soap12 协议的 port，于是我们将查看 ```binding="tns:GlobalWeatherSoap12"``` 的定义。
+
+![jax-ws-raw-client](./images/jax-ws-raw-client/jax-ws-raw-client-003.png)
+
+&amp;#160; &amp;#160;通过上面的 binding 定义，我们看到，此 binding 实现了 PortType tns:GlobalWeatherSoap 的 operation, 并声明使用 soap12 协议。在 Operation 的实现中，如何组装 input 和 output。从上面的代码，我们可以得出 Request 的请求应该是 PortType GlobalWeatherSoap 的 input：
+
+```xml
+http://www.webservicex.net/globalweather.asmx HTTP/1.1
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: length
+
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope 
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	 xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Body>
+  </soap12:Body>
+</soap12:Envelope>
+```
+
+Response 的响应应该是 PortType GloableWeatherSoap 的 output：
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope 
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	 xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+	 xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Body>
+  </soap12:Body>
+</soap12:Envelope>
+```
+
+接下来，我们来组装 Request Body .
+
+依照 PortType GloableWeatherSoap 的定义：
+
+![jax-ws-raw-client](./images/jax-ws-raw-client/jax-ws-raw-client-004.png)
+
+&amp;#160; &amp;#160;Operation GetWeather 的 input 是Message GetWeatherSoapIn, 而 output 是 Message GetWeatherSoapOut. 找到 Message 的定义
+
+![jax-ws-raw-client](./images/jax-ws-raw-client/jax-ws-raw-client-005.png)
+
+&amp;#160; &amp;#160;两个 Message 均引用了 XSD Type，一个是 GetWeather, 另一个是 GetWeatherResponse, 找到两个 type 的定义：
+
+![jax-ws-raw-client](./images/jax-ws-raw-client/jax-ws-raw-client-006.png)
+
+&amp;#160; &amp;#160;这时候，我们可以根据上面对 Input Type 和 Output Type 的定义，可以填充 request 和 response 的 soap:body 了。
+
+最终的请求应该为：
+
+```xml
+http://www.webservicex.net/globalweather.asmx HTTP/1.1
+Content-Type: application/soap+xml; charset=utf-8
+Content-Length: length
+
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Body>
+    <GetWeather xmlns="http://www.webserviceX.NET">
+      <CityName>shanghai</CityName>
+      <CountryName>China</CountryName>
+    </GetWeather>
+  </soap12:Body>
+</soap12:Envelope>
+```
+
+最终的响应应该为：
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">
+  <soap12:Body>
+    <GetWeatherResponse xmlns="http://www.webserviceX.NET">
+      <GetWeatherResult>text</GetWeatherResult>
+    </GetWeatherResponse>
+  </soap12:Body>
+</soap12:Envelope>
+```
+
+#### Fiddler
+
+&amp;#160; &amp;#160;接下来，我们使用 Fiddler 来测试一下上面所有的推断。 打开 Fiddler, 在 Composer tab 中，贴入我们的 Request.
+
+![jax-ws-raw-client](./images/jax-ws-raw-client/jax-ws-raw-client-007.png)
+
+点击 execute 以后，到 Inspectors tab 里面，查看 response：
+
+![jax-ws-raw-client](./images/jax-ws-raw-client/jax-ws-raw-client-008.png)
+
+#### Java实现
+
+接下来，我们使用 Java 的 net 包和 JAXP 来实现 WebService 的调用。
+
+```java
+public class App {
+    public static void main( String[] args ) throws IOException, ParserConfigurationException, SAXException {
+        StringBuilder sb = new StringBuilder();
+        sb.append( "<?xml version=\"1.0\" encoding=\"utf-8\"?>                                   ")
+          .append( "  <soap12:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"   ")
+          .append( "                   xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"            ")
+          .append( "                   xmlns:soap12=\"http://www.w3.org/2003/05/soap-envelope\"> ")
+          .append( "    <soap12:Body>                                                            ")
+          .append( "      <GetWeather xmlns=\"http://www.webserviceX.NET\">                      ")
+          .append( "        <CityName>shanghai</CityName>                                        ")
+          .append( "        <CountryName>China</CountryName>                                     ")
+          .append( "      </GetWeather>                                                          ")
+          .append( "    </soap12:Body>                                                           ")
+          .append( "  </soap12:Envelope>                                                         ");
+        
+       URL url = new URL("http://www.webservicex.net/globalweather.asmx");
+       HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+       httpConn.setRequestProperty("Content-Length", String.valueOf(sb.length()));
+       httpConn.setRequestProperty("Content-Type", "application/soap+xml; charset=utf-8");
+       httpConn.setRequestMethod("POST");
+       httpConn.setDoOutput(true);
+       httpConn.setDoInput(true);
+       OutputStream out = httpConn.getOutputStream();
+       out.write(sb.toString().getBytes());
+       out.close();
+        
+       DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder(); 
+       Document doc = builder.parse(httpConn.getInputStream());
+       String body = doc.getElementsByTagName("GetWeatherResult").item(0).getChildNodes().item(0).getNodeValue();
+       System.out.println(body);
+    }
+}
+```
+
+最后输出为：
+
+```xml
+<?xml version="1.0" encoding="utf-16"?>
+<CurrentWeather>
+  <Location>Shanghai / Hongqiao, China (ZSSS) 31-10N 121-26E 3M</Location>
+  <Time>Apr 17, 2014 - 05:30 AM EDT / 2014.04.17 0930 UTC</Time>
+  <Wind> from the NNW (340 degrees) at 9 MPH (8 KT) (direction variable):0</Wind>
+  <Visibility> 1 mile(s):0</Visibility>
+  <Temperature> 66 F (19 C)</Temperature>
+  <DewPoint> 59 F (15 C)</DewPoint>
+  <RelativeHumidity> 77%</RelativeHumidity>
+  <Pressure> 29.83 in. Hg (1010 hPa)</Pressure>
+  <Status>Success</Status>
+</CurrentWeather>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

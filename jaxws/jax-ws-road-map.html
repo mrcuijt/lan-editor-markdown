@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAX-WS RoadMap</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### JAX-WS RoadMap
+
+Why RoadMap
+
+&amp;#160; &amp;#160;由于网络带宽的发展，WebService 作为分布式计算的解决方案越来越重要。如果想学习 WebService，那应该首先从最高层次了解 WebService 的工作原理，以及技术构成。然后再往底层深化，细分，了解每一个细节。
+
+#### WebService 发展
+
+#### WSDL+SOAP
+
+&amp;#160; &amp;#160;WebService 是一种通用的，跨语言，跨平台，跨系统的分布式解决方案。首先，我们需要抛开所有的平台，语言和实现细节，从最初设计 WebService 时的想法，来讨论一下 WebService 的基础构成。
+
+![jax-ws-road-map](./images/jax-ws-road-map/jax-ws-road-map-001.png)
+
+WebService 依赖于 4 个标准，HTTP, XML, SOAP 和 WSDL。
+
+&amp;#160; &amp;#160;让我们来设想一个场景。存在一个网站 A，A 的数据库数据越来越丰富，A 的功能也越来越多。A 发现，如果对外提供服务，可以使其它网站使用自己的功能和数据，那岂不是可以赚更多的钱？于是 A 做了以下几个步骤：
+
+ - 开发了一些服务项目，做好对外开放的准备。
+
+ - A 需要把自己开放的服务制定一个描述文件（WSDL），好让其它网站能够遵照描述的方式，使用开放的服务。
+
+ - 网站 B 想使用网站 A 的服务，于是 A 把 WSDL 全部发给了 B.
+
+ - B 遵照 WSDL 的描述，产生请求。这个请求的数据格式为 SOAP，编码格式为 XML。
+
+ - 载着 SOAP 格式数据的 XML 实体，通过 HTTP 协议发往A。
+
+ - A 接收 HTTP 请求带来的 XML 数据，由于 XML 数据是遵循 SOAP 协议组织的，A 知道如何解析其中的内容。
+
+ - A 执行服务，产生响应。这个响应的数据格式为 SOAP，编码格式为 XML。
+
+ - 载着 SOAP 格式数据的 XML 实体，通过 HTTP 协议发往 B。
+
+ - B 根据 WSDL 的描述，明白 A 返回的数据如何解析。
+
+上面的步骤，粗略的解释了 HTTP, XML, SOAP 与 WSDL 在 WebService 中的作用。
+
+![jax-ws-road-map](./images/jax-ws-road-map/jax-ws-road-map-002.png)
+
+#### Restfull
+
+&amp;#160; &amp;#160;使用 WSDL 和 SOAP 的代价挺大，首先，作为一个 java web 程序员，需要额外的学习 WSDL 相关的知识。其次，由于客户端需要导入 WSDL，这使得耦合度加大。再其次，SOAP 协议使得 HTTP 承载的 body 比较大，浪费带宽。最后，生成和解析 SOAP 协议也要花时间。
+
+&amp;#160; &amp;#160; **随着 AJAX 和 JSON 的流行，逐渐兴起了一种更加宽松，灵活，轻量级的 WebService，这就是 ```Restfull API```. Restfull 是使用 HTTP 传输 XML 或 JSON 或任意格式的数据。```这抛弃了 WSDL, SOAP```。**
+
+#### Java WebService
+
+&amp;#160; &amp;#160;无论是 WSDL+SOAP 方式，还是 Restfull 方式，产生和解析传输数据实体，都是比较费代码的。于是 Java 提供了一种机制，可以帮助我们自动的产生传输数据，我们在编程的时候，只需要专注于服务接口的调用。这个帮助我们产生传输数据的就像是一个 Proxy。在 WSDL 和 SOAP 模式下，Proxy 可以根据 WSDL 产生相应的 SOAP 数据，也可以解析返回的 SOAP 数据。
+
+![jax-ws-road-map](./images/jax-ws-road-map/jax-ws-road-map-003.png)
+
+&amp;#160; &amp;#160;在 J2EE 1.4 时代，有 JAX-RPC 做 proxy。后来从 J2EE5 开始，多了 JAX-WS. 到了 J2EE6，又有了 JAX-RS.
+
+&amp;#160; &amp;#160;当前开发 WebService 最常用的框架就是 Axis2 和 Metro，也有用 Spring-WS 的。
+
+#### Metro 与 Axis2
+
+&amp;#160; &amp;#160;Metro 是由 sun，现在的 Oracle 开发的服务栈，Metro 只支持 JAXB 与 JAX-WS，由于历史原因，也支持 JAX-RPC。而 Axis2 不仅支持 JAXB 和 JAX-WS，还支持其它所有可能的技术。所以，JAXB 与 JAX-WS 技术几乎就是 Metro 的全部，而 JAXB 与 JAX-WS 只是 Axis2 的一方面，在 Axis2 下，也可以不使用 JAX-WS。
+
+&amp;#160; &amp;#160;在发布方面，Metro 引擎需要被部署的 WebService war包含 sun-jaxws.xml。而 Metro 的 Servlet 会为所有的 WebService 请求服务。
+
+&amp;#160; &amp;#160;因为 Oracle 的原因，我们接下来所学的均是 Metro 框架。https://metro.java.net/2.3/ 
+
+&amp;#160; &amp;#160;下面是 Metro 对 WebService 的支持所指定的规范，其中 J2EE 部分是 Proxy 的实现，我们在开发的时候，会任选一个。XML 部分是对 XML 使用的规范，这部分属于 XML 的知识范畴。
+
+![jax-ws-road-map](./images/jax-ws-road-map/jax-ws-road-map-004.png)
+
+参考链接：
+
+ - <a href="https://my.oschina.net/xpbug/blog/223276" target="_blank">WebService - RoadMap</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

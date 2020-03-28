@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mysql Trun Server</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+1、MySQL 连接方式为 TCP 连接
+
+请求本地端口转发到远程端口，远程端口转发到远程端口
+
+Router
+
+  A Port 2233 --> B Port 3322 --> C Port 3306 (MySQL)
+
+Server B , TRUN Server
+
+端口转发
+
+```
+  stream localhost:2233 --> stream remote:host:3322
+
+                        --> stream localhost:3322 --> stream remote:host:3306 (MySQL)
+```
+23VLJ-5UULS-RYCW5-98UEL-BK
+window.demo = "";
+$(".container .row p>img").each(function(index,item){
+   window.demo += $(item).attr("src") + "\n";
+});
+window.demo;
+
+F:\ditto>javac -classpath ".;F:\ditto\lib\*" Client.java
+
+F:\ditto>java -classpath ".;F:\ditto\lib\*" Client
+
+223.20.217.212:58215
+1、前端 MD5？
+
+ - 需要一个前后台统一的一个参数？ 验证码？
+
+ 1、验证码由后台生成
+
+ 2、验证码与 Session id 绑定
+
+ 3、MD5 签名添加验证码。
+
+ 1、解析参数，验证时间轴，验证验证码是否存在，验证请求参数 MD5
+
+ 64
+
+验证码 3~5 分钟失效
+
+私钥签名，公钥验签。无用。
+
+使用验证码作为前后端的标识。做 MD5 值。
+
+抓包登录无法避免，对同样参数的登录路径记录 hash 值到数据库或 Session 中下次验证时对比，如果存在则表示可能是抓包登录，登录失败，返回 URL 已失效
+
+模拟抓包得到
+
+username=&password=d41d8cd98f00b204e9800998ecf8427e&verifyCode=&timestamp=1564053446954&sign=10c76269c19b475b36921beaf9be1e11
+
+明文 明文 抓取验证码 设置最小 timestamp , md5
+
+有了用户名密码后 （1、增加短信验证 2、动态验证）
+
+变数 1 验证码，可抓取
+变数 2 时间轴，可自己生成
+变数 3 sign，可重新生成
+ - RSA ，公钥可在网页中获取
+
+登录接口不接受明文密码，
+
+密文密码客户端生成
+
+1、登录接口不允许跨域访问，refer 请求头来源为信任域
+2、必须使用 POST 表单提交登录
+3、Cookie Token 登录绑定浏览器标识
+
+2019-07-25 19:48:11
+2019-07-25 19:48:12 11<12 11<22 true
+
+得到时间戳过期时间，与当前时间比较，如果大于当前时间则表示未过期。
+
+IE GET 2083 
+FireFox GET 65535
+Chrome GET 8182
+Safari GET 80000
+Opera GET 190000
+
+POST unlimit
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

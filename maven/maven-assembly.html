@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>maven-assembly</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### maven-assembly
+
+_**jetty-server-demo/`pom.xml`**_
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>science.mrcuijt.jetty</groupId>
+    <artifactId>jetty-server-demo</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+ 
+    <properties>
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+        <jetty-version>9.4.20.v20190813</jetty-version>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+ 
+    <dependencies>
+        <dependency>
+            <groupId>org.eclipse.jetty.aggregate</groupId>
+            <artifactId>jetty-all</artifactId>
+            <version>${jetty-version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.28</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.28</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>apache-jsp</artifactId>
+            <version>${jetty-version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>apache-jstl</artifactId>
+            <version>${jetty-version}</version>
+            <type>pom</type>
+        </dependency>
+    </dependencies>
+ 
+    <build>
+        <plugins>
+            <!-- Jar 包插件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <!-- 告知 maven-jar-plugin 添加一个 Class-Path 元素到 MANIFEST.MF文件，以及在 Class-Path 元素中包括所有依赖项 -->
+                            <addClasspath>true</addClasspath>
+                            <!-- 所有的依赖项应该位于 lib 文件夹 -->
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <!-- 当用户使用 lib 命令执行 JAR 文件时，使用该元素定义将要执行的类名 -->
+                            <mainClass>science.mrcuijt.jetty.JettyServletExample</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+_**jetty-server-demo/`assembly.xml`**_
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly
+    xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>package</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <fileSets>
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
+            <excludes>
+                <exclude>*sources.jar</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
+    <dependencySets>
+        <dependencySet>
+            <useProjectArtifact>true</useProjectArtifact>
+            <outputDirectory>lib</outputDirectory>
+            <!-- 将 scope 为 runtime 的依赖包打包到 lib 目录下。 -->
+            <scope>runtime</scope>
+        </dependencySet>
+    </dependencySets>
+</assembly>
+```
+
+_**jetty-server-demo/science/mrcuijt/jetty/`JettyServletExample.java`**_
+
+```java
+package science.mrcuijt.jetty;
+ 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.List;
+import java.util.Map;
+import java.util.Collection;
+//import java.util.logging.Level;
+//import java.util.logging.Logger;
+import java.lang.management.ManagementFactory;
+ 
+import org.apache.tomcat.util.scan.StandardJarScanner;
+import org.eclipse.jetty.jmx.MBeanContainer;
+import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
+import org.eclipse.jetty.jsp.JettyJspServlet;
+ 
+import org.eclipse.jetty.xml.XmlParser;
+ 
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.webapp.WebDescriptor;
+import org.eclipse.jetty.webapp.WebInfConfiguration;
+import org.eclipse.jetty.webapp.MetaData;
+import org.eclipse.jetty.webapp.MetaInfConfiguration;
+import org.eclipse.jetty.webapp.Configuration;
+ 
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+ 
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+ 
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+ 
+import science.mrcuijt.util.FileUtil;
+ 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+ 
+public class JettyServletExample {
+ 
+  private static final Logger logger = LoggerFactory.getLogger(JettyServletExample.class);
+ 
+  public static void main(String[] args) throws Exception{
+    JettyServletExample app = new JettyServletExample();
+    app.run();
+  }
+ 
+  public void run() throws Exception {
+    Server server = new Server(8080);
+ 
+    // Setup JMX
+    //MBeanContainer mbContainer = new MBeanContainer(
+    //   ManagementFactory.getPlatformMBeanServer());
+    //server.addBean(mbContainer);
+ 
+    // Add annoation scanning (for WebAppContexts)
+    Configuration.ClassList classList = Configuration.ClassList
+      .setServerDefault(server);
+    classList.addBefore(
+      "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+      "org.eclipse.jetty.webapp.MetaInfConfiguration",
+      "org.eclipse.jetty.annotations.AnnotationConfiguration");
+ 
+    // Base URI for sevlet context
+    URI baseUri = getWebRootResourceUri();
+    logger.info("Base Uri:{}", baseUri);
+ 
+    // Create Servlet context
+    ServletContextHandler servletContextHandler = 
+      new ServletContextHandler(ServletContextHandler.SESSIONS);
+    servletContextHandler.setContextPath("/");
+    servletContextHandler.setResourceBase(baseUri.toASCIIString());
+ 
+    // Since this is a ServletContextHandler we must manually configure JSP support.
+    enableEmbeddedJspSupport(servletContextHandler);
+ 
+    WebAppContext webapp = new WebAppContext();
+    webapp.setContextPath("/");
+    //String path = getWar();
+    //logger.info("path:{};", path);
+    //File warFile = new File(path);
+    File warFile = getWar();
+    logger.info("AbsolutePath:{};", warFile.getAbsolutePath());
+    webapp.setWar(warFile.getAbsolutePath());
+    server.setHandler(webapp);
+ 
+    webappContext(webapp);
+    metaData(webapp);
+    metaInfConfiguration(webapp);
+    // Start server
+    server.start();
+    server.join();
+    //try{ Thread.sleep(1000*10); }catch(Exception e){}
+ 
+  }
+ 
+  public static void webDescriptor(MetaData metadata) throws Exception{
+    WebDescriptor webDes = metadata.getWebXml();
+    if(webDes != null){
+      XmlParser xmlparser = webDes.ensureParser();
+      String dtd = xmlparser.getDTD();
+      String xpath = xmlparser.getXpath();
+      logger.info("dtd:{};", dtd);
+      logger.info("xpath:{};", xpath);
+    }
+  }
+ 
+  public static void metaData(WebAppContext webapp){
+    MetaData metadata = webapp.getMetaData();
+    List<Resource> containerResources = metadata.getContainerResources();
+    for(Resource resource : containerResources){
+      URI uri = resource.getAlias();
+      logger.info("ContainerResource:{};", uri);
+    }
+    List<Resource> webappRes = metadata.getWebInfJars();
+    for(Resource resource : webappRes){
+      URI uri = resource.getAlias();
+      logger.info("Resource:{}; URI:{};", resource, uri);
+    }
+  }
+ 
+  @SuppressWarnings("unchecked")
+  public static void metaInfConfiguration(WebAppContext webapp) throws Exception{
+    MetaInfConfiguration meta = new MetaInfConfiguration();
+    meta.preConfigure(webapp);
+    Collection<URL> urls = (Collection<URL>)webapp.getAttribute(MetaInfConfiguration.METAINF_TLDS);
+    File dir = new File("E:/env/jetty/workspace/jetty-test/example-dynamic-war/lib/jstl");
+    File[] files = dir.listFiles();
+    for(File file : files){
+      logger.info("name:{};", file.getCanonicalPath());
+      urls.addAll(meta.getTlds(file.toURI()));
+    }
+    for(URL url : urls){
+      logger.info("url:{}", url);
+    }
+  }
+ 
+  public static void webInfConfiguration(WebAppContext webapp){
+    WebInfConfiguration webinf = new WebInfConfiguration();
+    if(webinf != null){
+      //List<Resource> resources = webinf.findJars(webapp);
+    }
+  }
+ 
+  public static void webappContext(WebAppContext webapp) throws Exception{
+    //webapp.preConfigure();
+    //webapp.configure();
+    //webapp.doStart();
+ 
+    String war = webapp.getWar();
+    logger.info("war:{};", war);
+ 
+    Resource webinfo = webapp.getWebInf();
+    logger.info("webinfo:{};", webinfo);
+ 
+    String defaultDescriptor = webapp.getDefaultsDescriptor();
+    logger.info("defaultDescriptor:{};", defaultDescriptor);
+ 
+    String extraclasspath = webapp.getExtraClasspath();
+    logger.info("extraclasspath:{};", extraclasspath);
+ 
+    String descriptor = webapp.getDescriptor();
+    logger.info("descriptor:{};", descriptor);
+ 
+    Map<String,String> resourceAlias = webapp.getResourceAliases();
+    if(resourceAlias != null){
+      for(Map.Entry<String, String> entry : resourceAlias.entrySet()){
+        String key = entry.getKey();
+        String value = entry.getValue();
+        logger.info("key:{}; value:{};", key, value);
+      }
+    }
+ 
+  }
+ 
+  /**
+   * Setup JSP Support for ServletContextHandlers.
+   * <p>
+   *   NOTE: This is not required or appropriate if using a WebAppContext.
+   * </p>
+   *
+   * @param servletContextHandler the ServletContextHandler to configure
+   * @throws IOException if unable to configure
+   */
+  private void enableEmbeddedJspSupport(ServletContextHandler servletContextHandler)
+      throws IOException {
+    // Establish Scratch directory for the servlet context (used by JSP compilation)
+    File tempDir = new File(System.getProperty("java.io.tmpdir"));
+    File scratchDir = new File(tempDir.toString(), "embedded-jetty-jsp");
+ 
+    if (!scratchDir.exists()){
+      if (!scratchDir.mkdirs()){
+        throw new IOException("Unable to create scratch directory: " + scratchDir);
+      }
+    }
+ 
+    servletContextHandler.setAttribute("javax.servlet.context.tempdir", scratchDir);
+ 
+    // Set Classloader of Context to be sane (needed for JSTL)
+    // JSP requires a non-System classloader, this simply wraps the
+    // embedded System classloader in a way that makes it suitable
+    // for JSP to use
+    ClassLoader jspClassLoader = 
+      new URLClassLoader(new URL[0], this.getClass().getClassLoader());
+ 
+    servletContextHandler.setClassLoader(jspClassLoader);
+ 
+    // Manually call JettyJasperInitializer on context startup
+    servletContextHandler.addBean(new JspStarter(servletContextHandler));
+ 
+    // Create / Register JSP Servlet (must be named "jsp" per spec)
+    ServletHolder holderJsp = new ServletHolder("jsp", JettyJspServlet.class);
+    holderJsp.setInitOrder(0);
+    holderJsp.setInitParameter("logVerbosityLevel", "DEBUG");
+    holderJsp.setInitParameter("fork", "false");
+    holderJsp.setInitParameter("xpoweredBy", "false");
+    holderJsp.setInitParameter("compilerTargetVM", "1.8");
+    holderJsp.setInitParameter("compilerSourceVM", "1.8");
+    holderJsp.setInitParameter("keepgenerated", "true");
+    servletContextHandler.addServlet(holderJsp, "*.jsp");
+  }
+ 
+  private File getWar() throws Exception {
+    //logger.info("resource . {}", getClass().getResource(""));
+    //logger.info("resource / {}", getClass().getResource("/"));
+    //logger.info("resource / {}", getClass().getClassLoader().getResource("/"));
+    //logger.info("resource / {}", getClass().getClassLoader().getResource("jetty-war.war"));
+    //logger.info("resource /jetty-war.war {}", this.getClass().getClassLoader().getResource("/jetty-war.war"));
+    //return this.getClass().getClassLoader().getResource("jetty-war.war").toURI().getPath();
+    String war = "jetty-war.war";
+    return FileUtil.getResource(FileUtil.getResource(war));
+  }
+ 
+  private URI getWebRootResourceUri() throws FileNotFoundException,
+      URISyntaxException {
+    URL indexUrl = this.getClass().getResource("");
+    if(indexUrl == null){
+      throw new FileNotFoundException("Unable to find resource ");
+    }
+    // Points to wherever / (the resource) is
+    return indexUrl.toURI();
+  }
+
+}
+```
+
+_**jetty-server-demo/science/mrcuijt/jetty/`JspStarter.java`**_
+
+```java
+package science.mrcuijt.jetty;
+ 
+import org.apache.tomcat.util.scan.StandardJarScanner;
+import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
+import org.eclipse.jetty.jsp.JettyJspServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.webapp.Configuration;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+ 
+/**
+ * JspStarter for embedded ServletContextHandlers
+ * 
+ * This is added as a bean that is a jetty LifeCycle on the ServletContextHandler.
+ * This bean's doStart method will be called as the ServletContextHandler starts,
+ * and will call the ServletContainerInitializer for the jsp engine.
+ *
+ */
+public class JspStarter extends AbstractLifeCycle 
+    implements ServletContextHandler.ServletContainerInitializerCaller {
+  JettyJasperInitializer sci;
+  ServletContextHandler context;
+ 
+  public JspStarter (ServletContextHandler context){
+    this.sci = new JettyJasperInitializer();
+    this.context = context;
+    this.context.setAttribute("org.apache.tomcat.JarScanner", new StandardJarScanner());
+  }
+ 
+  @Override
+  protected void doStart() throws Exception {
+    ClassLoader old = Thread.currentThread().getContextClassLoader();
+    Thread.currentThread().setContextClassLoader(context.getClassLoader());
+    try {
+      sci.onStartup(null, context.getServletContext());   
+      super.doStart();
+    } finally {
+      Thread.currentThread().setContextClassLoader(old);
+    }
+  }
+}
+```
+
+_**jetty-server-demo/science/mrcuijt/util/`FileUtil.java`**_
+
+```java
+package science.mrcuijt.util;
+ 
+import java.util.Map;
+import java.util.HashMap;
+ 
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+ 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+ 
+public class FileUtil {
+ 
+  private static final Map<String, File> entryMap = new HashMap<String, File>();
+ 
+  private static final Logger logger = LoggerFactory.getLogger(FileUtil.class);
+ 
+  private static FileUtil instance;
+ 
+  public static void main(String[] args){
+    run();
+  }
+ 
+  public static void run(){
+    String input = "jetty-war.war";
+    File file = getResource(getResource(input));
+    logger.info("file:{};", file.getAbsolutePath());
+  }
+ 
+  private static FileUtil getInstance(){
+    if(instance == null)
+      instance = new FileUtil();
+    return instance;
+  }
+ 
+  public static File getResource(InputStream is){
+    if(is == null) return null;
+    File file = null;
+    BufferedOutputStream bos = null;
+    //String fileName = String.format("temp/%s.tmp", String.valueOf(System.currentTimeMillis()));
+    String fileName = String.format("%s.tmp", String.valueOf(System.currentTimeMillis()));
+    try {
+      byte[] buffer = new byte[1024];
+      int length = 0;
+      file = new File("temp");
+      if(!file.exists()){
+        file.mkdirs();
+      }
+      fileName = String.format("%s/%s", file.getAbsolutePath(), fileName);
+      file = new File(fileName);
+      FileOutputStream fos = new FileOutputStream(file);
+      bos = new BufferedOutputStream(fos);
+      while( (length = is.read(buffer, 0, buffer.length)) != -1 ){
+        bos.write(buffer, 0, length);
+      }
+      bos.flush();
+    } catch(IOException e){
+      logger.info("Get resource {} has error.", e.getMessage(), e);
+    } catch(Exception e){
+      logger.info("Get resource {} has error.", e.getMessage(), e);
+    } finally {
+      if(is != null){
+        try { is.close(); } catch(Exception e){}
+      }
+      if(bos != null){
+        try { bos.close(); } catch(Exception e){}
+      }
+    }
+    return file;
+  }
+ 
+  public static InputStream getResource(String file){
+    if(logger.isDebugEnabled())
+      logger.debug("file:{};", FileUtil.getInstance()
+                                       .getClass()
+                                       .getClassLoader()
+                                       .getResource(file));
+    return FileUtil.getInstance().getClass().getClassLoader().getResourceAsStream(file);
+  }
+ 
+  public static String getFileName(String url){
+    if(url == null || url.length() == 0) return "NULL";
+    if(url.endsWith("/")) url = url.substring(0, url.length() - 1);
+    String fileName = url.substring(url.lastIndexOf("/") + 1);
+    return fileName.indexOf("?") > 0 ? fileName.substring(0, fileName.lastIndexOf("?")) : fileName;
+  }
+ 
+  public static void put(String entry, File file){
+    entryMap.put(entry, file);
+  }
+ 
+  public static File get(String entry){
+    return entryMap.get(entry);
+  }
+}
+```
+
+```python
+## 项目程序打包 并 创建程序集档案
+mvn clean package assembly:assembly
+
+## OR
+mvn clean package assembly:single
+```
+
+_**META-INF/`MANIFEST.MF`**_
+
+```python
+Manifest-Version: 1.0
+Archiver-Version: Plexus Archiver
+Built-By: Administrator
+Class-Path: lib/jetty-client-9.4.20.v20190813.jar lib/jetty-http-9.4.2
+ 0.v20190813.jar lib/jetty-io-9.4.20.v20190813.jar lib/jetty-deploy-9.
+ 4.20.v20190813.jar lib/jetty-webapp-9.4.20.v20190813.jar lib/jetty-se
+ rvlet-9.4.20.v20190813.jar lib/jetty-xml-9.4.20.v20190813.jar lib/jet
+ ty-jmx-9.4.20.v20190813.jar lib/jetty-plus-9.4.20.v20190813.jar lib/j
+ etty-annotations-9.4.20.v20190813.jar lib/javax.annotation-api-1.3.ja
+ r lib/asm-7.1.jar lib/asm-commons-7.1.jar lib/asm-tree-7.1.jar lib/as
+ m-analysis-7.1.jar lib/jetty-util-9.4.20.v20190813.jar lib/jetty-jasp
+ i-9.4.20.v20190813.jar lib/jetty-security-9.4.20.v20190813.jar lib/ja
+ vax.security.auth.message-1.0.0.v201108011116.jar lib/jetty-jndi-9.4.
+ 20.v20190813.jar lib/jetty-rewrite-9.4.20.v20190813.jar lib/jetty-ser
+ ver-9.4.20.v20190813.jar lib/jetty-servlets-9.4.20.v20190813.jar lib/
+ jetty-continuation-9.4.20.v20190813.jar lib/jetty-quickstart-9.4.20.v
+ 20190813.jar lib/javax.transaction-api-1.3.jar lib/websocket-servlet-
+ 9.4.20.v20190813.jar lib/websocket-api-9.4.20.v20190813.jar lib/javax
+ -websocket-server-impl-9.4.20.v20190813.jar lib/javax-websocket-clien
+ t-impl-9.4.20.v20190813.jar lib/javax.websocket-client-api-1.0.jar li
+ b/websocket-server-9.4.20.v20190813.jar lib/websocket-client-9.4.20.v
+ 20190813.jar lib/websocket-common-9.4.20.v20190813.jar lib/jetty-alpn
+ -client-9.4.20.v20190813.jar lib/http2-server-9.4.20.v20190813.jar li
+ b/http2-common-9.4.20.v20190813.jar lib/http2-hpack-9.4.20.v20190813.
+ jar lib/http2-client-9.4.20.v20190813.jar lib/javax.websocket-api-1.0
+ .jar lib/javax.servlet-api-3.1.0.jar lib/javax.mail.glassfish-1.4.1.v
+ 201005082020.jar lib/javax.activation-1.1.0.v201105071233.jar lib/slf
+ 4j-api-1.7.28.jar lib/slf4j-log4j12-1.7.28.jar lib/log4j-1.2.17.jar l
+ ib/apache-jsp-9.4.20.v20190813.jar lib/jetty-schemas-3.1.2.jar lib/ap
+ ache-jsp-8.5.40.jar lib/apache-el-8.5.40.jar lib/ecj-3.17.0.jar lib/t
+ aglibs-standard-spec-1.2.5.jar lib/taglibs-standard-impl-1.2.5.jar
+Created-By: Apache Maven 3.5.0
+Build-Jdk: 1.8.0_192
+Main-Class: science.mrcuijt.jetty.JettyServletExample
+```
+
+_**target/jetty-server-demo-0.0.1-SNAPSHOT**_
+
+```python
+## 解压归档
+jar xf jetty-server-demo-0.0.1-SNAPSHOT-package.zip
+
+## 得到目录
+jetty-server-demo-0.0.1-SNAPSHOT
+
+## 进入目录
+cd jetty-server-demo-0.0.1-SNAPSHOT
+
+## 目录结构
+jetty-server-demo-0.0.1-SNAPSHOT
+  ├─jetty-server-demo-0.0.1-SNAPSHOT.jar
+  ├─lib
+  │  ├─apache-el-8.5.40.jar
+  │  ├─apache-jsp-8.5.40.jar
+  │  ├─apache-jsp-9.4.20.v20190813.jar
+  │  ├─apache-jstl-9.4.20.v20190813.pom
+  │  ├─asm-7.1.jar
+  │  ├─asm-analysis-7.1.jar
+  │  ├─asm-commons-7.1.jar
+  │  ├─asm-tree-7.1.jar
+  │  ├─ecj-3.17.0.jar
+  │  ├─http2-client-9.4.20.v20190813.jar
+  │  ├─http2-common-9.4.20.v20190813.jar
+  │  ├─http2-hpack-9.4.20.v20190813.jar
+  │  ├─http2-server-9.4.20.v20190813.jar
+  │  ├─javax-websocket-client-impl-9.4.20.v20190813.ja
+  │  ├─javax-websocket-server-impl-9.4.20.v20190813.ja
+  │  ├─javax.activation-1.1.0.v201105071233.jar
+  │  ├─javax.annotation-api-1.3.jar
+  │  ├─javax.mail.glassfish-1.4.1.v201005082020.jar
+  │  ├─javax.security.auth.message-1.0.0.v201108011116
+  │  ├─javax.servlet-api-3.1.0.jar
+  │  ├─javax.transaction-api-1.3.jar
+  │  ├─javax.websocket-api-1.0.jar
+  │  ├─javax.websocket-client-api-1.0.jar
+  │  ├─jetty-all-9.4.20.v20190813.pom
+  │  ├─jetty-alpn-client-9.4.20.v20190813.jar
+  │  ├─jetty-annotations-9.4.20.v20190813.jar
+  │  ├─jetty-client-9.4.20.v20190813.jar
+  │  ├─jetty-continuation-9.4.20.v20190813.jar
+  │  ├─jetty-deploy-9.4.20.v20190813.jar
+  │  ├─jetty-http-9.4.20.v20190813.jar
+  │  ├─jetty-io-9.4.20.v20190813.jar
+  │  ├─jetty-jaspi-9.4.20.v20190813.jar
+  │  ├─jetty-jmx-9.4.20.v20190813.jar
+  │  ├─jetty-jndi-9.4.20.v20190813.jar
+  │  ├─jetty-plus-9.4.20.v20190813.jar
+  │  ├─jetty-quickstart-9.4.20.v20190813.jar
+  │  ├─jetty-rewrite-9.4.20.v20190813.jar
+  │  ├─jetty-schemas-3.1.2.jar
+  │  ├─jetty-security-9.4.20.v20190813.jar
+  │  ├─jetty-server-9.4.20.v20190813.jar
+  │  ├─jetty-server-demo-0.0.1-SNAPSHOT.jar
+  │  ├─jetty-servlet-9.4.20.v20190813.jar
+  │  ├─jetty-servlets-9.4.20.v20190813.jar
+  │  ├─jetty-util-9.4.20.v20190813.jar
+  │  ├─jetty-webapp-9.4.20.v20190813.jar
+  │  ├─jetty-xml-9.4.20.v20190813.jar
+  │  ├─log4j-1.2.17.jar
+  │  ├─slf4j-api-1.7.28.jar
+  │  ├─slf4j-log4j12-1.7.28.jar
+  │  ├─taglibs-standard-impl-1.2.5.jar
+  │  ├─taglibs-standard-spec-1.2.5.jar
+  │  ├─websocket-api-9.4.20.v20190813.jar
+  │  ├─websocket-client-9.4.20.v20190813.jar
+  │  ├─websocket-common-9.4.20.v20190813.jar
+  │  ├─websocket-server-9.4.20.v20190813.jar
+  │  └─websocket-servlet-9.4.20.v20190813.jar
+  ├─jetty-war.war
+  └─log4j.properties
+```
+
+_**target/jetty-server-demo-0.0.1-SNAPSHOT/`jetty-server-demo-0.0.1-SNAPSHOT.jar`**_
+
+```python
+## 更新 jetty-server-demo-0.0.1-SNAPSHOT.jar
+
+## 添加 lib 目录
+jar uf jetty-server-demo-0.0.1-SNAPSHOT.jar lib
+
+## 查看现在的程序包结构
+jar tf jetty-server-demo-0.0.1-SNAPSHOT.jar
+META-INF/
+META-INF/MANIFEST.MF
+science/
+science/mrcuijt/
+science/mrcuijt/jetty/
+science/mrcuijt/util/
+jetty-war.war
+log4j.properties
+science/mrcuijt/jetty/JettyServletExample.class
+science/mrcuijt/jetty/JspStarter.class
+science/mrcuijt/util/FileUtil.class
+META-INF/maven/
+META-INF/maven/science.mrcuijt.jetty/
+META-INF/maven/science.mrcuijt.jetty/jetty-server-demo/
+META-INF/maven/science.mrcuijt.jetty/jetty-server-demo/pom.xml
+META-INF/maven/science.mrcuijt.jetty/jetty-server-demo/pom.properties
+lib/
+lib/apache-el-8.5.40.jar
+lib/apache-jsp-8.5.40.jar
+lib/apache-jsp-9.4.20.v20190813.jar
+lib/apache-jstl-9.4.20.v20190813.pom
+lib/asm-7.1.jar
+lib/asm-analysis-7.1.jar
+lib/asm-commons-7.1.jar
+lib/asm-tree-7.1.jar
+lib/ecj-3.17.0.jar
+lib/http2-client-9.4.20.v20190813.jar
+lib/http2-common-9.4.20.v20190813.jar
+lib/http2-hpack-9.4.20.v20190813.jar
+lib/http2-server-9.4.20.v20190813.jar
+lib/javax-websocket-client-impl-9.4.20.v20190813.jar
+lib/javax-websocket-server-impl-9.4.20.v20190813.jar
+lib/javax.activation-1.1.0.v201105071233.jar
+lib/javax.annotation-api-1.3.jar
+lib/javax.mail.glassfish-1.4.1.v201005082020.jar
+lib/javax.security.auth.message-1.0.0.v201108011116.jar
+lib/javax.servlet-api-3.1.0.jar
+lib/javax.transaction-api-1.3.jar
+lib/javax.websocket-api-1.0.jar
+lib/javax.websocket-client-api-1.0.jar
+lib/jetty-all-9.4.20.v20190813.pom
+lib/jetty-alpn-client-9.4.20.v20190813.jar
+lib/jetty-annotations-9.4.20.v20190813.jar
+lib/jetty-client-9.4.20.v20190813.jar
+lib/jetty-continuation-9.4.20.v20190813.jar
+lib/jetty-deploy-9.4.20.v20190813.jar
+lib/jetty-http-9.4.20.v20190813.jar
+lib/jetty-io-9.4.20.v20190813.jar
+lib/jetty-jaspi-9.4.20.v20190813.jar
+lib/jetty-jmx-9.4.20.v20190813.jar
+lib/jetty-jndi-9.4.20.v20190813.jar
+lib/jetty-plus-9.4.20.v20190813.jar
+lib/jetty-quickstart-9.4.20.v20190813.jar
+lib/jetty-rewrite-9.4.20.v20190813.jar
+lib/jetty-schemas-3.1.2.jar
+lib/jetty-security-9.4.20.v20190813.jar
+lib/jetty-server-9.4.20.v20190813.jar
+lib/jetty-server-demo-0.0.1-SNAPSHOT.jar
+lib/jetty-servlet-9.4.20.v20190813.jar
+lib/jetty-servlets-9.4.20.v20190813.jar
+lib/jetty-util-9.4.20.v20190813.jar
+lib/jetty-webapp-9.4.20.v20190813.jar
+lib/jetty-xml-9.4.20.v20190813.jar
+lib/log4j-1.2.17.jar
+lib/slf4j-api-1.7.28.jar
+lib/slf4j-log4j12-1.7.28.jar
+lib/taglibs-standard-impl-1.2.5.jar
+lib/taglibs-standard-spec-1.2.5.jar
+lib/websocket-api-9.4.20.v20190813.jar
+lib/websocket-client-9.4.20.v20190813.jar
+lib/websocket-common-9.4.20.v20190813.jar
+lib/websocket-server-9.4.20.v20190813.jar
+lib/websocket-servlet-9.4.20.v20190813.jar
+```
+
+_**运行**_
+
+```python
+java -jar jetty-server-demo-0.0.1-SNAPSHOT.jar
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

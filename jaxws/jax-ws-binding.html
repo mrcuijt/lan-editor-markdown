@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAXWS BindingType</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+<text>╔═══════════════════╤═══════════════════════════╗
+║ XML Schema Type   │ Java Data Type            ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:string        │ java.lang.String          ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:integer       │ java.math.BigInteger      ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:int           │ int                       ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:long          │ long                      ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:short         │ short                     ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:decimal       │ java.math.BigDecimal      ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:float         │ float                     ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:double        │ double                    ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:boolean       │ boolean                   ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:byte          │ byte                      ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:QName         │ javax.xml.namespace.QName ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:dateTime      │ java.util.Calendar        ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:base64Binary  │ byte[]                    ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:hexBinary     │ byte[]                    ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:unsignedInt   │ long                      ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:unsignedShort │ int                       ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:unsignedByte  │ short                     ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:time          │ java.util.Calendar        ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:date          │ java.util.Calendar        ║
+╟───────────────────┼───────────────────────────╢
+║ xsd:anySimpleType │ java.lang.String          ║
+╚═══════════════════╧═══════════════════════════╝</text>
+
+```xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:ns="http://service.axis2.mrcuijt.science"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:ns1="http://org.apache.axis2/xsd"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/"
+    xmlns:http="http://schemas.xmlsoap.org/wsdl/http/"
+    xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+    xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" 
+    targetNamespace="http://service.axis2.mrcuijt.science">
+    <wsdl:documentation>DICOMService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="unqualified" targetNamespace="http://service.axis2.mrcuijt.science">
+            <xs:element name="readDicom">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filePath" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="readDicomResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getContent">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filePath" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getContentResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getBytes">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filePath" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getBytesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:base64Binary"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="readDicomRequest">
+        <wsdl:part name="parameters" element="ns:readDicom"/>
+    </wsdl:message>
+    <wsdl:message name="readDicomResponse">
+        <wsdl:part name="parameters" element="ns:readDicomResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getContentRequest">
+        <wsdl:part name="parameters" element="ns:getContent"/>
+    </wsdl:message>
+    <wsdl:message name="getContentResponse">
+        <wsdl:part name="parameters" element="ns:getContentResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getBytesRequest">
+        <wsdl:part name="parameters" element="ns:getBytes"/>
+    </wsdl:message>
+    <wsdl:message name="getBytesResponse">
+        <wsdl:part name="parameters" element="ns:getBytesResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="DICOMServicePortType">
+        <wsdl:operation name="readDicom">
+            <wsdl:input message="ns:readDicomRequest" wsaw:Action="urn:readDicom"/>
+            <wsdl:output message="ns:readDicomResponse" wsaw:Action="urn:readDicomResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getContent">
+            <wsdl:input message="ns:getContentRequest" wsaw:Action="urn:getContent"/>
+            <wsdl:output message="ns:getContentResponse" wsaw:Action="urn:getContentResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getBytes">
+            <wsdl:input message="ns:getBytesRequest" wsaw:Action="urn:getBytes"/>
+            <wsdl:output message="ns:getBytesResponse" wsaw:Action="urn:getBytesResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="DICOMServiceSoap11Binding" type="ns:DICOMServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="readDicom">
+            <soap:operation soapAction="urn:readDicom" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getContent">
+            <soap:operation soapAction="urn:getContent" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getBytes">
+            <soap:operation soapAction="urn:getBytes" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="DICOMServiceSoap12Binding" type="ns:DICOMServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="readDicom">
+            <soap12:operation soapAction="urn:readDicom" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getContent">
+            <soap12:operation soapAction="urn:getContent" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getBytes">
+            <soap12:operation soapAction="urn:getBytes" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="DICOMServiceHttpBinding" type="ns:DICOMServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="readDicom">
+            <http:operation location="readDicom"/>
+            <wsdl:input>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getContent">
+            <http:operation location="getContent"/>
+            <wsdl:input>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getBytes">
+            <http:operation location="getBytes"/>
+            <wsdl:input>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="application/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="DICOMService">
+        <wsdl:port name="DICOMServiceHttpSoap11Endpoint" binding="ns:DICOMServiceSoap11Binding">
+            <soap:address location="http://localhost:8080/axis2/services/DICOMService.DICOMServiceHttpSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="DICOMServiceHttpSoap12Endpoint" binding="ns:DICOMServiceSoap12Binding">
+            <soap12:address location="http://localhost:8080/axis2/services/DICOMService.DICOMServiceHttpSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="DICOMServiceHttpEndpoint" binding="ns:DICOMServiceHttpBinding">
+            <http:address location="http://localhost:8080/axis2/services/DICOMService.DICOMServiceHttpEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>
+```
+
+ - ***JAXWS Client Request***
+
+```xml
+POST /axis2/services/DICOMService HTTP/1.1
+Content-Type: text/xml; charset=UTF-8
+SOAPAction: ""
+User-Agent: Axis2
+Host: localhost:8080
+Transfer-Encoding: chunked
+
+<?xml version='1.0' encoding='UTF-8'?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <getBytes xmlns="http://service.axis2.mrcuijt.science">
+            <arg0 xmlns="">1.2.392.200036.9116.2.6.1.2574.3330765355.1503100625.912106.dcm</arg0>
+        </getBytes>
+    </soapenv:Body>
+</soapenv:Envelope>
+```
+
+ - ***AXIS2 Server Response***
+
+```xml
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Content-Type: text/xml;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 02 Apr 2019 18:59:22 GMT
+
+<?xml version='1.0' encoding='UTF-8'?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <ns:getBytesResponse
+            xmlns:ns="http://service.axis2.mrcuijt.science">
+            <return
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+                xsi:type="xs:string">fERpY29tT2JqZWN0ICAgIGVsZW1Db3Vud
+            </return>
+        </ns:getBytesResponse>
+    </soapenv:Body>
+</soapenv:Envelope>
+```
+
+```java
+@Override
+@SOAPBinding(parameterStyle=ParameterStyle.BARE)
+public byte[] getFileByName(String file) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try {
+        FileInputStream fis = new FileInputStream(file);
+        int length = 0;
+        byte[] buffer = new byte[1024];
+        while ((length = fis.read(buffer, 0, buffer.length)) != -1) {
+            baos.write(buffer, 0, length);
+        }
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    return baos.toByteArray();
+}
+```
+
+```xml
+POST /ComplexTypeService HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: text/xml;charset=UTF-8
+SOAPAction: ""
+Content-Length: 139
+Host: localhost:8080
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+   <soapenv:Header/>
+   <soapenv:Body/>
+</soapenv:Envelope>
+```
+
+```xml
+HTTP/1.1 200 OK
+Transfer-encoding: chunked
+Content-type: text/xml; charset=utf-8
+Date: Wed, 03 Apr 2019 11:04:33 GMT
+
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+   <S:Body>
+      <ns2:getFileResponse xmlns:ns2="http://service.jaxws.mrcuijt.science">/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAA==</ns2:getFileResponse>
+   </S:Body>
+</S:Envelope>
+```
+
+##### 去除 WebService 过程调用返回值中的 ```<return>``` 标签
+
+ 使用 ```@SOAPBinding(parameterStyle=ParameterStyle.BARE)```
+
+ 问题： 同时标注两个不带参数的函数时会出异常。
+
+```java
+@Override
+@SOAPBinding(parameterStyle=ParameterStyle.BARE)
+public byte[] getFileByName(String file) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try {
+        FileInputStream fis = new FileInputStream(file);
+        int length = 0;
+        byte[] buffer = new byte[1024];
+        while ((length = fis.read(buffer, 0, buffer.length)) != -1) {
+            baos.write(buffer, 0, length);
+        }
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    return baos.toByteArray();
+}
+
+@Override
+@SOAPBinding(parameterStyle=ParameterStyle.BARE)
+public String sayHello() {
+    return "Hello";
+}
+```
+
+ ***``` Run WebService Warring ```***
+
+```textarea
+四月 03, 2019 8:12:36 下午 com.sun.xml.ws.wsdl.PayloadQNameBasedOperationFinder <init>
+警告: 非唯一主体部分! 根据 BP 1.1 R2710 规定, 在端口中操作必须具有唯一的通信操作签名才能成功分派。方法[getFile, sayHello]具有相同的请求主体块。方法分派可能失败, 运行时将尝试使用 SOAPAction 进行分派。还可以启用 AddressingFeature 以允许运行时使用 wsa:Action 标头唯一地标识 WSDL 操作。
+四月 03, 2019 8:12:36 下午 com.sun.xml.ws.wsdl.PayloadQNameBasedOperationFinder <init>
+警告: 非唯一主体部分! 根据 BP 1.1 R2710 规定, 在端口中操作必须具有唯一的通信操作签名才能成功分派。方法[getFile, sayHello]具有相同的请求主体块。方法分派可能失败, 运行时将尝试使用 SOAPAction 进行分派。还可以启用 AddressingFeature 以允许运行时使用 wsa:Action 标头唯一地标识 WSDL 操作。
+四月 03, 2019 8:12:36 下午 com.sun.xml.ws.wsdl.PayloadQNameBasedOperationFinder <init>
+警告: 非唯一主体部分! 根据 BP 1.1 R2710 规定, 在端口中操作必须具有唯一的通信操作签名才能成功分派。方法[getFile, sayHello]具有相同的请求主体块。方法分派可能失败, 运行时将尝试使用 SOAPAction 进行分派。还可以启用 AddressingFeature 以允许运行时使用 wsa:Action 标头唯一地标识 WSDL 操作。
+```
+
+ ***``` JAXWS Client Request ```***
+
+```xml
+POST /ComplexTypeService HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: text/xml;charset=UTF-8
+SOAPAction: ""
+Content-Length: 139
+Host: localhost:8080
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
+   <soapenv:Header/>
+   <soapenv:Body/>
+</soapenv:Envelope>
+```
+
+ ***``` JAXWS Server Response ```***
+
+```xml
+HTTP/1.1 200 OK
+Transfer-encoding: chunked
+Content-type: text/xml; charset=utf-8
+Date: Wed, 03 Apr 2019 11:04:33 GMT
+
+<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+   <S:Body>
+      <S:Fault xmlns:ns4="http://www.w3.org/2003/05/soap-envelope">
+         <faultcode>S:Client</faultcode>
+         <faultstring>找不到Request=[SOAPAction="",Payload={null}null]的分派方法</faultstring>
+      </S:Fault>
+   </S:Body>
+</S:Envelope>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

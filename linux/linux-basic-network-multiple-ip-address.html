@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>linux-basic-network-multiple-ip-address</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### linux-basic-network-multiple-ip-address
+
+Create Multiple IP Addresses to One Single Network Interface
+
+The concept of creating or configuring multiple IP addresses on a single network interface is called `IP aliasing`. IP aliasing is very useful for setting up multiple virtual sites on `Apache` using one single network interface with different `IP addresses` on a single subnet network.
+
+The main advantage of using this `IP aliasing` is, you don’t need to have a physical adapter attached to each `IP`, but instead you can create multiple or many virtual interfaces (`aliases`) to a single physical card.
+
+The instructions given here are applies to all major Linux distributions like `Red Hat`, `Fedora`, and `CentOS`. Creating multiple interfaces and assign IP address to it manually is a daunting task. Here we’ll see how we can assign IP address to it defining a set of IP range. Also understand how we are going to create a virtual interface and assign different range of IP Address to an interface in one go. In this article we used `LAN IP‘s`, so replace those with ones you will be using.
+
+##### Creating Virtual Interface and Assign Multiple IP Addresses
+
+Here I have an interface called “`ifcfg-eth0`“, the default interface for the `Ethernet` device. If you’ve attached second `Ethernet` device, then there would be an “`ifcfg-eth1`” device and so on for each device you’ve attached. These device network files are located in “`/etc/sysconfig/network-scripts/`” directory. Navigate to the directory and do “`ls -l`” to list all devices.
+
+```python
+# cd /etc/sysconfig/network-scripts/
+# ls -l
+```
+
+Sample Output
+
+```python
+ifcfg-eth0   ifdown-isdn    ifup-aliases  ifup-plusb     init.ipv6-global
+ifcfg-lo     ifdown-post    ifup-bnep     ifup-post      net.hotplug
+ifdown       ifdown-ppp     ifup-eth      ifup-ppp       network-functions
+ifdown-bnep  ifdown-routes  ifup-ippp     ifup-routes    network-functions-ipv6
+ifdown-eth   ifdown-sit     ifup-ipv6     ifup-sit
+ifdown-ippp  ifdown-tunnel  ifup-isdn     ifup-tunnel
+ifdown-ipv6  ifup           ifup-plip     ifup-wireless
+```
+
+Let’s assume that we want to create three additional virtual interfaces to bind three IP addresses (`172.16.16.126`, `172.16.16.127`, and `172.16.16.128`) to the `NIC`. So, we need to create three additional alias files, while “`ifcfg-eth0`” keeps the same primary `IP` address. This is how we moving forward to setup three aliases to bind the following `IP` addresses.
+
+```python
+Adapter            IP Address                Type
+-------------------------------------------------
+eth0              172.16.16.125            Primary
+eth0:0            172.16.16.126            Alias 1
+eth0:1            172.16.16.127            Alias 2
+eth0:2            172.16.16.128            Alias 3
+```
+
+Where “`:X`” is the device (`interface`) number to create the aliases for interface `eth0`. For each alias you must assign a number sequentially. For example, we copying existing parameters of interface “`ifcfg-eth0`” in virtual interfaces called `ifcfg-eth0:0`, `ifcfg-eth0:1` and `ifcfg-eth0:2`. Go into the network directory and create the files as shown below.
+
+```python
+# cd /etc/sysconfig/network-scripts/
+# cp ifcfg-eth0 ifcfg-eth0:0
+# cp ifcfg-eth0 ifcfg-eth0:1
+# cp ifcfg-eth0 ifcfg-eth0:2
+```
+
+Open a file “`ifcfg-eth0`” and view the contents.
+
+```python
+[[email protected] network-scripts]# vi ifcfg-eth0
+
+DEVICE="eth0"
+BOOTPROTO=static
+ONBOOT=yes
+TYPE="Ethernet"
+IPADDR=172.16.16.125
+NETMASK=255.255.255.224
+GATEWAY=172.16.16.100
+HWADDR=00:0C:29:28:FD:4C
+```
+
+Here we only need two parameters (`DEVICE` and `IPADDR`). So, open each file with VI editor and rename the `DEVICE` name to its corresponding alias and change the `IPADDR` address. For example, open files “`ifcfg-eth0:0`“, “`ifcfg-eth0:1`” and “`ifcfg-eth0:2`” using `VI` editor and change both the parameters. Finally it will look similar to below.
+
+Let’s have a look at these tags:
+
+ - **`DEVICE`** - The device name goes here
+
+ - **`IPADDR`** is the value of IP address.
+
+ - **`NETMASK`** is the subnet mask.
+
+ - If **`BOOTPROTO`** has value 'static', the interface is statically configured, i.e. IP address/subnet mask are added manually. If the device takes address automatically, from DHCP server, its value should be 'dhcp'. But in that case, above two values, IPADDR and NETMASK will be missing.
+
+ - **`HWADDR`** is the hardware or MAC address.
+
+ - If **`ONBOOT`** has value "yes", the interface will be active, up and running on boot. But it will be down if the value is "no".
+
+Rest of the values are not necessary. Any changes to these files will be persistent over boot. If you need your changes to be permanent, make changes in the files of this directory (network-scripts), instead of using ‘ifconfig’ command (to change IP address).
+
+
+##### ifcfg-eth0:0
+
+```python
+DEVICE="eth0:0"
+BOOTPROTO=static
+ONBOOT=yes
+TYPE="Ethernet"
+IPADDR=172.16.16.126
+NETMASK=255.255.255.224
+GATEWAY=172.16.16.100
+HWADDR=00:0C:29:28:FD:4C
+````
+
+##### ifcfg-eth0:1
+
+```python
+DEVICE="eth0:1"
+BOOTPROTO=static
+ONBOOT=yes
+TYPE="Ethernet"
+IPADDR=172.16.16.127
+NETMASK=255.255.255.224
+GATEWAY=172.16.16.100
+HWADDR=00:0C:29:28:FD:4C
+```
+
+##### ifcfg-eth0:2
+
+```python
+DEVICE="eth0:2"
+BOOTPROTO=static
+ONBOOT=yes
+TYPE="Ethernet"
+IPADDR=172.16.16.128
+NETMASK=255.255.255.224
+GATEWAY=172.16.16.100
+HWADDR=00:0C:29:28:FD:4C
+```
+
+Once, you’ve made all changes, save all your changes and restart/start the network service for the changes to reflect.
+
+```python
+[[email protected] network-scripts]# /etc/init.d/network restart
+OR
+[[email protected] network-scripts]# service network restart
+```
+
+To verify all the aliases (virtual interface) are up and running, you can use “`ifconfig`” or “`ip`” command.
+
+```python
+[[email protected] network-scripts]# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.125  Bcast:172.16.16.100  Mask:255.255.255.224
+          inet6 addr: fe80::20c:29ff:fe28:fd4c/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:237 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:198 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:25429 (24.8 KiB)  TX bytes:26910 (26.2 KiB)
+          Interrupt:18 Base address:0x2000
+
+eth0:0    Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.126  Bcast:172.16.16.100  Mask:255.255.255.224
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:18 Base address:0x2000
+
+eth0:1    Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.127  Bcast:172.16.16.100  Mask:255.255.255.224
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:18 Base address:0x2000
+
+eth0:2    Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.128  Bcast:172.16.16.100  Mask:255.255.255.224
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:18 Base address:0x2000
+```
+
+Ping each of them from different machine. If everything setup correctly, you will get a ping response from each of them.
+
+```python
+ping 172.16.16.126
+ping 172.16.16.127
+ping 172.16.16.128
+```
+
+##### Sample Output
+
+```python
+[[email protected] ~]# ping 172.16.16.126
+PING 172.16.16.126 (172.16.16.126) 56(84) bytes of data.
+64 bytes from 172.16.16.126: icmp_seq=1 ttl=64 time=1.33 ms
+64 bytes from 172.16.16.126: icmp_seq=2 ttl=64 time=0.165 ms
+64 bytes from 172.16.16.126: icmp_seq=3 ttl=64 time=0.159 ms
+
+--- 172.16.16.126 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 0.159/0.552/1.332/0.551 ms
+
+[[email protected] ~]# ping 172.16.16.127
+PING 172.16.16.127 (172.16.16.127) 56(84) bytes of data.
+64 bytes from 172.16.16.127: icmp_seq=1 ttl=64 time=1.33 ms
+64 bytes from 172.16.16.127: icmp_seq=2 ttl=64 time=0.165 ms
+64 bytes from 172.16.16.127: icmp_seq=3 ttl=64 time=0.159 ms
+
+--- 172.16.16.127 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 0.159/0.552/1.332/0.551 ms
+
+[[email protected] ~]# ping 172.16.16.128
+PING 172.16.16.128 (172.16.16.128) 56(84) bytes of data.
+64 bytes from 172.16.16.128: icmp_seq=1 ttl=64 time=1.33 ms
+64 bytes from 172.16.16.128: icmp_seq=2 ttl=64 time=0.165 ms
+64 bytes from 172.16.16.128: icmp_seq=3 ttl=64 time=0.159 ms
+
+--- 172.16.16.128 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 0.159/0.552/1.332/0.551 ms
+```
+
+Seems everything working smoothly, With these new IPs’ you can setup virtual sites in `Apache`, `FTP` accounts and many other things.
+
+##### Assign Multiple IP Address Range
+
+If you would like to create a `range` of `Multiple IP Addresses` to a particular interface called “`ifcfg-eth0`“, we use “`ifcfg-eth0-range0`” and copy the contains of `ifcfg-eth0` on it as shown below.
+
+```python
+[[email protected] network-scripts]# cd /etc/sysconfig/network-scripts/
+[[email protected] network-scripts]# cp -p ifcfg-eth0 ifcfg-eth0-range0
+```
+
+Now open “`ifcfg-eth0-range0`” file and add “`IPADDR_START`” and “`IPADDR_END`” IP address range as shown below.
+
+```python
+[[email protected] network-scripts]# vi ifcfg-eth0-range0
+
+#DEVICE="eth0"
+#BOOTPROTO=none
+#NM_CONTROLLED="yes"
+#ONBOOT=yes
+TYPE="Ethernet"
+IPADDR_START=172.16.16.126
+IPADDR_END=172.16.16.130
+IPV6INIT=no
+#GATEWAY=172.16.16.100
+```
+
+Save it and restart/start network service
+
+```python
+[[email protected] network-scripts]# /etc/init.d/network restart
+OR
+[[email protected] network-scripts]# service network restart
+```
+
+Verify that virtual interfaces are created with IP Address.
+
+```python
+[[email protected] network-scripts]# ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.125  Bcast:172.16.16.100  Mask:255.255.255.224
+          inet6 addr: fe80::20c:29ff:fe28:fd4c/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:1385 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:1249 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:127317 (124.3 KiB)  TX bytes:200787 (196.0 KiB)
+          Interrupt:18 Base address:0x2000
+
+eth0:0     Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.126  Bcast:172.16.16.100  Mask:255.255.255.224
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:18 Base address:0x2000
+
+eth0:1    Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.127  Bcast:172.16.16.100  Mask:255.255.255.224
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:18 Base address:0x2000
+
+eth0:2    Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.128  Bcast:172.16.16.100  Mask:255.255.255.224
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:18 Base address:0x2000
+
+eth0:3    Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.129  Bcast:172.16.16.100  Mask:255.255.255.224
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:18 Base address:0x2000
+
+eth0:4    Link encap:Ethernet  HWaddr 00:0C:29:28:FD:4C
+          inet addr:172.16.16.130  Bcast:172.16.16.100  Mask:255.255.255.224
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          Interrupt:18 Base address:0x2000
+```
+
+If you having any trouble in setting up, please do post your queries in the comment section.
+ 
+Sharing is Caring...
+
+##### Temporarily adding multiple IP addresses on a NIC
+
+You can use the 'ifconfig' command to add an IP address to a NIC. But, please note that this IP address will not be available after rebooting the machine. So, you need to use the second step for permanently adding the multiple IP addresses. Here, we assume that you already have a NIC with a static IP configured in it. If we need to add two more IP addresses, say `192.168.1.25` and `192.168.1.26` to this interface, we can accomplish this by executing the following commands:
+
+```python
+ifconfig eth0:1 192.168.1.25 netmask 255.255.255.0
+ifconfig eth0:2 192.168.1.26 netmask 255.255.255.0
+```
+
+##### Adding an IP address range
+
+In order to add a range of IP addresses to `eth0` interface, say from `192.168.1.20` to `192.168.1.30`, you need to create (update) the file `/etc/sysconfig/network-scripts/ifcfg-eth0-range0` with the following data:
+
+```python
+IPADDR_START=192.168.1.20
+IPADDR_END=192.168.1.30
+CLONENUM_START=0
+NETMASK=255.255.255.0
+```
+
+Then restart the network service,
+
+```python
+[[email protected] network-scripts]# /etc/init.d/network restart
+OR
+[[email protected] network-scripts]# service network restart
+```
+
+参考链接：
+
+ - <a href="https://www.tecmint.com/create-multiple-ip-addresses-to-one-single-network-interface/" target="_blank">Create Multiple IP Addresses to One Single Network Interface</a>
+
+ - <a href="https://linoxide.com/linux-how-to/bind-ip-interface/" target="_blank">How to Have Multiple IP addresses on One NIC in Linux </a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

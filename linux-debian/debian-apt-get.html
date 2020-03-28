@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>debian-apt-get</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### debian-apt-get
+
+<text>╔══════════════════╤══════════════════════╤════════════════════════════════╗
+║ apt 命令         │ 取代的命令           │ 命令的功能                     ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt install      │ apt-get install      │ 安装软件包                     ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt remove       │ apt-get remove       │ 移除软件包                     ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt purge        │ apt-get purge        │ 移除软件包及配置文件           ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt update       │ apt-get update       │ 刷新存储库索引                 ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt upgrade      │ apt-get upgrade      │ 升级所有可升级的软件包         ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt autoremove   │ apt-get autoremove   │ 自动删除不需要的包             ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt full-upgrade │ apt-get dist-upgrade │ 在升级软件包时自动处理依赖关系 ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt search       │ apt-cache            │ search 搜索应用程序            ║
+╟──────────────────┼──────────────────────┼────────────────────────────────╢
+║ apt show         │ apt-cache            │ show 显示安装细节              ║
+╚══════════════════╧══════════════════════╧════════════════════════════════╝</text>
+
+当然，apt 还有一些自己的命令：
+
+<text>╔══════════════════╤══════════════════════════════════════╗
+║ 新的apt命令      │ 命令的功能                           ║
+╟──────────────────┼──────────────────────────────────────╢
+║ apt list         │ 列出包含条件的包（已安装，可升级等） ║
+╟──────────────────┼──────────────────────────────────────╢
+║ apt edit-sources │ 编辑源列表                           ║
+╚══════════════════╧══════════════════════════════════════╝</text>
+
+#### 我应该使用apt还是apt-get？
+
+&amp;#160; &amp;#160;既然两个命令都有用，那么我该使用 apt 还是 apt-get 呢？作为一个常规 Linux 用户，系统极客建议大家尽快适应并开始首先使用 apt。不仅因为广大 Linux 发行商都在推荐 apt，更主要的还是它提供了 Linux 包管理的必要选项。 最重要的是，apt 命令选项更少更易记，因此也更易用，所以没理由继续坚持 apt-get。
+
+#### 查看已安装的软件包
+
+```python
+## 查看已安装的包的文件分布
+dpkg -L packagename
+
+## 查看已安装的软件包
+dpkg -l
+```
+
+## 安装 wxHexeditor
+
+```python
+sudo apt install wxhexeditor
+```
+
+```text
+["apt 命令","取代的命令","命令的功能"],
+["apt install","apt-get install","安装软件包"],
+["apt remove","apt-get remove","移除软件包"],
+["apt purge","apt-get purge","移除软件包及配置文件"],
+["apt update","apt-get update","刷新存储库索引"],
+["apt upgrade","apt-get upgrade","升级所有可升级的软件包"],
+["apt autoremove","apt-get autoremove","自动删除不需要的包"],
+["apt full-upgrade","apt-get dist-upgrade","在升级软件包时自动处理依赖关系"],
+["apt search","apt-cache","search 搜索应用程序"],
+["apt show","apt-cache","show 显示安装细节"]
+```
+
+```text
+["新的apt命令","命令的功能"],
+["apt list","列出包含条件的包（已安装，可升级等）"],
+["apt edit-sources","编辑源列表"]
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

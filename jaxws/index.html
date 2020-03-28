@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAX-WS 介绍</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+        //获取渲染后的HTML
+//        var html = LanEditor.GetRenderHTML();
+        // 渲染
+//        LanEditor.RenderHTML();
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+### 什么是 JAX-WS？
+
+#### 简介
+
+    JAX-WS 的全称是 Java API for XML Web Service ，目前流行的版本是 JAX-WS 2.1。
+
+    JAX-WS 是用来简化使用 Java 构造 Web服务 和 Web服务客户端 的工作的技术。
+
+    它还提供了完整的 Web 服务堆栈，可以减少开发和部署 Web服务的难度。
+
+    Java EE6 和 JDK 1.6.0_04 及以上版本都支持 JAX-WS 2.1。
+
+    因此，使用常规的 JDK 就可以发布服务端点，这使得 Web服务的发布变得非常简单。
+
+#### -
+
+    用于 XML Web 服务的 Java API(JAX-WS) 是一种用于构建使用 XML 进行通信的 Web 服务和客户端的技术。JAX-WS 允许开发人员编写面向消息以及面向远程过程调用（面向 RPC）的 Web服务。
+#### -
+
+    在 JAX-WS 中，Web 服务操作调用由基于 XML 的协议（如 SOAP）表示。SOAP 规范定义了用于表示 Web 服务调用和响应的信封结构，编码规则和约定。这些调用和响应通过 HTTP 作为 SOAP 消息（XML 文件）传输。
+
+#### JAX-WS 概述
+
+
+ &#160; &#160;在 JAX-WS 中，一个远程调用可以转换为一个基于 XML 的协议例如 SOAP，在使用 JAX-WS 过程中，开发者不需要编写任何生成和处理 SOAP 消息的代码。JAX-WS 的运行时实现会将这些 API 的调用转换成为对应的 SOAP 消息。
+
+ &#160; &#160;在服务器端，用户只需要通过 Java 语言定义远程调用所需要实现的接口 SEI（service endpoint interface），并提供相关的实现，通过调用 JAX-WS 的服务发布接口就可以将其发布为WebService 接口。
+
+ &#160; &#160;在客户端，用户可以通过 JAX-WS 的 API 创建一个```代理```（用本地对象来替代远程的服务）来实现对于远程服务器端的调用。
+
+ &#160; &#160;当然 JAX-WS 也提供了一组针对底层消息进行操作的 API 调用，你可以通过 ```Dispatch``` 直接使用 ```SOAP 消息```或 ```XML 消息```发送请求或者使用 ```Provider``` 处理 ```SOAP``` 或 ```XML``` 消息。
+
+ &#160; &#160;通过 Web Service 所提供的互操作环境，我们可以用 JAX-WS 轻松实现 JAVA 平台与其他编程环境（.net 等）的互操作。
+
+
+#### ```JAX-WS``` 的优势
+
+    使用 JAX-WS，客户端和服务具有很大的优势：Java 编程语言的平台独立性。此外，JAX-WS 不是限制性的：JAX-WS 客户端可以访问未在 Java 平台上运行的 Web 服务，反之亦然。这种灵活性是可能的，因为 JAX-WS 使用 W3C 定义的技术：HTTP，SOAP 和 WSDL。WSDL 指定 XML 格式，用于将服务描述为对消息进行操作的一组端点。
+
+#### 数据绑定
+
+    JAX-WS 中集成了 JAXB（Java Architecture for XML Binding）。
+
+    JAXB 主要用于将 XML 映射为 Java 代码，便捷地支持数据绑定功能。
+
+    调用者和已发布的 Web服务之间通过 SOAP 传递数据，
+
+    因此，通过 JAXB，开发者不需要自己将 SOAP 消息中的 XML 模式的消息转换为 Java 代码。
+
+    也不必全面了解 XML 和 SOAP 解析，这使得 Web 服务的开发变得异常简单。
+
+#### 数据通信 SAAJ(SOAP with Attachments API for JAVA)
+
+##### ```SAAJ``` 消息 <a href="https://docs.oracle.com/cd/E19575-01/819-3669/bnbhg/index.html" target='_blank'>link</a>
+
+    SAAJ 消息遵循 SOAP 标准，它规定了消息的格式，并指定了一些必需的，可选的或不允许的。使用 SAAJ API，您只需通过 Java API 调用即可创建符合 SOAP 1.1 或 1.2 规范和 WS-I Basic Profile 1.1 规范的 XML 消息。
+
+##### ```SAAJ``` 连接（Connection）
+
+    通过连接发送和接收所有 SOAP 消息。使用 SAAJ API，连接由 SOAPConnection 对象表示，该对象从发送方直接到达其目标。这种连接称为点对点连接，因为它从一个端点到另一个端点。使用 SAAJ API 发送的消息称为请求 - 响应消息。它们通过带有 call 方法的 SOAPConnection 对象发送，该方法发送消息（请求）然后阻塞，直到它收到回复（响应）。
+
+##### SOAP 和 XML 处理 API（JAXP，JAXB 和 SAAJ）<a href="http://java.boot.by/wsd-guide/ch05.html" target="_blank">link</a>
+
+###### ```JAXB``` <a href="http://java.boot.by/wsd-guide/ch05s02.html" target="_blank">link</a>
+
+    JAXB 应用程序可以使用从模式生成的 Java 类来执行结构和内容验证。JAXB 应用程序通过编组 XML 文档来构建内存数据结构（如 DOM），以构建内容树，该内容树包含作为派生类实例的对象。但是，与 DOM 树不同，内容树特定于一个源模式，不包含额外的树操作功能，允许使用派生类的访问器方法访问其数据，并且不是动态构建的。出于这些原因，JAXB 应用程序比 DOM 应用程序更有效地使用内存。如果文档的内容更具动态性并且没有很好的约束，
+
+    通过解组文档中的数据或实例化您创建的类，构建表示对XML模式有效的XML数据的对象树。
+
+    访问和修改数据。（可选）验证相对于 XML Schema 中表达的约束的数据修改。
+
+    将数据分配给新的 XML 文档。
+
+#### 环境支持
+
+    JDK 1.6 及以上版本，都提供了对 JAX-WS 的支持，所以使用是不需要其他 Jar 包的辅助。
+
+    普通的 Java 项目就可以对 Web 服务进行发布。也可以直接调用已发布的 Web 服务。
+
+#### ```JAX-WS``` 与 ```JAX-RPC``` 之间的关系
+
+ - Sun 最开始的 Web Services 的实现是 ```JAX-RPC 1.1 (JSR 101)```。这个实现是基于 Java 的 RPC,并不完全支持 ```schema``` 规范，同时没有对 Binding 和 Parsing 定义标准的实现。
+
+ - JAX-WS 2.0 的全称为 Java API for XML-Based Web services (JAX-WS) 2.0。```JAX-WS 2.0``` 是对 ```JAX-RPC 1.0``` 规范的扩展，是 ```JAX-RPC 1.1``` 的后续版本， ```JAX-RPC 2.0``` 标准发布不久后便被重新命名为 ```JAX-WS 2.0```。 JAX-WS 2.0 是面向 Java 5 的开发 Web Services 的最新编程标准，它提供了新的编程模型和对以往的 JAX-RPC 方式的 Web Services 进行了增强。
+
+ - ```JAX-WS2.0 (JSR 224)```是 Sun 新的 Web Services 协议栈，是一个完全基于标准的实现。在 binding 层，使用的是 the Java Architecture for XML Binding ```(JAXB, JSR 222)```，在 parsing 层，使用的是 the Streaming API for XML ```(StAX, JSR 173)```，同时它还完全支持 ```schema``` 规范。
+
+### 什么是 JAX-RS？
+
+ - ```JAX-WS```: 全称是 JavaTM API forXML-Based Web Services
+
+ - ```JAX-RS```: 全称是 JavaTM API forRESTful Web Services
+
+ - 关于 ```JAX-WS``` 与 ```JAX-RS``` 两者是不同风格的SOA架构。前者以动词为中心，指定的是每次执行函数。而后者以名词为中心，每次执行的时候指定的是资源。
+
+#### ```JAX-RS``` 是 ```JAVA EE6``` 引入的一个新技术。
+
+ - ```JAX-RS``` 即 ```Java API for RESTful Web Services```，是一个 Java 编程语言的应用程序接口，支持按照表述性状态转移(REST)架构风格创建 Web 服务。
+ - ```JAX-RS``` 使用了 ```Java SE5``` 引入的Java标注来简化 Web 服务的客户端和服务端的开发和部署。
+ - ```JAX-WS``` 规范是一组 ```XML Web Services``` 的 ```JAVA API```，```JAX-WS``` 允许开发者可以选择 ```RPC-oriented``` 或者 ```message-oriented``` 来实现自己的 Web Services。
+
+#### JAX-RS 注释
+
+ - ```@Path```:标注资源类或者方法的相对路径。
+ - ```@GET```，```@PUT```，```@POST```，```@DELETE```:标注方法是 ```HTTP``` 请求的类型。
+ - ```@Produces```:标注返回的MIME媒体类型。
+ - ```@Consumes```:标注可接受请求的MIME媒体类型。
+ - ```@PathParam```，```@QueryParam```，```@HeaderParam```，```@CookieParam```，```@MatrixParam```，```@FormParam``` 分别标注方法的参数来自于 ```HTTP``` 请求的不同位置，例如 ```@PathParam``` 来自于 ```URL``` 的路径，```@QueryParam``` 来自于 ```URL``` 的查询参数，```@HeaderParam``` 来自于 ```HTTP``` 请求的头信息，```@CookieParam``` 来自于 ```HTTP``` 请求的 ```Cookie```。
+
+#### JAX-RS 环境
+
+&#160; &#160;基于 ```JAX-RS``` 实现的框架有 ```Jersey```，```RESTEasy``` 等。这两个框架创建的应用可以很方便地部署到 ```Servlet``` 容器中，比如 ```Tomcat```，```JBoss``` 等。值得一提的是 ```RESTEasy``` 是由 ```JBoss``` 公司开发的，所以将用 ```RESTEasy``` 框架实现的应用部署到 ```JBoss``` 服务器上，可以实现很多额外的功能。
+
+
+```textarea
+使用 JAX-WS 来创建 Web 服务:
+
+  JAX-WS 代表 Java API for XML Web Service。
+    -> JAX-WS 是一种用于创建可使用 XML 进行通信的 Web 服务和客户端技术。
+    -> JAX-WS 允许开发者编写面向消息以及面向 RPC 的 Web 服务。
+
+  在 JAX-WS 中，Web 服务操作调用是由一种基于 XML 的协议，例如 SOAP 来表示的。
+    -> SOAP 规范定义了信封的结构、编码规则和约定来表示 Web 服务调用和响应。
+    -> 这些调用和响应作为 SOAP 消息（XML 文件）来通过 HTTP 传输。
+
+    尽管 SOAP 消息比较复杂，JAX-WS API 向应用开发者隐藏这一复杂性。
+        -> 在服务器这一端，开发者通过在一个以 Java 编程语言编写的接口中
+        -> 定义方法来指定了 Web 服务操作。
+        -> 开发者还编写了一个或多个实现这些方法的类。
+
+        -> 客户端呈现也很容易编写。
+        -> 客户端创建一个代理（一个代表服务的本地对象），然后调用代理上的方法。
+
+    使用 JAX-WS 时，开发者不需要生成或解析 SOAP 消息。
+        -> JAX-WS 运行时系统负责
+        -> 转换到 SOAP 消息的 API 调用以及来自 SOAP 消息的响应。
+
+    使用 JAX-WS 时，客户端和 Web 服务具有一个很大的好处：
+        -> Java 编程语言的平台无关性。
+
+    此外，JAX-WS 是非限制性的：
+        -> JAX-WS 客户端可以访问某个未在 Java 平台上运行的 Web 服务，
+        -> 反过来也可以
+
+    这种灵活性是有可能存在的，因为 JAX-WS 使用了 WWW 联盟（W3C）所定义的技术：
+        -> HTTP、SOAP 和 Web 服务描述语言（WSDL）。
+        -> WSDL 指定了一种 XML 格式来将某种服务描述为一组对消息进行操作的端点。
+
+设置端口：
+
+    JAX-WS 示例中的一些文件以依赖于在安装应用服务器时用户所指定的端口。
+    本书的示例假定服务器运行与默认端口 8080 之上。
+    如果用户修改了端口，则必须在创建和生成 JAX-WS 示例之前在以下文件中更新端口号
+
+使用 JAX-WS 创建简单的 Web 服务和客户端：
+
+    本节说明如何创建和部署一个简单的 Web 服务和客户端。
+    下图说明了 JAX-WS 技术如何管理 Web 服务和客户端之间的通信。
+```
+
+```textarea
++----------------------+                           +----------------------+
+|                      |                           |                      |
+|                      |                           |                      |
+|       Service        |                           |        Client        |
+|                      |                           |                      |
+|                      |                           |                      |
+|                      |                           |                      |
+|  +----------------+  |     +--------------+      |  +----------------+  |
+|  |                |  |     |              |      |  |                |  |
+|  | JAX+WS RunTime |  +<----+ SOAP Message +----->+  | JAX+WS RunTime |  |
+|  |                |  |     |              |      |  |                |  |
+|  +----------------+  |     +--------------+      |  +----------------+  |
++----------------------+                           +----------------------+
+```
+
+```textarea
+  开发 JAX-WS Web服务的起点是一个使用
+    -> javax.jws.WebService 注释(annotation) 来表示的Java类。
+    -> @WebService 注解将类定义为了一个Web服务端点。
+
+  服务端点接口(service endpoint interface) 或 服务器端点实现(service endpoint implementation,SEI)
+    -> 分别是一种Java接口或类，它们声明了客户端可以在服务上调用的方法。
+    -> 在创建JAX-WS端点时并不需要一个端点。
+    -> Web服务实现类隐含定义了一个SEI。
+
+  用户可以通过在实现类中添加 endpointInterface 元素到
+    -> @WebService 注释来指定一个明确的接口。
+    -> 然后必须提供一个接口来定义在端点实现类中可用的公共方法。
+
+  用户可以使用端点实现类和 wsgen 工具
+    -> 来生成将 Web服务客户端连接到 JAX-WS运行时的Web服务工件。
+
+```
+
+```textarea
+  创建Web服务和客户端具有以下基本步骤：
+    -> 1、编写实现类。
+    -> 2、编译实现类。
+    -> 3、使用 wsgen 来生成部署服务所需的工件。
+    -> 4、将文件打包到WAR文件。
+    -> 5、部署WAR文件。Web服务工件（用于和客户端进行通信）由应用服务器在部署期间生成。
+    -> 6、编写客户端类。
+    -> 7、使用 wsimport 来生成和编译需要连接到服务的Web服务工作。
+    -> 8、编译客户端类。
+    -> 9、运行客户端。
+```
+
+```textarea
+JAX-WS 端点的需求
+
+  JAX-WS 端点必须遵循以下需求：
+
+    -> 实现类必须使用 javax.jws.WebService 或 javax.jws.WebServiceProvider 注释来表示。
+    -> 实现类可能会通过 @WebService 的 endpointInterface 元素明确引用一个 SEI ，但是他并不需要这么做。
+       如果在 @WebService 中未指定 endpointInterface，则将为实现类隐含定义一个 SEI。
+    -> 实现类的业务方法必须是公共的(public)，一定不能声明为 static 或 final。
+    -> 展现给Web服务客户端的业务方法必须使用 javax.jws.WebMethod 来表示。
+    -> 展现给Web服务客户端业务方法必须具有JAXB兼容的参数和返回类。
+    -> 实现类一定不能声明为 final，而且不能为 abstract。
+    -> 实现类必须具有一个默认的公共构造函数
+    -> 实现类一定不能定义 finalize 方法。
+    -> 实现类可能在其方法上使用 java.annoation.PostConstruct 或 javax.annoation.PreDestroy 注解用于生命周期事件回调。
+
+    在实现类开始响应Web服务客户端之前，容器将调用 @PostConstruct 方法。
+    在操作中删除端点之前，容器将调用 @PreDestroy 方法。
+```
+
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Metro Simple Demo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+初始化 Metro 配置
+
+设置 JAVA_HOME
+
+```python
+## Set JAVA_HOME
+## cmd
+
+setx JAVA_HOME F:\JDK\jdk1.8.0_192
+```
+
+设置 METRO_HOME
+
+```python
+## Set METRO_HOME
+## cmd
+
+setx METRO_HOME F:\metro
+```
+
+设置 Tomcat Catalina Home
+
+```python
+## Set CATALINA_HOME
+## cmd
+
+setx CATALINA_HOME F:\apache-tomcat-7.0.47
+```
+
+设置 Application Server Home
+
+```python
+## Set AS_HOME
+## cmd
+
+setx AS_HOME F:\apache-tomcat-7.0.47
+```
+
+```python
+## install Metro for tomcat
+ant -Dtomcat.home=%CATALINA_HOME% -f %METRO_HOME%/metro-on-tomcat.xml install
+
+## uninstall Metro for tomcat
+ant -Dtomcat.home=%CATALINA_HOME% -f %METRO_HOME%/metro-on-tomcat.xml uninstall
+```
+
+Metro 调用示例
+
+通过 ant 脚本构建，部署和调用每个 示例。每个 ant 脚本都支持以下一组目标：
+
+ - server	Builds and deploy the service endpoint WAR
+ 
+ - client	Builds the client
+ 
+ - run	Runs the client
+
+确保将 Tomcat 配置为端口， 8080 作为使用此端口信息进行硬编码的示例。
+
+在运行 sample 之前，请确保 Tomcat 容器已启动并正在运行。
+
+在样本中运行 ant 目标时，请指定 “-Dtomcat = true”。例如：
+
+ - ant clean server -Dtomcat=true, 这将构建服务并将战争部署到 /webapps。
+
+ - ant clean client, 这将创建客户端工件并编译文件。
+
+ - ant run
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

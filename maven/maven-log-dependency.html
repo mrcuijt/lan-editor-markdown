@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maven Log Dependency</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 优雅的使用 slf4j <a href="https://www.jianshu.com/p/7b5860be190f" target="_blank"></a>
+
+&amp;#160; &amp;#160;JVM 的是一个开放包容的平台，正因如此，才造就了今日繁荣的 JVM 生态，但凡事有利有弊，比如这百花齐放的日志系统，相处的似乎就不那么愉快。
+
+提到日志系统，我们先来罗列一下几个有名的 Java 日志框架：
+
+ - log4j
+ 
+ - commons-logging
+ 
+ - jdk-logging
+ 
+ - slf4j
+ 
+ - logback
+ 
+ - log4j2
+
+&amp;#160; &amp;#160;话说回来，框架多那是好事儿啊，我还能比较比较，看看哪个和我口味，选一个用不就得了。但是，相比于其他库，日志框架是比较特殊的：
+
+ - 日志系统几乎是所有库都会用到的一个功能，每个库由于早期的技术选型和开发者喜好等原因，可能使用了不同的日志框架。我们平时需要什么库，Maven 仓库搜一波，贴过来就用，那叫一个爽啊，殊不知，这样间接的引入了多少种不同的日志框架。
+ 
+ - 日志系统往往会尽可能早的进行初始化，并且由于日志桥接器和日志门面系统的存在，会尝试做一些绑定和劫持工作（后文会提到），一旦引入多个日志框架，轻则会导致程序中有好几套日志系统同时工作，日志输出混乱，重则会导致项目日志系统初始化死锁，项目无法启动。
+ 
+嗯，那么咋办呢？首先简单分析一下上面几个框架，先确定最终要使用的框架。
+
+上面几个日志框架简单分为两类：
+
+ - 日志门面 commons-logging，slf4j
+ 
+ - 日志实现 log4j，jdk-logging，logback，log4j2
+ 
+这也符合 Java 的面向对象设计理念，将接口与实现相分离。
+
+&amp;#160; &amp;#160;日志门面系统的出现其实已经很大程度上缓解了日志系统的混乱，很多库的作者也已经意识到了日志门面系统的重要性，不在库中直接使用具体的日志实现框架。
+
+PS：其实很多库都会自己造一个类似 slf4j 的日志门面系统，并且绑定实现的优先级不一样。
+
+&amp;#160; &amp;#160;其实说是在做选择，但事实上没得选择，slf4j 作为现代的日志门面系统，已经成为事实的标准，并且为其他日志系统做了十足的兼容工作。
+
+我们能做的就是选一个日志实现框架。
+
+logback，log4j2 是现代的高性能日志实现框架，两者都很给力，看喜好了。
+
+#### 分析
+
+我们这里以统一使用 slf4j & logback 为例分析。
+
+如果我们直接暴力的排除其他日志框架，可能导致第三方库在调用日志接口时抛出 ClassNotFound 异常，这里就需要用到日志系统桥接器。
+
+**日志系统桥接器**说白了就是一种偷天换日的解决方案。
+
+&amp;#160; &amp;#160;比如 ```log4j-over-slf4j```，即 ```log4j -> slf4j``` 的桥接器，这个库定义了与 log4j 一致的接口（包名、类名、方法签名均一致），但是接口的实现却是对 slf4j 日志接口的包装，即间接调用了 slf4j 日志接口，实现了对日志的转发。
+
+&amp;#160; &amp;#160;但是，```jul-to-slf4j``` 是个意外例外，毕竟 JDK 自带的 logging 包排除不掉啊，其实是利用 jdk-logging 的 Handler 机制，在 root logger 上 install 一个 handler，将所有日志劫持到 slf4j 上。要使得 ```jul-to-slf4j``` 生效，需要执行
+
+```java
+SLF4JBridgeHandler.removeHandlersForRootLogger();
+SLF4JBridgeHandler.install();
+```
+
+&amp;#160; &amp;#160;spring boot 中的日志初始化模块已经包括了该逻辑，故无需手动调用。在使用其他框架时，建议在入口类处的 tatic{ } 区执行，确保尽早初始化。
+
+&amp;#160; &amp;#160;**日志系统桥接器**是个巧妙的解决方案，有些库的作者在引用第三方库的时候，也碰到了日志系统混乱的问题，并顺手用桥接器解决了，只不过碰巧跟你桥接的目标不一样，桥接到了 log4j。想想一下：
+
+ - log4j -> slf4j，slf4j -> log4j 两个桥接器同时存在会出现什么情况？
+
+互相委托，无限循环，堆栈溢出。
+
+ - slf4j -> logback，slf4j -> log4j 两个桥接器同时存在会如何？
+
+&amp;#160; &amp;#160;两个桥接器都会被 slf4j 发现，在 slf4j 中定义了优先顺序，优先使用 logback，仅会报警，发现多个日志框架绑定实现；
+
+&amp;#160; &amp;#160;但有一些框架中封装了自己的日志 **facade**，如果其对绑定日志实现定义的 **```优先级顺序```与 slf4j 不一致**，优先使用 log4j，那整个程序中就有两套日志系统在工作。
+
+上面一波分析之后，我们得出结论，为达到统一使用 slf4j & logback 的目的，必须要做 4 件事：
+
+ - 引入 slf4j & logback 日志包和 slf4j -> logback 桥接器；
+ 
+ - 排除 common-logging、log4j、log4j2日志包；
+ 
+ - 引入 jdk-logging -> slf4j、common-logging -> slf4j、log4j -> slf4j、log4j2 -> slf4j 桥接器；
+ 
+ - 排除 slf4j -> jdk-logging、slf4j -> common-logging、slf4j -> log4j、slf4j -> log4j2 桥接器。
+
+ps：log4j2 桥接器由 log4j2 提供，其他桥接器由 slf4j 提供。
+
+如果再严谨一点，还要排除掉 slf4j-simple、slf4j-nop 两个框架，不过这两个一般没人用。
+
+下面这幅图来自 slf4j 官方文档，描述了桥接器的工作原理。
+
+![title](./images/maven-log-dependency/maven-log-dependency-001.png)
+
+![title](./images/maven-log-dependency/maven-log-dependency-002.png)
+
+![title](./images/maven-log-dependency/maven-log-dependency-003.png)
+
+![title](./images/maven-log-dependency/maven-log-dependency-004.png)
+
+![title](./images/maven-log-dependency/maven-log-dependency-005.png)
+
+&amp;#160; &amp;#160;在步骤 1、3 依赖引入方面 Maven 没有什么问题，但是在步骤 2、4 依赖排除方面，相比 Gradle，Maven 没有直接提供全局依赖排除机制，我们需要借助一些方法间接达到目的。
+
+Provided Scope
+
+```xml
+<project>
+  [...]
+  <properties>
+    <slf4j.version>1.7.25</slf4j.version>
+    <commons-logging.version>1.2</commons-logging.version>
+    <log4j.version>1.2.17</log4j.version>
+    <log4j2.version>2.11.1</log4j2.version>
+    <logback.version>1.2.3</logback.version>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>${commons-logging.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>${log4j.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <version>${log4j.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jcl</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jul-to-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>log4j-over-slf4j</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${log4j2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-to-slf4j</artifactId>
+      <version>${log4j2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback.version}</version>
+    </dependency>
+  </dependencies>
+  [...]
+</project>
+```
+
+#### version99 仓库
+
+&amp;#160; &amp;#160;我们来分析一下Maven依赖的工作原理，在一个依赖库被直接或间接引入多次时，并且版本不一致，maven在解析依赖的时候，有两个仲裁原则：
+
+ - 路径最短优先原则
+ - 优先声明原则
+
+&amp;#160; &amp;#160;首先遵循路径最短优先原则，即直接引入最优先，传递依赖层级越浅，越优先。若依然无法仲裁，则遵循优先声明原则，在 pom 中声明靠前的优先。
+
+&amp;#160; &amp;#160;既然了解了这个规则，那就可以巧妙的利用一下，如果我们在 pom 的最开始，引入了一个虚包，则该包其他的依赖全部失效，也就达到了全局排除依赖的目的。
+
+&amp;#160; &amp;#160;slf4j 的文档中也提到了该方案，并且提供了一个 version99 仓库，里面有几个用于排除其他日志框架的虚包。
+
+```xml
+<project>
+  [...]
+  <repositories>
+    <!-- 首先添加 version99 仓库 -->
+    <repository>
+      <id>version99</id>
+      <url>http://version99.qos.ch/</url>
+    </repository>
+  </repositories>
+  <!-- 直接引入依赖，放置在最前 -->
+  <dependencies>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>99-empty</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging-api</artifactId>
+      <version>99-empty</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>99-empty</version>
+    </dependency>
+  </dependencies>
+
+  <!-- 通过 dependencyManagement 强制指定依赖版本也可达到同样效果 -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>99-empty</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging-api</artifactId>
+        <version>99-empty</version>
+      </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>99-empty</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  [...]
+</project>
+```
+
+&amp;#160; &amp;#160;这个 version99 仓库是 slf4j 提供的一个静态 Maven 仓库，里面只有这 3 个虚包，是不能满足其他要求的，我们可以照葫芦画瓢，制作其他虚包上传到 Nexus。
+
+&amp;#160; &amp;#160;当然，发挥一下脑洞，可以分析一下 Maven 下载依赖的机制，编程实现一个动态的 Maven 仓库，请求任何 empty 版本的依赖包都返回一个虚包。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

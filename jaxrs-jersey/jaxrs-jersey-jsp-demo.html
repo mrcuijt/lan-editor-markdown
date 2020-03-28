@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAX-RS Jersey Jsp Demo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### JAX-RS Jersey Jsp Demo
+
+ - **`pom.xml`**
+ 
+  - ***dependency***
+
+```xml
+<properties>
+    <java.version>1.8</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.test.skip>true</maven.test.skip>
+    <slf4j-version>1.7.25</slf4j-version>
+    <log4j-version>1.2.17</log4j-version>
+    <log4j2-version>2.11.1</log4j2-version>
+    <logback-version>1.2.3</logback-version>
+    <commons-logging-version>1.2</commons-logging-version>
+    <junit-version>4.12</junit-version>
+</properties>
+ 
+<dependencies>
+    <dependency>
+        <groupId>org.glassfish.jersey.bundles</groupId>
+        <artifactId>jaxrs-ri</artifactId>
+        <version>2.28</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>*</artifactId>
+                <groupId>*</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.ext</groupId>
+        <artifactId>jersey-mvc-jsp</artifactId>
+        <version>2.28</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <groupId>jakarta.ws.rs</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
+        <version>2.28</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <groupId>jakarta.ws.rs</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.containers</groupId>
+        <artifactId>jersey-container-servlet-core</artifactId>
+        <version>2.28</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <groupId>jakarta.ws.rs</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.containers</groupId>
+        <artifactId>jersey-container-servlet</artifactId>
+        <version>2.28</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>jakarta.ws.rs-api</artifactId>
+                <groupId>jakarta.ws.rs</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>jstl</artifactId>
+        <version>1.2</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>taglibs</groupId>
+        <artifactId>standard</artifactId>
+        <version>1.1.2</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.25</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>1.2.3</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.2.3</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-access</artifactId>
+        <version>1.2.3</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>log4j-over-slf4j</artifactId>
+        <version>1.7.25</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>1.7.25</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jul-to-slf4j</artifactId>
+        <version>1.7.25</version>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>99-empty</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging-api</artifactId>
+        <version>99-empty</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>99-empty</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+        <artifactId>jersey-test-framework-provider-bundle</artifactId>
+        <version>2.28</version>
+        <type>pom</type>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+ 
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+```python
+org.glassfish.jersey.examples:bookstore-webapp:war:2.28
++- org.glassfish.jersey.bundles:jaxrs-ri:jar:2.28:compile
++- org.glassfish.jersey.ext:jersey-mvc-jsp:jar:2.28:compile
+|  +- org.glassfish.hk2.external:jakarta.inject:jar:2.5.0:compile
+|  \- org.glassfish.jersey.ext:jersey-mvc:jar:2.28:compile
+|     \- javax.servlet:servlet-api:jar:2.4:provided
++- org.glassfish.jersey.inject:jersey-hk2:jar:2.28:compile
+|  +- org.glassfish.jersey.core:jersey-common:jar:2.28:compile
+|  |  +- jakarta.annotation:jakarta.annotation-api:jar:1.3.4:compile
+|  |  \- org.glassfish.hk2:osgi-resource-locator:jar:1.0.1:compile
+|  \- org.glassfish.hk2:hk2-locator:jar:2.5.0:compile
+|     +- org.glassfish.hk2.external:aopalliance-repackaged:jar:2.5.0:compile
+|     +- org.glassfish.hk2:hk2-api:jar:2.5.0:compile
+|     +- org.glassfish.hk2:hk2-utils:jar:2.5.0:compile
+|     \- org.javassist:javassist:jar:3.22.0-GA:compile
++- org.glassfish.jersey.containers:jersey-container-servlet-core:jar:2.28:compile
+|  \- org.glassfish.jersey.core:jersey-server:jar:2.28:compile
+|     +- org.glassfish.jersey.core:jersey-client:jar:2.28:compile
+|     +- org.glassfish.jersey.media:jersey-media-jaxb:jar:2.28:compile
+|     \- javax.validation:validation-api:jar:2.0.1.Final:compile
++- org.glassfish.jersey.containers:jersey-container-servlet:jar:2.28:compile
++- javax.servlet:jstl:jar:1.2:compile
++- taglibs:standard:jar:1.1.2:compile
++- org.slf4j:slf4j-api:jar:1.7.25:compile
++- ch.qos.logback:logback-core:jar:1.2.3:runtime
++- ch.qos.logback:logback-classic:jar:1.2.3:runtime
++- ch.qos.logback:logback-access:jar:1.2.3:runtime
++- org.slf4j:log4j-over-slf4j:jar:1.7.25:runtime
++- org.slf4j:jcl-over-slf4j:jar:1.7.25:runtime
++- org.slf4j:jul-to-slf4j:jar:1.7.25:runtime
++- commons-logging:commons-logging:jar:99-empty:compile
++- commons-logging:commons-logging-api:jar:99-empty:compile
++- log4j:log4j:jar:99-empty:compile
++- junit:junit:jar:4.12:test
+   \- org.hamcrest:hamcrest-core:jar:1.3:test
+```
+
+ - **`pom.xml`**
+ 
+  - ***repository***
+
+```xml
+<repositories>
+    <!-- 添加 Aliyun 仓库 -->
+    <repository>
+        <id>nexus-aliyun</id>
+        <name>Aliyun Repository</name>
+        <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    </repository>
+    <!-- 添加 version99 仓库 -->
+    <repository>
+        <id>version99</id>
+        <url>http://version99.qos.ch/</url>
+    </repository>
+</repositories>
+```
+
+ - **`pom.xml`**
+ 
+  - ***plugin***
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+                <skip>true</skip>
+            </configuration>
+        </plugin>
+        <!-- Run the application using "mvn jetty:run" -->
+        <plugin>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jetty-maven-plugin</artifactId>
+            <configuration>
+                <webApp>
+                    <contextPath>/bookstore-webapp</contextPath>
+                </webApp>
+                <connectors>
+                    <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
+                        <port>8080</port>
+                        <responseHeaderSize>16192</responseHeaderSize>
+                    </connector>
+                </connectors>
+            </configuration>
+        </plugin>
+        <!-- Run the application using "mvn tomcat7:run || mvn tomcat7:run-war" -->
+        <plugin>
+            <groupId>org.apache.tomcat.maven</groupId>
+            <artifactId>tomcat7-maven-plugin</artifactId>
+            <version>2.2</version>
+            <configuration>
+                <charset>UTF-8</charset>
+                <!-- 指定端口 -->
+                <port>8080</port>
+                <!-- 请求路径 -->
+                <path>/</path>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+ - **package `science.mrcuijt.jersey`**
+ 
+  - ***MyApplication.java***
+
+```java
+package science.mrcuijt.jersey;
+ 
+import org.glassfish.jersey.logging.LoggingFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.server.TracingConfig;
+import org.glassfish.jersey.server.mvc.jsp.JspMvcFeature;
+ 
+/**
+ * @author Administrator
+ */
+public class MyApplication extends ResourceConfig {
+ 
+    public MyApplication() {
+ 
+        // Resources.
+        packages("science.mrcuijt.jersey.resource");
+ 
+        // MVC.
+        register(JspMvcFeature.class);
+ 
+        // Logging.
+        register(LoggingFeature.class);
+ 
+        // Tracing support.
+        property(ServerProperties.TRACING, TracingConfig.ON_DEMAND.name());
+    }
+}
+```
+
+
+ - **package `science.mrcuijt.jersey.resource`**
+ 
+  - ***MyResource.java***
+
+```java
+package science.mrcuijt.jersey.resource;
+ 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+ 
+import org.glassfish.jersey.server.mvc.Viewable;
+ 
+/**
+ * @author Administrator
+ *
+ */
+@Path("/")
+public class MyResource {
+ 
+    @GET
+    @Path("viewable/{username}/")
+    @Produces(MediaType.TEXT_HTML)
+    public Viewable getViewable(@PathParam("username") String username, @Context HttpServletRequest request) {
+        String message = "Hello";
+        request.setAttribute("message", message);
+        request.setAttribute("username", username);
+        return new Viewable("/viewable.jsp");
+    }
+ 
+}
+```
+
+ - **webapp `/`**
+ 
+  - ***index.jsp***
+
+```xml
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Index</title>
+</head>
+<body>
+ 
+    <h3>Index</h3>
+    <ul>
+        <li>
+            <a href="<%=request.getContextPath()%>/viewable/Jack">Hello Jack</a>
+        </li>
+    </ul>
+ 
+</body>
+</html>
+```
+
+ - **webapp `/`**
+ 
+  - ***viewable.jsp***
+
+```xml
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Jersey Viewable</title>
+</head>
+<body>
+    <h3>${message} ${username}!</h3>
+</body>
+</html>
+```
+
+
+ - **webapp `/WEB-INF/`**
+ 
+  - ***web.xml***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+ 
+    <filter>
+        <filter-name>MyApplication</filter-name>
+        <filter-class>org.glassfish.jersey.servlet.ServletContainer</filter-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>science.mrcuijt.jersey.MyApplication</param-value>
+        </init-param>
+        <!-- pass to next filter if Jersey/App returns 404 -->
+        <init-param>
+            <param-name>jersey.config.servlet.filter.forwardOn404</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>MyApplication</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+ 
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+</web-app>
+```
+
+```python
+## 运行
+mvn tomcat7:run
+```
+```python
+## 访问
+http://localhost:8080/
+```
+
+![](./images/jaxrs-jersey-jsp-demo/jaxrs-jersey-jsp-demo-001.png)
+
+#### 下载
+
+ - <a href="./data/jaxrs-jersey-jsp-demo/jersey-demo.zip" target="_blank">jersey-demo</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

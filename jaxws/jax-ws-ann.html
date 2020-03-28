@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAX-WS Annoration</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+### JAX-WS 注解
+
+<br/>
+&#160; &#160;“```基于 XML 的 Web Service 的 Java API```”（JAX-WS）通过使用```注释```来指定与 Web Service 实现相关联的元数据以及简化 Web Service 的开发。
+
+&#160; &#160;```注释```描述如何将服务器端的服务实现作为 Web Service 来访问或者客户端的 Java 类如何访问 Web Service。
+
+&#160; &#160;```JAX-WS``` 编程标准支持将具有用于定义服务端点应用程序的元数据的 Java 类作为 Web Service 来注释以及注释客户机可以如何访问 Web Service。
+
+&#160; &#160;```JAX-WS``` 支持使用基于 Metadata Facility for the Java Programming Language（Java 规范请求（JSR）175）规范和“用于 Java 平台的 Web Service 元数据”```（JSR 181）```规范的注释，还可以使用由```JAX-WS 2.0（JSR 224）```规范定义的注释（包括 ```JAXB 注释```）。
+
+&#160; &#160;通过使用符合 ```JSR 181``` 标准的注释，可以简单地注释服务实现类或服务接口，并且现在将应用程序作为 Web Service 来启用。
+
+&#160; &#160;通过在 Java 源代码中**```使用注释可以简化 Web Service 的开发和部署```**，因为会定义一些通常从部署描述符文件和 WSDL 文件中获得的附加信息，或者会将元数据从 XML 和 WSDL 映射至源工件中。
+
+&#160; &#160;**使用注释来配置绑定、处理程序链、端口类型的集合名称、服务以及其他 WSDL 参数。注释用于将 Java 映射至 WSDL 和模式，以及在运行时控制 JAX-WS 运行时处理和响应 Web Service 调用的方式。**
+
+
+#### ``` @WebService ``` 注解
+
+ - ``` serviceName ```: 对外发布的服务名，指定 WebService 的服务名称：```wsdl:service```。缺省值为 Java 类简单名称 + Service。(字符串)
+
+ - ``` endpointInterface ```: 服务接口全路径，指定做 SEI(Service EndPoint Interface) 服务端点接口。
+
+ - ``` name ```: 此属性的值包含 XML Web Service 的名称。在默认情况下，该值是实现 XML Web Service 的类的名称，```wsdl:portType``` 的名称。缺省值为 Java 类或接口的非限定名称。(字符串)
+
+ - ``` portName ```: ```wsdl:portName```。缺省值为 WebService.name + Port。
+
+ - ``` targetNamespace ```:指定你想要的名称空间，认是使用接口实现类的包名的反缀。
+
+ - ``` wsdlLocation ```:指定用于定义  Web Service 的 WSDL 文档的 Web 地址。 Web 地址可以是相对路径或绝对路径。(字符串)
+
+#### ``` @SOAPBinding ``` 注解
+
+    将此注释应用于客户机或服务器服务端点接口（SEI）上的类型或方法，或者应用于 JavaBeans 端点的服务器端点实现类。方法级别的注释仅限于它可以指定的对象，仅当 style 属性为 DOCUMENT 时才使用该注释。如果未指定方法级别的注释，那么将使用类型的 @SOAPBinding 行为。
+
+    注释目标：类型或方法
+
+ - ``` style ```:定义发送至 Web Service 和来自 Web Service 的消息的编码样式。有效值为 ```DOCUMENT``` 和 ```RPC```。缺省值为 ```DOCUMENT```。（字符串）
+
+ - ``` use ```:定义用于发送至 Web Service 和来自 Web Service 的消息的格式。缺省值为 ```LITERAL```。ENCODED 在 Feature Pack for Web Services 中不受支持。（字符串）
+
+ - ``` parameterStyle ```:确定方法的参数是否表示整个消息体，或者参数是否是封装在执行操作之后命名的顶级元素中的元素。有效值为 ```WRAPPED``` 或 ```BARE```。对于 ```DOCUMENT``` 类型的绑定只能使用 ```BARE``` 值。缺省值为 ```WRAPPED```。（字符串）
+
+#### ``` @BindingType ``` 注解
+
+    指定在发布此类型的端点时要使用的绑定。
+
+    将此注释应用于 JavaBeans 端点或提供程序端点的服务器端点实现类。
+
+    要点：
+    可以通过将该注释的值指定为
+    javax.xml.ws.soap.SOAPBinding.SOAP11HTTP_MTOM_BINDING 或
+    javax.xml.ws.soap.SOAPBinding.SOAP12HTTP_MTOM_BINDING 来对 Java bean 端点实现类使用 @BindingType 注释以启用 MTOM。
+
+    注释目标：类型
+
+ - ``` value ```:指示绑定标识 Web 地址。
+ javax.xml.ws.soap.SOAPBinding.SOAP11HTTP_BINDING 、
+ javax.xml.ws.soap.SOAPBinding.SOAP12HTTP_BINDING 和
+ javax.xml.ws.http.HTTPBinding.HTTP2HTTP_BINDING 。
+ 缺省值为 javax.xml.ws.soap.SOAPBinding.SOAP11HTTP_BINDING。（字符串）
+
+#### ``` @HandlerChain ``` 注解
+
+    只能通过对 SEI 或实现类使用 @HandlerChain 注释来配置服务器端的处理程序。但是可以使用多种方法来配置客户端的处理程序。可以通过对生成的服务类或者 SEI 使用 @HandlerChain 注释来配置客户端的处理程序。此外，可以按程序在服务上注册您自己的 HandlerResolver 接口实现，或者按程序在绑定对象上设置处理程序链。
+
+    注释目标：类型
+
+ - ``` file ```:指定处理程序链文件所在的位置。文件位置可以是采用外部格式的绝对 ```java.net.URL```，也可以是类文件中的相对路径。（字符串）
+
+ - ``` name ```:指定配置文件中处理程序链的名称。（字符串）
+
+#### ``` @WebMethod ``` 注解
+
+    注释表示作为一项 Web Service 操作的方法，将此注释应用于客户机或服务器端点接口 (SEI) 上的方法，或者应用于 JavaBeans 端点的服务器端点实现类
+
+    要点：仅支持在 @WebService 注释来注释的类上使用 @WebMethod 注释
+
+ - ``` operationName ```:指定与此方法向匹配的 ```wsdl:opeartion``` 的名称。缺省值为 Java 方法的名称。(字符串)
+
+ - ``` action ```:定义此操作的行为。对一 SOAP 绑定，此值将确定 SOAPAction 头的值。缺省值为 Java 方法的名称。(字符串)
+
+ - ``` exclude ```:指定是否重 Web Service 中排除某一方法。缺省值为 false。(布尔值)
+
+#### ``` @WebResult ``` 注解
+
+    注释用于定制从返回值至 WSDL 部件或 XML 元素的映射。
+
+    将此注释应用于客户机或服务器服务端点接口（SEI）上的方法，或者应用于 JavaBeans 端点的服务器端点实现类。
+
+    注释目标：方法
+
+ - ``` name ```:当返回值列示在 WSDL 文件中并且在连接上的消息中找到该返回值时，指定该返回值的名称。对于 RPC 绑定，这是用于表示返回值的 ```wsdl:part``` 属性的名称。对于文档绑定， -```name``` 参数是用于表示返回值的 XML 元素的局部名。对于 RPC 和
+ ```DOCUMENT/WRAPPED``` 绑定，缺省值为 ```return```。对于 ```DOCUMENT/BARE``` 绑定，缺省值为 方法名 + Response。（字符串）
+
+ - ``` targetNamespace ```:指定返回值的 XML 名称空间。仅当操作类型为 RPC 或者操作是文档类型并且参数类型为 ```BARE``` 时才使用此参数。（字符串）
+
+ - ``` header ```:指定头中是否附带结果。缺省值为 ```false```。（布尔值）
+
+ - ``` partName ```:指定 ```RPC``` 或 ```DOCUMENT/BARE``` 操作的结果的部件名称。缺省值为 ```@WebResult.name```。（字符串）
+
+#### ``` @WebParam ``` 注解
+
+    注释用于定制从单个参数至 Web Service 消息部件和 XML 元素的映射。
+
+    将此注释应用于客户机或服务器无法端点接口 (SEI) 上的方法，或者应用于 JavaBeans 端点的服务器端点实现类。
+
+ - ``` name ```:参数名称。如果操作是远程调用 (RPC) 类型并且未指定 ```partName``` 属性，那么这是用于表示参数的 ```wsdl:part``` 属性的名称参数类型为 ```BARE``` 并且方式为 OUT 或 INOUT，那么必须指定此属性。(字符串)
+
+ - ``` partName ```:定义用于表示此参数的 ```wsdl:part``` 属性的名称。仅当操作类型为 RPC 或者操作是文档类型并且参数类型为 ```BARE``` 时才使用此参数。（字符串）
+
+ - ``` targetNamespace ```:指定参数的 XML 元素的 XML 名称空间。当属性映射至 XML 元素时，仅应用于文档绑定。缺省值为 Web Service 的 ```targetNamespace```。（字符串）
+
+ - ``` mode ```:此值表示此方法的参数流的方向。有效值为 IN、INOUT 和 OUT。（字符串）
+
+ - ``` header ```:指定参数是在消息头中还是在消息体中。缺省值为 false。(布尔值)
+
+#### ``` @RequestWrapper ``` 注解
+
+    注释提供 JAXB 生成的请求包装器 bean、元素名称和名称空间，用于对在运行时使用的请求包装器 bean 进行序列化和反序列化。从 Java 对象开始时，此元素用来解 document literal 方式下的重载冲突。在这种情况下，只有 className 属性是必需的。
+
+    将此注释应用于客户机或服务器服务端点接口（SEI）上的方法，或者应用于 JavaBeans 端点的服务器端点实现类。
+
+    注释目标：方法
+
+ - ``` localName ```:指定用于表示请求包装器的 XML 模式元素的局部名称。缺省值为在 ```javax.jws.WebMethod``` 注释中定义的 ```operationName```。（字符串）
+
+ - ``` targetNamespace ```：指定请求包装器方法的 XML 名称空间。缺省值为 SEI 的目标名称空间。（字符串）
+
+ - ``` className ```:指定用于表示请求包装器的类的名称。（字符串）
+
+#### ``` @ResponseWrapper ``` 注解
+
+    注释提供 JAXB 生成的响应包装器 bean、元素名称和名称空间，用于对在运行时使用的响应包装器 bean 进行序列化和反序列化。
+
+    从 Java 对象开始时，此元素用来解决 document literal 方式下的重载冲突。在这种情况下，只有 className 属性是必需的。
+
+    将此注释应用于客户机或服务器服务端点接口（SEI）上的方法，或者应用于 JavaBeans 端点的服务器端点实现类。
+
+    注释目标：方法
+
+ - ``` localName ```:指定用于表示请求包装器的 XML 模式元素的局部名称。缺省值为 operationName + Response。```operationName``` 是在 ```javax.jws.WebMethod``` 注释中定义的。（字符串）
+
+ - ``` targetNamespace ```:指定请求包装器方法的 XML 名称空间。缺省值为 SEI 的目标名称空间。（字符串）
+
+ - ``` className ```:指定用于表示响应包装器的类的名称。（字符串）
+
+#### ``` @Oneway ``` 注解
+
+    注释将一个方法表示之后输入消息而灭有输出消息的 Web Service 单向操作。
+
+    将此注释应用于客户机或服务器端点接口 (SEI) 上的方法，或者应用于 JavaBeans 端点的服务器端点实现类。
+
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

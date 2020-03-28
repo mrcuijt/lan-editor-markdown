@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>putty-tools</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### putty-tools
+
+#### 传输文件
+
+把本地文件 file 传输到 Linxu 服务器的目录中。
+
+**基本命令格式：pscp 文件 用户名@LinuxIP:目录**
+
+```python
+## Windows CMD
+## 上传 D 盘 temp.txt 到 指定用户 指定主机的 /home/pi 目录下
+pscp "D:/temp.txt" pi@192.168.1.104:/home/pi
+```
+
+使用**“`-l`”**选项可以指定用户名。
+
+**基本命令格式：pscp -l 用户名 文件 LinuxIP:目录**
+
+```python
+## Windows CMD
+## 指定使用 pi 用户登录，上传 D 盘 temp.txt 到 指定主机的 /home/pi 目录下
+pscp -l pi "D:/temp.txt" 192.168.1.104:/home/pi
+```
+
+#### 传输目录
+
+使用**“`-r`”**选项可以用于传输目录。
+
+**基本命令格式：pscp  -r 目录 用户名@LinuxIP:目录**
+
+```python
+## Windows CMD
+pscp -r "D:/temp" pi@192.168.1.104:/home/pi
+```
+
+**或使用命令格式：pscp -l 用户名 -r 目录 LinuxIP:目录**
+
+```python
+## Windows CMD
+pscp -l pi -r "D:/temp" 192.168.1.104:/home/pi
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

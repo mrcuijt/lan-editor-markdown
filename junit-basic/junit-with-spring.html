@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>junit-with-spring</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### junit-with-spring
+
+#### 使用 Spring 进行单元测试
+
+##### 概述
+
+单元测试和集成测试在我们的软件开发整个流程中占有举足轻重的地位，一方面，程序员通过编写单元测试来验证自己程序的有效性，另外一方面，管理者通过持续自动的执行单元测试和分析单元测试的覆盖率等来确保软件本身的质量。这里，我们先不谈单元测试本身的重要性，对于目前大多数的基于 Java 的企业应用软件来说，Spring 已经成为了标准配置，一方面它实现了程序之间的低耦合度，另外也通过一些配置减少了企业软件集成的工作量，例如和 Hibernate、Struts 等的集成。那么，有个问题，在普遍使用 Spring 的应用程序中，我们如何去做单元测试？或者说，我们怎么样能高效的在 Spring 生态系统中实现各种单元测试手段？这就是本文章要告诉大家的事情。
+
+单元测试目前主要的框架包括 Junit、TestNG，还有些 MOCK 框架，例如 Jmock、Easymock、PowerMock 等，这些都是单元测试的利器，但是当把他们用在 Spring 的开发环境中，还是那么高效么？还好，Spring 提供了单元测试的强大支持，主要特性包括：
+
+ - 支持主流的测试框架 Junit 和 TestNG
+
+ - 支持在测试类中使用依赖注入 Denpendency Injection
+
+ - 支持测试类的自动化事务管理
+
+ - 支持使用各种注释标签，提高开发效率和代码简洁性
+
+ - Spring 3.1 更是支持在测试类中使用非 XML 配置方法和基于 Profile 的 bean 配置模式
+
+通过阅读本文，您能够快速的掌握基于 Spring TestContext 框架的测试方法，并了解基本的实现原理。本文将提供大量测试标签的使用方法，通过这些标签，开发人员能够极大的减少编码工作量。OK，现在让我们开始 Spring 的测试之旅吧！
+
+##### 原来我们是怎么做的
+
+这里先展示一个基于 Junit 的单元测试，这个单元测试运行在基于 Spring 的应用程序中，需要使用 Spring 的相关配置文件来进行测试。相关类图如下：
+
+###### 数据库表
+
+假设有一个员工账号表，保存了员工的基本账号信息，表结构如下：
+
+ - ID：整数类型，唯一标识
+
+ - NAME：字符串，登录账号
+
+ - SEX：字符串，性别
+
+ - AGE：字符串，年龄
+
+假设表已经建好，且内容为空。
+
+##### 测试工程目录结构和依赖 jar 包
+
+在 Eclipse 中，我们可以展开工程目录结构，看到如下图所示的工程目录结构和依赖的 jar 包列表：
+
+图 1. 工程目录结构
+
+![title](images/junit-with-spring/junit-with-spring-001.png)
+
+您需要引入的 jar 包括：
+
+ - cglib-nodep-2.2.3.jar
+
+ - commons-logging.jar
+
+ - hsqldb.jar
+
+ - Junit-4.5.jar
+
+ - log4j-1.2.14.jar
+
+ - Spring-asm-3.2.0.M1.jar
+
+ - Spring-beans-3.2.0.M1.jar
+
+ - Spring-context-3.2.0.M1.jar
+
+ - Spring-core-3.2.0.M1.jar
+
+ - Spring-expression-3.2.0.M1.jar
+
+ - Spring-jdbc-3.2.0.M1.jar
+
+ - Spring-test-3.2.0.M1.jar
+
+ - Spring-tx-3.2.0.M1.jar
+
+ - testng-6.8.jar
+
+其中的 hsqldb 是我们测试用数据库。
+
+##### 类总体介绍
+
+假设我们现在有一个基于 Spring 的应用程序，除了 MVC 层，还包括业务层和数据访问层，业务层有一个类 AccountService，负责处理账号类的业务，其依赖于数据访问层 AccountDao 类，此类提供了基于 Spring Jdbc Template 实现的数据库访问方法，AccountService 和 AccountDao 以及他们之间的依赖关系都是通过 Spring 配置文件进行管理的。
+
+现在我们要对 AccountService 类进行测试，在不使用 Spring 测试方法之前，我们需要这样做：
+
+此类代表账号的基本信息，提供 getter 和 setter 方法。
+
+清单 1. Account.Java
+
+```java
+package domain;
+
+public class Account {
+    public static final String SEX_MALE = "male";
+    public static final String SEX_FEMALE = "female";
+
+    private int id;
+    private String name;
+    private int age;
+    private String sex;
+    public String toString() {
+       return String.format("Account[id=%d,name=%s,age:%d,sex:%s]",id,name,age,sex);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public String getSex() {
+        return sex;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public static Account getAccount(int id,String name,int age,String sex) {
+        Account acct = new Account();
+        acct.setId(id);
+        acct.setName(name);
+        acct.setAge(age);
+        acct.setSex(sex);
+        return acct;
+    }
+}
+```
+
+注意上面的 Account 类有一个 toString() 方法和一个静态的 getAccount 方法，getAccount 方法用于快速获取 Account 测试对象。
+
+这个 DAO 我们这里为了简单起见，采用 Spring Jdbc Template 来实现。
+
+清单 2. AccountDao.Java
+
+```java
+package DAO;
+
+import Java.sql.ResultSet;
+import Java.sql.SQLException;
+import Java.util.HashMap;
+import Java.util.List;
+import Java.util.Map;
+
+import org.Springframework.context.ApplicationContext;
+import org.Springframework.context.support.ClassPathXmlApplicationContext;
+import org.Springframework.jdbc.core.RowMapper;
+import org.Springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
+import org.Springframework.jdbc.core.simple.ParameterizedRowMapper;
+
+import domain.Account;
+
+public class AccountDao extends NamedParameterJdbcDaoSupport {
+    public void saveAccount(Account account) {
+        String sql = "insert into tbl_account(id,name,age,sex) " +
+               "values(:id,:name,:age,:sex)";
+        Map paramMap = new HashMap();
+        paramMap.put("id", account.getId());
+        paramMap.put("name", account.getName());
+        paramMap.put("age", account.getAge());
+        paramMap.put("sex",account.getSex());
+        getNamedParameterJdbcTemplate().update(sql, paramMap);
+    }
+
+    public Account getAccountById(int id) {
+        String sql = "select id,name,age,sex from tbl_account where id=:id";
+        Map paramMap = new HashMap();
+        paramMap.put("id", id);
+        List<Account> matches = getNamedParameterJdbcTemplate().query(sql,
+        paramMap,new ParameterizedRowMapper<Account>() {
+                    @Override
+                    public Account mapRow(ResultSet rs, int rowNum)
+                            throws SQLException {
+                        Account a = new Account();
+                        a.setId(rs.getInt(1));
+                        a.setName(rs.getString(2));
+                        a.setAge(rs.getInt(3));
+                        a.setSex(rs.getString(4));
+                        return a;
+                    }
+
+        });
+        return matches.size()>0?matches.get(0):null;
+    }
+
+}
+```
+
+AccountDao 定义了几个账号对象的数据库访问方法：
+
+ - saveAccount：负责把传入的账号对象入库
+
+ - getAccountById：负责根据 Id 查询账号s
+
+清单 3. AccountService.Java
+
+```java
+package service;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.Springframework.beans.factory.annotation.Autowired;
+
+import DAO.AccountDao;
+import domain.Account;
+
+public class AccountService {
+    private static final Log log = LogFactory.getLog(AccountService.class);
+
+    @Autowired
+    private AccountDao accountDao;
+
+    public Account getAccountById(int id) {
+        return accountDao.getAccountById(id);
+    }
+
+    public void insertIfNotExist(Account account) {
+        Account acct = accountDao.getAccountById(account.getId());
+        if(acct==null) {
+            log.debug("No "+account+" found,would insert it.");
+            accountDao.saveAccount(account);
+        }
+        acct = null;
+    }
+
+}
+```
+
+AccountService 包括下列方法：
+
+ - getAccountById：根据 Id 查询账号信息
+
+ - insertIfNotExist：根据传入的对象插入数据库
+
+其依赖的 DAO 对象 accountDao 是通过 Spring 注释标签 @Autowired 自动注入的。
+
+上述几个类的依赖关系是通过 Spring 进行管理的，配置文件如下：
+
+清单 4. Spring 配置文件
+
+```xml
+<beans xmlns="http://www.Springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.Springframework.org/schema/context"
+xsi:schemaLocation="http://www.Springframework.org/schema/beans
+http://www.Springframework.org/schema/beans/Spring-beans-3.0.xsd
+http://www.Springframework.org/schema/context
+http://www.Springframework.org/schema/context/Spring-context-3.0.xsd ">
+
+<context:annotation-config/>
+<bean id="datasource" class="
+org.Springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+        <property name="url" value="jdbc:hsqldb:hsql://localhost" />
+        <property name="username" value="sa" />
+        <property name="password" value="" />
+    </bean>
+    <bean id="initer" init-method="init" class="service.Initializer">
+    </bean>
+<bean id="accountDao" depends-on="initer" class="DAO.AccountDao">
+        <property name="dataSource" ref="datasource" />
+    </bean>
+<bean id="accountService" class="service.AccountService">
+    </bean>
+</beans>
+```
+
+注意其中的 “**`<context:annotation-config/>`**” 的作用，这个配置启用了 Spring 对 Annotation 的支持，这样在我们的测试类中 @Autowired 注释才会起作用（如果用了 Spring 测试框架，则不需要这样的配置项，稍后会演示）。另外还有一个 accountDao 依赖的 initer bean, 这个 bean 的作用是加载 log4j 日志环境，不是必须的。
+
+另外还有一个要注意的地方，就是 datasource 的定义，由于我们使用的是 Spring Jdbc Template，所以只要定义一个 org.Springframework.jdbc.datasource.DriverManagerDataSource 类型的 datasource 即可。这里我们使用了简单的数据库 HSQL、Single Server 运行模式，通过 JDBC 进行访问。实际测试中，大家可以选择 Oracle 或者 DB2、Mysql 等。
+
+好，万事具备，下面我们来用 Junit4 框架测试 accountService 类。代码如下：
+
+清单 5. AccountServiceOldTest.Java
+
+```java
+package service;
+
+import static org.Junit.Assert.assertEquals;
+
+import org.Junit.BeforeClass;
+import org.Junit.Test;
+import org.Springframework.context.ApplicationContext;
+import org.Springframework.context.support.ClassPathXmlApplicationContext;
+
+import domain.Account;
+
+
+public class AccountServiceOldTest {
+    private static AccountService service;
+
+    @BeforeClass
+    public static void init() {
+        ApplicationContext context = new ClassPathXmlApplicationContext("config/Spring-db-old.xml");
+        service = (AccountService)context.getBean("accountService");
+    }
+
+    @Test
+    public void testGetAcccountById() {
+        Account acct = Account.getAccount(1, "user01", 18, "M");
+        Account acct2 = null;
+        try {
+            service.insertIfNotExist(acct);
+            acct2 = service.getAccountById(1);
+            assertEquals(acct, acct2);
+        } catch (Exception ex) {
+            fail(ex.getMessage());
+        } finally {
+            service.removeAccount(acct);
+        }
+    }
+}
+```
+
+注意上面的 Junit4 注释标签，第一个注释标签 @BeforeClass，用来执行整个测试类需要一次性初始化的环境，这里我们用 Spring 的 ClassPathXmlApplicationContext 从 XML 文件中加载了上面定义的 Spring 配置文件，并从中获得了 accountService 的实例。第二个注释标签 @Test 用来进行实际的测试。
+
+测试过程：我们先获取一个 Account 实例对象，然后通过 service bean 插入数据库中，然后通过 getAccountById 方法从数据库再查询这个记录，如果能获取，则判断两者的相等性；如果相同，则表示测试成功。成功后，我们尝试删除这个记录，以利于下一个测试的进行，这里我们用了 try-catch-finally 来保证账号信息会被清除。
+
+执行测试：（在 Eclipse 中，右键选择 AccountServiceOldTest 类，点击 Run as Junit test 选项），得到的结果如下：
+
+##### 执行测试的结果
+
+在 Eclipse 的 Junit 视图中，我们可以看到如下的结果：
+
+图 2. 测试的结果
+
+![title](images/junit-with-spring/junit-with-spring-002.png)
+
+对于这种不使用 Spring test 框架进行的单元测试，我们注意到，需要做这些工作：
+
+ - 在测试开始之前，需要手工加载 Spring 的配置文件，并获取需要的 bean 实例
+
+ - 在测试结束的时候，需要手工清空搭建的数据库环境，比如清除您插入或者更新的数据，以保证对下一个测试没有影响
+
+另外，在这个测试类中，我们还不能使用 Spring 的依赖注入特性。一切都靠手工编码实现。好，那么我们看看 Spring test 框架能做到什么。
+
+首先我们修改一下 Spring 的 XML 配置文件，删除 **`<context:annotation-config/>`** 行，其他不变。
+
+清单 6. Spring-db1.xml
+
+```java
+<beans xmlns="http://www.Springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.Springframework.org/schema/beans
+http://www.Springframework.org/schema/beans/Spring-beans-3.2.xsd">
+
+    <bean id="datasource"class="org.Springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+        <property name="url" value="jdbc:hsqldb:hsql://localhost" />
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean id="transactionManager" class="org.Springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="datasource"></property>
+    </bean>
+
+    <bean id="initer" init-method="init" class="service.Initializer">
+    </bean>
+
+    <bean id="accountDao" depends-on="initer" class="DAO.AccountDao">
+        <property name="dataSource" ref="datasource"/>
+    </bean>
+
+    <bean id="accountService" class="service.AccountService">
+    </bean>
+</beans>
+```
+
+其中的 transactionManager 是 Spring test 框架用来做事务管理的管理器。
+
+清单 7. AccountServiceTest1.Java
+
+```java
+package service;
+import static org.Junit.Assert.assertEquals;
+
+import org.Junit.Test;
+import org.Junit.runner.RunWith;
+import org.Springframework.beans.factory.annotation.Autowired;
+import org.Springframework.test.context.ContextConfiguration;
+import org.Springframework.test.context.Junit4.SpringJUnit4ClassRunner;
+import org.Springframework.transaction.annotation.Transactional;
+
+import domain.Account;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration("/config/Spring-db1.xml")
+@Transactional
+public class AccountServiceTest1 {
+    @Autowired
+    private AccountService service;
+
+    @Test
+    public void testGetAcccountById() {
+        Account acct = Account.getAccount(1, "user01", 18, "M");
+        service.insertIfNotExist(acct);
+        Account acct2 = service.getAccountById(1);
+        assertEquals(acct,acct2);
+    }
+}
+```
+
+对这个类解释一下：
+
+ - @RunWith 注释标签是 Junit 提供的，用来说明此测试类的运行者，这里用了 SpringJUnit4ClassRunner，这个类是一个针对 Junit 运行环境的自定义扩展，用来标准化在 Spring 环境中 Junit4.5 的测试用例，例如支持的注释标签的标准化
+
+ - @ContextConfiguration 注释标签是 Spring test context 提供的，用来指定 Spring 配置信息的来源，支持指定 XML 文件位置或者 Spring 配置类名，这里我们指定 classpath 下的 /config/Spring-db1.xml 为配置文件的位置
+
+ - @Transactional 注释标签是表明此测试类的事务启用，这样所有的测试方案都会自动的 rollback，即您不用自己清除自己所做的任何对数据库的变更了
+
+ - @Autowired 体现了我们的测试类也是在 Spring 的容器中管理的，他可以获取容器的 bean 的注入，您不用自己手工获取要测试的 bean 实例了
+
+ - testGetAccountById 是我们的测试用例：注意和上面的 AccountServiceOldTest 中相同的测试方法的对比，这里我们不用再 try-catch-finally 了，事务管理自动运行，当我们执行完成后，所有相关变更会被自动清除
+
+##### 执行结果
+
+在 Eclipse 的 Junit 视图中，我们可以看到如下的结果：
+
+图 3. 执行结果
+
+![title](images/junit-with-spring/junit-with-spring-003.png)
+
+###### 小结
+
+如果您希望在 Spring 环境中进行单元测试，那么可以做如下配置：
+
+ - 继续使用 Junit4 测试框架，包括其 @Test 注释标签和相关的类和方法的定义，这些都不用变
+
+ - 您需要通过 @RunWith(SpringJUnit4ClassRunner.class) 来启动 Spring 对测试类的支持
+
+ - 您需要通过 @ContextConfiguration 注释标签来指定 Spring 配置文件或者配置类的位置
+
+ - 您需要通过 @Transactional 来启用自动的事务管理
+
+ - 您可以使用 @Autowired 自动织入 Spring 的 bean 用来测试
+
+另外您不再需要：
+
+ - 手工加载 Spring 的配置文件
+
+ - 手工清理数据库的每次变更
+
+ - 手工获取 application context 然后获取 bean 实例
+
+##### Spring 测试注释标签
+
+我们已经看到利用 Spring test framework 来进行基于 Junit4 的单元测试是多么的简单，下面我们来看一下前面遇到的各种注释标签的一些可选用法。
+
+###### @ContextConfiguration 和 @Configuration 的使用
+
+刚才已经介绍过，可以输入 Spring xml 文件的位置，Spring test framework 会自动加载 XML 文件，得到 application context，当然也可以使用 Spring 3.0 新提供的特性 @Configuration，这个注释标签允许您用 Java 语言来定义 bean 实例，举个例子：
+
+现在我们将前面定义的 Spring-db1.xml 进行修改，我们希望其中的三个 bean：initer、accountDao、accountService 通过配置类来定义，而不是 XML，则我们需要定义如下配置类：
+
+注意：如果您想使用 @Configuration，请在 classpath 中加入 cglib 的 jar 包（cglib-nodep-2.2.3.jar），否则会报错。
+
+清单 8. SpringDb2Config.Java
+
+```java
+package config;
+
+import org.Springframework.beans.factory.annotation.Autowired;
+import org.Springframework.context.annotation.Bean;
+import org.Springframework.context.annotation.Configuration;
+import org.Springframework.jdbc.datasource.DriverManagerDataSource;
+
+import service.AccountService;
+import service.Initializer;
+import DAO.AccountDao;
+
+@Configuration
+public class SpringDb2Config {
+    private @Autowired DriverManagerDataSource datasource;
+    @Bean
+    public Initializer initer() {
+        return new Initializer();
+    }
+
+    @Bean
+    public AccountDao accountDao() {
+        AccountDao DAO = new AccountDao();
+        DAO.setDataSource(datasource);
+        return DAO;
+    }
+
+    @Bean
+    public AccountService accountService() {
+        return new AccountService();
+    }
+}
+```
+
+注意上面的注释标签：
+
+- @Configuration：表明这个类是一个 Spring 配置类，提供 Spring 的 bean 定义，实际效果等同于 XML 配置方法
+
+- @Bean：表明这个方法是一个 bean 的定义，缺省情况下，方法名称就是 bean 的 Id
+
+- @Autowired：这个 datasource 采用自动注入的方式获取
+
+注意，我们采用的是 XML+config bean 的方式进行配置，这种方式比较符合实际项目的情况。相关的 Spring 配置文件也要做变化，如下清单所示：
+
+清单 9. Spring-db2.xml
+
+```xml
+<beans xmlns="http://www.Springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xmlns:context="http://www.Springframework.org/schema/context"
+xsi:schemaLocation="http://www.Springframework.org/schema/beans
+http://www.Springframework.org/schema/beans/Spring-beans-3.0.xsd
+http://www.Springframework.org/schema/context
+http://www.Springframework.org/schema/context/Spring-context-3.0.xsd">
+<context:annotation-config/>
+    <bean id="datasource" class="org.Springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+        <property name="url" value="jdbc:hsqldb:hsql://localhost" />
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
+
+    <bean id="transactionManager"
+         class="org.Springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="datasource"></property>
+    </bean>
+
+    <bean class="config.SpringDb2Config"/>
+</beans>
+```
+
+注意里面的 context 命名空间的定义，如代码中黑体字所示。另外还必须有 **`<context:annotaiton-config/>`** 的定义，这个定义允许采用注释标签的方式来控制 Spring 的容器，最后我们看到 beans 已经没有 initer、accountDao 和 accountService 这些 bean 的定义，取而代之的是一个 SpringDb2Config bean 的定义，注意这个 bean 没有名称，因为不需要被引用。
+
+现在有了这些配置，我们的测试类只要稍稍修改一下，即可实现加载配置类的效果，如下：
+
+```java
+@ContextConfiguration("/config/Spring-db2.xml")
+```
+
+通过上面的配置，测试用例就可以实现加载 Spring 配置类，运行结果也是成功的 green bar。
+
+###### @DirtiesContext
+
+缺省情况下，Spring 测试框架一旦加载 applicationContext 后，将一直缓存，不会改变，但是，
+
+由于 Spring 允许在运行期修改 applicationContext 的定义，例如在运行期获取 applicationContext，然后调用 registerSingleton 方法来动态的注册新的 bean，这样的情况下，如果我们还使用 Spring 测试框架的被修改过 applicationContext，则会带来测试问题，我们必须能够在运行期重新加载 applicationContext，这个时候，我们可以在测试类或者方法上注释：@DirtiesContext，作用如下：
+
+ - 如果定义在类上（缺省），则在此测试类运行完成后，重新加载 applicationContext
+
+ - 如果定义在方法上，即表示测试方法运行完成后，重新加载 applicationContext
+
+###### @TransactionConfiguration 和 @Rollback
+
+缺省情况下，Spring 测试框架将事务管理委托到名为 transactionManager 的 bean 上，如果您的事务管理器不是这个名字，那需要指定 transactionManager 属性名称，还可以指定 defaultRollback 属性，缺省为 true，即所有的方法都 rollback，您可以指定为 false，这样，在一些需要 rollback 的方法，指定注释标签 @Rollback（true）即可。
+
+##### 对 Junit4 的注释标签支持
+
+看了上面 Spring 测试框架的注释标签，我们来看看一些常见的基于 Junit4 的注释标签在 Spring 测试环境中的使用方法。
+
+###### @Test(expected=...)
+
+此注释标签的含义是，这是一个测试，期待一个异常的发生，期待的异常通过 xxx.class 标识。例如，我们修改 AccountService.Java 的 insertIfNotExist 方法，对于传入的参数如果为空，则抛出 IllegalArgumentException，如下：
+
+```java
+public void insertIfNotExist(Account account) {
+    if(account==null)
+        throw new IllegalArgumentException("account is null");
+    Account acct = accountDao.getAccountById(account.getId());
+    if(acct==null) {
+        log.debug("No "+account+" found,would insert it.");
+        accountDao.saveAccount(account);
+    }
+    acct = null;
+}
+```
+
+然后，在测试类中增加一个测试异常的方法，如下：
+
+```java
+@Test(expected=IllegalArgumentException.class)
+public void testInsertException() {
+    service.insertIfNotExist(null);
+}
+```
+
+运行结果是 green bar。
+
+###### @Test(timeout=...)
+
+可以给测试方法指定超时时间（毫秒级别），当测试方法的执行时间超过此值，则失败。
+
+比如在 AccountService 中增加如下方法：
+
+```java
+public void doSomeHugeJob() {
+    try {
+        Thread.sleep(2*1000);
+    } catch (InterruptedException e) {
+    }
+}
+```
+
+上述方法模拟任务执行时间 2 秒，则测试方法如下：
+
+```java
+@Test(timeout=3000)
+public void testHugeJob() {
+    service.doSomeHugeJob();
+}
+```
+
+上述测试方法期待 service.doSomeHugeJob 方法能在 3 秒内结束，执行测试结果是 green bar。
+
+###### @Repeat
+
+通过 @Repeat，您可以轻松的多次执行测试用例，而不用自己写 for 循环，使用方法：
+
+```java
+@Repeat(3)
+@Test(expected=IllegalArgumentException.class)
+public void testInsertException() {
+    service.insertIfNotExist(null);
+}
+```
+
+这样，testInsertException 就能被执行 3 次。
+
+#### 在测试类中基于 profile 加载测试 bean
+
+从 Spring 3.2 以后，Spring 开始支持使用 @ActiveProfiles 来指定测试类加载的配置包，比如您的配置文件只有一个，但是需要兼容生产环境的配置和单元测试的配置，那么您可以使用 profile 的方式来定义 beans，如下：
+
+清单 10. Spring-db.xml
+
+```xml
+<beans xmlns="http://www.Springframework.org/schema/beans"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.Springframework.org/schema/beans
+ http://www.Springframework.org/schema/beans/Spring-beans-3.2.xsd">
+
+<beans profile="test">
+    <bean id="datasource" class="org.Springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+        <property name="url" value="jdbc:hsqldb:hsql://localhost" />
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
+</beans>
+
+<beans profile="production">
+    <bean id="datasource" class="org.Springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.hsqldb.jdbcDriver" />
+        <property name="url" value="jdbc:hsqldb:hsql://localhost/prod" />
+        <property name="username" value="sa"/>
+        <property name="password" value=""/>
+    </bean>
+</beans>
+
+<beans profile="test,production">
+    <bean id="transactionManager" class="org.Springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="datasource"></property>
+    </bean>
+
+    <bean id="initer" init-method="init" class="service.Initializer">
+    </bean>
+
+    <bean id="accountDao" depends-on="initer" class="DAO.AccountDao">
+        <property name="dataSource" ref="datasource"/>
+    </bean>
+
+    <bean id="accountService" class="service.AccountService">
+    </bean>
+
+    <bean id="envSetter" class="EnvSetter"/>
+</beans>
+
+</beans>
+```
+
+上面的定义，我们看到：
+
+ - 在 XML 头中我们引用了 Spring 3.2 的 beans 定义，因为只有 Spring 3.2+ 才支持基于 profile 的定义
+
+ - 在 **`<beans>`** 根节点下可以嵌套 **`<beans>`** 定义，要指定 profile 属性，这个配置中，我们定义了两个 datasource，一个属于 test profile，一个输入 production profile，这样，我们就能在测试程序中加载 test profile，不影响 production 数据库了
+
+ - 在下面定义了一些属于两个 profile 的 beans，即 **`<beans profile="test,production">`** 这样方便重用一些 bean 的定义，因为这些 bean 在两个 profile 中都是一样的
+
+清单 11. AccountServiceTest.Java
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class) 
+@ContextConfiguration("/config/Spring-db.xml") 
+@Transactional 
+@ActiveProfiles("test") 
+public class AccountServiceTest { 
+... 
+}
+```
+
+注意上面的 @ActiveProfiles，可以指定一个或者多个 profile，这样我们的测试类就仅仅加载这些名字的 profile 中定义的 bean 实例。
+
+##### 对 TestNG 的支持
+
+Spring 2.5 以后，就开始支持 TestNG 了，支持的方法包括：
+
+ - 将您的 TestNG 测试类继承 Spring 的测试父类：AbstractTransactionalTestNGSpringContextTests 或者 AbstractTestNGSpringContextTests，这样您的 TestNG 测试类内部就可以访问 applicationContext 成员变量了
+
+ - 不继承 Spring 父类，在测试类上使用 @TestExecutionListeners 注释标签，可以引入的监听器包括 
+
+  - DependencyInjectionTestExecutionListener：使得测试类拥有依赖注入特性
+
+  - DirtiesContextTestExecutionListener：使得测试类拥有更新 applicationContext 能力
+
+  - TransactionalTestExecutionListener：使得测试类拥有自动的事务管理能力
+
+这里我们演示一下如何使用 Spring 提供的 TestNG 父类来进行测试。
+
+清单 12. AccountServiceTestNGTest.Java
+
+```java
+package testng;
+
+import static org.Junit.Assert.assertEquals;
+
+import org.Springframework.beans.factory.annotation.Autowired;
+import org.Springframework.test.context.ActiveProfiles;
+import org.Springframework.test.context.ContextConfiguration;
+import org.Springframework.test.context.testng.AbstractTransactionalTestNGSpringContextTests;
+import org.Springframework.transaction.annotation.Transactional;
+
+import service.AccountService;
+import domain.Account;
+
+@ContextConfiguration("/config/Spring-db.xml")
+@Transactional
+@ActiveProfiles("test")
+public class AccountServiceTestNGTest extends
+AbstractTransactionalTestNGSpringContextTests {
+    @Autowired
+    private AccountService service;
+
+    @org.testng.annotations.Test
+    public void testGetAcccountById() {
+        Account acct = Account.getAccount(1, "user01", 18, "M");
+        service.insertIfNotExist(acct);
+        Account acct2 = service.getAccountById(1);
+        assertEquals(acct,acct2);
+    }
+}
+```
+
+执行测试，我们将看到测试成功。
+
+图 4. 测试成功
+
+![title](images/junit-with-spring/junit-with-spring-004.png)
+
+搜索数据库对应的表，我们看到里面没有数据，说明自动事务起作用了。
+
+##### 基本原理
+
+Spring test framework 主要位于 org.Springframework.test.context 包中，主要包括下面几个类：
+
+图 5. Spring 测试框架类图
+
+![title](images/junit-with-spring/junit-with-spring-005.png)
+
+ - TestContextManager：主要的入口类，提供 TestContext 实例的管理，负责根据各种事件来通知测试监听器
+
+ - TestContext：实体类，提供访问 Spring applicatoin context 的能力，并负责缓存 applicationContext
+
+ - TestExecutionListener：测试监听器，提供依赖注入、applicationContext 缓存和事务管理等能力
+
+ - ContextLoader：负责根据配置加载 Spring 的 bean 定义，以构建 applicationContext 实例对象
+
+ - SmartContextLoader：Spring 3.1 引入的新加载方法，支持按照 profile 加载
+
+Spring 通过 AOP hook 了测试类的实例创建、beforeClass、before、after、afterClass 等事件入口，执行顺序主要如下：
+
+图 6. Spring 测试框架执行序列图
+
+![title](images/junit-with-spring/junit-with-spring-006.png)
+
+ - 测试执行者开始执行测试类，这个时候 Spring 获取消息，自动创建 TestContextManager 实例
+
+ - TestContextManager 会创建 TestContext，以记录当前测试的上下文信息，TestContext 则通过 ContextLoader 来获取 Spring ApplicationContext 实例
+
+ - 当测试执行者开始执行测试类的 BeforeClass、Before、After、AfterClass 的时候，TestContextManager 将截获事件，发通知给对应的 TestExecutionListener
+
+##### 总结
+
+根据上面的例子和介绍，我们可以看到，Spring 测试框架的主要特点如下：
+
+ - 完美的支持了 Junit4（提供特别的 SpringJunit4ClassRunner），比较好的支持了 TestNG
+
+ - 在支持原有单元测试能力的基础上，通过各种监听器，支持了测试类的依赖注入、对 Spring applicationContext 的访问以及事务管理能力，为使用 Spring 架构的应用程序的测试带来了极大的便利性
+
+ - Spring 3.1 引入的基于 profile 的加载能力使得测试环境和正式环境可以在一个 XML 定义中完美的结合
+
+总之，如果您的程序中使用了 Spring，且对用 Junit 或者 testNG 来对他们进行单元测试感到力不从心，可以考虑使用 Spring test framework，它将使您的应用程序的质量上一个新的台阶。
+
+参考链接：
+
+ - <a href="https://www.ibm.com/developerworks/cn/java/j-lo-springunitest/" target="_blank">使用 Spring 进行单元测试</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

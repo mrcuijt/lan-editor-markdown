@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>maven-exec-maven-plugin</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### maven-exec-maven-plugin
+
+##### 为什么使用 exec？
+
+现在的工程往往依赖众多的 jar 包，不像 war 包工程，对于那些打包成 jar 包形式的本地 java 应用来说，通过 java 命令启动将会是一件极为繁琐的事情，原因很简单，太多的依赖让参数 -classpath 变得异常的恐怖。
+
+为此，在发布应用时，一般使用两种方法来启动应用程序：
+
+ - 一种是通过工具将工程及其所有依赖的 jar 包打包成一个独立的 jar 包（在 maven 里有两个插件 assemly 和 shade 是用来完成这种工作的）;
+ 
+ - 另一种方法是编写一个 run.bat 文件，文件包含一个启动应用的 java 命令，很显然，这个命令的 classpath 必须包含全部依赖的 jar 包。
+
+但是对于尚处在开发阶段的应用来说，第一种方法需要将所有 jar 包解压再重新打包，因此非常耗时，特别是工程非常大的时候。第二种方法的问题在于，对处在开发阶段的工程，经常需要引入或升级 jar 包，这就需要频繁地修改 run.bat 文件。实际上，对于使用 maven 管理的工程，完全可以通过 maven 来获取工程的 classpath ，简化应用程序的启动命令，这正是 maven 插件 exec 被设计出来的主要动机。使用 exec 比使用 java 命令去启动应用程序最大的优势就在于：你不需要再去为 -classpath 而伤脑筋了。
+
+```xml
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>1.6.0</version>
+</plugin>
+```
+
+##### Example 1:
+
+```xml
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>1.6.0</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>java</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <mainClass>com.yourcompany.app.Main</mainClass>
+    </configuration>
+</plugin>
+```
+
+运行
+
+```python
+mvn exec:java
+```
+
+##### Example 2:
+
+假定我们的应用程序是通过这样的 java 命令来启动的：
+
+```python
+java -DsystemProperty1=value1 \
+     -DsystemProperty2=value2 \
+     -XX:MaxPermSize=256m \
+     -classpath .... com.yourcompany.app.Main arg1 arg2
+
+java -DsystemProperty1=value1 -DsystemProperty2=value2 -XX:MaxPermSize=256m -classpath .... com.yourcompany.app.Main arg1 arg2
+```
+
+这个启动命令先后为应用程序设置了必要的系统属性 systemProperty1 和 systemProperty2，然后设置了一个 jvm 参数，接着是程序的 classpath，....省略的部分就是我不说你也能想到会有多么冗长的类路径了，再接下来是程序入口--主类的类名，arg1 arg2是传给应用程序的命令行参数。
+
+**注：以下两种方式不能同时使用 arguments 参数，如果在 xml 中已经配置过了，在命令行中再添加时会出现异常。插件不支持。**
+
+###### 在 xml 中配置：
+
+```xml
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>1.2.1</version>
+    <configuration>
+        <executable>java</executable>
+        <!-- executable 指的是要执行什么样的命令 -->
+        <arguments>
+            <argument>-DsystemProperty1=value1</argument>
+            <!-- 这是一个系统属性参数 -->
+            <argument>-DsystemProperty2=value2</argument>
+            <!-- 这是一个系统属性参数 -->
+            <argument>-XX:MaxPermSize=256m</argument>
+            <!-- 这是一个JVM参数 -->
+            <!-- automatically creates the classpath using all project dependencies, also adding the project build directory -->
+            <argument>-classpath</argument>
+            <!-- 这是 classpath 属性，其值就是下面的 <classpath/> -->
+            <classpath/>
+            <!-- 这是 exec 插件最有价值的地方，关于工程的 classpath 并不需要手动指定，它将由 exec 自动计算得出 -->
+            <argument>com.yourcompany.app.Main</argument>
+            <!-- 程序入口，主类名称 -->
+            <argument>arg1</argument>
+            <!-- 程序的第一个命令行参数 -->
+            <argument>arg2</argument>
+            <!-- 程序的第二个命令行参数 -->
+        </arguments>
+    </configuration>
+</plugin>
+```
+
+将上面的配置加到 pom 中并保存，然后执行：
+
+```python
+mvn exec:exec
+```
+
+###### 在命令行中配置：
+
+除写在 pom 配置文件中，exec 也支持更加灵活的命令行方式来启动，你可以在你的 pom 中只声明引入了 exec 插件，不提供任何配置内容，然后在命令行中设置相关参数，同样以上面的命令为例，如果使用命令行方式来配置，那么这个命令将会是：
+
+```python
+mvn exec:exec -Dexec.executable="java" \
+              -Dexec.args="-DsystemProperty1=value1 -DsystemProperty2=value2 -XX:MaxPermSize=256m -classpath %classpath com.yourcompany.app.Main arg1 arg2"
+
+mvn exec:exec -Dexec.executable="java" -Dexec.args="-DsystemProperty1=value1 -DsystemProperty2=value2 -XX:MaxPermSize=256m -classpath %classpath com.yourcompany.app.Main arg1 arg2"
+```
+
+**注意：exec.args 指的是 exec:exec 的 commandlineArgs 参数，而我们上面 xml 配置中的参数是 arguments，两者是不一样的，这种做法是比较好的，因为 exec 规定：如果有 commandlineArgs，将优先使用 commandlineArgs，如果没有再去找是否配置了 argument，这样给我们在命令行执行不同设定参数的机会。**
+
+下面是 exec 官网对此的相关说明：
+
+ - 1.If commandLineArgs is specified, it will be used as is, except for replacing %classpath with proper classpath using dependencies
+
+ - 2.Otherwise if the property exec.args is specified, it will be used
+
+ - 3.Otherwise the list of argument and classpath will be parsed and used
+
+##### Example 3:
+
+配置 exec 插件的依赖环境
+
+```xml
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>exec-maven-plugin</artifactId>
+    <version>1.6.0</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>java</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <classpathScope>compile</classpathScope>
+        <mainClass>com.yourcompany.app.Main</mainClass>
+    </configuration>
+</plugin>
+```
+
+运行
+
+```python
+mvn exec:java
+```
+
+通过 **classpathScope** **`compile`** 指定插件可以去访问 compile 编译时期的依赖范围 compile, provided, system。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/bluishglc/article/details/7622286" target="_blank">Exec Maven Plugin全面解析和使用示例</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

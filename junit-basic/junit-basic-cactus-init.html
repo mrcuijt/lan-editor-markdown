@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>junit-basic-cactus-init</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### junit-basic-cactus-init
+
+#### 这是一个 WebProject，有关 Cactus 用法详见本文测试用例
+
+首先是 **`web.xml`**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+	<!-- 本文中的 Cactus 是依托于 Tomcat 启动后来进行测试的 -->
+	<!-- 如果是依托于 Jetty 则不需要 web.xml 和 cactus.properties -->
+	<!-- 关于 Jetty 的简单用法,可参考我的博文 http://blog.csdn.net/jadyer/article/details/9299485 -->
+	<servlet>
+		<servlet-name>ServletTestRedirector</servlet-name>
+		<servlet-class>org.apache.cactus.server.ServletTestRedirector</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ServletTestRedirector</servlet-name>
+		<!-- 这里要求是固定的"/ServletRedirector" -->
+		<url-pattern>/ServletRedirector</url-pattern>
+	</servlet-mapping>
+</web-app>
+```
+
+下面是待测试的 LoginServlet.java
+
+```java
+package com.jadyer.servlet;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+public class LoginServlet extends HttpServlet {
+	private static final long serialVersionUID = 6655227641354075528L;
+
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		PrintWriter out = response.getWriter();
+		out.println("<table><tr><td>username</td><td>password</td></tr></table>");
+		out.flush();
+		out.close();
+	}
+
+	public boolean login(HttpServletRequest request){
+		String loginUser = (String)request.getSession().getAttribute("loginUser");
+		if(null==loginUser || !"http://blog.csdn.net/jadyer".equals(loginUser)){
+			System.out.println("用户[" + loginUser + "]登录失败");
+			return false;
+		}
+		System.out.println("用户[" + loginUser + "]登录成功");
+		return true;
+	}
+}
+```
+
+下面是 Cactus 运行时要用到的，位于 test SourceFolder 下面的 **`cactus.properties`**
+
+```python
+## 键名固定,键值模式为 http://localhost:port/contextRoot/ 
+## (是否以斜线结尾均可,但这里的端口要与 Web 服务器的启动端口一致)
+cactus.contextURL=http://127.0.0.1:8088/Cactus_demo/
+```
+
+最后是使用 Cactus 编写的位于 test SourceFolder 下的测试用例 LoginServletTest.java
+
+```java
+package com.jadyer.servlet;
+ 
+import java.io.IOException;
+ 
+import javax.servlet.ServletException;
+ 
+import junit.framework.Assert;
+ 
+import org.apache.cactus.ServletTestCase;
+import org.apache.cactus.WebRequest;
+import org.xml.sax.SAXException;
+ 
+import com.meterware.httpunit.WebResponse;
+ 
+/**
+ * @see ----------------------------------------------------------------------------------------------------
+ * @see Cactus简介
+ * @see Cactus可以模拟JavaEE容器进行测试JSP、Servlet、Filter和EJB等
+ * @see Cactus不支持JUnit4中的annotation,它主要是基于JUnit3.8进行操作的
+ * @see Cactus下载地址为http://archive.apache.org/dist/jakarta/cactus/
+ * @see ----------------------------------------------------------------------------------------------------
+ * @see Cactus工作流程(分为ClientSide和ServerSide)
+ * @see ClientSide中包括beginXxx()和endXxx()方法,ServerSide中包括setUp()和testXxx()和tearDown()等方法
+ * @see 执行顺序为beginXxx->setUp->testXxx->tearDown->endXxx->beginYyy->setUp->testYyy->tearDown->endYyy
+ * @see 可以粗略的将beginXxx和endXxx方法理解为JUnit4中的@BeforeClass和@AfterClass,尽管它们俩之间并没有什么联系
+ * @see 注意:这里beginXxx和testXxx方法中的Xxx要是一样的,如beginLogin()和testLogin(),如此这俩方法才能对应上
+ * @see ----------------------------------------------------------------------------------------------------
+ * @see Cactus编写方法
+ * @see 1)引入它所依赖的基础jar
+ * @see   aspectjrt-1.5.3.jar
+ * @see   cactus.core.framework.uberjar.javaEE.14-1.8.1.jar
+ * @see   cactus.integration.ant-1.8.1.jar
+ * @see   cactus.integration.shared.api-1.8.1.jar
+ * @see   commons-codec-1.6.jar(需单独下载)
+ * @see   commons-discovery-0.4.jar
+ * @see   commons-httpclient-3.1.jar
+ * @see   commons-logging-1.1.jar
+ * @see   geronimo-j2ee-management_1.0_spec-1.1.jar
+ * @see   httpunit-1.6.jar
+ * @see   Tidy.jar或者nekoHTML.jar和xercesMinimal.jar(本例中的endDoGet()方法要用到)
+ * @see   (nekoHTML的下载地址为http://sourceforge.net/projects/nekohtml/files/)
+ * @see   (其中nekoHTML.jar和xercesMinimal.jar均可从下载到的nekohtml-1.9.18.zip找到,Tidy.jar想用的话也要单独下载)
+ * @see 2)classpath下编写一个名为cactus.properties的文件,文件内容如下
+ * @see   #键名固定,键值模式为http://localhost:port/contextRoot/(是否以斜线结尾均可,但这里的端口要与Web服务器的启动端口一致)
+ * @see   cactus.contextURL=http://127.0.0.1:8088/Cactus_demo/
+ * @see 3)在web.xml中配置org.apache.cactus.server.ServletTestRedirector映射,固定为"/ServletRedirector"
+ * @see 4)编写一个继承了org.apache.cactus.ServletTestCase的类(它内部间接继承了junit.framework.TestCase)
+ * @see   这样此类便自动拥有了ServletAPI引用,比如要使用HttpSession就可以直接session.setAttribute()
+ * @see ----------------------------------------------------------------------------------------------------
+ * @see 就本例而言,它的缺点是每一次测试Servlet时都要启动Tomcat
+ * @see 如果不想每次都启动Web服务器,那么可以考虑使用嵌入式服务器,目前最好用的嵌入式服务器也是最火的就是Jetty
+ * @see 关于Jetty的简单用法,可参考我的博文http://blog.csdn.net/jadyer/article/details/9299485
+ * @see ----------------------------------------------------------------------------------------------------
+ * @create Jul 4, 2013 7:21:09 PM
+ * @author 玄玉<http://blog.csdn.net/jadyer>
+ */
+public class LoginServletTest extends ServletTestCase {
+	private LoginServlet loginServlet;
+
+	//它是在ServerSide执行的
+	public void setUp(){
+		loginServlet = new LoginServlet();
+	}
+
+	//beginXxx()方法是在ClientSide执行的
+	//如果想在testLogin()中获取到这里request添加的username参数,那么这个方法就应该命名为beginLogin()
+	public void beginLogin(WebRequest request){
+		request.addParameter("username", "Jadyer");
+	}
+
+	//它是在ServerSide执行的
+	public void testLogin(){
+		//获取GET参数
+		Assert.assertEquals(request.getParameter("username"), "Jadyer");
+		//登录失败
+		//session.setAttribute("loginUser", "玄玉<http://blog.csdn.net/jadyer>");
+		Assert.assertFalse(loginServlet.login(request));
+		//登录成功
+		session.setAttribute("loginUser", "http://blog.csdn.net/jadyer");
+		Assert.assertTrue(loginServlet.login(request));
+	}
+
+	//它是在ServerSide执行的
+	public void testDoGet() throws ServletException, IOException {
+		loginServlet.doGet(request, response);
+	}
+
+	//endXxx()方法是在ClientSide执行的,该方法对应testDoGet()
+	public void endDoGet(WebResponse resp) throws SAXException {
+		//这里使用com.meterware.httpunit.WebResponse,而非org.apache.cactus.WebResponse,前者提供了很多增强功能
+		//但在使用httpunit中的WebResponse时,要额外借助Tidy.jar或者nekoHTML.jar和xercesMinimal.jar作为辅助包
+		Assert.assertEquals(resp.getTables()[0].getCellAsText(0,0), "username");
+		Assert.assertEquals(resp.getTables()[0].getCellAsText(0,1), "password");
+	}
+}
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/jadyer/article/details/9298139" target="_blank">Cactus 入门</a>
+
+ - <a href="https://jadyer.github.io/2013/07/11/cactus-servlet/" target="_blank">Cactus 入门完整版</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

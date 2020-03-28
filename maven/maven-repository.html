@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Maven Respository</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+***```setting.xml```*** _mirror_
+```xml
+ <mirror>
+    <id>nexus-aliyun</id>
+    <name>aliyun central mirror</name>
+    <!--  阿里云的镜像  -->
+    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    <mirrorOf>central</mirrorOf>
+ </mirror>
+ 
+ <mirror>
+    <id>nexus-mvnrepository</id>
+    <name>mvnrepository central mirror</name>
+    <!--  (这个仓库速度最快，国内有镜像服务器)  -->
+    <url>http://mvnrepository.com/artifact</url>
+    <mirrorOf>central</mirrorOf>
+ </mirror>
+ 
+ <mirror>
+    <id>nexus-repo1</id>
+    <name>repo1 central mirror</name>
+    <!-- （这个仓库最全，推荐使用，但有一点慢）  -->
+    <url>http://repo1.maven.org/maven2</url>
+    <mirrorOf>central</mirrorOf>
+ </mirror>
+```
+
+_super_ ***```pom.xml```*** _repository_
+
+```xml
+<repositories>
+    <repository>
+        <id>central</id>
+        <name>Central Repository</name>
+        <url>https://repo.maven.apache.org/maven2</url>
+        <layout>default</layout>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+***```pom.xml```*** _repository_
+
+```xml
+<repositories>
+    <repository>
+        <id>nexus</id>
+        <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+    <repository>
+        <id>YonYouCloud</id>
+        <url>http://maven.yonyoucloud.com/nexus/content/repositories/releases/</url>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+***```pom.xml```*** _plugin repository_
+
+```xml
+<pluginRepositories>
+    <pluginRepository>
+        <id>nexus</id>
+        <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </pluginRepository>
+</pluginRepositories>
+```
+
+***```pom.xml```*** _distribution repository_
+```xml
+<distributionManagement>
+    <repository>
+        <id>releases</id>
+        <name>Nexus Release Repository</name>
+        <url>http://182.92.218.12:8077/nexus/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+        <id>snapshots</id>
+        <name>Nexus Snapshot Repository</name>
+        <url>http://182.92.218.12:8077/nexus/content/repositories/snapshots/</url>
+    </snapshotRepository>
+</distributionManagement>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

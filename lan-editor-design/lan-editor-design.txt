@@ -1,0 +1,61 @@
+#### lan-editor-design
+
+##### 更新设计版
+
+ - 1、本地存储
+
+ 支持 LocalStorage/MemoryStorage
+
+  - LocalStorage : Window.localStorage
+
+  - MemoryStorage : Window.storage = {}
+
+ - 2、文件保存
+
+  - MemoryStorage : 内存文档保存
+
+  - renderHtml/markdown
+
+ - 3、压缩 css 拼接到导出 html 中
+
+ - 4、设置可选的浏览器渲染模式。
+
+##### 伪代码
+
+```js
+var LanEditor = {
+    //------------------------------------------------------文件对象
+    File: { // LocalStorage/MemoryStorage
+        CurOpenFile: {},
+        ExportMD: function(md) {}, // 保存为md文件
+        ExportHTML: function(md) {}, // 保存为HTML文件
+        ExportFile: function(fileName, content) {}, // 创建文件下载
+        SaveFileToLocal: function(fileName, content) {}, // 存储文件到 localstorage
+        DeleteFileFromLocal: function(fileName) {}, // 从 localstorage 删除文件
+        GetFileList: function() {}, // 获取文件列表
+        GetFileName: function(){
+          if(CurOpenFile.name) return CurOpenFile.name;
+          CurOpenFile.name = document.title;
+          return CurOpenFile.name;
+        },
+        GetFile: function(fileName){
+          if(!window.storage) window.storage = {};
+          return window.storage[fileName]; // if not exists return undifind
+        },
+        GetFileContent: function(fileName) {}, // 获取文件
+        NewFile: function(filename) {}, // 创建新文件
+        SaveFile: function() {}, // 保存当前文件
+        ShowFileList: function(ShowObj) {}, // 显示文件列表
+        Refresh: function(ShowObj) {} // 刷新文件列表
+    }
+}
+```
+
+```js
+var temp = "";
+for(field in LanEditor.File.storage){
+  temp += field;
+  temp += "=";
+  temp += LanEditor.File.storage[field];
+}
+```

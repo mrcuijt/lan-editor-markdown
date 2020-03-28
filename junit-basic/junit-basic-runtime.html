@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>junit-basic-runtime</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### junit-basic-runtime
+
+#### JUnit4 源码分析运行原理
+
+提个问题：Java 程序的入口是 main 方法，而 JUnit 类中没有 main 方法，那么 JUnit 是如何运行的呢？
+
+假如有以下 JUnit 例子：
+
+```java
+import org.junit.Test;
+
+public class TestA {
+    @Test
+    public void testAdd() {
+        System.out.println("A.testAdd");
+    }
+}
+```
+
+##### 一、在 Eclipse 中执行 JUnit
+
+在 Eclipse 中右键-> Run As -> JUnit Test，即可执行这个测试。如果在 testAdd 方法中打上断点（即第6行），我们来看下程序调用的栈：
+
+![title](images/junit-basic-runtime/junit-basic-runtime-001.png)
+
+可以看到，这个测试的 JVM 进程由 RemoteTestRunner.main() 方法启动，这个类是来自 Eclipse 的 JUnit 插件的，真正进入到JUnit的代码是 BlockJUnit4ClassRunner.run(RunNotifier)。那么，Eclipse 是如何开始调用 BlockJUnit4ClassRunner 的呢？
+
+![title](images/junit-basic-runtime/junit-basic-runtime-002.png)
+
+原来，在执行 JUnit 测试用例之前，Eclipse 将会为这个测试类找到合适的 Runner。看这段代码，这里给出了 5 种 RunnerBuilder，它们会被按顺序依次遍历，找到一个合适的 Runner 后即停止：
+
+ - **IgnoreBuilder**
+
+ : 检查被测类是否含有 @Ignore 注解，如果有，则初始化一个 IgnoredClassRunner，否则返回 null。
+
+ - **AnnotatedBuilder**
+
+ : 检查被测类是否含有 @RunWith 注解，如果有，则用该注解的 value 初始化一个 Runner，否则返回 null。
+
+ - **SuiteMethodBuilder**
+
+ : 检查被测类是否含有一个叫 “suite” 的方法，如果有，则初始化一个 SuiteMethod（这是 JUnit3.8 中使用的 Runner），否则返回 null。
+
+ - **JUnit3Builder**
+
+ : 检查被测类是否是 TestCase 的子类，如果是，则初始化一个 JUnit38ClassRunner，否则返回 null。
+
+ - **JUnit4Builder**
+
+ : 没有检查条件。将初始化一个 BlockJUnint4ClassRunner。这也是 JUnit4 默认的 Runner。
+
+经过这 5 步，必然会找到一个 Runner，我们这个了例子就会返回 BlockJUnit4ClassRunner。接下来，我们看看这个 JUnit4ClassRunner 中发生了什么。
+
+在上面已经提到，程序会在执行时会调用到 BlockJUnit4ClassRunner.run 方法，下面是在其父类 ParentRunner 类中的实现：
+
+```java
+@Override
+public void run(final RunNotifier notifier) {
+	EachTestNotifier testNotifier = new EachTestNotifier(notifier, getDescription());
+	try {
+		Statement statement = classBlock(notifier);
+		statement.evaluate(); // Would trigger the whole test case execution flow.
+	} catch (AssumptionViolatedException e) {
+		testNotifier.addFailedAssumption(e);
+	} catch (StoppedByUserException e) {
+		throw e;
+	} catch (Throwable e) {
+		testNotifier.addFailure(e);
+	}
+}
+```
+
+这里主要调用 classBlock(RunNotifier) 方法（这是一个处理测试类的函数）创建了一个 Statement，然后调用 Statement.evaluate() 完成测试。接下来看看 classBlock 方法做了些什么：
+
+```java
+protected Statement classBlock(final RunNotifier notifier) {
+	Statement statement = childrenInvoker(notifier); // Execute test cases
+	if (!areAllChildrenIgnored()) {
+		statement = withBeforeClasses(statement);
+		statement = withAfterClasses(statement);
+		statement = withClassRules(statement);
+	}
+	return statement;
+}
+```
+
+主要的逻辑是调用了 childrenInvoker 生成了一条 Statement，而这个 Statement 的 evaluate 方法是调用一个 runChildren 方法（这个方法将在 BlockJUnit4ClassRunner.run 方法中调用 statement.evalueate() 方法是被回调）：
+
+```java
+protected Statement childrenInvoker(final RunNotifier notifier) {
+	return new Statement() {
+		@Override
+		public void evaluate() {
+			runChildren(notifier);
+		}
+	};
+}
+```
+
+**这个 runChildren() 会遍历这个测试类中的所有测试用例，并为每个用例进一步调用 ParentRunner 中的抽象方法：**
+
+```java
+// code
+protected abstract void runChild(T child, RunNotifier notifier);
+```
+
+在 classBlock 中还可以看到，如果测试类中的不是所有用例都用例（带有 @Test 注解）都被忽略（带有@ Ignore 注解）的时候，会把 @BeforeClass，@AfterClass，@ClassRule 这几个注解对应的信息添加到 Statement 中。
+
+接下来看 BlockJUnit4ClassRunner 的 runChild 的实现：
+
+```java
+@Override
+protected void runChild(final FrameworkMethod method, RunNotifier notifier) {
+	Description description = describeChild(method);
+	if (isIgnored(method)) {  // Test if current case is annotated with @Ignore
+		notifier.fireTestIgnored(description);
+	} else {
+		runLeaf(methodBlock(method), description, notifier);
+	}
+}
+```
+
+runChild 表示运行一个带有 @Test 注解的测试用例。可以看到，如果这个用例标注了 @Ignore（isIgnored 方法即是探测该用例是否含有 @Ignore 注解），则不会执行。否则会调用 runLeaf 方法来执行，这里面就是调用了 Statement 的 evaluate 方法：
+
+```java
+protected final void runLeaf(Statement statement, Description description,
+		RunNotifier notifier) {
+	EachTestNotifier eachNotifier = new EachTestNotifier(notifier, description);
+	eachNotifier.fireTestStarted();
+	try {
+		statement.evaluate(); // This is a chain call and would handle all steps of a case.
+	} catch (AssumptionViolatedException e) {
+		eachNotifier.addFailedAssumption(e);
+	} catch (Throwable e) {
+		eachNotifier.addFailure(e);
+	} finally {
+		eachNotifier.fireTestFinished();
+	}
+}
+```
+
+再看看这个 methodBlock 方法（和前文 classBlock 类似，_**这是一个处理测试方法的函数**_）都做了些什么：
+
+```java
+protected Statement methodBlock(FrameworkMethod method) {
+  Object test;
+  try {
+      test = new ReflectiveCallable() {
+          @Override
+          protected Object runReflectiveCall() throws Throwable {
+              return createTest();
+          }
+      }.run();
+  } catch (Throwable e) {
+      return new Fail(e);
+  }
+ 
+  Statement statement = methodInvoker(method, test);
+  statement = possiblyExpectingExceptions(method, test, statement);
+  statement = withPotentialTimeout(method, test, statement);
+  statement = withBefores(method, test, statement);
+  statement = withAfters(method, test, statement);
+  statement = withRules(method, test, statement);
+  return statement;
+}
+```
+
+这里面通过使用多次组合的方式，形成了一个复杂的 Statement 对象：
+
+ - 先调用 methodInvoker 创建了一个 InvokeMethod（Statement的子类）对象
+
+ - 如果该用例用 @Test(expected="xxx")标注，则用 statement 组装并返回一个 ExpectException（Statement 的子类）对象
+
+ - 如果该用例用 @Test(timeout="xxx")标注，则用 statement 组装并返回一个 FailOnTimeout（Statement 的子类）对象
+
+ - 如果该测试类中有方法用 @Before 标记，则用 statement 组装并返回一个 RunBefores（Statement 的子类）对象
+
+ - 如果该测试类中有方法用 @After 标记，则用 statement 组装并返回一个 RunAfters（Statement 的子类）对象
+
+ - 如果该用例上有 @Rule，则用 statement 组装并返回一个 RunRules（Statement 的子类）对象
+
+注意，Statement 是一个抽象类，这里提到的 InvokeMethod，ExpectException，FailOnTimeout，RunBefores，RunAfters，RunRules 这些对象都是 Statement 类的子类，都实现了 evaluate 方法，在不同对象的 evaluate 方法中除了调用子对象的 evaluate 方法，还有其他的事情。
+
+前文提到，runLeaf 方法会调用这个这个 statement 对象的 evaluate 方法，这样这个复杂的 statement 对象会被依次当作各种对象处理并将调用相应对象的 evaluate 方法，**这种链式调用将在合适的时机完成测试用例的所有步骤**。
+
+##### 总结
+
+最关键的地方是 BlockJUnit4ClassRunner.run() 方法：
+
+```java
+Statement statement = classBlock(notifier);
+statement.evaluate(); // Would trigger the whole test case execution flow.
+```
+
+第一句用于生成一个 Statement 对象，这个对象里面封装了类级别（classBlock）和方法级别（methodBlock）的所有注解相关的信息。
+
+第二句 statement.evaluate() 方法将触发整个链式调用，将会按照组合的先后顺序倒序执行，比如，生成 Statement 的顺序为：
+
+```java
+Statement statement = childrenInvoker(notifier);
+statement = withBeforeClasses(statement);
+statement = withAfterClasses(statement);
+statement = withClassRules(statement);
+```
+
+那么在执行 evaluate 方法的时候：
+
+ - 会先将 Statement 看做是 RunRules 并调用其 evaluate，
+
+ - 这会把 Statement 看做是 RunAfters 并调用其 evaluate，
+
+ - 这又会把 Statement 看做是 RunBefores 并会调用其 evalueate，
+
+ - 这样又会调用 childrenInvoker 返回的 Statement的evaluate，而这是一个回调函数，即会调用 runChildren(notifier);
+
+ - 遍历所有的用例并为每个用例调用 runChild(each, notifier);
+
+ - runChild()方法会调用 runLeaf()方法（里面也同样是倒叙执行的过程），以完成一个用例的执行。
+
+有同学可能会问了，以上都是使用 Eclipse 自带的插件来执行 JUnit 的，如果不用 Eclipse，如何执行呢？手动执行的入口又在哪里呢？
+
+##### 二、在命令行中执行JUnit
+
+接下来，我们用命令行来执行这个用例。不过，在执行前需要先确保 JUnit4 相关的 jar 包（主要是 junit 和 hamcrest-core 这两个 jar 包）在 classpath 中。Win10 中可以对 classpath 环境变量如下配置：
+
+![title](images/junit-basic-runtime/junit-basic-runtime-003.png)
+
+之后打开命令行，可以先用以下方式检查配置的classpath是否生效：
+
+![title](images/junit-basic-runtime/junit-basic-runtime-004.png)
+
+这里我直接复制这个 TestA.java 到 F 根目录并编译它：
+
+![title](images/junit-basic-runtime/junit-basic-runtime-005.png)
+
+注意执行测试的时候，需要使用如下命令：
+
+```java
+java org.junit.runner.JUnitCore TestA
+```
+
+这里的 org.junit.runner.JUnitCore 类来自 junit.jar 包，它里面的 main 方法就是整个程序的入口了，一起看看源代码：
+
+```java
+public class JUnitCore {
+    private final RunNotifier notifier = new RunNotifier();
+ 
+    /**
+     * Run the tests contained in the classes named in the <code>args</code>.
+     * If all tests run successfully, exit with a status of 0. Otherwise exit with a status of 1.
+     * Write feedback while tests are running and write
+     * stack traces for all failed tests after the tests all complete.
+     *
+     * @param args names of classes in which to find tests to run
+     */
+    public static void main(String... args) {
+        Result result = new JUnitCore().runMain(new RealSystem(), args);
+        System.exit(result.wasSuccessful() ? 0 : 1);
+    }
+    // Ignore other codes
+}
+```
+
+args 参数即为我们指定的要执行的测试类名字，这里为 TestA。可以看见，main 方法中创建了一个 JUnitCore 实例，然后调用 runMain()方法：
+
+```java
+Result runMain(JUnitSystem system, String... args) {
+	system.out().println("JUnit version " + Version.id());
+	JUnitCommandLineParseResult jUnitCommandLineParseResult = JUnitCommandLineParseResult.parse(args);
+	RunListener listener = new TextListener(system);
+	addListener(listener);
+	return run(jUnitCommandLineParseResult.createRequest(defaultComputer()));
+}
+```
+
+runMain 方法第一句输出了 JUnit 的版本信息，这和上图的执行结果一致。接下来调用了 run()方法：
+
+```java
+public Result run(Request request) {
+    return run(request.getRunner());
+}
+```
+
+```java
+public Result run(Runner runner) {
+	Result result = new Result();
+	RunListener listener = result.createListener();
+	notifier.addFirstListener(listener);
+	try {
+		notifier.fireTestRunStarted(runner.getDescription());
+		runner.run(notifier); // !!!IMPORTANT!!!
+		notifier.fireTestRunFinished(result);
+	} finally {
+		removeListener(listener);
+	}
+	return result;
+}
+```
+
+可见，最终还是调用了 Runner.run 方法。由于这个该方法是一个抽象函数，那么，**程序是如何知道最终应该调用默认的 BlockJUnit4ClassRunner 的 run 方法呢**？
+
+答案就在这个 jUnitCommandLineParseResult.createRequest 方法中：
+
+```java
+public Request createRequest(Computer computer) {
+	if (parserErrors.isEmpty()) {
+		Request request = Request.classes(
+				computer, classes.toArray(new Class<?>[classes.size()]));
+		return applyFilterSpecs(request);
+	} else {
+		return errorReport(new InitializationError(parserErrors));
+	}
+}
+```
+
+这里面又调用了 Request.classes()方法来创建一个 request：
+
+```java
+public static Request classes(Computer computer, Class<?>... classes) {
+	try {
+		// Note this builder, it is the same as the 2nd screenshot.
+		AllDefaultPossibilitiesBuilder builder = new AllDefaultPossibilitiesBuilder(true);
+		Runner suite = computer.getSuite(builder, classes);
+		return runner(suite);
+	} catch (InitializationError e) {
+		throw new RuntimeException(
+				"Bug in saff's brain: Suite constructor, called as above, should always complete");
+	}
+}
+```
+
+而 Computer.getSuite 的代码如下：
+
+![title](images/junit-basic-runtime/junit-basic-runtime-006.png)
+
+这样最终就会调用到 builder.runnerForClasses(testClass)。由上方可知，这个 builder 是 AllDefaultPossibilitiesBuilder，而 builder.runnerForClasses(testClass)方法正是之前分析 Eclipse 中执行 JUnit 过程时分析到的获取 BlockJUnit4ClassRunner 的过程（见图2）。
+
+就是说，**从这里开始就和使用 Eclipse 来执行 JUnit 的调用过程 BlockJUnit4ClassRunner.run 吻合了**。
+
+参考链接：
+
+ - <a href="https://my.oschina.net/itblog/blog/1550931" target="_blank">JUnit4 源码分析运行原理</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

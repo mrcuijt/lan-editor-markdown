@@ -1,0 +1,174 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><style type="text/css">h1,h2,h3,h4,h5,h6,p,blockquote{margin:0;padding:0}body{font-family:"Helvetica Neue",Helvetica,"Hiragino Sans GB",Arial,sans-serif;font-size:13px;line-height:18px;color:#737373;margin:10px 13px 10px 13px}a{color:#0069d6}a:hover{color:#0050a3;text-decoration:none}a img{border:0}p{margin-bottom:9px}h1,h2,h3,h4,h5,h6{color:#404040;line-height:36px}h1{margin-bottom:18px;font-size:30px}h2{font-size:24px}h3{font-size:18px}h4{font-size:16px}h5{font-size:14px}h6{font-size:13px}hr{margin:0 0 19px;border:0;border-bottom:1px solid #ccc}blockquote{padding:13px 13px 21px 15px;margin-bottom:18px;font-family:georgia,serif;font-style:italic}blockquote:before{content:"C";font-size:40px;margin-left:-10px;font-family:georgia,serif;color:#eee}blockquote p{font-size:14px;font-weight:300;line-height:18px;margin-bottom:0;font-style:italic}code,pre{font-family:Monaco,Andale Mono,Courier New,monospace}code{background-color:#fee9cc;color:rgba(0,0,0,0.75);padding:1px 3px;font-size:12px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px}pre{display:block;padding:14px;margin:0 0 18px;line-height:16px;font-size:11px;border:1px solid #d9d9d9;white-space:pre-wrap;word-wrap:break-word}pre code{background-color:#fff;color:#737373;font-size:11px;padding:0}@media screen and (min-width:768px){body{width:748px;margin:10px auto}}</style><title>Maven Dependency</title></head><body><p><strong><em><code>引入系统绝对路径</code></em></strong></p>
+
+<pre><code class="xml">&lt;dependency&gt;  
+    &lt;groupId&gt;org.wltea&lt;/groupId&gt;  
+    &lt;artifactId&gt;IKAnalyzer&lt;/artifactId&gt;  
+    &lt;version&gt;3.2.8&lt;/version&gt;  
+    &lt;scope&gt;system&lt;/scope&gt; 
+    &lt;systemPath&gt;C:\Users\yangping\Desktop\a\IKAnalyzer3.2.8.jar&lt;/systemPath&gt;  
+&lt;/dependency&gt;
+</code></pre>
+
+<p><strong><em><code>引入项目相对路径</code></em></strong></p>
+
+<pre><code class="xml">&lt;dependency&gt;
+    &lt;groupId&gt;DPSDK-Manager&lt;/groupId&gt;
+    &lt;artifactId&gt;DPSDK-Manager&lt;/artifactId&gt;
+    &lt;version&gt;0.2.1&lt;/version&gt;
+    &lt;scope&gt;system&lt;/scope&gt;
+    &lt;systemPath&gt;${project.basedir}/libs/DPSDK-Manager-0.2.1.jar&lt;/systemPath&gt;
+&lt;/dependency&gt;       
+</code></pre>
+
+<pre><code class="xml">&lt;!-- Maven Dependency 插件环境配置 --&gt;
+&lt;!-- mvn dependency:copy-dependencies --&gt;
+&lt;!-- mvn dependency:copy-dependencies -Dclassifier=javadoc --&gt;
+&lt;!-- mvn dependency:copy-dependencies -Dclassifier=sources --&gt;
+&lt;!-- mvn dependency:resolve -Dclassifier=javadoc --&gt;
+&lt;!-- mvn dependency:sources --&gt;
+&lt;!-- mvn dependency:tree --&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.7&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;phase&gt;process-resources&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;copy-dependencies&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+    &lt;configuration&gt;
+        &lt;!-- 引入依赖的范围 --&gt;
+        &lt;includeScope&gt;system&lt;/includeScope&gt;
+        &lt;!-- 项目依赖的输出目录 --&gt;
+        &lt;outputDirectory&gt;${project.build.directory}/${project.build.finalName}/WEB-INF/lib&lt;/outputDirectory&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre>
+
+<p>includeScope 的配置说明</p>
+
+<pre><code class="textarea">runtime scope gives runtime and compile dependencies,
+compile scope gives compile, provided, and system dependencies,
+test (default) scope gives all dependencies,
+provided scope just gives provided dependencies,
+system scope just gives system dependencies.
+</code></pre>
+
+<p>解决方案</p>
+
+<pre><code class="xml">&lt;executions&gt;
+    &lt;execution&gt;
+        &lt;id&gt;copy-dependencies-runtime&lt;/id&gt;
+        &lt;phase&gt;process-resources&lt;/phase&gt;
+        &lt;goals&gt;
+            &lt;goal&gt;copy-dependencies&lt;/goal&gt;
+        &lt;/goals&gt;
+        &lt;configuration&gt;
+            &lt;!--http://maven.apache.org/plugins/maven-dependency-plugin/copy-dependencies-mojo.html#includeScope--&gt;
+            &lt;includeScope&gt;runtime&lt;/includeScope&gt;
+            &lt;!--依赖传递--&gt;
+            &lt;excludeTransitive&gt;false&lt;/excludeTransitive&gt;
+        &lt;/configuration&gt;
+    &lt;/execution&gt;
+    &lt;execution&gt;
+        &lt;id&gt;copy-dependencies-system&lt;/id&gt;
+        &lt;phase&gt;process-resources&lt;/phase&gt;
+        &lt;goals&gt;
+            &lt;goal&gt;copy-dependencies&lt;/goal&gt;
+        &lt;/goals&gt;
+        &lt;configuration&gt;
+            &lt;includeScope&gt;system&lt;/includeScope&gt;
+            &lt;!--过滤依赖传递--&gt;
+            &lt;excludeTransitive&gt;true&lt;/excludeTransitive&gt;
+        &lt;/configuration&gt;
+    &lt;/execution&gt;
+    &lt;execution&gt;
+        &lt;id&gt;install&lt;/id&gt;
+        &lt;phase&gt;install&lt;/phase&gt;
+        &lt;goals&gt;
+            &lt;goal&gt;sources&lt;/goal&gt;
+        &lt;/goals&gt;
+    &lt;/execution&gt;
+&lt;/executions&gt;
+</code></pre>
+
+<p>参考链接:</p>
+
+<ul>
+<li><a href="https://www.v2ex.com/t/427215" target="_blank">maven-dependency-plugin 的 excludeScope 问题</a></li>
+</ul>
+
+<pre><code class="xml">&lt;!-- Maven Surefire 测试用例插件环境配置 --&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.22.1&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;includes&gt;
+            &lt;!-- 在执行测试用例时引入外部依赖 Jar --&gt;
+            &lt;include&gt;${project.basedir}/libs/*&lt;/include&gt;
+        &lt;/includes&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre>
+
+<p><strong><em><code>在打包时引入项目外部 Jar</code></em></strong></p>
+
+<pre><code class="xml">&lt;!-- 设置打包时过滤的文件 --&gt;
+&lt;plugin&gt;
+    &lt;artifactId&gt;maven-war-plugin&lt;/artifactId&gt;
+    &lt;configuration&gt;
+        &lt;!-- 过滤 resource 资源目录下指定的文件 --&gt;
+        &lt;!-- packagingExcludes 中指定的文件位于 src/main/resources 目录中 --&gt;
+        &lt;packagingExcludes&gt;&lt;/packagingExcludes&gt;
+        &lt;!-- 过滤 webapp 目录下指定的文件 --&gt;
+        &lt;!-- warSourceExcludes 中指定的文件位于 src/main/webapp 目录中 --&gt;
+        &lt;warSourceExcludes&gt;&lt;/warSourceExcludes&gt;
+        &lt;!-- 引入 Web 资源 --&gt;
+        &lt;webResources&gt;
+            &lt;resource&gt;
+                &lt;directory&gt;${basedir}/libs/&lt;/directory&gt;
+                &lt;targetPath&gt;WEB-INF/lib&lt;/targetPath&gt;
+            &lt;/resource&gt;
+        &lt;/webResources&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre>
+
+<pre><code class="xml">&lt;plugin&gt;
+    &lt;artifactId&gt;maven-war-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.4&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;includeEmptyDirs&gt;true&lt;/includeEmptyDirs&gt;
+        &lt;webResources&gt;
+            &lt;resource&gt;
+                &lt;directory&gt;ui&lt;/directory&gt;
+                &lt;targetPath&gt;&lt;/targetPath&gt;
+                &lt;includes&gt;
+                    &lt;include&gt;**&lt;/include&gt;
+                &lt;/includes&gt;
+            &lt;/resource&gt;
+            &lt;resource&gt;
+                &lt;directory&gt;lib&lt;/directory&gt;
+                &lt;targetPath&gt;WEB-INF&lt;/targetPath&gt;
+                &lt;includes&gt;
+                    &lt;include&gt;**/*.xml&lt;/include&gt;
+                    &lt;include&gt;**/log4j.properties&lt;/include&gt;
+                &lt;/includes&gt;
+            &lt;/resource&gt;
+            &lt;!-- edited below --&gt;
+            &lt;resource&gt;
+                &lt;directory&gt;lib&lt;/directory&gt;
+                &lt;targetPath&gt;WEB_INF/lib&lt;/targetPath&gt;
+                &lt;includes&gt;
+                    &lt;include&gt;**/*.jar&lt;/include&gt;
+                &lt;/includes&gt;
+            &lt;/resource&gt;
+        &lt;/webResources&gt;
+        &lt;webXml&gt;${project.basedir}/WEB-INF/web.xml&lt;/webXml&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre></body></html>

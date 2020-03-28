@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>linux-basic-ss</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+##### linux-basic-ss
+
+Identify network issues :- Learn to use SS command (with examples)
+
+SS command is used to get various network/socket connections related information from a Linux system. Previously we had used netstat command to perform the same operations but it has been long deprecated & was replaced with ss command.
+
+SS command is much more faster than netstat & capable of showing much more information than netstat. Those familiar with netstat command need not worry as the options used with ss command are similar to netstat.
+
+In this tutorial, we will learn usage of SS command with the help of SS command examples.
+
+So let’s start,
+
+#### SS command examples
+
+##### 1. Checking all connections
+
+To list out all the connections on a system, we can use ‘a’ option with ss command,
+
+```python
+$ ss -a
+```
+
+This will produce all tcp, udp & unix connections from the system.
+
+##### 2. Checking all tcp or udp or unix socket connections
+
+To list only the tcp connections our system, use ‘t’ options with ss,
+
+```python
+$ ss -at
+```
+
+Similarly to list out only the udp connections on our system, we can use ‘u’ option with ss,
+
+```python
+$ ss -au
+```
+
+To only list out Unix socket connections, we can use ‘x’ options,
+
+```python
+$ ss -ax
+```
+
+##### 3- List process id/Process Name with
+
+To get list of all connections along with PID or process name, we can use ‘p’ option & it can be used in combination with any other ss option,
+
+```python
+$ ss -ap
+```
+
+##### 4. List only port number & not the name
+
+To speed up our output, we can use ‘n’ option as it will perform any reverse lookup & produce output with only numbers. Since no lookup is performed, our output will much faster.
+
+```python
+$ ss -an
+```
+
+##### 5. Print only listening ports
+
+To print only the listening ports , we will use ‘l’ option with ss. It will not be used with ‘a’ as it prints all ports,
+
+```python
+$ ss -l
+```
+
+##### 6. Print network stats
+
+To print network statistics of each protocol like packet received or transmitted, we can use ‘s’ options with ss,
+
+```python
+$ ss -s
+```
+
+##### 7. Print interfaces stats
+
+To display only the statistics on network interfaces, use ‘I’ option,
+
+```python
+$ ss -i
+```
+
+##### 8. Display the network routing information
+
+To print the network routing information, use ‘r’ option,
+
+```python
+$ ss -r
+```
+
+##### 9. Filtering a single port
+
+To filter a single port connections, we can combine ‘grep’ command with ss,
+
+```python
+$ ss -anp | grep 3306
+```
+
+##### 10。 Count number of connections
+
+To count the number of connections from port, we can further add ‘wc’ command with ss & grep command,
+
+```python
+$ ss -anp | grep 3306 | wc -l
+```
+
+This will print the number of connections for the port mysql port i.e. 3306.
+
+With this we end our tutorial on how to use SS command with the help of some examples. Please let know if you want us to add some more ss command examples or have any other suggestion or query using the comment box below.
+
+参考链接：
+
+ - <a href="https://linuxtechlab.com/learn-to-use-ss-command-examples/" target="_blank">Identify network issues :- Learn to use SS command (with examples)</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

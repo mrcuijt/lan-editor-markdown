@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAXWS 帮助</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 常见问题
+
+ - <a href="#jaxws-001" target="_self">传参为空 NULL</a>
+
+ - <a href="#jaxws-002" target="_self">JAX-WS 解析数据为 NULL 问题</a>
+
+##### <span id = "jaxws-001">C# WebService Client 调用 Java WebService 时参数传递 NULL 问题</span>
+
+**问题现象：**
+
+ &#160; &#160;用 ```C#.NET``` 调用 ```Java```（使用 ```xfire```）开发的 ```WebService``` 时，先在客户端封装的带有 ```int``` 属性的对象，当将该对象传到服务器端时，服务器端可以得到 ```string``` 类型的属性值，却不能得到 ```int``` 类型、```double``` 和 ```DateTime``` 类型的值（在服务端得到的均为```null```）
+
+**问题结症：**
+
+ &#160; &#160;由于服务端通过 ```aegis``` 方式对对象的非 ```String``` 属性（```int```,```double```,```DateTime```..）设置了可以为空(```nillable="true"```)，在客户端调用服务方法 saveUser(JafUser user)的时候传递一个 ```User``` 对象， 设置了可以为空的非 ```String``` 属性在服务端接收到相对应的 ```NULL``` 值(```int``` 类型为 ```0```，```double``` 类型为 ```0.0```, ```DateTime``` 为 ```NULL```)。
+
+**以 int 和 double 为例 :**
+
+ &#160; &#160;服务端程序：```ExampleService``` 对外提供 saveUser(JafUser user)方法。返回 ```User``` 属性拼接的串。其中 ```User``` 有3个属性： ```userId``` (```int```类型 ) ，```userName``` (```String```类型)，```weight``` (```double```类型)。
+
+**```问题解决（分2步）：```**
+
+ - ```Web``` 服务端 ```Xfire``` 的 ```aegis``` 绑定方式配置。
+  - ```JafUser.aegis.xml``` 对对象 ```JafUser``` 通过 ```XML``` 传输的设置。
+     - 为属性名为 ```userName``` 的 ```property``` 元素设置属性 ***```minOccurs="1" nillable="false"```***
+     - 为属性名为 ```weight``` 的 ```property``` 元素设置属性 ***```minOccurs="1" nillable="false"```***
+```xml
+<mappings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://xfire.codehaus.org/schemas/1.0/mapping.xsd">
+    <mapping>
+        <property name="userId" style="element" minOccurs="0" maxOccurs="1" nillable="true" />
+        <property name="userName" style="element" minOccurs="1" maxOccurs="1" nillable="false" />
+        <property name="weight" style="element" minOccurs="1" maxOccurs="1" nillable="false" />
+    </mapping>
+</mappings>
+```
+
+ - 在客户端调用时进行设置。
+ 
+<br/>
+ &#160; &#160;```VS2008``` 封装 ```WebService``` 引用时，如果 ```WebService``` 发布的是一个基本数据类型组成的对象：(以 ```JafUser``` 为例)
+
+ - 该对象中非 ```string``` 属性为 ```minOccurs="0" nillable="true"``` 设置时***(表示该属性可以为空)***, 则会对该对象的非 ```string``` 属性同时生成两个属性，一般是这样的 ```"属性Field"```、```"属性××Specified"```。
+ 
+ - ***而```"属性名Specified"```是一个 ```bool``` 类型，只有这个属性被设置成 ```true``` 时，```"属性Field"```的值才会被序列化成 ```xml``` 传递。否则,服务端接收到的值为 0 (```int``` 的话,接收到0)或 0.0 (```double``` 接收到0.0)。***
+ 
+ - 该对象中非 ```string``` 属性为 ```minOccurs="1" maxOccurs="1" nillable="false"``` 设置时（表示该属性不能为空,为必填项），如果该属性不赋值，则服务端则接收到的值为 0.0 。
+
+<a href="https://liyuandong.iteye.com/blog/782246">参考</a>
+
+**```JAXWS 问题解决（未做测试）：```**
+
+ - 为 ```@WebParam``` 注解添加同级注解 ```@XmlElement```
+  - 设置 ```@XmlElement``` 注解属性
+     - ```name```:```"name"``` ***Mapping to ```@WebParam``` 中 ```name``` property***
+     - ```required```:```true```
+     - ```nillable```:```"false"```
+     - ```type```:```String.class```
+ 
+```java
+@WebService(name = "HelloWebService", targetNamespace = "http://ws.mrcuijt.science/")
+@BindingType(SOAPBinding.SOAP11HTTP_BINDING)
+public class HelloWebServiceImpl implements HelloWebService {
+	@Override
+	@WebMethod
+	@WebResult(name = "message")
+	// Use for Response
+	// @XmlElement(name = "message", required = true, nillable = false, type = String.class)
+	public String sayHello(
+			@WebParam(name = "name", header = false, mode = Mode.IN) 
+			@XmlElement(name = "name", required = true, nillable = false, type = String.class)
+			String name) {
+		return String.format("%s, Hello WebService", name);
+	}
+}
+```
+
+##### WSDL 生成对比
+
+ - 修改后 WSDL
+
+```xml
+<!-- Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.2.8 svn-revision#13980. -->
+<xs:schema
+    xmlns:tns="http://ws.mrcuijt.science/"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    version="1.0" 
+    targetNamespace="http://ws.mrcuijt.science/">
+    <xs:element name="sayHello" type="tns:sayHello"/>
+    <xs:element name="sayHelloResponse" type="tns:sayHelloResponse"/>
+    <xs:complexType name="sayHello">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="sayHelloResponse">
+        <xs:sequence>
+            <xs:element name="message" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
+```
+ - 修改前 WSDL
+
+```xml
+<?xml version='1.0' encoding='UTF-8'?>
+<xs:schema
+    xmlns:tns="http://ws.mrcuijt.science/"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    version="1.0" 
+    targetNamespace="http://ws.mrcuijt.science/">
+    <xs:element name="sayHello" type="tns:sayHello"/>
+    <xs:element name="sayHelloResponse" type="tns:sayHelloResponse"/>
+    <xs:complexType name="sayHello">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="sayHelloResponse">
+        <xs:sequence>
+            <xs:element name="message" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
+```
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/7869494/xmlelementrequired-true-for-webparam-does-not-work" target="_blank">Stack Overflow</a>
+ 
+ - <a href="https://coderanch.com/t/541835/java/set-minOccurs-wsdl-input-parameter" target="_blank">coderanch</a>
+
+##### <span id = "jaxws-002">JAX-WS 解析数据为 NULL 问题</span>
+
+调试方式查看解析
+
+ - com.sun.xml.ws.util.QNameMap.getEntry(String, String)
+
+在 Entry table 中查看已经绑定了的实体字段与 XML 数据元素
+
+```java
+private Entry<V> getEntry(@NotNull String nsUri,String localName) {
+    int hash = hash(localName);
+    int i = indexFor(hash, table.length);
+    Entry<V> e = table[i];
+    while (e != null && !(localName.equals(e.localName) && nsUri.equals(e.nsUri)))
+        e = e.next;
+    return e;
+}
+```
+
+***Bytemain ```appmain.btm```***
+
+```python
+## RULE trace getEntry entry
+RULE trace getEntry entry
+CLASS QNameMap
+METHOD getEntry(String,String)
+AFTER WRITE $e
+IF TRUE
+    DO traceln("getEntry entry" + "\t" + $1 + "\t" + $2);
+ENDRULE
+
+## RULE demo1
+RULE demo1
+CLASS QNameMap
+METHOD getEntry(String,String)
+AFTER WRITE $e
+IF TRUE
+    DO traceln("getEntry nsUri: [" + $1 +"] , localName : [" + $2 + "]");
+       traceln("local variable: e " + $e);
+ENDRULE
+
+## RULE demo2
+RULE demo2
+CLASS QNameMap
+METHOD getEntry(String,String)
+AFTER WRITE $e
+IF TRUE
+    DO traceln("local variable: e " + $e);
+ENDRULE
+```
+
+#### Byteman traceStack Rule
+
+```python
+## N.B.
+## Specil Method Called Entry
+RULE demo3
+CLASS QNameMap
+METHOD getEntry(String,String)
+AFTER WRITE $e
+
+## jaxws-rt-2.2.8.jar
+## com.sun.xml.ws.util.QNameMap.getEntry(String, String)
+## IF callerEquals("Unmarshaller.unmarshal", true, 1, 15)
+
+## jaxb-impl-2.2.7.jar
+## com.sun.xml.bind.v2.util.QNameMap<V>
+IF callerEquals("UnmarshallerImpl.unmarshal0", true, 1, 15)
+    DO traceln("getEntry nsUri: [" + $1 +"] , localName : [" + $2 + "]");
+       traceln("local variable: e " + $e);
+##    traceln(traceStack());
+ENDRULE
+```
+
+```python
+bmjava -l appmain.btm ^
+-classpath ".;D:\development_tools\eclipse\workspace\jaxws-binding-type-parent\jaxws-binding-type-client\target\dependency\*" science.mrcuijt.jaxws.client.Client
+```
+
+***```SOAP Message Data```***
+
+```xml
+<diffgr:diffgram
+    xmlns:msdata=\"urn:schemas-microsoft-com:xml-msdata\"
+    xmlns:diffgr=\"urn:schemas-microsoft-com:xml-diffgram-v1\">
+    <Zone diffgr:id=\"Zone1\" msdata:rowOrder=\"0\">
+        <ID>1</ID>
+        <Zone>直辖市</Zone>
+    </Zone>
+    <Zone diffgr:id=\"Zone2\" msdata:rowOrder=\"1\">
+        <ID>2</ID>
+        <Zone>特别行政区</Zone>
+    </Zone>
+    <Area diffgr:id=\"Area1\" msdata:rowOrder=\"0\">
+        <ID>1</ID>
+        <ZoneID>1</ZoneID>
+        <Area>北京</Area>
+        <AreaCode>54511</AreaCode>
+    </Area>
+    <Area diffgr:id=\"Area78\" msdata:rowOrder=\"77\">
+        <ID>80</ID>
+        <ZoneID>8</ZoneID>
+        <Area>周口</Area>
+        <AreaCode>57195</AreaCode>
+    </Area>
+</diffgr:diffgram>
+```
+
+***```Convert Demo```***
+
+```java
+public static void convertDemo() {
+ 
+    try {
+ 
+        String data = "<?xml version=\"1.0\" encoding=\"utf-8\"?><demo><Zone id=\"Zone1\" rowOrder=\"0\"><ID>1</ID><Zone>直辖市</Zone></Zone><Zone id=\"Zone1\" rowOrder=\"0\"><ID>1</ID><Zone>直辖市1</Zone></Zone><Area id=\"Area408\" rowOrder=\"407\"><ID>412</ID><ZoneID>28</ZoneID><Area>伊宁</Area><AreaCode>51431</AreaCode></Area><Area id=\"Area408\" rowOrder=\"407\"><ID>412</ID><ZoneID>28</ZoneID><Area>伊宁1</Area><AreaCode>51431</AreaCode></Area></demo>";
+ 
+        data = "<diffgr:diffgram xmlns:msdata=\"urn:schemas-microsoft-com:xml-msdata\" xmlns:diffgr=\"urn:schemas-microsoft-com:xml-diffgram-v1\"><Zone diffgr:id=\"Zone1\" msdata:rowOrder=\"0\"><ID>1</ID><Zone>直辖市</Zone></Zone><Zone diffgr:id=\"Zone2\" msdata:rowOrder=\"1\"><ID>2</ID><Zone>特别行政区</Zone></Zone><Area diffgr:id=\"Area1\" msdata:rowOrder=\"0\"><ID>1</ID><ZoneID>1</ZoneID><Area>北京</Area><AreaCode>54511</AreaCode></Area><Area diffgr:id=\"Area78\" msdata:rowOrder=\"77\"><ID>80</ID><ZoneID>8</ZoneID><Area>周口</Area><AreaCode>57195</AreaCode></Area></diffgr:diffgram>";
+ 
+        ByteArrayInputStream bais = new ByteArrayInputStream(data.getBytes());
+ 
+        // 修改返回结果到可解析状态
+        JAXBContextImpl jc = (JAXBContextImpl) JAXBContext.newInstance(Demo.class);
+ 
+        logger.info("{}", Arrays.asList(jc.nameList.localNames));
+ 
+        // create an Unmarshaller
+        Unmarshaller u = jc.createUnmarshaller();
+        // unmarshal a po instance document into a tree of Java content
+        // objects composed of classes from the primer.po package.
+        JAXBElement<Demo> poElement = (JAXBElement<Demo>) u.unmarshal(new StreamSource(bais), Demo.class);
+ 
+        Demo demo = poElement.getValue();
+ 
+        logger.info("{}", demo.getArea());
+ 
+    } catch (JAXBException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+```textarea
+(JaxbDemo.java:47) 0ms: [Zone, ID, ZoneID, Area, AreaCode]
+```
+
+```java
+@XmlAccessorType(XmlAccessType.FIELD)
+public class Demo {
+ 
+    @XmlElement(name = "Zone")
+    private List<DataSetResult.Zone> zone;
+ 
+    @XmlElement(name = "Area")
+    private List<DataSetResult.Area> area;
+ 
+    // getter ... setter ...
+}
+```
+
+```java
+@XmlAccessorType(XmlAccessType.FIELD)
+public static class Zone {
+
+    @XmlElement(name = "ID")
+    private int id;
+    @XmlElement(name = "Zone")
+    private String zone;
+
+    // getter ... setter ...
+}
+```
+
+```java
+@XmlAccessorType(XmlAccessType.FIELD)
+public static class Area {
+    @XmlElement(name = "ID")
+    private int id;
+    @XmlElement(name = "ZoneID")
+    private int zoneId;
+    @XmlElement(name = "Area")
+    private String area;
+    @XmlElement(name = "AreaCode")
+    private String areaCode;
+
+    // getter ... setter ...
+}
+```
+
+```java
+@WebService(name = "WeatherWebService", targetNamespace = "http://WebXml.com.cn/", wsdlLocation = "http://ws.webxml.com.cn/WebServices/WeatherWebService.asmx?wsdl")
+public interface WeatherWebService {
+ 
+    @WebMethod
+    @WebResult(name = "getSupportDataSetResult", targetNamespace = "http://WebXml.com.cn/")
+    public SupportDataSetResponse getSupportDataSet();
+ 
+}
+```
+
+```java
+@XmlAccessorType(XmlAccessType.FIELD)
+public class SupportDataSetResponse {
+ 
+    @XmlElement(name = "diffgram", namespace = "urn:schemas-microsoft-com:xml-diffgram-v1")
+    private Diffgram diffgram;
+
+    // getter ... setter ...
+}
+```
+
+```java
+@XmlAccessorType(XmlAccessType.FIELD)
+public class SupportDataSetResponse {
+ 
+    @XmlElement(name = "NewDataSet")
+    private Demo demo;
+
+    // getter ... setter ...
+}
+```
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Body>
+        <getSupportDataSetResponse
+            xmlns="http://WebXml.com.cn/">
+            <getSupportDataSetResult>
+                <xs:schema id="NewDataSet"
+                    xmlns=""
+                    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+                    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+                        <xs:complexType>
+                            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                <xs:element name="Zone">
+                                    <xs:complexType>
+                                        <xs:sequence>
+                                            <xs:element name="ID" type="xs:short" minOccurs="0" />
+                                            <xs:element name="Zone" type="xs:string" minOccurs="0" />
+                                        </xs:sequence>
+                                    </xs:complexType>
+                                </xs:element>
+                                <xs:element name="Area">
+                                    <xs:complexType>
+                                        <xs:sequence>
+                                            <xs:element name="ID" type="xs:int" minOccurs="0" />
+                                            <xs:element name="ZoneID" type="xs:short" minOccurs="0" />
+                                            <xs:element name="Area" type="xs:string" minOccurs="0" />
+                                            <xs:element name="AreaCode" type="xs:string" minOccurs="0" />
+                                        </xs:sequence>
+                                    </xs:complexType>
+                                </xs:element>
+                            </xs:choice>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:schema>
+                <diffgr:diffgram
+                    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+                    xmlns:diffgr="urn:schemas-microsoft-com:xml-diffgram-v1">
+                    <NewDataSet
+                        xmlns="">
+                        <Zone diffgr:id="Zone1" msdata:rowOrder="0">
+                            <ID>1</ID>
+                            <Zone>直辖市</Zone>
+                        </Zone>
+                        <Zone diffgr:id="Zone2" msdata:rowOrder="1">
+                            <ID>2</ID>
+                            <Zone>特别行政区</Zone>
+                        </Zone>
+                        <Area diffgr:id="Area1" msdata:rowOrder="0">
+                            <ID>1</ID>
+                            <ZoneID>1</ZoneID>
+                            <Area>北京</Area>
+                            <AreaCode>54511</AreaCode>
+                        </Area>
+                        <Area diffgr:id="Area2" msdata:rowOrder="1">
+                            <ID>2</ID>
+                            <ZoneID>1</ZoneID>
+                            <Area>上海</Area>
+                            <AreaCode>58367</AreaCode>
+                        </Area>
+                    </NewDataSet>
+                </diffgr:diffgram>
+            </getSupportDataSetResult>
+        </getSupportDataSetResponse>
+    </soap:Body>
+</soap:Envelope>
+```
+
+ - com.sun.xml.ws.client.sei.SEIStub.invoke(Object, Method, Object[])
+ 
+ - com.sun.xml.ws.streaming.XMLStreamReaderUtil.verifyTag(XMLStreamReader, String, String)
+ 
+ - com.sun.org.apache.xerces.internal.impl.XMLDocumentScannerImpl.startEntity(String, XMLResourceIdentifier, String, Augmentations)
+ 
+ - com.sun.org.apache.xerces.internal.impl.XMLDocumentFragmentScannerImpl.scanDocument(boolean)
+ 
+ - com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallingContext._startElement(TagName)
+ 
+ - com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallingContext.expectText()
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
