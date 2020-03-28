@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vim Index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Vim Index
+
+#### Windows Vim UTF8 字符集设置
+
+ - VIM - Vi IMproved 8.1 (2018 May 18, compiled Aug 25 2019 22:02:40)
+
+ - MS-Windows 64-bit console version
+
+```python
+:version
+:echo expand('~')
+:echo $HOME ## C:\Users\Administrator
+:echo $VIM
+:echo $VIMRUNTIME
+```
+
+Windows (both Native and Cygwin*) will use _gvimrc, .gvimrc, _vimrc and .vimrc in that order of priority. 
+
+**C:\Users\Administrator\ `_vimrc`**
+
+```python
+set enc=utf-8
+set fileencoding=utf-8
+set fileencodings=ucs-bom,utf8,prc
+set guifont=Monaco:h11
+set guifontwide=NSimsun:h12
+" 设置 VIM 配色方案
+colorscheme darkblue
+```
+
+**C:\Users\Administrator\ `_vimrc`**
+
+```python
+" Setting some decent VIM settings for programming
+
+set ai                          " set auto-indenting on for programming
+set showmatch                   " automatically show matching brackets. works like it does in bbedit.
+set vb                          " turn on the "visual bell" - which is much quieter than the "audio blink"
+set ruler                       " show the cursor position all the time
+set laststatus=2                " make the last line where the status is two lines deep so you can see status always
+set backspace=indent,eol,start  " make that backspace key work the way it should
+set nocompatible                " vi compatible is LAME
+set background=dark             " Use colours that work well on a dark background (Console is usually black)
+set showmode                    " show the current mode
+set clipboard=unnamed           " set clipboard to unnamed to access the system clipboard under windows
+set enc=utf-8
+set fileencoding=utf-8
+set fileencodings=ucs-bom,utf8,prc
+set guifont=Monaco:h11
+set guifontwide=NSimsun:h12
+set number
+colorscheme darkblue
+set paste
+syntax on                       " turn syntax highlighting on by default
+
+" Show EOL type and last modified timestamp, right after the filename
+set statusline=%<%F%h%m%r\ [%{&ff}]\ (%{strftime(\"%H:%M\ %d/%m/%Y\",getftime(expand(\"%:p\")))})%=%l,%c%V\ %P
+
+"------------------------------------------------------------------------------
+" Only do this part when compiled with support for autocommands.
+if has("autocmd")
+    "Set UTF-8 as the default encoding for commit messages
+    autocmd BufReadPre COMMIT_EDITMSG,MERGE_MSG,git-rebase-todo setlocal fileencodings=utf-8
+
+    "Remember the positions in files with some git-specific exceptions"
+    autocmd BufReadPost *
+      \ if line("'\"") > 0 && line("'\"") <= line("$")
+      \           && expand("%") !~ "COMMIT_EDITMSG"
+      \           && expand("%") !~ "MERGE_EDITMSG"
+      \           && expand("%") !~ "ADD_EDIT.patch"
+      \           && expand("%") !~ "addp-hunk-edit.diff"
+      \           && expand("%") !~ "git-rebase-todo" |
+      \   exe "normal g`\"" |
+      \ endif
+
+      autocmd BufNewFile,BufRead *.patch set filetype=diff
+      autocmd BufNewFile,BufRead *.diff set filetype=diff
+
+      autocmd Syntax diff
+      \ highlight WhiteSpaceEOL ctermbg=red |
+      \ match WhiteSpaceEOL /\(^+.*\)\@<=\s\+$/
+
+      autocmd Syntax gitcommit setlocal textwidth=74
+endif " has("autocmd")
+```
+
+参考链接：
+
+ - <a href="https://superuser.com/questions/86246/where-should-the-vimrc-file-be-located-on-windows-7" target="_blank">Where should the .vimrc file be located on Windows 7?</a>
+
+ - <a href="https://superuser.com/questions/207264/gvim-utf-8-in-windows" target="_blank">gVim utf-8 in windows</a>
+ 
+ - <a href="https://stackoverflow.com/questions/5166652/how-to-view-utf-8-characters-in-vim-or-gvim" target="_blank">如何在VIM或Gvim中查看UTF-8字符</a>
+ 
+ - <a href="https://stackoverflow.com/questions/778069/how-can-i-change-a-files-encoding-with-vim" target="_blank">How can I change a file's encoding with vim?</a>
+ 
+ - <a href="https://blog.csdn.net/bychjzh/article/details/7313239" target="_blank">vim 设置默认配色方案</a>
+ 
+ - <a href="https://www.cnblogs.com/jhssd/p/6803689.html" target="_blank">vim入门之配色方案(colorscheme)设置</a>
+ 
+
+#### 进入插入粘贴模式
+
+```python
+## 进入写入粘贴模式
+set paste
+
+## 取消写入粘贴模式
+set nopaste
+```
+
+#### 设置自动缩进
+
+首先进入/etc/vim/vimrc
+
+然后在文档末尾加上以下代码：
+
+```python
+## 设置 tab 缩进为 4 个字符
+set tabstop=4
+
+set softtabstop=4
+
+set shiftwidth=4
+## 转化为空格
+set expandtab
+## 设置自动缩进
+set autoindent
+```
+
+此后运行正常
+
+总结一下就是在vim空格键与制表符不能混用，混用时就会出现报错
+
+#### 只读模式下的快捷键
+
+ - **`dd`**: 删除这一行
+ 
+ - **`G`**: 文档尾部
+ 
+ - **`gg`**: 文档头部
+
+#### 命令行模式下的常用命令
+
+ - **`set fileencoding`**: 显示文件编码
+
+ - **`set fileencoding=utf8`**: 设置文件编码
+
+ - **`set nu`**: 显示行号
+ 
+ - **`u`**: 需要上一步操作。
+ 
+ - **`/[要查找的内容]`**: 查找数据;
+ 
+  - **`/?***`**: 向上查找
+  
+  - **`n`**: 下一个
+  
+ - **`set hls`**: 打开高亮
+ 
+ - **`set nohls`**: 关闭高亮
+ 
+ - **`w`**: 写入保存
+ 
+ - **`q`**: 退出
+ 
+ - **`q!`**: 放弃写入，强制退出
+ 
+ - **`wq`**: 先写入，再退出
+ 
+ - **`help`**: 帮助文档
+ 
+ - **`12`**: 跳转到第 12 行
+
+#### 复制粘贴
+
+##### 复制
+
+ - **`复制单行`**
+ 
+ 在命令行模式下，将光标移动到要复制的行出，按 `"yy"` 进行复制。
+ 
+ - **`多行复制`**
+ 
+ 在命令行模式下，将光标移动到要复制的首行出，按 `"nyy"` 复制 n 行；其中 n 为整数。
+ 
+##### 粘贴
+
+ - **`粘贴`**
+ 
+ 在命令行模式下，将光标移动到要粘贴的行处，按 `"p"` 进行粘贴。
+
+#### 批量注释与反注释
+
+##### 方法一 块选择模式
+
+插入注释：
+
+用 v 进入 virtual 模式
+
+用上下键选中需要注释的行数
+
+按 Control+v (win 下面 ctrl+q) 进入列模式
+
+按大写 "I" 进入插入模式，输入注释符 "#" 或者是 "//",然后按下 ESC （两下）
+
+取消注释：
+
+ctrl+v 进入块选择模式，选中你要删除的行首的注释符号，注意 // 要选中两个，选好之后按 d 即可删除注释。
+
+##### 方法二 替换命令
+
+批量注释：
+
+使用下面命令在指定的行首添加注释：
+
+:起始行号,结束行号 s/^注释符//g
+
+取消注释：
+
+:起始行号,结束行号 s/^注释符//g
+
+##### 实例演示
+
+在 27-30 行添加 // 注释
+
+```python
+:27,30s#^#//#g
+```
+
+在 27-30 行删除 // 注释
+
+```python
+:27,30s#^//##g
+```
+
+在 10-20 行添加 # 注释
+
+```python
+:10,20s/^/#/g
+```
+
+在 10-20 行删除 # 注释
+
+```python
+:10,20s/^/#/g
+```
+
+注意例子中正则的分割符使用的是相反的符号，如果匹配// 那么使用 #作分隔符这样不需要对/作转义处理，节省输入次数。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

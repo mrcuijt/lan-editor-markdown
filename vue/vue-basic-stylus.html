@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vue Basic Stylus</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Vue Basic Stylus
+
+#### 前言
+
+不得不说 **CSS 预处理器(Sass/Less/Stylus)** 极大的方便了前端研发攻城狮编写 CSS 样式，提供了 **变量定义、可嵌套的选择器、mixins 混合书写、函数定义等诸多便捷的能力。**
+
+#### 一、Stylus 的基本使用
+
+ - 1、下载安装 stylus、stylus-loader 包
+ 
+```python
+npm i stylus stylus-loader -D
+```
+
+ - 2、webpack 中的配置（可选）
+
+```python
+//  配置文件 build/webpack.base.conf.js -- 对应vue-cli生成的项目
+module: {
+  rules: [
+    // 配置stylus
+    {
+       test: /\.styl$/,
+       loader: 'style-loader!css-loader!stylus-loader'
+     }               
+   ] 
+ }
+```
+
+> 其实在 vue-cli 生成的 Vue2.0 的项目中，此处的 webpack 可以不再进行配置，Vue 会自动检测如果使用了 Stylus 语法，会自动调用 stylus-loader 进行解析处理
+
+ - 3、Stylus 文件和在 Vue 组件中使用 Stylus
+
+  - 单独配置 Stylus 的文件,扩展名为 **.styl**
+
+```css
+/* assets/css/reset.styl 用于重置 CSS 样式 */
+ *
+   margin 0
+   padding 0
+ a 
+   text-decoration none  
+```
+
+  - Vue 组件中的使用
+
+```css
+<style lang="stylus">
+   /* 使用 Stylus 语法书写即可 */
+</style>
+```
+
+ - 4、Vue 中加载 Stylus 文件
+
+ - 在 JS 环境中
+
+```js
+// main.js
+import '@/assets/css/reset.styl'
+```
+
+ - 在 style 中
+
+```js
+//App.vue中
+@import './assets/css/reset.styl'
+```
+
+#### 二、配置 Stylus 的全局变量使用方式
+
+在项目开发中会约定一些公共统一的样式，比例定义文字默认颜色、默认背景色，鼠标悬浮色，统一配置到一个文件中，非常利于后期的维护更新。
+
+```js
+// assets/css/variables.styl
+
+// 定义背景色
+bgColor = #f3f3f3
+// 定义导航条背景色
+navBgColor = #1d1f2a
+// 定义hover激活色
+hoverColor = #008dff
+```
+
+##### 引入全局变量配置文件 variables.styl 
+
+ - **错误方式**
+
+```js
+// main.js 中引入 variables.styl
+import '@/assets/css/variables.styl'
+
+// 在 App.vue 中的使用
+<style lang="stylus">
+body
+  background-color bgColor      
+</style>
+```
+
+> 如果大家按照上述的方式直接引入 variables.styl 文件，在组件中去使用时就会发现变量是无效的，不能被解析
+
+ - **正确方式**
+
+```js
+// 需要在 App.vue 中单独引入变量文件
+<style lang="stylus">
+@import './assets/css/variables.styl'
+
+body
+  background-color bgColor      
+</style>
+```
+
+> 那么问题来了，在每一个需要使用变量的 component 组件中都需要单独引入 variables.styl 文件，不仅进行了多次重复性的操作，而且文件名称一旦发生改变，维护更新非常麻烦，非常的不人性化。
+
+ - **完美解决方案**
+ 
+> 借助于配置文件 **build/utils.js** 解决该问题
+
+```js
+// 在 generateLoaders 方法的后面!后面！后面！(说三遍呀！)定义如下变量
+const stylusOptions = {
+  import: [
+    path.join(__dirname, "../src/assets/css/variables.styl")
+  ],
+  paths: [
+    path.join(__dirname, '../src/assets'),
+    path.join(__dirname, '../')
+  ]
+}
+
+// 在紧接着的 return 返回值中进行配置
+return {
+  css: generateLoaders(),
+  postcss: generateLoaders(),
+  less: generateLoaders('less'),
+  sass: generateLoaders('sass', { indentedSyntax: true }),
+  scss: generateLoaders('sass'),
+  stylus: generateLoaders('stylus', stylusOptions),
+  styl: generateLoaders('stylus', stylusOptions)
+}
+```
+
+> 修改配置文件后，一定要记得重启服务
+
+> 接下来直接在 style 中使用变量即可！！！
+
+参考链接：
+
+ - <a href="https://www.zhangxinxu.com/jq/stylus/" target="_blank">Stylus 中文版参考文档之综述</a>
+ 
+ - <a href="https://www.jianshu.com/p/11487c98efed" target="_blank">Vue 中使用 CSS 预处理器 Stylus 以及配置全局变量的方法</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

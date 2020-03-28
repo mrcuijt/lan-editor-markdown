@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>torrent</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### BT
+
+BitTorrent 是用于对等文件共享（P2P）的通信协议，其用于通过因特网分发数据和电子文件。很多网友戏称为“变态下载”。
+
+注2：P2P借贷（Peer-to-Peer Lending）也是基于 Peer-to-Peer 模式。
+
+问：什么是 P2P（Peer-to-Peer）？
+
+答：性质：
+
+ - （1）它是无中心服务器的对等网络系统，而上文说的 C/S 模式是有中心服务器的中央网络系统。
+ 
+ - （2）对等网络的每个用户端既是一个节点，也有服务器的功能。所以用户即可以下载文件也可以上传文件给别人。
+ 
+ - （3）所以它叫用户群对用户群（ peer-to-peer ）模式。用户越多，下载同一文件的人越多，下载该文件的速度就越快。
+
+注：BT 下载讲究共享精神，这跟互联网的共享精神一脉相承。所以建议不要限制上传速度。
+
+一般的 BT 客户端程序，默认设置都未对下载速度和上传速度进行限制，这是因为BT 软件会给上传速度较快的用户优先提供服务，也就是说上传速度越快，下载速度也越快，因此如果你带宽过剩的话，下载时就不要去限制上传速度了。
+
+好处：
+
+ - （1）快。减少了网路传输节点。适合用在类似 VoIP（ Voice over Internet Protocol - 基于 IP 的语音传输）等对数据通信实时性要求比较高的应用场合。
+
+ - （2）保护隐私。与有中央服务器的网络系统不同，BT 下载节点能遍布整个互联网，给包括开发者在内的任何人、组织、或政府带来监控难题。
+
+ - （3）减轻服务器压力。如果某公司有新版本软件推出（如魔兽世界游戏更新新版本）时，服务器必定会人山人海，而使用 BT 能大大减轻服务器的负担，节约服务器的购置成本。
+
+坏处：
+
+ - （1）盗版泛滥，你懂的。
+
+#### 下载原理
+
+下载者要下载文件，需要先得到相应的种子文件，然后使用BT 客户端软件（迅雷、比特彗星等）进行下载。
+
+下载时，BT客户端首先解析种子文件得到 Tracker 地址，然后连接Tracker 服务器。Tracker 服务器回应下载者的请求，**提供其他下载者（包括发布者）的IP **。下载者再连接其他下载者，根据种子文件，两者分别告知对方自己已经有的块，然后交换对方所没有的数据。此时不需要其他服务器参与，分散了单个线路上的数据流量，因此减轻了服务器负担。
+
+下载者每得到一个块（块通常是非顺序下载的），需要算出下载块的哈希值与种子文件中的对比，如果一样则说明块正确，不一样则需要重新下载这个块。这种规定是为了解决下载内容准确性的问题。
+
+注：哈希值即 Hash 值，是通过散列函数（又称哈希函数）对某个文件内容创建小的数字“指纹”的方法，可以用来甄别接受到的文件是否是原文件。
+
+例如我们在 17173 网站下载 LOL 的客户端，红框所示就是一个把客户端软件进行散列函数计算后得出的哈希值，然后等你下载完毕后，可以同样通过它提供的 MD5 验证工具计算出文件的哈希值，两者做一个对比，如果相同，证明下的文件是完整的，即没有出现误传漏传的现象。
+
+同样，BT 下载也天然支持断点续传功能。
+
+
+#### 总结几个关键概念
+
+ - （1）种子：即 .torrent 文件。种子文件本质上是文本文件，包含Tracker 信息（上面提到的提供其他下载者（包括发布者）的 IP ）和文件信息（上面提到的下载块的哈希值`）两部分。
+
+ - （2）Tracker 服务器：Tracker 服务器是 BT 下载中必须的角色。一个BT client 在下载开始以及下载进行的过程中，要不停的与 Tracker 服务器进行通信，以报告自己的 IP 信息，并获取其它下载 client 的 IP 信息。
+
+ - （3）做种：分为两种，第一是你作为首位发布者发布，供给别人下载，这叫原始种子）第二种就是在你完成了 BT 下载任务后不关闭BT client,提供上传供别人下载。
+
+#### 三、磁力链接 —— BT 下载新形式
+
+随着 BT 下载在全世界的风靡，也诞生了海盗湾这样的巨头，它是一个由瑞典的民间反版权组织海盗署成立于 2003 年的网站，号称拥有世界最大的 BT 种子服务器，提供海量的资源下载，而这些资源大多都是盗版的。
+
+这引起了版权拥有方们的强烈不满，从此双方官司不断。具体可以看这部纪录片：
+
+俗话说，“打蛇打七寸”，于是 Tracker 服务器成为了版权组织打击的重点，他们的想法很明确，只要除掉了 Tracker，BT 下载就完了。于是从 2009 年开始，很多 BT 服务器被关，不仅很多种子无法找到， Tracker 服务器也断开解析工作，使得 BT 下载成为很大难题。
+
+然而魔高一尺道高一丈，这反而促使了 BT 技术的一次大升级。
+
+##### 1、DHT 网络技术，可以在无 Tracker 服务器的情况下下载。
+
+DHT 全称为分布式哈希表（Distributed Hash Table），是一种分布式存储方法。在不需要服务器的情况下，每个客户端负责一个小范围的路由，并负责存储一小部分数据，从而实现整个 DHT 网络的寻址和存储。使用支持该技术的 BT 下载软件，用户无需连上 Tracker 就可以下载，因为软件会在 DHT 网络中寻找下载同一文件的其他用户并与之通讯，开始下载任务。
+
+有些软件（如比特精灵）还会自动通过 DHT 搜索种子资源，构成种子市场，即搭建曾经形式的 BT 服务器。
+
+##### 2、磁力链接
+
+为了实现无需连上 Tracker服务器 即可下载这个新方式，磁力链接（Magnet URI scheme）应运而生，注意，磁力链接并不是取代种子文件，而是在没有 Tracker 服务器的情况下，可以用一小段链接方便的在 DHT 中 找到种子文件
+
+原理
+
+不同于之前的 BT 对每个文件块做哈希值，磁力链接是对整个文件做哈希，来唯一标识这个文件。
+
+特点
+
+ - （1）磁力链接是基于文件内容的，属于统一资源名称，理论上每个文件都对应不同的 URI ，且不会重复。
+
+ - （2）任何人都可以通过一个磁力链接来确保该链接指向的资源就是他想要的，而和得到该资源的方式无关，所以整个下载网络的可靠性提高了，因为每一个节点都是可以被替代的。
+
+ - （3）Magnet URI 只是一个字符串，天然具有跨平台性，天然容易传播。
+
+注：2012年2月14日，据美国科技博客 Mashable 报道，海盗湾宣布从2012年2月29日起将不再提供 BT 种子下载，全面转向磁力链接。
+
+作者：小蒋不素小蒋
+
+链接：https://www.jianshu.com/p/72b7a64e5be1
+
+来源：简书
+
+简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Plain Text Tables generator - TablesGenerator.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="
+Now you can easily create tables in plain text which
+can be copied into any text file. Multi-line cells' contents is supported as
+well as multirow and multicolumn spanning of cells.
+">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="/static/img/favicon.png">
+    <!--[if IE]>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <![endif]-->
+
+    <link href='https://fonts.googleapis.com/css?family=Quicksand' rel='stylesheet' type='text/css'>
+    <link title="no title" media="all" href="./static/css/combined.278.css" rel="stylesheet" type="text/css">
+
+    <style type="text/css">
+
+        textarea {
+            width: 100%;
+            overflow-x: scroll;
+            word-break: break-all;
+            word-wrap: break-word;
+            /*在ie中解决断行问题(防止自动变为在一行显示，主要解决ie兼容问题，ie8中当设宽度为100%时，文本域类容超过一行时，
+            当我们双击文本内容就会自动变为一行显示，所以只能用ie的专有断行属性“word-break或word-wrap”控制其断行)*/
+            white-space: pre !important;
+        }
+
+    </style>
+
+    <script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+    <script type="text/javascript" src="./static/js/combined.base.278.js" data-manual></script>
+
+</head>
+
+<body>
+
+<textarea>[
+            ["连接类型","HQL语法"],
+            ["内连接","inner join 或 join"],
+            ["迫切内连接","inner join fetch 或 join fetch "],
+            ["左外连接","left outer join 或 left join "],
+            ["迫切左外连接","left outer join fetch 或 left join fetch"],
+            ["右外连接","right outer join 或 right join"]
+        ]</textarea>
+
+<div class="main-menu">
+    <ul class="nav nav-pills">
+        <li class="dropdown">
+            <!-- File item -->
+            <a class="dropdown-toggle" id="file_item" role="button" data-toggle="dropdown" href="#">File
+                <b class="caret"></b>
+            </a>
+            <ul id="menu3" class="dropdown-menu" role="menu" aria-labelledby="file_item">
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="new_table_item" data-toggle="modal" data-target="#new_table_dialog">New table...</a>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="import_csv_item" data-toggle="modal" data-target="#import_dialog">Import CSV file...</a>
+                </li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="import_pasted_item" data-toggle="modal" data-target="#import_pasted_dialog">Paste table data...</a>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="save_table_item" data-toggle="modal" data-target="#save_table_dialog">Save table...</a>
+                </li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="load_table_item" data-toggle="modal" data-target="#load_table_dialog">Load table...</a>
+                </li>
+            </ul>
+        </li>
+        <!-- File item -->
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="column-dropdown" role="button" data-toggle="dropdown" href="#">Edit
+                <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="column-dropdown">
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="edit_undo">
+                        <i class="icon-fixed-width icon-rotate-left"></i> Undo (Ctrl+Z)
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="edit_redo">
+                        <i class="icon-fixed-width icon-rotate-right"></i> Repeat (Ctrl+Y)
+                    </a>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="edit_autosave">
+                        <i class="icon-fixed-width icon-check"></i> Autosave table locally
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="menu_table" role="button" data-toggle="dropdown" href="#">Table
+                <b class="caret"></b>
+            </a>
+            <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop_table">
+                <li role="presentation" class="dropdown-submenu">
+                    <a role="menuitem" tabindex="-1" href="#" id="table_resize">
+                        <i class="icon-fixed-width icon-resize-full"></i> Set size
+
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <div class="table_size_chooser">
+                                <div class="SizeChooser">
+
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="table_reset">
+                        <i class="icon-fixed-width icon-circle-blank"></i> Clear table
+
+                    </a>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="table_transpose">
+                        <i class="icon-fixed-width icon-rotate-right"></i> Transpose table
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="column-dropdown" role="button" data-toggle="dropdown" href="#">Column
+                <b class="caret"></b>
+            </a>
+            <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="column-dropdown">
+                <li class="dropdown-submenu">
+                    <a href="#" tabindex="-1">Text align</a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="#" tabindex="-1" class="marked" id="col_align_left">
+                                <i class="icon-fixed-width icon-align-left"></i> Left
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" tabindex="-1" id="col_align_center">
+                                <i class="icon-fixed-width icon-align-center"></i> Center
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" tabindex="-1" id="col_align_right">
+                                <i class="icon-fixed-width icon-align-right"></i> Right
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="col_insert_left">
+                        <i class="icon-fixed-width icon-arrow-left"></i> Insert to the left
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="col_insert_right">
+                        <i class="icon-fixed-width icon-arrow-right"></i> Insert to the right
+                    </a>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="col_remove">
+                        <i class="icon-fixed-width icon-trash"></i> Remove
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="row-dropdown" role="button" data-toggle="dropdown" href="#">Row
+                <b class="caret"></b>
+            </a>
+            <ul id="menu2" class="dropdown-menu" role="menu" aria-labelledby="row-dropdown">
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="row_insert_above">
+                        <i class="icon-fixed-width icon-arrow-up"></i> Insert above
+                    </a>
+                </li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="row_insert_below">
+                        <i class="icon-fixed-width icon-arrow-down"></i> Insert below
+                    </a>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="row_remove">
+                        <i class="icon-fixed-width icon-trash"></i> Remove
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="drop5" role="button" data-toggle="dropdown" href="#">Cell
+                <b class="caret"></b>
+            </a>
+            <ul id="menu3" class="dropdown-menu" role="menu" aria-labelledby="drop5">
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="cell_merge">Merge cells</a>
+                </li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="cell_split">Split cell</a>
+                </li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <!-- Help menu -->
+            <a class="dropdown-toggle" id="file_item" role="button" data-toggle="dropdown" href="#">Help
+                <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="file_item">
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="show_help_item" data-toggle="modal" data-target="#quick_help_dialog">Quick help</a>
+                </li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="/changelog">Changelog</a>
+                </li>
+            </ul>
+        </li>
+        <!-- Help menu -->
+        <li style="float: right;">
+            <a role="button" href="#" style="color: #F02311;" rel="tooltip" title="" id="show_example_btn" data-container="body" data-original-title="Shows an example table. Press CTRL+Z (or menu Edit / Undo) to go back to your table">Show an example table </a>
+        </li>
+    </ul>
+</div>
+
+<div id="edited_table_container" class=""></div>
+
+<div id="generate_table_panel">
+    <button class="btn">
+        <i class="icon-cogs"></i> Generate
+    </button>
+</div>
+
+<pre class="line-numbers language-plain" title="Double click to select all"><code class=" language-plain" id="result-code"></code></pre>
+
+<label class="checkbox">
+    <input type="checkbox" id="use-unicode-border-symbols">
+    Use Unicode symbols for table borders
+</label>
+
+<script type="text/javascript" charset="utf-8">
+    $(document).ready( function() {
+        init('#edited_table_container');
+        var autosize = require('autosize');
+        autosize(document.querySelector('textarea'));
+    });
+
+    function show_result_code(code) {
+        $('#result-code').text(code);
+        Prism.highlightElement($('#result-code')[0]);
+    }
+
+    function init(parent_container) {
+        var table = new TableModel();
+        table.insertRow( [''] );
+
+        var tv = new TableView( table, parent_container );
+        tv.dom.addClass('text-table');
+        var ignore = { text_color: true,
+            bg_color: true,
+            border_color: true,
+            font_style: true,
+            fixed_layout: true,
+            borders: true, theme: true };
+        tv.setLoadIgnore(ignore);
+        tv.on('cell_created', function (cv) {
+            cv.style.setBorders('lrtb');
+        } );
+        table.resize(5, 5);
+        table.removeRow(0);
+
+        var main_ui = new MainUI(tv);
+
+        function generate() {
+            GlobalMessageHub.trigger(GlobalEvents.STOP_EDITING_TABLE);
+
+            var use_unicode_border_symbols = $('#use-unicode-border-symbols').is(':checked');
+            var output = TextExport(tv, use_unicode_border_symbols);
+            show_result_code(output);
+        }
+
+        $('<button class="btn"><i class="icon-cogs"></i> Generate</button>')
+                .appendTo( $('#generate_table_panel') ).click(generate);
+
+        $('#show_example_btn').click( function () {
+            example(tv);
+            generate();
+        } );
+
+        $('#use-unicode-border-symbols').change(generate);
+        store_checkbox_state($('#use-unicode-border-symbols'),
+                'tg-text-use-unicode-border-symbols');
+
+
+        Main.init_table_from_json(tv, '{\"row_count\":38,\"rows\":[[\"Property,Description\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"handlers,A\",\"white\",\"space\",\"or\",\"comma\",\"separated\",\"list\",\"of\",\"handler\",\"class\",\"names\",\"to\",\"be\",\"added\",\"to\",\"the\",\"root\",\"Logger\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"config,A\",\"white\",\"space\",\"or\",\"comma\",\"separated\",\"list\",\"of\",\"class\",\"names\",\"which\",\"will\",\"be\",\"instantiated\",\"when\",\"the\",\"LogManager\",\"is\",\"initialized.\",\"The\",\"constructors\",\"of\",\"these\",\"classes\",\"can\",\"execute\",\"arbitrary\",\"configuration\",\"code.\"],[\"logger.handlers,\\"Sets\",\"the\",\"handler\",\"classes\",\"to\",\"use\",\"for\",\"a\",\"given\",\"Logger\",\"in\",\"the\",\"hierarchy.\",\"Replace\",\"the\",\"logger\\"\\"\",\"with\",\"a\",\"specific\",\"name\",\"of\",\"a\",\"Logger\",\"in\",\"your\",\"app\",\"(e.g.\",\"com.jenkov.web).\\"\",\"\"],[\"logger.useParentHandlers,Tells\",\"a\",\"given\",\"Logger\",\"whether\",\"it\",\"should\",\"log\",\"to\",\"its\",\"parents\",\"or\",\"not\",\"(true\",\"or\",\"false).\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"logger.level,Tells\",\"a\",\"given\",\"Logger\",\"what\",\"minimum\",\"log\",\"level\",\"it\",\"should\",\"log.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"\",\",\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.FileHandler.level,Sets\",\"the\",\"default\",\"log\",\"level\",\"for\",\"all\",\"FileHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.FileHandler.filter,A\",\"class\",\"name\",\"of\",\"the\",\"Filter\",\"to\",\"use\",\"on\",\"all\",\"FileHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.FileHandler.formatter,A\",\"class\",\"name\",\"of\",\"the\",\"Formatter\",\"to\",\"use\",\"on\",\"all\",\"FileHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.FileHandler.encoding,\\"The\",\"encoding\",\"to\",\"use\",\"by\",\"all\",\"FileHandler\'s\",\"(e.g.\",\"UTF-8,\",\"UTF-16\",\"etc.).\\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.FileHandler.limit,\\"The\",\"approximate\",\"amount\",\"of\",\"bytes\",\"to\",\"write\",\"to\",\"a\",\"log\",\"file,\",\"before\",\"rotating\",\"to\",\"a\",\"new\",\"file.\\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.FileHandler.count,The\",\"number\",\"of\",\"log\",\"files\",\"to\",\"use\",\"in\",\"the\",\"log\",\"file\",\"rotation.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.FileHandler.append,\\"Sets\",\"whether\",\"or\",\"not\",\"the\",\"FileHandler\'s\",\"should\",\"append\",\"to\",\"an\",\"existing\",\"file\",\"or\",\"not\",\"(true\",\"or\",\"false),\",\"if\",\"an\",\"existing\",\"log\",\"file\",\"is\",\"found.\\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.FileHandler.pattern,The\",\"log\",\"file\",\"name\",\"pattern.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"\",\",\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.ConsoleHandler.level,Sets\",\"the\",\"default\",\"log\",\"level\",\"of\",\"all\",\"ConsoleHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.ConsoleHandler.filter,Sets\",\"the\",\"Filter\",\"to\",\"use\",\"by\",\"all\",\"ConsoleHandler\'s\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.ConsoleHandler.formatter,Sets\",\"the\",\"Formatter\",\"to\",\"use\",\"by\",\"all\",\"ConsoleHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.ConsoleHandler.encoding,Sets\",\"the\",\"encoding\",\"to\",\"use\",\"by\",\"all\",\"ConsoleHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"\",\",\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.StreamHandler.level,Sets\",\"the\",\"default\",\"log\",\"level\",\"of\",\"all\",\"StreamHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.StreamHandler.filter,Sets\",\"the\",\"Filter\",\"to\",\"use\",\"by\",\"all\",\"StreamHandler\'s\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.StreamHandler.formatter,Sets\",\"the\",\"Formatter\",\"to\",\"use\",\"by\",\"all\",\"StreamHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.StreamHandler.encoding,Sets\",\"the\",\"encoding\",\"to\",\"use\",\"by\",\"all\",\"StreamHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"\",\",\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.SocketHandler.level,Sets\",\"the\",\"default\",\"log\",\"level\",\"of\",\"all\",\"SocketHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.SocketHandler.filter,Sets\",\"the\",\"Filter\",\"to\",\"use\",\"by\",\"all\",\"SocketHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.SocketHandler.formatter,Sets\",\"the\",\"Formatter\",\"to\",\"use\",\"by\",\"all\",\"SocketHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.SocketHandler.encoding,Sets\",\"the\",\"encoding\",\"to\",\"use\",\"by\",\"all\",\"SocketHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.SocketHandler.host,Sets\",\"the\",\"host\",\"name\",\"of\",\"the\",\"host\",\"to\",\"send\",\"the\",\"log\",\"messages\",\"to\",\"(e.g.\",\"jenkov.com).\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.SocketHandler.port,Sets\",\"the\",\"port\",\"number\",\"of\",\"of\",\"the\",\"host\",\"to\",\"send\",\"the\",\"log\",\"message\",\"to\",\"(e.g.\",\"9999).\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"\",\",\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.MemoryHandler.level,Sets\",\"the\",\"default\",\"log\",\"level\",\"of\",\"all\",\"MemoryHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.MemoryHandler.filter,Sets\",\"the\",\"Filter\",\"to\",\"use\",\"by\",\"all\",\"MemoryHandler\'s.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.MemoryHandler.size,The\",\"size\",\"of\",\"the\",\"internal\",\"LogRecord\",\"buffer.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.MemoryHandler.push,The\",\"push\",\"level\",\"of\",\"messages\",\"causing\",\"the\",\"buffer\",\"to\",\"be\",\"pushed\",\"to\",\"the\",\"target\",\"Handler.\",\"Defaults\",\"to\",\"SEVERE.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"],[\"java.util.logging.MemoryHandler.target,The\",\"class\",\"name\",\"of\",\"the\",\"target\",\"Handler.\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\"]],\"column_count\":29}');
+
+
+        generate();
+    }
+
+
+    function example(table_view) {
+        table_view.reset();
+        var model = table_view.model;
+//        var rows = [
+//            ['Results', '', '', '', '', ''],
+//            ['No', 'Competition', 'John', 'Adam', 'Robert', 'Paul'],
+//            ['1', 'Swimming', '1:30', '2:05', '1:15', '1:41'],
+//            ['2', 'Running', '15:30', '14:10', '15:45', '16:00'],
+//            ['3', 'Shooting', '70%', '55%', '90%', '88%']
+//        ];
+        var rows = [
+            ['Property',	'Description'],
+            ['handlers',	'A white space or comma separated list of handler class names to be added to the root Logger'],
+            ['config',	'A white space or comma separated list of class names which will be instantiated when the LogManager is initialized. The constructors of these classes can execute arbitrary configuration code.'],
+            ['"logger".handlers',	'Sets the handler classes to use for a given Logger in the hierarchy. Replace the "logger" with a specific name of a Logger in your app (e.g. com.jenkov.web).'],
+            ['"logger".useParentHandlers',	'Tells a given Logger whether it should log to its parents or not (true or false).'],
+            ['"logger".level',	'Tells a given Logger what minimum log level it should log.'],
+            ['',	''],
+            ['java.util.logging.FileHandler.level',	'Sets the default log level for all FileHandler\'s.'],
+            ['java.util.logging.FileHandler.filter',	'A class name of the Filter to use on all FileHandler\'s.'],
+            ['java.util.logging.FileHandler.formatter',	'A class name of the Formatter to use on all FileHandler\'s.'],
+            ['java.util.logging.FileHandler.encoding',	'The encoding to use by all FileHandler\'s (e.g. UTF-8, UTF-16 etc.).'],
+            ['java.util.logging.FileHandler.limit',	'The approximate amount of bytes to write to a log file, before rotating to a new file.'],
+            ['java.util.logging.FileHandler.count',	'The number of log files to use in the log file rotation.'],
+            ['java.util.logging.FileHandler.append',	'Sets whether or not the FileHandler\'s should append to an existing file or not (true or false), if an existing log file is found.'],
+            ['java.util.logging.FileHandler.pattern',	'The log file name pattern.'],
+            ['',	''],
+            ['java.util.logging.ConsoleHandler.level',	'Sets the default log level of all ConsoleHandler\'s.'],
+            ['java.util.logging.ConsoleHandler.filter',	'Sets the Filter to use by all ConsoleHandler\'s'],
+            ['java.util.logging.ConsoleHandler.formatter',	'Sets the Formatter to use by all ConsoleHandler\'s.'],
+            ['java.util.logging.ConsoleHandler.encoding',	'Sets the encoding to use by all ConsoleHandler\'s.'],
+            ['',	''],
+            ['java.util.logging.StreamHandler.level',	'Sets the default log level of all StreamHandler\'s.'],
+            ['java.util.logging.StreamHandler.filter',	'Sets the Filter to use by all StreamHandler\'s'],
+            ['java.util.logging.StreamHandler.formatter',	'Sets the Formatter to use by all StreamHandler\'s.'],
+            ['java.util.logging.StreamHandler.encoding',	'Sets the encoding to use by all StreamHandler\'s.'],
+            ['',	''],
+            ['java.util.logging.SocketHandler.level',	'Sets the default log level of all SocketHandler\'s.'],
+            ['java.util.logging.SocketHandler.filter',	'Sets the Filter to use by all SocketHandler\'s.'],
+            ['java.util.logging.SocketHandler.formatter',	'Sets the Formatter to use by all SocketHandler\'s.'],
+            ['java.util.logging.SocketHandler.encoding',	'Sets the encoding to use by all SocketHandler\'s.'],
+            ['java.util.logging.SocketHandler.host',	'Sets the host name of the host to send the log messages to (e.g. jenkov.com).'],
+            ['java.util.logging.SocketHandler.port',	'Sets the port number of of the host to send the log message to (e.g. 9999).'],
+            ['',	''],
+            ['java.util.logging.MemoryHandler.level',	'Sets the default log level of all MemoryHandler\'s.'],
+            ['java.util.logging.MemoryHandler.filter',	'Sets the Filter to use by all MemoryHandler\'s.'],
+            ['java.util.logging.MemoryHandler.size',	'The size of the internal LogRecord buffer.'],
+            ['java.util.logging.MemoryHandler.push',	'The push level of messages causing the buffer to be pushed to the target Handler. Defaults to SEVERE.'],
+            ['java.util.logging.MemoryHandler.target',	'The class name of the target Handler.']
+        ];
+
+        rows = JSON.parse(document.querySelector('textarea').value);
+
+//        rows =[
+//            ["连接类型","HQL语法"],
+//            ["内连接","inner join 或 join"],
+//            ["迫切内连接","inner join fetch 或 join fetch "],
+//            ["左外连接","left outer join 或 left join "],
+//            ["迫切左外连接","left outer join fetch 或 left join fetch"],
+//            ["右外连接","right outer join 或 right join"]
+//        ];
+
+          model.setRows(rows);
+//        model.mergeCells(0, 0, 0, 5);
+//        table_view.forEachCellViewInRange( function(cv) {
+//            cv.style.setHorizontalAlign('right');
+//        }, 2, 2, 4, 5);
+//        table_view.getCellView(0, 0).style.setHorizontalAlign('center');
+    }
+</script>
+</body>
+</html>

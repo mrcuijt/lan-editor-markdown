@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vue Basic Init</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Vue Basic Init
+
+##### 一、安装 Vue
+
+ - 1、安装 NodeJS
+
+查看是否安装成功
+
+```python
+## NodeJS
+node -v
+
+## NPM
+npm -v
+```
+
+ - 2、全局安装手脚架工具 vue-cli
+
+```python
+npm install --global vue-cli
+```
+
+ - 3、Vue 项目初始化命令如下，若没有安装 webpack，则先安装 webpack
+
+```python
+## 全局安装 webpack
+npm install -g webpack
+
+## 初始化 Vue 项目
+vue init webpack myVue
+```
+
+注：安装过程 中有个选项（Use ESLint to line your code ?选择 No ）
+
+
+ - 4、 进入到 myVue 目录下，使用 npm install 安装 package.json 包中的依赖
+ 
+```python
+## 进入到 Vue 项目目录下
+cd myVue
+
+## 安装 Vue 项目依赖
+npm install
+```
+
+ - 5、运行项目
+
+```python
+npm run dev
+```
+
+在浏览器上输入：<a href="http://localhost:8080/" target="_blank">http://localhost:8080/</a>，将会出现 Vue 的初始页面
+
+##### 二、Vue 项目目录说明
+
+ - **`build`**: 项目构建(webpack)相关代码
+
+ - **`config`**: 配置目录，包括端口号等
+
+ - **`node_modules`**: npm加载的项目依赖块
+
+ - **`src`**: 这里是我们要开发的目录，基本上要做的事情都在这个目录里。里面包含了几个目录及文件。
+
+ - **`assets`**: 放置一些图片，如logo等
+
+ - **`components`**: 该目录里存放的我们的开发文件组件，主要的开发文件都存放在这里了
+
+ - **`App.vue`**: 项目入口文件
+
+ - **`main.js`**: 项目的核心文件
+
+ - **`router`**: 路由配置目录
+
+ - **`static`**: 放置一些静态资源文件
+
+ - **`test`**: 初始测试目录，可删除
+
+ - **`.xxxx文件`**: 这些是一些配置文件，包括语法配置，git配置等
+
+ - **`index.html`**: 首页入口文件
+
+ - **`package.json`**: 项目配置文件
+
+ - **`README.md`**: 项目的说明文档，markdown 格式
+
+##### 三、Vue 项目启动流程
+
+ - 1、在执行 npm run dev 的时候，会在当前文件夹下的项目中找 **package.json** 文件，启动开发服务器，默认端口 8080。
+ 
+ - 2、找到 src 的 **main.js** 文件，在该文件中 new Vue 的实例，要加载的模板内容 App；
+
+ - 3、App 是 src 目录下的 App.vue 结尾的文件
+ 
+ - 4、在 **App.vue** 所对应的模板当中，有一个 **router-view** 在 **src 目录**下有一个 **router 文件夹**，该文件夹有个 **index.js 文件**，该文件是配置路由词典，指定了路由地址 **/**，加载 **HelloWorld** 组件。
+ 
+注：Vue 运行时基于 node 环境的，构建 Vue 框架之前，需要确保 node 环境安装成功。
+
+##### 四、Vue 的组件使用
+
+ - 1、在 **components** 文件夹下创建 **.vue** 结尾的文件。
+ 
+ 例如在： **src/components/public/** 目录下新建 **header.vue** 文件
+
+header.vue文件内容如下：
+
+```xml
+<template>
+  <header class="hello">
+    <h1> Hello </h1>
+  </header>
+</template>
+```
+
+ - 2、在路由配置文件 **src/router/index.js** 中引入组件并配置组件路由
+
+ - 2.1、引入组件
+
+```python
+import Header from '@/components/public/header'
+```
+
+ - 2.2、配置组件路由
+ 
+```python
+{
+path: '/header',
+name: 'header',
+component: Header
+}
+```
+
+ - 3、运行项目
+
+```python
+npm run dev
+```
+
+ - 4、在浏览器中输入 <a href="http://localhost:8080/header" target="_blank">http://localhost:8080/header</a>
+
+#### 附：Vue 生命周期示意图
+
+![](./images/vue-basic-init/vue-basic-init-001.png)
+
+参考链接：
+
+ - <a href="https://baijiahao.baidu.com/s?id=1621989444415819861&wfr=spider&for=pc" target="_blank">Vue的安装及使用快速入门</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

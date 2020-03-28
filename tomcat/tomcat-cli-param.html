@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tomcat Param</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Tomcat Param
+
+```python
+## JAVA_OPTS
+JAVA_OPTS=-server -Xms1024m -Xmx1024m -Xss512k
+```
+
+```python
+## Test
+java -Xmx300m -version
+```
+
+java visualVM full GC
+
+#### MAT 分析工具
+
+&amp;#160; &amp;#160;MAT 是专门用来分析内存 dump 文件的工具，需要有 Eclipse 才能跑。先用 jmap 指令可以抓到 dump 文件，具体指令格式如下:
+
+```python
+jps -l
+
+jmap -dump:format=b,file=output.hprof pid
+```
+
+<a href="https://www.eclipse.org/mat/downloads.php" target="_blank">MAT Download</a>
+
+MAT 最重要的功能就是可以分析 Heap 里的 Object、类和引用关系。
+
+#### Jprofile 分析工具
+
+&amp;#160; &amp;#160;Jprofile 实时监控了一下 JVM 状态，不得不说这个工具真的很强大，可以监控本地的 JVM 进程，也可以监控远程的 JVM 进程，监控内容从内存，对象，GC 到线程，CPU，数据库连接状态覆盖面很广。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/truelove12358/article/details/49664857" target="_blank">使用 MAT 分析内存泄露</a>
+
+ - <a href="https://blog.csdn.net/gzh0222/article/details/8538727" target="_blank">Java 内存泄漏的定位与分析</a>
+
+ - <a href="https://www.jianshu.com/p/d9f877772fd6" target="_blank">内存泄露分析总结和 Tomcat 调优</a>
+
+ - <a href="https://www.cnblogs.com/happy-rabbit/p/6232581.html" target="_blank">Java 自带的监控工具VisualVM 一</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

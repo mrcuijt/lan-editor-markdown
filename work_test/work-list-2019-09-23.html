@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Work List</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 工作任务清单
+
+#### Jetty
+ 
+##### 一、待办事项
+
+ - 如何做一个 html 服务器
+
+  - 做一个 war 包，静态资源部署，访问尝试调试。
+
+  - 做一个 zip 包，静态资源部署，访问尝试调试。
+
+ - 如何做一个 Servlet 服务器
+
+ - 普通的 jar 文件作为整体运行项目
+
+ - 通过打包 war 文件完成项目部署
+
+ - 熟悉 jetty.xml 动态配置
+
+  - 定义创建 connector
+
+  - 组装已有的 handler
+
+      - handler
+
+      - servlet context handler
+
+      - servlet
+
+##### 二、已成功项
+
+ - 支持 Servlet
+
+ - 支持 JSP
+
+ - 支持 War 部署静态内容
+
+##### 三、实现
+
+**Jetty 下载**
+
+ - Eclipse Jetty <a href="https://www.eclipse.org/jetty/download.html" target="_blank">Downloads</a>
+
+ - Maven Central Jetty-Distribution <a href="https://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/" target="_blank">Downloads</a>
+
+ - Maven Central Jetty-All <a href="https://repo1.maven.org/maven2/org/eclipse/jetty/aggregate/jetty-all/" target="_blank">Downloads</a>
+
+**使用 Jetty 作为静态 html 服务器**
+
+ - 创建 web 项目
+
+```python
+## 使用 Maven 创建 Java Web 项目(Linux)
+mvn -B archetype:generate \
+  -DarchetypeGroupId=org.apache.maven.archetypes \
+  -DarchetypeArtifactId=maven-archetype-webapp \
+  -DgroupId=science.dependency \
+  -DartifactId=jetty-war
+
+## 使用 Maven 创建 Java Web 项目(Windows)
+mvn -B archetype:generate ^
+  -DarchetypeGroupId=org.apache.maven.archetypes ^
+  -DarchetypeArtifactId=maven-archetype-webapp ^
+  -DgroupId=science.jetty ^
+  -DartifactId=jetty-war
+```
+
+**webapp/WEB-INF/`web.xml`**
+
+```xml
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>Archetype Created Web Application</display-name>
+</web-app>
+```
+
+**webapp/`index.html`**
+
+```html
+<html>
+<head>
+<title>Hello World</title>
+<link rel="stylesheet" type="text/css" href="css/index.css"/>
+<script type="text/javascript" src="js/jquery-1.9.0.min.js"></script>
+</head>
+<body>
+<h2>Hello World!</h2>
+</body>
+</html>
+```
+
+**webapp/css/`index.css`**
+
+```css
+@charset "UTF-8";
+
+body{
+  margin:0;
+  padding:0;
+  font-size:14px;
+}
+```
+
+**webapp/js/`jquery-1.9.0.min.js`**
+
+ - 项目程序打包
+
+```python
+## package war
+mvn clean package
+```
+
+**得到 jetty-webapp.war**
+
+ - 项目依赖
+
+```python
+jetty-all-9.4.20.v20190813-uber.jar
+```
+
+```xml
+<!-- https://mvnrepository.com/artifact/org.eclipse.jetty.aggregate/jetty-all -->
+<!-- https://repo1.maven.org/maven2/org/eclipse/jetty/aggregate/jetty-all/9.4.20.v20190813/ -->
+<dependency>
+    <groupId>org.eclipse.jetty.aggregate</groupId>
+    <artifactId>jetty-all</artifactId>
+    <version>9.4.20.v20190813</version>
+    <classifier>uber</classifier>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.7.28</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
+<dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-log4j12</artifactId>
+    <version>1.7.28</version>
+    <scope>test</scope>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/log4j/log4j -->
+<dependency>
+    <groupId>log4j</groupId>
+    <artifactId>log4j</artifactId>
+    <version>1.2.17</version>
+</dependency>
+```
+
+ - 创建项目结构目录
+
+```python
+jetty-example
+  ├─src
+  ├─lib
+  │  ├─jetty
+  │  │  └─jetty-all-uber.jar
+  │  └─log
+  │     ├─slf4j-api-1.7.28.jar
+  │     ├─slf4j-log4j12-1.7.28.jar
+  │     └─log4j-1.2.17.jar
+  └─classes
+```
+
+ - 编写 Jetty 程序
+
+**jetty-example/src/`OneWebApp.java`**
+
+```java
+//
+//  ========================================================================
+//  Copyright (c) 1995-2019 Mort Bay Consulting Pty. Ltd.
+//  ------------------------------------------------------------------------
+//  All rights reserved. This program and the accompanying materials
+//  are made available under the terms of the Eclipse Public License v1.0
+//  and Apache License v2.0 which accompanies this distribution.
+//
+//      The Eclipse Public License is available at
+//      http://www.eclipse.org/legal/epl-v10.html
+//
+//      The Apache License v2.0 is available at
+//      http://www.opensource.org/licenses/apache2.0.php
+//
+//  You may elect to redistribute this code under either of these licenses.
+//  ========================================================================
+//
+
+package org.eclipse.jetty.embedded;
+
+import java.io.File;
+import java.lang.management.ManagementFactory;
+
+import org.eclipse.jetty.jmx.MBeanContainer;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.webapp.WebAppContext;
+
+public class OneWebApp
+{
+    public static void main(String[] args) throws Exception
+    {
+        // Create a basic jetty server object that will listen on port 8080.
+        // Note that if you set this to port 0 then a randomly available port
+        // will be assigned that you can either look in the logs for the port,
+        // or programmatically obtain it for use in test cases.
+        Server server = new Server(8080);
+
+        // Setup JMX
+        MBeanContainer mbContainer = new MBeanContainer(
+            ManagementFactory.getPlatformMBeanServer());
+        server.addBean(mbContainer);
+
+        // The WebAppContext is the entity that controls the environment in
+        // which a web application lives and breathes. In this example the
+        // context path is being set to "/" so it is suitable for serving root
+        // context requests and then we see it setting the location of the war.
+        // A whole host of other configurations are available, ranging from
+        // configuring to support annotation scanning in the webapp (through
+        // PlusConfiguration) to choosing where the webapp will unpack itself.
+        WebAppContext webapp = new WebAppContext();
+        webapp.setContextPath("/");
+        //File warFile = JettyDistribution.resolve("demo-base/webapps/async-rest.war").toFile();
+        String path = "E:/env/jetty/workspace/jetty-webapp/jetty-war.war";
+        File warFile = new File(path);
+        webapp.setWar(warFile.getAbsolutePath());
+
+        // A WebAppContext is a ContextHandler as well so it needs to be set to
+        // the server so it is aware of where to send the appropriate requests.
+        server.setHandler(webapp);
+
+        // Start things up!
+        server.start();
+
+        server.dumpStdErr();
+
+        // The use of server.join() the will make the current thread join and
+        // wait until the server is done executing.
+        // See http://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html#join()
+        server.join();
+    }
+}
+```
+
+ - 编译
+
+**jetty-example/`build.bat`**
+
+```bash
+@echo off
+
+:: Jetty Version 9.4.20.v20190813
+set jettylib=lib\jetty\jetty-all-uber.jar
+
+set loglib=
+set loglib=lib\log\slf4j-api-1.7.28.jar
+set loglib=%loglib%;lib\log\slf4j-log4j12-1.7.28.jar
+set loglib=%loglib%;lib\log\log4j-1.2.17.jar
+
+javac -d classes -cp %jettylib%;%loglib% src\*.java
+echo This program is finished.
+```
+
+ - 运行
+
+**jetty-example/`run.bat`**
+
+```bash
+@echo off
+
+set run=org.eclipse.jetty.embedded.OneWebApp
+set runclass=%run%
+
+:: Jetty Version 9.4.20.v20190813
+set jettylib=lib\jetty\jetty-all-uber.jar
+
+set loglib=
+set loglib=lib\log\slf4j-api-1.7.28.jar
+set loglib=%loglib%;lib\log\slf4j-log4j12-1.7.28.jar
+set loglib=%loglib%;lib\log\log4j-1.2.17.jar
+
+set props=
+set props=org.eclipse.jetty.util.log.class=org.eclipse.jetty.util.log.Slf4jLog
+
+java -D%props% -cp %jettylib%;%loglib% %runclass%
+echo This program is finished.
+```
+
+**访问 <a href="http://localhost:8080/index.html" target="_blank">http://localhost:8080/index.html</a> 得到 Hello World!**
+
+**使用 Jetty 作为 Servlet 服务器**
+
+ - 项目依赖
+
+```xml
+<!-- Servlet API -->
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+    <version>3.1.0</version>
+    <scope>provided</scope>
+</dependency>
+<!-- JSTL 表达式 -->
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>jstl</artifactId>
+    <version>1.2</version>
+    <scope>provided</scope>
+</dependency>
+<!-- taglib c 表达式 -->
+<dependency>
+    <groupId>taglibs</groupId>
+    <artifactId>standard</artifactId>
+    <version>1.1.2</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+参考链接：
+
+ - <a href="https://www.eclipse.org/jetty/documentation/9.3.0.v20150612/advanced-embedding.html" target="_blank">Chapter 24. Embedding</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

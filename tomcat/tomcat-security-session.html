@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tomcat Security Session</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+servlet 中配置参数。
+
+变量需要先声明赋值才能够使用
+
+final 修饰符修饰的常量需要在声明时赋值，或是在构造函数中赋值。
+
+staic final 修饰符修饰的变量只能在声明时赋值，赋值后无法改变。
+
+  1、 静态 JavaBean 固定不变字段，发生改变后需要重新编译发布。
+
+  1、 JavaBean 方式做为参数类？需要一个容器代为管理，可动态更新。
+
+想要一个静态类/静态方法，方便使用
+
+静态类，静态方法无法访问类型中的非静态成员。
+
+私有静态属性，公有GET静态函数，私有SET函数，只能获取该参数的值。
+
+设置使用单例模式，通过反射完成对配置对象值的修改
+ 
+  - 表示全局共享，不再独立拥有不同的对象。
+
+  - 规定好 JWT ，登录时能够操作的路径。遇到不能操作的路径时重新提示登录。
+
+  - 同时能够保证其能够进行动态更新。
+
+    - 更新操作通过反射完成。
+
+    - 添加对 Cookie 更新的操作 ？
+
+      - 保持其记录 1~2 次， List ，更新 Cookie 对旧 Session 进行更新。
+
+      - 超过的让其重新登录。
+
+42.197.68.206:18978
+
+ Tomcat 根据 JSESSIONID 作为会话标识，对应 Tomcat 容器中的 SESSION 。
+
+ 有了 JSESSIONID 就可以访问到 Tomcat 中 Session 中存储的数据。
+
+ 通过截取 Cookie 获取 JSESSIONID ，可以骗取 Tomcat 信任
+
+ 程序中一般通过 Filter 过滤器对请求进行拦截，获取请求头参数判断用户是否登录。
+
+   - Tomcat 自身通过 Cookie 连接/创建 Session
+
+   - Filter 通过取得 Tomcat 给的 Session 获取用户的登录标识。
+
+1、先经过 LoginFilter
+
+作用：
+
+  1、判断用户是否登录
+
+    a、已登录
+
+     - 验证 Cookie
+
+       - 1、jwt Cookie (必须存在)
+
+       - 2、jwt Cookie 中对应的 Agent (MD5) 32 
+
+       - 3、jwt Cookie 中对应的 登录标识 与 Session 中存储的比较
+
+       a、验证通过
+
+         - 请求放行
+
+       b、验证不通过
+
+         - 删除 jwt Cookie 信息
+
+	 - 重定向到登录
+
+    b、未登录
+
+     - 尝试使用 Cookie 登录
+
+       a、使用 Cookie 登录成功
+
+       b、登录失败
+
+
+  - 只判断 Session 中存在的数据
+
+2、再经过 TokenLoginFilter
+
+首先会经过 TokenLoginFilter
+
+ - // 判断请求路径？登录注册 (忽略)
+
+ - // 判断会话是否已经登录 - 存在漏洞，同样需要判断 jwt Cookie
+
+   - Session 中的数据是否存在
+
+   - Cookie 中的 jwt 值是否正确
+
+ - 解析 jwt Cookie
+
+
+
+Session 会话不可信任
+
+  通过从 Request 中携带的数据进行验证
+
+    - 1、jwt Cookie (必须)
+
+    - 2、jwt Cookie 中对应的 Agent (MD5) 32 
+
+    - 3、jwt Cookie 中对应的 登录标识 与 Session 中存储的比较
+
+MD5 = 32
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

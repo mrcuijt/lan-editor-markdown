@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LanEditorPluginTemplate</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+```xml
+
+<?xml version='1.0' encoding='UTF-8'?>
+<wsdl:definitions
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:tns="http://www.moshco.cn/mhpay/ws"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:ns1="http://schemas.xmlsoap.org/soap/http" 
+    name="PayWServiceImplService" 
+    targetNamespace="http://www.moshco.cn/mhpay/ws">
+    <wsdl:types>
+        <xs:schema
+            xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            xmlns:tns="http://www.moshco.cn/mhpay/ws" elementFormDefault="unqualified" targetNamespace="http://www.moshco.cn/mhpay/ws" version="1.0">
+            <xs:element name="findUserAccount" type="tns:findUserAccount"/>
+            <xs:element name="findUserAccountResponse" type="tns:findUserAccountResponse"/>
+            <xs:element name="queryPaginationTradeOrderRecord" type="tns:queryPaginationTradeOrderRecord"/>
+            <xs:element name="queryPaginationTradeOrderRecordResponse" type="tns:queryPaginationTradeOrderRecordResponse"/>
+            <xs:complexType name="queryPaginationTradeOrderRecord">
+                <xs:sequence>
+                    <xs:element form="qualified" minOccurs="0" name="pageIndex" type="xs:int"/>
+                    <xs:element form="qualified" minOccurs="0" name="pageSize" type="xs:int"/>
+                    <xs:element name="userAccountId">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element maxOccurs="unbounded" minOccurs="0" name="entry">
+                                    <xs:complexType>
+                                        <xs:sequence>
+                                            <xs:element minOccurs="0" name="key" type="xs:string"/>
+                                            <xs:element minOccurs="0" name="value" type="xs:anyType"/>
+                                        </xs:sequence>
+                                    </xs:complexType>
+                                </xs:element>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="queryPaginationTradeOrderRecordResponse">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="queryPaginationTradeOrderRecordResult" type="tns:paginationTradeOrderRecord"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="paginationTradeOrderRecord">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="currentPageList" nillable="true" type="tns:tradeRecord"/>
+                    <xs:element minOccurs="0" name="totalRecord" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="tradeRecord">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="accountId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="afterMoney" type="xs:string"/>
+                    <xs:element minOccurs="0" name="alipayOrderId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="alipayTradeCode" type="xs:string"/>
+                    <xs:element minOccurs="0" name="beforeMoney" type="xs:string"/>
+                    <xs:element minOccurs="0" name="business" type="xs:string"/>
+                    <xs:element minOccurs="0" name="businessCode" type="xs:string"/>
+                    <xs:element minOccurs="0" name="checkCotent" type="xs:string"/>
+                    <xs:element minOccurs="0" name="checkMan" type="xs:string"/>
+                    <xs:element minOccurs="0" name="checkStatus" type="xs:string"/>
+                    <xs:element minOccurs="0" name="checkTime" type="xs:dateTime"/>
+                    <xs:element minOccurs="0" name="direction" type="xs:int"/>
+                    <xs:element minOccurs="0" name="id" type="xs:int"/>
+                    <xs:element minOccurs="0" name="invalidDate" type="xs:dateTime"/>
+                    <xs:element minOccurs="0" name="isValid" type="xs:int"/>
+                    <xs:element minOccurs="0" name="mobile" type="xs:string"/>
+                    <xs:element minOccurs="0" name="orderCode" type="xs:string"/>
+                    <xs:element minOccurs="0" name="orderId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="projectCode" type="xs:string"/>
+                    <xs:element minOccurs="0" name="projectId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="projectName" type="xs:string"/>
+                    <xs:element minOccurs="0" name="remark" type="xs:string"/>
+                    <xs:element minOccurs="0" name="targetMan" type="xs:string"/>
+                    <xs:element minOccurs="0" name="targetManAccountId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="targetManId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="targetManMobile" type="xs:string"/>
+                    <xs:element minOccurs="0" name="targetManUserName" type="xs:string"/>
+                    <xs:element minOccurs="0" name="tradeMoney" type="xs:string"/>
+                    <xs:element minOccurs="0" name="tradeTime" type="xs:dateTime"/>
+                    <xs:element minOccurs="0" name="tradeType" type="xs:string"/>
+                    <xs:element minOccurs="0" name="trueName" type="xs:string"/>
+                    <xs:element minOccurs="0" name="userId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="userName" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="findUserAccount">
+                <xs:sequence>
+                    <xs:element form="qualified" minOccurs="0" name="userAccountId" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="findUserAccountResponse">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="findUserAccountResult" type="tns:userAccount"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="userAccount">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="createTime" type="xs:dateTime"/>
+                    <xs:element minOccurs="0" name="id" type="xs:int"/>
+                    <xs:element minOccurs="0" name="invalidDate" type="xs:dateTime"/>
+                    <xs:element minOccurs="0" name="isValid" type="xs:int"/>
+                    <xs:element minOccurs="0" name="lockMoney" type="xs:string"/>
+                    <xs:element minOccurs="0" name="projectCode" type="xs:string"/>
+                    <xs:element minOccurs="0" name="projectId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="projectName" type="xs:string"/>
+                    <xs:element minOccurs="0" name="totalMoney" type="xs:string"/>
+                    <xs:element minOccurs="0" name="totalPoint" type="xs:int"/>
+                    <xs:element minOccurs="0" name="trueName" type="xs:string"/>
+                    <xs:element minOccurs="0" name="userId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="userName" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="queryPaginationTradeOrderRecordResponse">
+        <wsdl:part element="tns:queryPaginationTradeOrderRecordResponse" name="parameters"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="queryPaginationTradeOrderRecord">
+        <wsdl:part element="tns:queryPaginationTradeOrderRecord" name="parameters"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="findUserAccount">
+        <wsdl:part element="tns:findUserAccount" name="parameters"></wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="findUserAccountResponse">
+        <wsdl:part element="tns:findUserAccountResponse" name="parameters"></wsdl:part>
+    </wsdl:message>
+    <wsdl:portType name="PayWService">
+        <wsdl:operation name="queryPaginationTradeOrderRecord">
+            <wsdl:input message="tns:queryPaginationTradeOrderRecord" name="queryPaginationTradeOrderRecord"></wsdl:input>
+            <wsdl:output message="tns:queryPaginationTradeOrderRecordResponse" name="queryPaginationTradeOrderRecordResponse"></wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="findUserAccount">
+            <wsdl:input message="tns:findUserAccount" name="findUserAccount"></wsdl:input>
+            <wsdl:output message="tns:findUserAccountResponse" name="findUserAccountResponse"></wsdl:output>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="PayWServiceImplServiceSoapBinding" type="tns:PayWService">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="queryPaginationTradeOrderRecord">
+            <soap:operation soapAction="" style="document"/>
+            <wsdl:input name="queryPaginationTradeOrderRecord">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="queryPaginationTradeOrderRecordResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="findUserAccount">
+            <soap:operation soapAction="" style="document"/>
+            <wsdl:input name="findUserAccount">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="findUserAccountResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="PayWServiceImplService">
+        <wsdl:port binding="tns:PayWServiceImplServiceSoapBinding" name="PayWServiceImplPort">
+            <soap:address location="http://localhost:8080/MHPayV4.0E1/ws/pay"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>HTML Table generator - TablesGenerator.com</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free and easy to use online HTML Tables generator -- enter the table data and just copy and paste the generated table code into your website">
+    <meta name="author" content="">
+    <!--<link rel="shortcut icon" href="/static/img/favicon.png">-->
+    <!--[if IE]>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <![endif]-->
+
+    <link href='https://fonts.googleapis.com/css?family=Quicksand' rel='stylesheet' type='text/css'>
+    <link title="no title" media="all" href="./static/css/combined.278.css" rel="stylesheet" type="text/css">
+
+    <style type="text/css">
+
+        textarea {
+            width: 100%;
+            overflow-x: scroll;
+            word-break: break-all;
+            word-wrap: break-word;
+            /*在ie中解决断行问题(防止自动变为在一行显示，主要解决ie兼容问题，ie8中当设宽度为100%时，文本域类容超过一行时，
+            当我们双击文本内容就会自动变为一行显示，所以只能用ie的专有断行属性“word-break或word-wrap”控制其断行)*/
+            white-space: pre !important;
+        }
+
+    </style>
+
+    <script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+    <script type="text/javascript" src="./static/js/combined.base.278.js" data-manual></script>
+
+</head>
+
+<body>
+
+<div class="main-menu">
+
+<p>json-data</p>
+<textarea id="json-data">[
+            ["demo","demo1"],
+            ["demo","demo1"]
+        ]</textarea><button id="json-data-generate" class="btn">JSON DATA Generate</button>
+<p>html-data</p>
+<textarea id="html-data"></textarea><button id="html-data-generate" class="btn">HTML DATA Generate</button>
+
+    <ul class="nav nav-pills">
+        <li class="dropdown"><!-- File item -->
+            <a class="dropdown-toggle" id="file_item" role="button" data-toggle="dropdown" href="#">File <b class="caret"></b></a>
+            <ul id="menu3" class="dropdown-menu" role="menu" aria-labelledby="file_item">
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="new_table_item" data-toggle="modal" data-target="#new_table_dialog">New table...</a></li>
+
+                <li role="presentation" class="divider"></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="import_csv_item" data-toggle="modal" data-target="#import_dialog">Import CSV file...</a></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="import_pasted_item" data-toggle="modal" data-target="#import_pasted_dialog">Paste table data...</a></li>
+
+
+
+                <li role="presentation" class="divider"></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="save_table_item" data-toggle="modal" data-target="#save_table_dialog">Save table...</a></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="load_table_item" data-toggle="modal" data-target="#load_table_dialog">Load table...</a></li>
+
+
+
+            </ul>
+        </li><!-- File item -->
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="column-dropdown" role="button" data-toggle="dropdown" href="#">Edit <b class="caret"></b></a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="column-dropdown">
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="edit_undo"><i class="icon-fixed-width icon-rotate-left"></i> Undo (Ctrl+Z)</a></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="edit_redo"><i class="icon-fixed-width icon-rotate-right"></i> Repeat (Ctrl+Y)</a></li>
+
+                <li role="presentation" class="divider"></li>
+
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="edit_autosave">
+                        <i class="icon-fixed-width icon-check"></i> Autosave table locally</a>
+                </li>
+            </ul>
+        </li>
+
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="menu_table" role="button" data-toggle="dropdown" href="#">Table <b class="caret"></b></a>
+            <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop_table">
+                <li role="presentation" class="dropdown-submenu">
+                    <a role="menuitem" tabindex="-1" href="#" id="table_resize"><i class="icon-fixed-width icon-resize-full"></i> Set size</a>
+                    <ul class="dropdown-menu">
+                        <li><div class="table_size_chooser"><div class="SizeChooser"><table><tbody><tr><td class="SizeChooser-selected"> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr><tr><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td><td> </td></tr></tbody></table><form><input><span> x </span><input></form></div></div></li>
+                    </ul>
+                </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                </li><li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="table_reset">
+                <i class="icon-fixed-width icon-circle-blank"></i> Clear table</a>
+            </li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="#" id="table_transpose">
+                        <i class="icon-fixed-width icon-rotate-right"></i> Transpose table</a>
+
+                </li>
+
+                <li role="presentation" class="divider"></li>
+
+                <li role="presentation" class="dropdown-submenu">
+                    <a role="menuitem" tabindex="-1" href="#" id="table_resize">Cell spacing</a>
+                    <ul class="dropdown-menu">
+                        <li><div id="cell-spacing-panel"><label>Horizontal spacing</label><div class="slider slider-horizontal"><div class="slider-track"><div class="slider-selection" style="left: 0%; width: 25%;"></div><div class="slider-handle round" tabindex="0" style="left: 25%;"></div><div class="slider-handle round hide" tabindex="0" style="left: 0%;"></div></div><div id="tooltip" class="tooltip top" style="top: -34px; left: 0px;"><div class="tooltip-arrow"></div><div class="tooltip-inner">5</div></div><div id="tooltip_min" class="tooltip top" style="top: -24px;"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div><div id="tooltip_max" class="tooltip top" style="top: -30px;"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div><input type="text" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="10" style="display: none;"></div><label>Vertical spacing</label><div class="slider slider-horizontal"><div class="slider-track"><div class="slider-selection" style="left: 0%; width: 50%;"></div><div class="slider-handle round" tabindex="0" style="left: 50%;"></div><div class="slider-handle round hide" tabindex="0" style="left: 0%;"></div></div><div id="tooltip" class="tooltip top" style="top: -34px; left: 0px;"><div class="tooltip-arrow"></div><div class="tooltip-inner">10</div></div><div id="tooltip_min" class="tooltip top" style="top: -24px;"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div><div id="tooltip_max" class="tooltip top" style="top: -30px;"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div><input type="text" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="10" style="display: none;"></div></div></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="column-dropdown" role="button" data-toggle="dropdown" href="#">Column <b class="caret"></b></a>
+            <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="column-dropdown">
+                <li class="dropdown-submenu">
+                    <a href="#" tabindex="-1">Text align</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" tabindex="-1" class="marked" id="col_align_left">
+                            <i class="icon-fixed-width icon-align-left"></i> Left</a></li>
+                        <li><a href="#" tabindex="-1" id="col_align_center">
+                            <i class="icon-fixed-width icon-align-center"></i> Center</a></li>
+                        <li><a href="#" tabindex="-1" id="col_align_right">
+                            <i class="icon-fixed-width icon-align-right"></i> Right</a></li>
+                    </ul>
+                </li>
+
+                <li role="presentation" class="divider"></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="col_insert_left"><i class="icon-fixed-width icon-arrow-left"></i> Insert to the left</a></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="col_insert_right"><i class="icon-fixed-width icon-arrow-right"></i> Insert to the right</a></li>
+
+                <li role="presentation" class="divider"></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="col_remove"><i class="icon-fixed-width icon-trash"></i> Remove</a></li>
+            </ul>
+        </li>
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="row-dropdown" role="button" data-toggle="dropdown" href="#">Row <b class="caret"></b></a>
+            <ul id="menu2" class="dropdown-menu" role="menu" aria-labelledby="row-dropdown">
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="row_insert_above"><i class="icon-fixed-width icon-arrow-up"></i> Insert above</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="row_insert_below"><i class="icon-fixed-width icon-arrow-down"></i> Insert below</a></li>
+                <li role="presentation" class="divider"></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="row_remove"><i class="icon-fixed-width icon-trash"></i> Remove</a></li>
+            </ul>
+        </li>
+
+
+        <li class="dropdown">
+            <a class="dropdown-toggle" id="drop5" role="button" data-toggle="dropdown" href="#">Cell <b class="caret"></b></a>
+            <ul id="menu3" class="dropdown-menu" role="menu" aria-labelledby="drop5">
+
+                <li class="dropdown-submenu">
+                    <a href="#" tabindex="-1">Vertical align</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" tabindex="-1" id="vertical_align_top_btn">
+                            Top</a></li>
+                        <li><a href="#" tabindex="-1" class="marked" id="vertical_align_middle_btn">
+                            Middle</a></li>
+                        <li><a href="#" tabindex="-1" id="vertical_align_bottom_btn">
+                            Bottom</a></li>
+                    </ul>
+                </li>
+
+                <li role="presentation" class="divider"></li>
+
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="cell_merge">Merge cells</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="cell_split">Split cell</a></li>
+            </ul>
+        </li>
+
+        <li class="dropdown"><!-- Help menu -->
+            <a class="dropdown-toggle" id="file_item" role="button" data-toggle="dropdown" href="#">Help <b class="caret"></b></a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="file_item">
+                <li role="presentation"><a role="menuitem" tabindex="-1" href="#" id="show_help_item" data-toggle="modal" data-target="#quick_help_dialog">Quick help</a></li>
+
+                <li role="presentation">
+                    <a role="menuitem" tabindex="-1" href="/changelog">Changelog</a>
+                </li>
+            </ul>
+        </li><!-- Help menu -->
+
+        <li style="float: right;">
+            <a role="button" href="#" style="color: #F02311;" rel="tooltip" title="" id="show_example_btn" data-container="body" data-original-title="Shows an example table. Press CTRL+Z (or menu Edit / Undo) to go back to your table">Show an example table </a>
+        </li>
+    </ul>
+
+</div>
+
+<div id="generate_table_panel">
+    <button class="btn">
+        <i class="icon-cogs"></i> Generate
+    </button>
+    <div class="tab-gen-opt-box">
+        <label class="checkbox tab-gen-option">Do not generate CSS
+            <input type="checkbox"/>
+        </label>
+        <label class="checkbox tab-gen-option" title="Useful for embedding tables into e-mails - puts styles inline &amp; joins code into a single line">
+            Compact mode
+            <input type="checkbox"/>
+        </label>
+    </div>
+</div>
+
+<pre class="line-numbers  language-markup" title="Double click to select all"><code class="language-markup" id="result-code"></code></pre>
+
+
+<script type="text/javascript" charset="utf-8">
+
+    $(document).ready( function() {
+        $("#show_example_btn").bind("click",example);
+        $($("button.btn")[2]).bind("click",example);
+        var autosize = require('autosize');
+        autosize(document.querySelectorAll('textarea'));
+        $("#json-data-generate").bind("click",jsonExample);
+        $("#html-data-generate").bind("click",jsonExample);
+    });
+
+    var h = new TableModel;
+    h.insertRow([""]);
+    var b = new TableView(h, "#edited_table_example", {
+        column_resize_enabled: !0
+    });
+
+    function example() {
+        b.reset();
+        b.setTheme({
+            ColorTheme: "Violet",
+            BorderTheme: "All borders",
+            "Alternate Rows/Columns Theme": "Alternate rows"
+        });
+        var a = b.model;
+        var rows = ["Results     ".split(" "), "No Competition John Adam Robert Paul".split(" "), "1 Swimming 1:30 2:05 1:15 1:41".split(" "), "2 Running 15:30 14:10 15:45 16:00".split(" "), "3 Shooting 70% 55% 90% 88%".split(" ")];
+        var rows = [
+            ["demo","demo1"],
+            ["demo","demo1"]
+        ];
+        // First row is a table header
+        a.setRows(rows);
+
+        $("#example-result>pre").text(HTMLExport(b,true,false,"",["Array"]));
+        Prism.highlightElement($("#example-result>pre")[0]);
+//
+        // b 表格
+        // true 不生成 css
+        // false
+        // \n 格式化输出表格
+        // [""]
+        // HTMLExport(b,true,false,"\n",[""])
+        $("#result-code").text(HTMLExport(b,true,false,"\n",[""]));
+        Prism.highlightElement($("#result-code")[0]);
+    }
+
+    function jsonExample(){
+        b.reset();
+        b.setTheme({
+            ColorTheme: "Violet",
+            BorderTheme: "All borders",
+            "Alternate Rows/Columns Theme": "Alternate rows"
+        });
+        var a = b.model;
+        var rows = JSON.parse(document.getElementById("json-data").value);
+        // First row is a table header
+        a.setRows(rows);
+
+        $("#example-result>pre").text(HTMLExport(b,true,false,"",["Array"]));
+        Prism.highlightElement($("#example-result>pre")[0]);
+//
+        // b 表格
+        // true 不生成 css
+        // false
+        // \n 格式化输出表格
+        // [""]
+        // HTMLExport(b,true,false,"\n",[""])
+        $("#result-code").text(HTMLExport(b,true,false,"\n",[""]));
+        Prism.highlightElement($("#result-code")[0]);
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Transmission-Cli Use</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Transmission-Cli Use
+
+简介
+
+&amp;#160; &amp;#160;Transmission 是一种 BitTorrent 客户端，特点是一个跨平台的后端和其上的简洁的用户界面。
+
+安装步骤
+
+一、安装 epel-release 源
+
+```python
+yum install epel-release
+yum -y update
+```
+
+二、安装 Transmission
+
+```python
+yum install transmission-cli transmission-common transmission-daemon
+```
+
+安装完之后启动，查看一下状态：
+
+```python
+systemctl start transmission-daemon.service
+systemctl status transmission-daemon.service
+```
+
+三、修改配置文件
+
+```python
+systemctl stop transmission-daemon.service
+## (CentOS 5)
+vim /var/lib/transmission/.config/transmission-daemon/settings.json
+## (CentOS 6)
+vim /var/lib/transmission/settings.json
+```
+
+并且修改相应的参数：
+
+```javascript
+"rpc-authentication-required": true,
+"rpc-enabled": true,
+"rpc-password": "password",
+"rpc-username": "username",
+"rpc-whitelist-enabled": false
+```
+
+修改完成后启动服务
+
+```python
+systemctl start transmission-daemon.service
+```
+
+启动完成后，访问 Transmission
+
+Transmission 默认端口是 9091, 你可以通过 http://host:9091 的方式连接了。
+
+远程管理建议使用 Transmission-Remote-GUI
+
+使用
+
+```python
+transmission-cli ubuntu-14.10-desktop-amd64.iso.torrent
+```
+
+#### 使用 Geekery Repo 安装 Transmission
+
+##### Geekery Repo
+
+ - <a href="http://geekery.altervista.org/dokuwiki/doku.php" target="_blank">start [geekery]</a>
+
+##### 安装步骤
+
+```python
+## 添加 Geekery Repo 仓库
+rpm -ivh http://geekery.altervista.org/geekery/el6/x86_64/geekery-release-6-2.noarch.rpm
+
+## 安装 transmission-cli
+yum install -y transmission-cli
+```
+
+##### 查看 transmission-cli 配置文件
+
+```python
+## 配置文件
+/root/.config/transmission/settings.json
+
+{
+    "alt-speed-down": 50,
+    "alt-speed-enabled": false,
+    "alt-speed-time-begin": 540,
+    "alt-speed-time-day": 127,
+    "alt-speed-time-enabled": false,
+    "alt-speed-time-end": 1020,
+    "alt-speed-up": 50,
+    "bind-address-ipv4": "0.0.0.0",
+    "bind-address-ipv6": "::",
+    "blocklist-enabled": false,
+    "blocklist-url": "http://www.example.com/blocklist",
+    "cache-size-mb": 4,
+    "dht-enabled": true,
+    "download-dir": "/root/Downloads",
+    "download-queue-enabled": true,
+    "download-queue-size": 5,
+    "encryption": 1,
+    "idle-seeding-limit": 30,
+    "idle-seeding-limit-enabled": false,
+    "incomplete-dir": "/root/Downloads",
+    "incomplete-dir-enabled": false,
+    "lpd-enabled": false,
+    "message-level": 2,
+    "peer-congestion-algorithm": "",
+    "peer-id-ttl-hours": 6,
+    "peer-limit-global": 200,
+    "peer-limit-per-torrent": 50,
+    "peer-port": 51413,
+    "peer-port-random-high": 65535,
+    "peer-port-random-low": 49152,
+    "peer-port-random-on-start": false,
+    "peer-socket-tos": "default",
+    "pex-enabled": true,
+    "port-forwarding-enabled": true,
+    "preallocation": 1,
+    "prefetch-enabled": true,
+    "queue-stalled-enabled": true,
+    "queue-stalled-minutes": 30,
+    "ratio-limit": 2,
+    "ratio-limit-enabled": false,
+    "rename-partial-files": true,
+    "rpc-authentication-required": false,
+    "rpc-bind-address": "0.0.0.0",
+    "rpc-enabled": false,
+    "rpc-host-whitelist": "",
+    "rpc-host-whitelist-enabled": true,
+    "rpc-password": "{42e1cc5d4c910f82d4ccbb03707fcc6d0ae93f90FDdrI7WC",
+    "rpc-port": 9091,
+    "rpc-url": "/transmission/",
+    "rpc-username": "",
+    "rpc-whitelist": "127.0.0.1",
+    "rpc-whitelist-enabled": true,
+    "scrape-paused-torrents-enabled": true,
+    "script-torrent-done-enabled": false,
+    "script-torrent-done-filename": "",
+    "seed-queue-enabled": false,
+    "seed-queue-size": 10,
+    "speed-limit-down": 100,
+    "speed-limit-down-enabled": false,
+    "speed-limit-up": 100,
+    "speed-limit-up-enabled": false,
+    "start-added-torrents": true,
+    "trash-original-torrent-files": false,
+    "umask": 18,
+    "upload-slots-per-torrent": 14,
+    "utp-enabled": true
+}
+```
+
+#### Installing Transmission from source
+
+```python
+yum -y install openssl-devel curl-devel intltool gettext wget nano
+```
+
+##### Step 2. Install libevent 2.0 dependency.
+
+```python
+cd /usr/src
+wget https://github.com/downloads/libevent/libevent/libevent-2.0.21-stable.tar.gz
+tar zxvf libevent-2.0.21-stable.tar.gz
+cd libevent-2.0.21-stable
+./configure --prefix=/opt/libevent
+make
+make install
+```
+
+##### Step 3. Get and unpack Transmission.
+
+```python
+wget https://transmission.cachefly.net/transmission-2.84.tar.xz
+tar xvf transmission-2.84.tar.xz
+cd transmission-2.84
+export PKG_CONFIG_PATH=/opt/libevent/lib/pkgconfig
+./configure --prefix=/opt/transmission
+make
+make install
+```
+
+##### Step 4. Now we run it once to create the settings.json in ~ (home directory)
+
+```python
+transmission-daemon
+```
+
+##### Step 5. Kill the appending -HUP to force dump the settings.
+
+```python
+killall -HUP transmission-daemon
+```
+
+##### Step 6. OK now let’s edit the settings (to your liking) and don’t forget to save.
+
+```python
+#cd ~
+#nano .config/transmission-daemon/settings.json
+ 
+"rpc-authentication-required": true,
+"rpc-enabled": true,
+"rpc-password": "mypassword",
+"rpc-username": "mysuperlogin",
+"rpc-whitelist-enabled": false,
+```
+
+##### Step 7. Finally re-run transmission-daemon. It only needs to be run once and then you can access the web interface on the port you setup.
+
+```python
+transmission-daemon
+```
+
+##### Step 8. Accessing Transmission.
+
+Transmission will be available on HTTP port 9091 by default. Open your favorite browser and navigate to http://yourdomain.com:9091 or http://server-ip:9091. You should be greeted with the Transmission WebUI. After logging in, you will notice that the value for the rpc-password inside the settings.json file will be hashed. If you are using a firewall, please open port 80 to enable access to the control panel.
+
+You have successfully installed Transmission! Now, run the following command to view Transmission’s help guide:
+
+```python
+transmissioncli -h
+```
+
+Congratulation’s! You have successfully installed Transmission. Thanks for using this tutorial for installing Transmission BitTorrent Client on CentOS 6 system. For additional help or useful information, we recommend you to check the official Transmission web site.
+
+You Might Also Like: How To Install Transmission on Ubuntu 14.04
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

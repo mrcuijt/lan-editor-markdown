@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>tomcat-error</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### tomcat-error
+
+#### Apache Tomcat 文件包含漏洞
+
+ - 漏洞等级 高危
+
+ - CNND号 CNVD-2020-10487
+
+ - 漏洞简介
+
+ Tomcat 服务器是一个免费的开放源代码的 Web 应用服务器，属于轻量级应用服务器，在中小型系统和并发访问用户不是很多的场合下被普遍使用，是开发和调试 JSP 程序的首选。对于一个初学者来说，可以这样认为，当在一台机器上配置好 Apache 服务器，可利用它响应 HTML（标准通用标记语言下的一个应用）页面的访问请求。实际上 Tomcat 是 Apache 服务器的扩展，但运行时它是独立运行的，所以当你运行 tomcat 时，它实际上作为一个与 Apache 独立的进程单独运行的。
+
+ 根据 Tomcat 2020年02月04日 官方更新公告,  修复了一个影响tomcat全版本的安全漏洞, 根据现有情报显示, 该漏洞为 tomcat 默认开启的 AJP 服务(8009端口)上存在一处文件包含漏洞。
+
+ - 漏洞危害
+
+ 经斗象安全应急响应团队分析，当 Apache Tomcat 对外开启 AJP 服务时，远程攻击者可以通过精心构造的请求包进行文件包含操作，该问题会导致攻击者在受影响的 Apache Tomcat 服务器上进行 Web 目录文件读取。
+
+ - 影响范围2
+
+ Apache Tomcat 6
+
+ Apache Tomcat 7 < 7.0.100
+
+ Apache Tomcat 8 < 8.5.51
+
+ Apache Tomcat 9 < 9.0.31
+
+ - 漏洞复现 暂无复现过程
+
+ - 修复方案
+
+ 1.更新到安全版本
+
+  - Apache Tomcat 7.0.100
+
+  - Apache Tomcat 8.5.51
+
+  - Apache Tomcat 9.0.31
+
+ 2.关闭 AJP 服务，修改 Tomcat 配置文件 Service.xml,注释掉
+
+```xml
+<Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />
+```
+
+#### 参考资料
+
+ - https://vas.riskivy.com/ti?id=73
+
+ - http://tomcat.apache.org/
+
+ - https://www.cnvd.org.cn/flaw/show/CNVD-2020-10487
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
