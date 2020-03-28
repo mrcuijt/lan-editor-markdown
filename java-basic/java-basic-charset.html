@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-charset</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-charset
+
+##### 字符编码测试
+
+```textarea
+系统摘要
+OS 名称：Microsoft Windows 7 旗舰版
+版本：6.1.7601 Service Pack 1 内部版本 7601
+系统制造商：LENOVO
+系统模式：20250
+系统类型：x64-based PC
+处理器：Intel(R) Core(TM) i7-4710MQ CPU @ 2.50GHz，2501 Mhz，4 个内核，8 个逻辑处理器
+BIOS 版本/日期：LENOVO 7FCN96WW, 2014/5/12
+区域设置：中华人民共和国
+硬件抽象层：版本 = "6.1.7601.17514"
+时区：中国标准时间
+CHCP（活动代码页）： 936
+
+下表列出了所有支持的代码页及其国家(地区)或者语言： 
+代码页       国家(地区)或语言 
+437          美国 
+708          阿拉伯文(ASMO 708)
+720          阿拉伯文(DOS)
+850          多语言(拉丁文 I) 
+852          中欧(DOS) - 斯拉夫语(拉丁文 II) 
+855          西里尔文(俄语) 
+857          土耳其语 
+860          葡萄牙语 
+861          冰岛语 
+862          希伯来文(DOS)
+863          加拿大 - 法语 
+865          日耳曼语 
+866          俄语 - 西里尔文(DOS) 
+869          现代希腊语
+874          泰文(Windows)
+932          日文(Shift-JIS)
+936          中国 - 简体中文(GB2312)
+949          韩文
+950          繁体中文(Big5)
+1200         Unicode        
+1201         Unicode (Big-Endian)
+1250         中欧(Windows)
+1251         西里尔文(Windows)
+1252         西欧(Windows)
+1253         希腊文(Windows)
+1254         土耳其文(Windows)
+1255         希伯来文(Windows)
+1256         阿拉伯文(Windows)
+1257         波罗的海文(Windows)
+1258         越南文(Windows)
+20866        西里尔文(KOI8-R)
+21866        西里尔文(KOI8-U)
+28592        中欧(ISO)
+28593        拉丁文 3 (ISO)
+28594        波罗的海文(ISO)
+28595        西里尔文(ISO)
+28596        阿拉伯文(ISO)
+28597        希腊文(ISO)
+28598        希伯来文(ISO-Visual)
+38598        希伯来文(ISO-Logical)
+50000        用户定义的
+50001        自动选择
+50220        日文(JIS)
+50221        日文(JIS-允许一个字节的片假名)
+50222        日文(JIS-允许一个字节的片假名 - SO/SI)
+50225        韩文(ISO)
+50932        日文(自动选择)
+50949        韩文(自动选择)
+51932        日文(EUC)
+51949        韩文(EUC)
+52936        简体中文(HZ)
+
+65001        Unicode (UTF-8)
+```
+
+##### chcp 
+
+显示活动控制台代码页数量，或更改该控制台的活动控制台代码页。如果在没有参数的情况下使用，则 chcp 显示活动控制台代码页的数量。 
+
+ - 语法: chcp [nnn] 
+
+ - 参数: 指定代码页。
+
+注释
+
+只有随 Windows XP 一起安装原始设备制造商 (OEM) 代码页才能正确显示在使用光栅字体的命令提示窗口中。其他代码页则可在全屏幕模式下或者在使用 TrueType 字体的命令提示窗口中正确显示。 
+
+就像在 MS-DOS 中一样，您不必准备代码页。 
+
+启动指派了新代码页的程序将使用该新代码页，但如果是在程序(除了 Cmd.exe)启动之后才指派新代码页，则该程序将使用原来的代码页。 
+
+##### IDE:Eclipse
+
+```python
+-- listing properties --
+java.runtime.name=Java(TM) SE Runtime Environment
+sun.boot.library.path=F:\JDK\jdk1.7.0_67\jre\bin
+java.vm.version=24.65-b04
+java.vm.vendor=Oracle Corporation
+maven.multiModuleProjectDirectory=D:\development_tools\apache-maven-3.5.0
+java.vendor.url=http://java.oracle.com/
+path.separator=;
+java.vm.name=Java HotSpot(TM) Client VM
+file.encoding.pkg=sun.io
+user.script=
+user.country=CN
+sun.java.launcher=SUN_STANDARD
+sun.os.patch.level=Service Pack 1
+java.vm.specification.name=Java Virtual Machine Specification
+user.dir=D:\workspace\RunForm
+java.runtime.version=1.7.0_67-b01
+java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment
+java.endorsed.dirs=F:\JDK\jdk1.7.0_67\jre\lib\endorsed
+os.arch=x86
+java.io.tmpdir=C:\Users\ADMINI~1\AppData\Local\Temp\
+line.separator=
+ 
+java.vm.specification.vendor=Oracle Corporation
+user.variant=
+os.name=Windows 7
+sun.jnu.encoding=GBK
+java.library.path=F:\JDK\jdk1.7.0_67\bin;C:\Windows\Sun...
+java.specification.name=Java Platform API Specification
+java.class.version=51.0
+sun.management.compiler=HotSpot Client Compiler
+os.version=6.1
+user.home=C:\Users\Administrator
+user.timezone=
+java.awt.printerjob=sun.awt.windows.WPrinterJob
+file.encoding=UTF-8
+java.specification.version=1.7
+user.name=Administrator
+java.class.path=D:\workspace\RunForm\bin;D:\workspace...
+java.vm.specification.version=1.7
+sun.arch.data.model=32
+java.home=F:\JDK\jdk1.7.0_67\jre
+sun.java.command=science.mrcuijt.dicom.test.EncodingTest
+java.specification.vendor=Oracle Corporation
+user.language=zh
+awt.toolkit=sun.awt.windows.WToolkit
+java.vm.info=mixed mode
+java.version=1.7.0_67
+java.ext.dirs=F:\JDK\jdk1.7.0_67\jre\lib\ext;C:\Win...
+sun.boot.class.path=F:\JDK\jdk1.7.0_67\jre\lib\resources....
+java.vendor=Oracle Corporation
+file.separator=\
+java.vendor.url.bug=http://bugreport.sun.com/bugreport/
+sun.cpu.endian=little
+sun.io.unicode.encoding=UnicodeLittle
+```
+
+##### Terminal:cmd
+```python
+-- listing properties --
+java.runtime.name=Java(TM) SE Runtime Environment
+sun.boot.library.path=F:\JDK\jdk1.8.0_192\jre\bin
+java.vm.version=25.192-b12
+java.vm.vendor=Oracle Corporation
+java.vendor.url=http://java.oracle.com/
+path.separator=;
+java.vm.name=Java HotSpot(TM) 64-Bit Server VM
+file.encoding.pkg=sun.io
+user.script=
+user.country=CN
+sun.java.launcher=SUN_STANDARD
+sun.os.patch.level=Service Pack 1
+java.vm.specification.name=Java Virtual Machine Specification
+user.dir=D:\workspace\RunForm\bin
+java.runtime.version=1.8.0_192-b12
+java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment
+java.endorsed.dirs=F:\JDK\jdk1.8.0_192\jre\lib\endorsed
+os.arch=amd64
+java.io.tmpdir=C:\Users\ADMINI~1\AppData\Local\Temp\
+line.separator=
+ 
+java.vm.specification.vendor=Oracle Corporation
+user.variant=
+os.name=Windows 7
+sun.jnu.encoding=GBK
+java.library.path=F:\JDK\jdk1.8.0_192\bin;C:\Windows\Su...
+java.specification.name=Java Platform API Specification
+java.class.version=52.0
+sun.management.compiler=HotSpot 64-Bit Tiered Compilers
+os.version=6.1
+user.home=C:\Users\Administrator
+user.timezone=
+java.awt.printerjob=sun.awt.windows.WPrinterJob
+file.encoding=GBK
+java.specification.version=1.8
+user.name=Administrator
+java.class.path=.;F:\JDK\jdk1.8.0_192\lib\dt.jar;C:\U...
+java.vm.specification.version=1.8
+sun.arch.data.model=64
+java.home=F:\JDK\jdk1.8.0_192\jre
+sun.java.command=science.mrcuijt.dicom.test.EncodingTest
+java.specification.vendor=Oracle Corporation
+user.language=zh
+awt.toolkit=sun.awt.windows.WToolkit
+java.vm.info=mixed mode
+java.version=1.8.0_192
+java.ext.dirs=F:\JDK\jdk1.8.0_192\jre\lib\ext;C:\Wi...
+sun.boot.class.path=F:\JDK\jdk1.8.0_192\jre\lib\resources...
+java.vendor=Oracle Corporation
+file.separator=\
+java.vendor.url.bug=http://bugreport.sun.com/bugreport/
+sun.cpu.endian=little
+sun.io.unicode.encoding=UnicodeLittle
+sun.desktop=windows
+sun.cpu.isalist=amd64
+```
+
+<text>╔═══════════════════════════════╤═══════════════════════════════════╗
+║ 键                            │ 相关值的描述                      ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.version                  │ Java 运行时环境版本               ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.vendor                   │ Java 运行时环境供应商             ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.vendor.url               │ Java 供应商的 URL                 ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.home                     │ Java 安装目录                     ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.vm.specification.version │ Java 虚拟机规范版本               ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.vm.specification.vendor  │ Java 虚拟机规范供应商             ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.vm.specification.name    │ Java 虚拟机规范名称               ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.vm.version               │ Java 虚拟机实现版本               ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.vm.vendor                │ Java 虚拟机实现供应商             ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.vm.name                  │ Java 虚拟机实现名称               ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.specification.version    │ Java 运行时环境规范版本           ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.specification.vendor     │ Java 运行时环境规范供应商         ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.specification.name       │ Java 运行时环境规范名称           ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.class.version            │ Java 类格式版本号                 ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.class.path               │ Java 类路径                       ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.library.path             │ 加载库时搜索的路径列表            ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.io.tmpdir                │ 默认的临时文件路径                ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.compiler                 │ 要使用的 JIT 编译器的名称         ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ java.ext.dirs                 │ 一个或多个扩展目录的路径          ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ os.name                       │ 操作系统的名称                    ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ os.arch                       │ 操作系统的架构                    ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ os.version                    │ 操作系统的版本                    ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ file.separator                │ 文件分隔符（在 UNIX 系统中是“/”） ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ path.separator                │ 路径分隔符（在 UNIX 系统中是“:”） ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ line.separator                │ 行分隔符（在 UNIX 系统中是“/n”）  ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ user.name                     │ 用户的账户名称                    ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ user.home                     │ 用户的主目录                      ║
+╟───────────────────────────────┼───────────────────────────────────╢
+║ user.dir                      │ 用户的当前工作目录                ║
+╚═══════════════════════════════╧═══════════════════════════════════╝</text>
+
+```
+["键","相关值的描述"],
+["java.version","Java 运行时环境版本"],
+["java.vendor","Java 运行时环境供应商"],
+["java.vendor.url","Java 供应商的 URL"],
+["java.home","Java 安装目录"],
+["java.vm.specification.version","Java 虚拟机规范版本"],
+["java.vm.specification.vendor","Java 虚拟机规范供应商"],
+["java.vm.specification.name","Java 虚拟机规范名称"],
+["java.vm.version","Java 虚拟机实现版本"],
+["java.vm.vendor","Java 虚拟机实现供应商"],
+["java.vm.name","Java 虚拟机实现名称"],
+["java.specification.version","Java 运行时环境规范版本"],
+["java.specification.vendor","Java 运行时环境规范供应商"],
+["java.specification.name","Java 运行时环境规范名称"],
+["java.class.version","Java 类格式版本号"],
+["java.class.path","Java 类路径"],
+["java.library.path","加载库时搜索的路径列表"],
+["java.io.tmpdir","默认的临时文件路径"],
+["java.compiler","要使用的 JIT 编译器的名称"],
+["java.ext.dirs","一个或多个扩展目录的路径"],
+["os.name","操作系统的名称"],
+["os.arch","操作系统的架构"],
+["os.version","操作系统的版本"],
+["file.separator","文件分隔符（在 UNIX 系统中是“/”）"],
+["path.separator","路径分隔符（在 UNIX 系统中是“:”）"],
+["line.separator","行分隔符（在 UNIX 系统中是“/n”）"],
+["user.name","用户的账户名称"],
+["user.home","用户的主目录"],
+["user.dir","用户的当前工作目录"]
+```
+
+IDE:eclipse
+
+Encoding:UTF-8
+
+Line 10
+
+ - **UTF8 -> ASCII 不可映射字符 -> 63 -> ASCII (?)**
+ 
+  - **ASCII (???) -> 636363**
+ 
+  - **-> UTF8 -> 63 | 63 | 63**
+  
+  - **-> ??? length == 3**
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(iso_8859_1));
+        System.out.println(temp); // ???
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // 636363
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // 636363
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+Line 10
+
+ - **UTF8 -> GBK -> -67-86-64-10-60-56 | --> new String(byte[], "GBK") -> 姜丽娜**
+ 
+ - **-67-86-64-10-60-56 -> new String(byte[], "UTF8")**
+ 
+  - **不可映射字符 -17-65-67 | -17-65-67 | -17-65-67 | -17-65-67**
+  
+  - **-> ���� length == 4**
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(gb2312));
+        System.out.println(temp); // ����
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// 63636363
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // 63636363
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // -17-65-67-17-65-67-17-65-67-17-65-67
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+Line 10
+
+ - **UTF8 -> UTF8 -> -27-89-100-28-72-67-27-88-100**
+ 
+  - **-> -27-89-100 | -28-72-67 | -27-88-100 -> new String(byte[], "UTF8")**
+ 
+  - **姜丽娜**
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(utf8));
+        System.out.println(temp); // 姜丽娜
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+Line 10
+
+ - **UTF8 -> UTF8 -> -27-89-100-28-72-67-27-88-100**
+ 
+  - **-> ASCII -> -27-89-100-28-72-67-27-88-100**
+ 
+  - **-> -27 | -89 | -100 | -28 | -72 | -67 | -27 | -88 | -100**
+  
+  - **-> new String(byte[], "ISO-8859-1")**
+ 
+  - **å§œä¸½å¨ length == 8**
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(utf8), iso_8859_1);
+        System.out.println(temp); // å§œä¸½å¨
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// -27-89-100-28-72-67-27-88-100
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // 63-95-206363636363-95-8963
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // -61-91-62-89-62-100-61-92-62-72-62-67-61-91-62-88-62-100
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+Line 10
+
+ - **UTF8 -> GBK -> -67-86-64-10-60-56**
+ 
+  - **-> ASCII -> -67-86-64-10-60-56**
+ 
+  - **-> -67 | -86 | -64 | -10 | -60 | -56**
+  
+  - **-> new String(byte[], "ISO-8859-1")**
+ 
+  - **½ªÀöÄÈ¨ length == 6**
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(gb2312), iso_8859_1);
+        System.out.println(temp); // ½ªÀöÄÈ
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// -67-86-64-10-60-56
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // 636363636363
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // -62-67-62-86-61-128-61-74-61-124-61-120
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+Termainl:cmd
+
+Encoding:GBK
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(iso_8859_1));
+        System.out.println(temp); // ???
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // 636363
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // 636363
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(gb2312));
+        System.out.println(temp); // 姜丽娜
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(utf8));
+        System.out.println(temp); // 濮滀附濞?
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// 6363636363
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // -27-8963-72-67-27-8863
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // -26-65-82-26-69-128-23-103-124-26-65-98-17-65-67
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(utf8), iso_8859_1);
+        System.out.println(temp); // ?§?????¨?
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// -27-89-100-28-72-67-27-88-100
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // 63-95-206363636363-95-8963
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // -61-91-62-89-62-100-61-92-62-72-62-67-61-91-62-88-62-100
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+```java
+private static void demo3() {
+    String gb2312 = "GB2312";
+    String utf8 = "UTF-8";
+    String iso_8859_1 = "ISO-8859-1";
+    try {
+        String str2 = "姜丽娜";
+        System.out.println(concatBytes(str2.getBytes(iso_8859_1)));// 636363
+        System.out.println(concatBytes(str2.getBytes(gb2312)));    // -67-86-64-10-60-56
+        System.out.println(concatBytes(str2.getBytes(utf8)));      // -27-89-100-28-72-67-27-88-100
+        String temp = new String(str2.getBytes(gb2312), iso_8859_1);
+        System.out.println(temp); // ??????
+        System.out.println(concatBytes(temp.getBytes(iso_8859_1)));// -67-86-64-10-60-56
+        System.out.println(concatBytes(temp.getBytes(gb2312)));    // 636363636363
+        System.out.println(concatBytes(temp.getBytes(utf8)));      // -62-67-62-86-61-128-61-74-61-124-61-120
+    } catch (UnsupportedEncodingException e) {
+        e.printStackTrace();
+    }
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

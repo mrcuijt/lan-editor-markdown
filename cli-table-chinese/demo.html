@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+
+        textarea {
+            width: 100%;
+            overflow-x: scroll;
+            word-break: break-all;
+            word-wrap: break-word;
+            /*在ie中解决断行问题(防止自动变为在一行显示，主要解决ie兼容问题，ie8中当设宽度为100%时，文本域类容超过一行时，
+            当我们双击文本内容就会自动变为一行显示，所以只能用ie的专有断行属性“word-break或word-wrap”控制其断行)*/
+            white-space: pre !important;
+        }
+
+    </style>
+    <script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="cli-table-chinese.bundle.js"></script>
+    <script type="text/javascript" src="ansi-to-html.bundle.js"></script>
+    <script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+</head>
+<body>
+<textarea id="json-data">[
+            ["连接类型", "HQL语法"],
+            ["内连接", "inner join 或 join"],
+            ["迫切内连接", "inner join fetch 或 join fetch "],
+            ["左外连接", "left outer join 或 left join "],
+            ["迫切左外连接", "left outer join fetch 或 left join fetch"],
+            ["右外连接", "right outer join 或 right join"]
+        ]</textarea>
+<button id="json-data-btn">Generate</button>
+<div id="json-data-result"></div>
+<script type="text/javascript">
+    var autosize = require('autosize');
+    const Table = require('cli-table-chinese');
+    var Convert = require('ansi-to-html');
+    var convert = new Convert();
+    //        var table = new Table({
+    //            chars: { 'top': '═' , 'top-mid': '╤' , 'top-left': '╔' , 'top-right': '╗'
+    //                , 'bottom': '═' , 'bottom-mid': '╧' , 'bottom-left': '╚' , 'bottom-right': '╝'
+    //                , 'left': '║' , 'left-mid': '╟' , 'mid': '─' , 'mid-mid': '┼'
+    //                , 'right': '║' , 'right-mid': '╢' , 'middle': '│' }
+    //        });
+
+    var table = new Table({
+        chars: {
+            'top': '═',
+            'top-mid': '╤',
+            'top-left': '╔',
+            'top-right': '╗',
+            'bottom': '═',
+            'bottom-mid': '╧',
+            'bottom-left': '╚',
+            'bottom-right': '╝',
+            'left': '║',
+            'left-mid': '╟',
+            'mid': '─',
+            'mid-mid': '┼',
+            'right': '║',
+            'right-mid': '╢',
+            'middle': '│'
+        }
+    });
+
+    var rows =[
+        ["连接类型", "HQL语法"],
+        ["内连接", "inner join 或 join"],
+        ["迫切内连接", "inner join fetch 或 join fetch "],
+        ["左外连接", "left outer join 或 left join "],
+        ["迫切左外连接", "left outer join fetch 或 left join fetch"],
+        ["右外连接", "right outer join 或 right join"]
+    ];
+
+    var rows = [
+        ["日期类型","存储空间","日期格式","日期范围"],
+        ["datetime","8 bytes","YYYY-MM-DD HH:MM:SS","1000-01-01 00:00:00 ~ 9999-12-31 23:59:59"],
+        ["timestamp","4 bytes","YYYY-MM-DD HH:MM:SS","1970-01-01 00:00:01 ~ 2038"],
+        ["date","3 bytes","YYYY-MM-DD","1000-01-01          ~ 9999-12-31"],
+        ["year","1 bytes","YYYY","1901                ~ 2155"]
+    ];
+
+    rows.forEach(function (item, index) {
+        table.push(item);
+    });
+
+    console.log(table.toString());
+    // var pre = document.createElement("pre");
+    // pre.textContent = table.toString();
+    // document.write(pre.outerHTML);
+    // document.write(convert.toHtml(table.toString()));
+    document.write("<textarea>" + table.toString() + "</textarea>");
+
+
+    // table = new Table();
+
+    function generate() {
+        var table = new Table({
+            chars: {
+                'top': '═',
+                'top-mid': '╤',
+                'top-left': '╔',
+                'top-right': '╗',
+                'bottom': '═',
+                'bottom-mid': '╧',
+                'bottom-left': '╚',
+                'bottom-right': '╝',
+                'left': '║',
+                'left-mid': '╟',
+                'mid': '─',
+                'mid-mid': '┼',
+                'right': '║',
+                'right-mid': '╢',
+                'middle': '│'
+            }
+        });
+        var rows = JSON.parse(($("#json-data")[0]).value);
+        rows.forEach(function (item, index) {
+            table.push(item);
+        });
+        $("#json-data-result").html($("<textarea>").val(table.toString()));
+//        ($("#json-data-result")[0]).textContent = table.toString();
+        autosize(document.querySelectorAll("textarea"));
+    }
+
+    $(function () {
+        $("#json-data-btn").bind("click",generate);
+        autosize(document.querySelectorAll("textarea"));
+    });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Java Basic Static Proxy</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Java Basic Static Proxy
+
+##### 静态代理
+
+ - **`1、声明抽象角色（结婚接口）`**
+
+```java
+package com.accp.pattrer.staticproxy;
+ 
+import java.io.Serializable;
+ 
+/**
+ * pattrer:模式 静态代理模式
+ * 
+ * 抽象角色（结婚的接口）只有方法的定义没有方法的实现
+ * 
+ * @author Administrator
+ * 
+ */
+public interface Wedding extends Serializable {
+ 
+    /**
+     * 结婚的功能
+     */
+    public void getMarry();
+}
+```
+
+ - **`2、创建真实角色，实现 Wedding 接口`**
+
+```java
+package com.accp.pattrer.staticproxy;
+ 
+/**
+ * 真实角色
+ * 
+ * @author Administrator
+ * 
+ */
+public class RealRole implements Wedding {
+ 
+    // 用户名
+    private String userName = null;
+    public RealRole() {
+ 
+    }
+    public RealRole(String userName) {
+        this.userName = userName;
+    }
+    @Override
+    public void getMarry() {
+        System.out.println(userName + "结婚！");
+    }
+ 
+    public String getUserName() {
+        return userName;
+    }
+ 
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+ 
+}
+```
+
+ - **`3、创建代理角色，实现 Wedding 接口`**
+ 
+  - **在代理角色中定义真实角色属性**
+  - **getMarry() 函数通过，调用真实角色的 getMarry() 方法完成实现。**
+  - **还可以在调用真实角色实例之前/之后，完成额外的操作。**
+
+```java
+package com.accp.pattrer.staticproxy;
+ 
+/**
+ * 代理角色
+ * 
+ * @author Administrator
+ * 
+ */
+public class ProxyRole implements Wedding {
+ 
+    private RealRole realRole = null;// 真实角色
+ 
+    public ProxyRole() {
+ 
+    }
+ 
+    /**
+     * 在创建代理角色的时候将真实角色带入
+     * 
+     * @param realRole
+     */
+    public ProxyRole(RealRole realRole) {
+        this.realRole = realRole;
+    }
+ 
+    /**
+     * 在事件执行之前做某些事(婚前准备)
+     */
+    public void before() {
+        System.out.println("准备婚车");
+        System.out.println("准备酒店");
+    }
+ 
+    /**
+     * 
+     */
+    @Override
+    public void getMarry() {
+        before();// 在事件执行之前做某些事
+        realRole.getMarry();// 调用真实角色执行事件。
+        after(); // 在事件执行之之后做某些事
+    }
+ 
+    /**
+     * 在事件执行之之后做某些事(婚后打理)
+     */
+    public void after() {
+        System.out.println("闹洞房！");
+        System.out.println("打扫 ");
+    }
+ 
+}
+```
+
+ - **`4、运行测试`**
+ 
+  - **创建真实角色**
+  - **通过真实角色，创建代理角色，得到真实角色的抽象代理对象**
+  - **抽象代理对象内部，通过真实角色完成任务**
+
+```java
+package test;
+ 
+import java.io.Serializable;
+ 
+import com.accp.pattrer.staticproxy.ProxyRole;
+import com.accp.pattrer.staticproxy.RealRole;
+import com.accp.pattrer.staticproxy.Wedding;
+ 
+/**
+ * @author Administrator
+ * 
+ */
+public class TestStaticProxy implements Serializable {
+ 
+    /**
+     * @param args
+     */
+    public static void main(String[] args) {
+        RealRole realrole = new RealRole();// 创建真实对象
+        realrole.setUserName("ZhangSan");
+        Wedding proxy = new ProxyRole(realrole);// 创建代理对象
+        proxy.getMarry();
+    }
+ 
+}
+```
+
+##### 动态代理
+
+ - **`1、创建抽象角色`**
+
+```java
+package com.accp.pattrer.dynamicproxy;
+ 
+import java.io.Serializable;
+ 
+/**
+ * 抽象对象
+ * 
+ * @author Administrator
+ * 
+ */
+public interface BuyCar extends Serializable {
+ 
+    /**
+     * 购买车辆
+     */
+    public void Buy();
+}
+```
+
+ - **`2、创建真实角色`**
+
+```java
+package com.accp.pattrer.dynamicproxy;
+ 
+/**
+ * @author Administrator
+ * 
+ */
+public class RealRole implements BuyCar {
+ 
+    String name = null;
+ 
+    public RealRole(String name) {
+        this.name = name;
+    }
+ 
+    @Override
+    public void Buy() {
+        System.out.println(name + "购买。");
+    }
+ 
+}
+```
+
+ - **`3、创建动态代理调度处理器`**
+
+```java
+package com.accp.pattrer.dynamicproxy;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+
+/**
+ * 调用处理器
+ * 
+ * @author Administrator
+ * 
+ */
+public class BuyCarHandler implements InvocationHandler {
+ 
+    // 真实对象
+    Object real = null;
+ 
+    public BuyCarHandler(Object real) {
+        this.real = real;
+    }
+ 
+    public void before() {
+        System.out.println("在调用真实对象的方法之前执行");
+    }
+ 
+    public void after() {
+        System.out.println("在调用真实对象的方法之后执行");
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args)
+            throws Throwable {
+        before();
+        Object object = method.invoke(real, args);
+        after();
+        return object;
+    }
+ 
+}
+```
+
+ - **`4、运行测试`**
+ 
+  - **通过真实角色，创建实现抽象角色**
+  - **通过抽象角色，创建动态代理调度器**
+  - **通过动态代理调度器，创建动态代理对象**
+  - **代理对象内部，通过真实角色完成任务。**
+  - **同时还可以在调用真实角色实例之前/之后，完成额外的操作。**
+
+```java
+package test;
+ 
+import java.io.Serializable;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Proxy;
+ 
+import com.accp.pattrer.dynamicproxy.BuyCar;
+import com.accp.pattrer.dynamicproxy.BuyCarHandler;
+import com.accp.pattrer.dynamicproxy.RealRole;
+ 
+/**
+ * @author Administrator
+ * 
+ */
+public class TestDynamicProxy implements Serializable {
+ 
+    public static void main(String[] args) {
+ 
+        BuyCar real = new RealRole("真实");
+ 
+        InvocationHandler handler = new BuyCarHandler(real);
+ 
+        BuyCar proxy = (BuyCar) Proxy.newProxyInstance(
+                ClassLoader.getSystemClassLoader(),
+                new Class[] { BuyCar.class }, handler);
+ 
+        proxy.Buy();
+ 
+    }
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

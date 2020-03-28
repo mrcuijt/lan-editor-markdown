@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate Pool</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Hibernate5 四种数据源配置
+
+##### 1.需要知道的：
+
+ 1. ```DBCP``` 在 hibernate3 中以及不再被支持了，由于作者提出过 bug，后续版本没有加入对其的支持。
+
+ 2. 推荐使用 ```proxool```，负面新闻最少的连接池。
+
+ 3. 下面的图显示了，Hibernate 数据源的四种，分别是 ```C3p0、JDBC、JNDI、Proxool```，下面分别做解析。
+
+![](./images/hibernate-pool/pool-001.png)
+
+##### C3p0：
+
+```xml
+<property name="hibernate.connection.driver_class">org.gjt.mm.mysql.Driver</property>
+<property name="hibernate.connection.password">root</property>
+<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hibernate</property>
+<property name="hibernate.connection.username">root</property>
+<property name="hibernate.default_catalog">hibernate</property>
+<property name="hibernate.default_schema">testdb</property>
+<property name="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
+<property name="hibernate.show_sql">true</property>
+<property name="hibernate.format_sql">true</property>
+<property name="hibernate.hbm2ddl.auto">create</property>
+<property name="connection.useUnicode">true</property>
+<property name="connection.characterEncoding">UTF-8</property>
+<!-- C3P0连接池配置 -->
+<property name="hibernate.connection.provider_class">org.hibernate.c3p0.internal.C3P0ConnectionProvider</property>
+<property name="hibernate.c3p0.max_size">20</property>
+<property name="hibernate.c3p0.min_size">5</property>
+<property name="hibernate.c3p0.timeout">120</property>
+<property name="hibernate.c3p0.max_statements">100</property>
+<property name="hibernate.c3p0.idle_test_period">120</property>
+<property name="hibernate.c3p0.acquire_increment">2</property>
+```
+
+##### JDBC：
+
+&#160; &#160;在没有做任何配置的情况下，默认就是 ***```JDBC```*** 由 Hibernate 自发完成对数据库连接的创建
+
+```xml
+<property name="hibernate.connection.driver_class">org.gjt.mm.mysql.Driver</property>
+<property name="hibernate.connection.password">root</property>
+<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/hibernate</property>
+<property name="hibernate.connection.username">root</property>
+<property name="hibernate.default_catalog">hibernate</property>
+<property name="hibernate.default_schema">testdb</property>
+<property name="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
+<property name="hibernate.show_sql">true</property>
+<property name="hibernate.format_sql">true</property>
+<property name="hibernate.hbm2ddl.auto">create</property>
+<property name="connection.useUnicode">true</property>
+<property name="connection.characterEncoding">UTF-8</property>
+```
+
+##### JNDI：
+
+&#160; &#160;JNDI 是 Java 命名和目录接口（Java Naming and Directory Interface，JNDI）的简称.从一开始就一直是 JavaEE 企业的核心技术之一。在 JMS，JMail,JDBC,EJB 等技术中，就大量应用的这种技术。
+
+ - 修改 ***```conf/server.xml```*** 文件，在 GlobalNamingResources 节点中添加
+ 
+```xml
+<Resource name="jdbc/bookshop" auth="Container"
+          scope="jdbc/bookshop"
+          type="javax.sql.DataSource"
+          driverClassName="com.mysql.jdbc.Driver"
+          url="jdbc:mysql://192.168.1.2:3306/bookshop"
+          username="root"
+          password="lu123"
+          maxActive="50"
+          maxIdle="30"
+          maxWait="10000" />
+```
+
+ - 修改 ***```conf/context.xml```*** 文件，在 Context 节点中添加引用，最后还需要重启一下 tomcat 服务
+
+```xml
+<ResourceLink global="jdbc/bookshop" 
+              name="jdbc/bookshop" 
+              auth="Container" 
+              type="javax.sql.DataSource"/>
+```
+
+ - ***```hibernate.cfg.xml```*** 配置文件中加入 JNDI 的配置即可
+ 
+```xml
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+  <session-factory>
+    <!--<property name="connection.url">jdbc:mysql://192.168.1.2:3306/bookshop</property>-->
+    <!--<property name="connection.driver_class">com.mysql.jdbc.Driver</property>-->
+    <!--<property name="connection.username">root</property>-->
+    <!--<property name="connection.password">lu123</property>-->
+
+    <!-- JNDI -->
+    <property name="connection.datasource">java:comp/env/jdbc/bookshop</property>
+
+    <property name="hbm2ddl.auto">update</property>
+    <property name="show_sql">true</property>
+    <property name="format_sql">true</property>
+
+    <property name="dialect">org.hibernate.dialect.MySQL5Dialect</property>
+
+    <property name="hibernate.current_session_context_class">thread</property>
+
+
+    <mapping resource="Users.hbm.xml"/>
+
+  </session-factory>
+</hibernate-configuration>
+```
+
+##### Proxool（推荐）：
+
+主配置文件： hibernate.cfg.xml
+
+```xml
+<!-- proxool代理连接器 在hibernate.cfg.xml 加入 -->
+<property name="hibernate.connection.provider_class">org.hibernate.proxool.internal.ProxoolConnectionProvider</property>
+<property name="hibernate.proxool.pool_alias">DBPool</property>
+<property name="hibernate.proxool.xml">proxoolconf.xml</property>
+```
+
+次要配置文件：proxoolconf.xml
+
+```xml
+<!--   新建 proxoolconf.xml      -->
+ <?xml version="1.0" encoding="UTF-8"?>
+<!-- the proxool configuration can be embedded within your own application's. 
+    Anything outside the "proxool" tag is ignored. -->
+<something-else-entirely>
+    <proxool>
+        <!--连接池的别名 -->
+        <alias>DBPool</alias>
+        <!-- proxool只能管理由自己产生的连接 -->
+        <driver-url>
+            jdbc:mysql://localhost:3306/hibernate?useUnicode=true&amp;characterEncoding=UTF8
+        </driver-url>
+        <!-- JDBC驱动程序 -->
+        <driver-class>com.mysql.jdbc.Driver</driver-class>
+        <driver-properties>
+            <property name="user" value="root" />
+            <property name="password" value="root" />
+        </driver-properties>
+        <!-- proxool自动侦察各个连接状态的时间间隔(毫秒),侦察到空闲的连接就马上回 收,超时的销毁 -->
+        <house-keeping-sleep-time>90000</house-keeping-sleep-time>
+        <!-- 指因未有空闲连接可以分配而在队列中等候的最大请求数,超过这个请求数的 用户连接就不会被接受 -->
+        <maximum-new-connections>20</maximum-new-connections>
+        <!-- 最少保持的空闲连接数 -->
+        <prototype-count>5</prototype-count>
+        <!-- 允许最大连接数,超过了这个连接，再有请求时，就排在队列中等候，最大的 等待请求数由maximum-new-connections决定 -->
+        <maximum-connection-count>100</maximum-connection-count>
+        <!-- 最小连接数 -->
+        <minimum-connection-count>10</minimum-connection-count>
+    </proxool>
+</something-else-entirely>      
+```
+
+参考链接：
+
+<a href="https://www.cnblogs.com/dgwblog/p/9669086.html" target="_blank">Hibernate5 四种数据源配置</a>
+ 
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

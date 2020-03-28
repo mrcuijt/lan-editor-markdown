@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Message Digest</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Message Digest
+
+#### 消息摘要算法介绍
+
+ - `消息摘要`（Message Digest）又称为数字摘要（Digital Digest），它由一个单向 Hash 加密函数对消息进行作用而产生，消息摘要能够保证消息的完整性。
+
+ - `算法`：md5、sha1、sha256。
+ 
+#### 消息摘要特点
+
+ - 加密后不可逆
+ 
+ - 消息摘要的结果是`固定长度`，无论你的数据有多大，即使一个 G 的文件，摘要结果都是定长。
+ 
+ - 应用场景：加密用户登录注册密码。
+
+#### 消息摘要 MD5 使用
+
+```java
+import javax.crypto.*;
+import javax.crypto.spec.*;
+ 
+import java.security.*;
+import java.security.spec.*;
+
+import java.util.*;
+
+import java.io.*;
+
+/**
+ * 消息摘要工具类：核心类 MessageDigest
+ *
+ */
+public class MessageDigestUtil{
+ 
+  public static String bencode(byte[] bytes){
+    return Base64.getEncoder().encodeToString(bytes);
+  }
+ 
+  public static byte[] bdecode(String input){
+    return Base64.getDecoder().decode(input);
+  }
+
+  /**
+   * 转成 16 进制字符串
+   * @param input byte 数组
+   * @return result 16 进制字符串
+   */
+  public static String toHex(byte[] input){
+
+    StringBuilder strb = new StringBuilder();
+    // 转成 16 进制字符串
+    for(byte b : input){
+      int value = b & 0xff; // 转成 16 进制
+      String hexString = Integer.toHexString(value);
+      // 十六进制字符串长度不是 2 位数前面补 0 
+      if(hexString.length() == 1){
+        strb.append(0);
+      }
+      strb.append(hexString);
+    }
+    return strb.toString();
+  }
+
+  /**
+   * MD5 加密
+   * 1. 密文长度 16 字节
+   * 2. 转成 16 进制后 32 字节
+   * @param input 需要加密的数据
+   * @return result 16 进制字符串
+   */
+  public static String md5(String input){
+    try{
+      // 创建消息摘要对象
+      MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+      byte[] md5 = messageDigest.digest(input.getBytes());
+      return toHex(md5);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public static void main(String[] args){
+    String input = "";
+    String hexString = md5();
+    System.out.println(hexString);
+    System.out.println("MD5 值长度：" + hexString.length());
+  }
+}
+```
+
+#### 获取文件 MD5 值
+
+ - 使用 md5 对文件摘要
+ 
+ - 应用场景：文件唯一性、病毒判断
+ 
+```java
+import javax.crypto.*;
+import javax.crypto.spec.*;
+ 
+import java.security.*;
+import java.security.spec.*;
+
+import java.util.*;
+
+import java.io.*;
+
+/**
+ * 消息摘要工具类：核心类 MessageDigest
+ *
+ */
+public class MessageDigestUtil{
+ 
+  public static String bencode(byte[] bytes){
+    return Base64.getEncoder().encodeToString(bytes);
+  }
+ 
+  public static byte[] bdecode(String input){
+    return Base64.getDecoder().decode(input);
+  }
+
+  /**
+   * 转成 16 进制字符串
+   * @param input byte 数组
+   * @return result 16 进制字符串
+   */
+  public static String toHex(byte[] input){
+
+    StringBuilder strb = new StringBuilder();
+    // 转成 16 进制字符串
+    for(byte b : input){
+      int value = b & 0xff; // 转成 16 进制
+      String hexString = Integer.toHexString(value);
+      // 十六进制字符串长度不是 2 位数前面补 0 
+      if(hexString.length() == 1){
+        strb.append(0);
+      }
+      strb.append(hexString);
+    }
+    return strb.toString();
+  }
+
+  /**
+   * MD5 加密
+   * 1. 密文长度 16 字节
+   * 2. 转成 16 进制后 32 字节
+   * @param input 需要加密的数据
+   * @return result 16 进制字符串
+   */
+  public static String md5(String input){
+    try{
+      // 创建消息摘要对象
+      MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+      byte[] md5 = messageDigest.digest(input.getBytes());
+      return toHex(md5);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * 读取文件 MD5 摘要
+   * 1. 密文长度 16 字节
+   * 2. 转成 16 进制后 32 字节
+   * @param filePath 文件路径
+   * @return result 16 进制字符串
+   */
+  public static String md5File(String filePath){
+    try{
+      FileInputStream fis = new FileInputStream(filePath);
+      byte[] buffer = new byte[1024];
+      int len = 0;
+      // Byte 数组输出流
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      while((len = fis.read(buffer,0,buffer.length)) != -1){
+        baos.write(buffer,0,len);
+      }
+      // 创建消息摘要对象
+      MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+      byte[] md5 = messageDigest.digest(baos.toByteArray());
+      return toHex(md5);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public static void main(String[] args){
+    String input = "";
+    String hexString = md5();
+    System.out.println(hexString);
+    System.out.println("MD5 值长度：" + hexString.length());
+  }
+}
+```
+
+#### 消息摘要 sha1 和 sha256 的使用
+
+ - 消息摘要其他算法：sha1 和 sha256 
+ 
+ - 对字符串和文件摘要
+
+```java
+import javax.crypto.*;
+import javax.crypto.spec.*;
+ 
+import java.security.*;
+import java.security.spec.*;
+
+import java.util.*;
+
+import java.io.*;
+
+/**
+ * 消息摘要工具类：核心类 MessageDigest
+ *
+ */
+public class MessageDigestUtil{
+ 
+  public static String bencode(byte[] bytes){
+    return Base64.getEncoder().encodeToString(bytes);
+  }
+ 
+  public static byte[] bdecode(String input){
+    return Base64.getDecoder().decode(input);
+  }
+
+  /**
+   * 转成 16 进制字符串
+   * @param input byte 数组
+   * @return result 16 进制字符串
+   */
+  public static String toHex(byte[] input){
+
+    StringBuilder strb = new StringBuilder();
+    // 转成 16 进制字符串
+    for(byte b : input){
+      int value = b & 0xff; // 转成 16 进制
+      String hexString = Integer.toHexString(value);
+      // 十六进制字符串长度不是 2 位数前面补 0 
+      if(hexString.length() == 1){
+        strb.append(0);
+      }
+      strb.append(hexString);
+    }
+    return strb.toString();
+  }
+
+  /**
+   * SHA1 加密
+   * 1. 密文长度 20 字节
+   * 2. 转成 16 进制后 40 字节
+   * @param input 需要加密的数据
+   * @return result 16 进制字符串
+   */
+  public static String sha1(String input){
+    try{
+      // 消息摘要 2 部曲
+      // 1. 创建 MessageDigest 消息摘要
+      // 2. 调用 digest 方法
+      MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+      byte[] digest = messageDigest.digest(input.getBytes());
+      String hex = toHex(digest);
+      return hex;
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * 读取文件 SHA1 摘要
+   * 1. 密文长度 20 字节
+   * 2. 转成 16 进制后 40 字节
+   * @param filePath 文件路径
+   * @return result 16 进制字符串
+   */
+  public static String sha1File(String filePath){
+    try{
+      FileInputStream fis = new FileInputStream(filePath);
+      byte[] buffer = new byte[1024];
+      int len = 0;
+      // Byte 数组输出流
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      while((len = fis.read(buffer,0,buffer.length)) != -1){
+        baos.write(buffer,0,len);
+      }
+      // 创建消息摘要对象
+      MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+      byte[] digest = messageDigest.digest(baos.toByteArray());
+      return toHex(digest);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * SHA256 加密
+   * 1. 密文长度 32 字节
+   * 2. 转成 16 进制后 64 字节
+   * @param input 需要加密的数据
+   * @return result 16 进制字符串
+   */
+  public static String sha256(String input){
+    try{
+      // 消息摘要 2 部曲
+      // 1. 创建 MessageDigest 消息摘要
+      // 2. 调用 digest 方法
+      MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+      byte[] digest = messageDigest.digest(input.getBytes());
+      String hex = toHex(digest);
+      return hex;
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * 读取文件 SHA256 摘要
+   * 1. 密文长度 32 字节
+   * 2. 转成 16 进制后 64 字节
+   * @param filePath 文件路径
+   * @return result 16 进制字符串
+   */
+  public static String sha256File(String filePath){
+    try{
+      FileInputStream fis = new FileInputStream(filePath);
+      byte[] buffer = new byte[1024];
+      int len = 0;
+      // Byte 数组输出流
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      while((len = fis.read(buffer,0,buffer.length)) != -1){
+        baos.write(buffer,0,len);
+      }
+      // 创建消息摘要对象
+      MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+      byte[] digest = messageDigest.digest(baos.toByteArray());
+      return toHex(digest);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * MD5 加密
+   * 1. 密文长度 16 字节
+   * 2. 转成 16 进制后 32 字节
+   * @param input 需要加密的数据
+   * @return result 16 进制字符串
+   */
+  public static String md5(String input){
+    try{
+      // 创建消息摘要对象
+      MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+      byte[] md5 = messageDigest.digest(input.getBytes());
+      return toHex(md5);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * 读取文件 MD5 摘要
+   * 1. 密文长度 16 字节
+   * 2. 转成 16 进制后 32 字节
+   * @param filePath 文件路径
+   * @return result 16 进制字符串
+   */
+  public static String md5File(String filePath){
+    try{
+      FileInputStream fis = new FileInputStream(filePath);
+      byte[] buffer = new byte[1024];
+      int len = 0;
+      // Byte 数组输出流
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      while((len = fis.read(buffer,0,buffer.length)) != -1){
+        baos.write(buffer,0,len);
+      }
+      // 创建消息摘要对象
+      MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+      byte[] md5 = messageDigest.digest(baos.toByteArray());
+      return toHex(md5);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public static void main(String[] args){
+    String input = "";
+    String hexString = md5(input);
+    System.out.println(hexString);
+    System.out.println("MD5 值长度：" + hexString.length());
+
+    String sha1 = sha1(input);
+    System.out.println(sha1);
+    System.out.println("SHA1 值长度：" + sha1.length());
+    String sha256 = sha256(input);
+    System.out.println(sha256);
+    System.out.println("SHA256 值长度：" + sha256.length());
+  }
+}
+```
+
+#### 总结 sha1 和 sha256
+
+ - sha1：摘要结果 20 个字节，转 16 进制 40 个字节
+ 
+ - sha256：摘要结果 32 个字节，转 16 进制 64 个字节
+ 
+ - md5：摘要结果 16 个字节，转 16 进制 32 个字节
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

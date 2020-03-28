@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DevTest Java Agent</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+#### DevTest Java Agent
+
+
+&amp;#160; &amp;#160;DevTest Java Agent 是一种服务器端技术，可以安装在 Java 进程中，包括 Java EE 容器。该代理使 DevTest 能够控制和监视服务器端活动。
+
+&amp;#160; &amp;#160;代理可以执行大多数分析器所执行的操作：监视加载的类/对象，CPU 使用情况，内存使用情况，线程，跟踪方法调用等。但是，代理程序可以在多个 Java 虚拟机上运行，​​并与 DevTest 一起使用，为测试带来独特的功能。
+
+&amp;#160; &amp;#160;特别是，代理提供了对测试或测试步骤导致服务器在幕后执行的操作的可见性。此功能可以帮助识别错误和瓶颈。此功能类似于 CA Continuous Application Insight 的功能。但是，它适用于 Java 应用程序使用的所有协议，无需检测任何代码甚至任何配置文件。
+
+&amp;#160; &amp;#160;该代理还支持 CA Service Virtualization。该代理可以跨协议记录和重放流量和方法调用。该代理使 CA Service Virtualization 完全控制您要虚拟化的目标应用程序的区域。无论协议如何，代理都提供了一个统一的框架来完成此功能。
+
+本节包含以下页面：
+
+ - Java 代理体系结构
+ - Java 代理安装
+ - 启动经纪人
+ - rules.xml 文件
+ - 添加拦截方法
+ - 从拦截和虚拟化中排除
+ - Java 代理自动响应生成
+ - Java 代理 REST API
+ - 针对 Java 代理进行开发
+ - Java 代理扩展
+ - 负载均衡器和本机 Web 服务器
+ - Java 代理安全性
+ - Java 代理日志文件
+ - Java 代理故障排除
+
+#### Java 代理体系结构
+
+DevTest Java Agent 是一种 Java 代理。
+
+&amp;#160; &amp;#160;Java 代理程序是嵌入在 Java 虚拟机（JVM）中的程序。这些程序可以设计为支持许多功能，例如收集有关正在运行的应用程序的信息或虚拟化应用程序的各个部分。
+
+&amp;#160; &amp;#160;在下图中，大容器表示 JVM。JVM 包括一个代理和类加载器，它在运行时加载 Java 类文件。云表示 Java 应用程序加载的资源。
+
+![title](./images/dev-test/dev-test-001.png)
+
+&amp;#160; &amp;#160;代理程序打包在 JAR 文件中。必须使用 JAR 文件的路径配置 JVM。从 Java 1.5 开始，您使用以 -javaagent 开头的字符串来指定路径和任何选项。例如：
+
+```python
+-javaagent:C:\myagent.jar=option1=true,option2=false 
+```
+
+单个 JVM 可以包含多个代理。
+
+#### Java 代理组件
+
+DevTest Java Agent 具有以下组件：
+
+ - 代理本身，它嵌入在 Java 进程中
+ 
+ - 经纪人
+ 
+ - 控制台（或客户端）
+ 
+ - 数据库
+
+&amp;#160; &amp;#160;该经纪人是分派剂，控制台和嵌入式客户机之间的Java消息服务（JMS）消息的轮毂。
+
+&amp;#160; &amp;#160;嵌入式客户端跟踪网络范围/代理跨越属性，例如代理集，其开放队列或当前网络连接。因此，嵌入式客户端可以将部分交易数据组合成完整的交易，以使控制台受益。
+
+&amp;#160; &amp;#160;组装数据后，数据将被发送到控制台（短期）并持久保存到数据库以进行长期存储。
+
+&amp;#160; &amp;#160;此文档忽略了区别，并将嵌入式客户端称为代理。
+
+&amp;#160; &amp;#160;该游戏机从代理（如果近期）和数据库（如果以上）用于显示和用户交互得到他们的最终数据。控制台不需要是 GUI 组件。控制台包括 DevTest 工作站，VSE 和模拟器。
+
+&amp;#160; &amp;#160;如果代理程序和代理程序位于不同的计算机上，请确保同步系统时间。
+
+##### 最大交易规模
+
+&amp;#160; &amp;#160;默认情况下，代理可以处理的最大事务是 16 MB。如果代理接收的事务超过 16 MB，则代理会丢弃该事务。
+
+&amp;#160; &amp;#160;“事务大小限制”属性是一个代理属性，可用于更改最大大小。例如，如果您期望更大的交易，则可以增加尺寸。您可以从 DevTest 门户的 “代理” 窗口配置此属性。该值以字节数表示。```rules.xml``` 文件中此属性的名称是 ```lisa.broker.transaction.max.size```。
+
+#### Java 代理数据流
+
+下图显示了 Java 代理组件及其交互方式。
+
+![title](./images/dev-test/Java-agent-components-and-interactions.png)
+
+以下 Java 消息服务（JMS）目标指定数据流：
+
+ - 所述 lisa.agent.info 主题承载在连接 1 和 2 中，由代理产生并由代理和控制台消耗。此主题允许代理和控制台查看当前在线的代理以及它们的基本属性。
+ 
+ - 所述 lisa.agent.port 主题承载在连接 1，由代理产生并由代理消耗。此主题允许代理查看多个代理程序之间当前处于活动状态的连接。
+ 
+ - 所述 lisa.agent.api 主题承载在连接 1 和 2 中，所生产的游戏机和消耗（并回答）由代理。本主题允许控制台通过 JMS 调用代理 API。
+ 
+ - 所述 lisa.broker.api 主题承载在连接 2，所生产的游戏机和消耗（并回答）由代理。本主题允许控制台通过JMS调用代理API。
+ 
+ - 所述 lisa.stats 主题承载在连接 1 和 2 中，由代理产生并由代理和控制台消耗。本主题为控制台提供了代理当前所处负载类型的概念。本主题还允许代理将这些内容持久保存到数据库中。
+ 
+ - 所述 lisa.vse 主题承载在连接 1 和 2 中，由代理产生和消耗由控制台。启用 VSE 后，控制台将接收 VSE 帧（并在播放模式下回复它们）。
+ 
+ - 所述 lisa.tx.partial 队列承载在连接 1，由代理产生并由代理消耗。当代理捕获部分事务（其 JVM 中发生的所有帧）时，代理会将其发送到代理进行汇编。
+ 
+ - 所述 lisa.tx.full 主题承载在连接 2 ，由代理产生和消耗由控制台。当代理完成组装通过 lisa.tx.partial 接收的部分事务时，代理将完整事务发送到控制台。
+ 
+ - 所述 lisa.tx.incomplete 主题承载在连接 2，由代理产生和消耗由控制台。此主题与 lisa.tx.full 类似，但用于在允许的超时内未完全完成的事务。
+ 
+ - 代理保存 StatsFrame 对象或完全组装的 TransactionFrame 对象时使用 JDBC 连接 3 。
+ 
+ - 控制台使用 JDBC 连接 4 对不再保留在内存中的事务或统计信息执行查询。
+
+&amp;#160; &amp;#160;代理，代理和控制台的启动顺序无关紧要，因为所有通信都是异步的，可以自动重新建立。例如，这个概念对于代理商避免性能问题尤为重要，因为代理商会出现故障。
+
+&amp;#160; &amp;#160;当代理程序联机时，代理程序会定期，间隔地开始通过 lisa.agent.info 主题发送其信息。
+
+&amp;#160; &amp;#160;如果代理不可用，则在建立或重新建立连接之前，代理不会尝试通知任何侦听器。
+
+&amp;#160; &amp;#160;如果经纪人可用，则所有相关方都会很快收到在线代理的通知。代理和控制台保留这些代理的运行列表。当他们停止发送信息时，他们会在一段时间后过期并从列表中删除。
+
+#### Java 代理数据库架构
+
+代理自动为 DevTest Java 代理创建数据库模式。
+
+&amp;#160; &amp;#160;要手动创建模式，请从 LISA_HOME \ database  目录中的以下文件之一获取 DDL 语句  ：
+
+ - db2_cai.ddl
+ 
+ - derby_cai.ddl
+ 
+ - mysql_cai.ddl
+ 
+ - oracle_cai.ddl
+ 
+ - sqlserver_cai.ddl
+
+获取 DDL 语句的另一种方法是运行以下命令：
+
+```python
+## 
+java -jar LisaAgent.jar -ddl <oracle|sqlserver|mysql|derby|db2> <output-file-name>
+```
+
+如果不包含文件名，则 DDL 语句仅显示在命令行上。
+
+通常，您出于安全性或流程原因或可能的迁移或文档问题手动创建架构。
+
+#### Java 代理数据类别
+
+DevTest Java 代理可以捕获以下类别的数据：
+
+ - Client
+ 
+ - EJB
+ 
+ - GUI (AWT, Swing, SWT)
+ 
+ - Java
+ 
+ - JCA
+ 
+ - JDBC
+ 
+ - JMS
+ 
+ - Logging
+ 
+ - REST
+ 
+ - RMI
+ 
+ - SAP
+ 
+ - Thread: a synthetic frame that shows stitching across threads
+ 
+ - Throwable
+ 
+ - TIBCO ActiveMatrix BusinessWorks
+ 
+ - webMethods Integration Server
+ 
+ - WebSphere MQ
+ 
+ - Web (HTTP/S)
+ 
+ - Web service
+
+#### Java 代理安装
+
+本节介绍如何安装 DevTest Java 代理。
+
+DevTest Java Agent 有两个版本：
+
+ - 纯 Java 代理
+ 
+ - 本地代理
+
+纯 Java 代理没有与平台相关的代码。
+
+本机代理需要依赖于平台的库模块。
+
+您可以 从 DevTest 门户下载 DevTest Java Agent 文件。 
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-beans-xmlencoder</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-beans-xmlencoder
+
+XMLEncoder is designed to work on JavaBeans. It implies that all your objects in the serialization tree must:
+
+ - have a public default (i.e. no-argument) constructor
+
+ - have a getter and a setter for each property you want to serialize (a getter for serialization and a setter for deserialization).
+
+As a side note, if you want to keep the getter/setter but **don't want** to serialize the attribute, things get slightly more complicated with the use of introspection:
+
+```java
+// let's get the BeanInfo of class MyClass
+BeanInfo info = Introspector.getBeanInfo(MyClass.class);
+
+// we'll work with PropertyDescriptors to prevent the bar attribute from being serialized
+PropertyDescriptor[] propertyDescriptors = info.getPropertyDescriptors();
+for (PropertyDescriptor descriptor : propertyDescriptors) {
+   if (descriptor.getName().equals("bar")) {
+      //the correct PropertyDescriptor is set to transient. 
+      //Note that you actually have to do this via the BeanInfo/PropertyDescriptor for it to work
+      descriptor.setValue("transient", Boolean.TRUE);
+   }
+}
+```
+
+Agreed. A particularly common problem is when attempting to encode an object A that contains as a member an object B which does not have a public default (no-argument) constructor. In that case, B will not show up in the encoded version.
+
+**XMLEncoder works by cloning the object graph and recording the steps that were necessary to create the clone. This way XMLEncoder has a "working copy" of the object graph that mimics the steps XMLDecoder would take to decode the file. By monitoring the state of this working copy, the encoder is able to omit operations that would set property values to their default value, producing concise documents with very little redundant information.**
+
+**XMLEncoder 的工作原理是克隆对象图并记录创建克隆所需的步骤。这样，XMLEncoder 具有对象图的"工作副本"，该副本模仿 XMLDecder 解码文件的步骤。通过监视此工作副本的状态，编码器能够省略将属性值设置为其默认值的操作，从而生成包含很少冗余信息的简洁文档。**
+
+So, in your example, if the values of `myObject` and `anotherObject` are set on the `instance` variable instead of being initialized as default, everything works as expected.
+
+因此，在您的示例中，如果在实例变量上设置了 myObject 和另一个 Object 的值，而不是初始化为默认值，则一切按预期方式工作。
+
+I am trying to serialize my object to an xml file, the problem is that some of the instance variables of this object are not written in the xml file. I don't know why are they ignored and how to get the serialize method to write every variable in the xml file. I have noticed that when I set (using the setter) some of these variables are more likely to be written in xml file.
+
+What I am asking:
+
+ - 1- I want to know why some of the instance variables are not written inside the XML file when their Object is serialized.
+
+ - 2- How to enforce all instance variables of my object to be written into the file, when I serialize that object to XML.
+
+Two things worth noting:
+
+ - 1、XMLEncoder does not look at private fields. It only looks at matching pairs of 'get' and 'set' methods (or 'is' and 'set' methods). You have a getNullableState method but the set-method does not match; you should rename setNullable to setNullableState.
+
+ - 2、XMLEncoder only writes values for properties which are different from their initial state. The initial state of each property is whatever value it has when the object is initially constructed.
+
+So, one way to force a property value to be written is to make sure it has a value that's different from what it had when the object was constructed.
+
+If you want to always write XML for every property, you may want to consider using <a href="http://docs.oracle.com/javase/7/docs/api/javax/xml/bind/JAXB.html" target="_blank">JAXB</a> instead of XMLEncoder.
+
+Example：
+
+```java
+package science.mrcuijt.util;
+
+import java.beans.XMLEncoder;
+import java.beans.XMLDecoder;
+
+import java.io.File;
+import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+public class EntitySerial<T> {
+
+  public File encode(Object obj, String fileName) throws IOException{
+    try {
+      File file = new File(fileName);
+      XMLEncoder e = new XMLEncoder(
+                            new BufferedOutputStream(
+                                new FileOutputStream(file)));
+      e.writeObject(obj);
+      e.close();
+      return file;
+    } catch(FileNotFoundException e){
+      throw new IOException(e);
+    }
+  }
+
+  public T decode(String file) throws IOException {
+    try {
+      XMLDecoder d = new XMLDecoder(
+                            new BufferedInputStream(
+                                new FileInputStream(file)));
+      Object result = d.readObject();
+      d.close();
+      return (T)result;
+    } catch(FileNotFoundException e){
+      throw new IOException(e);
+    }
+  }
+
+}
+```
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/8617021/xml-serialisation-only-serialize-one-field" target="_blank">XML Serialisation only Serialize one Field</a>
+
+ - <a href="https://stackoverflow.com/questions/20306992/serialize-object-to-xml-in-java-ignores-some-variable-fields-of-my-object" target="_blank">Serialize Object To XML in java ignores some variable fields of my object</a>
+
+ - <a href="https://community.oracle.com/thread/1300083" target="_blank">XMLEncoder on a singleton class</a>
+
+ - <a href="https://community.oracle.com/thread/1300068" target="_blank">XML-Encoder ignores classes that have a Enum as property. Why?</a>
+
+ - <a href="https://www.programcreek.com/java-api-examples/?api=java.beans.PersistenceDelegate" target="_blank">Java Code Examples for java.beans.PersistenceDelegate</a>
+
+ - <a href="https://dzone.com/articles/javabeans-xml-no-libraries" target="_blank">JavaBeans to XML, With No Libraries</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

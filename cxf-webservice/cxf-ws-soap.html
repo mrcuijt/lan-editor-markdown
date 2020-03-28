@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CXF WS SOAP</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+***```SOAP WebService Server End```***
+
+***```applicationContext.xml```***
+```xml
+<!-- 引入cxf的配置文件 3.1 版本（含义上）-->
+<!-- 低版本的 CXF 需要引入 3 个配置文件，并且对 Android 的支持并不是很好 -->
+<import resource="classpath:META-INF/cxf/cxf.xml" />
+<!-- 扫描webservice的类包生成service的bean -->
+<context:component-scan base-package="cn.jbit.mhpay.ws"></context:component-scan>
+ 
+ 
+<!-- WebService 服务器端安全验证的拦截器 -->
+<bean id="securityVerifyInterceptor" class="cn.jbit.mhpay.ws.SecurityVerifyInterceptor"></bean>
+ 
+ 
+<!-- 发布webservice：commonWService /ws/common -->
+<!-- 
+    id 要发布的 WebService 的名称（是用不到的，可以不写）
+    implementor Spring Bean 的 id 前面加一个‘#’号
+    address 发布的地址，加上 webservice 的命名空间，组成完整的的访问路径
+    publish 确认发布
+ -->
+<jaxws:endpoint id="commonWService" implementor="#commonWServiceImpl"
+    address="/common" publish="true">
+</jaxws:endpoint>
+ 
+<!-- 发布webservice：payWService /ws/pay -->
+<jaxws:endpoint id="payWService" implementor="#payWServiceImpl"
+    address="/pay" publish="true">
+    <!-- 
+    <jaxws:inInterceptors>
+        <bean class="cn.jbit.mhpay.ws.SecurityVerifyInterceptor"></bean>
+        <ref bean="securityVerifyInterceptor" />
+    </jaxws:inInterceptors> 
+    -->
+    <!-- 配置 WebService 服务请求验证的拦截器 -->
+    <jaxws:inInterceptors>
+        <ref bean="securityVerifyInterceptor"/>
+    </jaxws:inInterceptors>
+</jaxws:endpoint>
+```
+
+***```CommonWService.java```***
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-7-22 上午9:38:47
+ * @author：崔旧涛
+ */
+package cn.jbit.mhpay.ws;
+
+import java.io.Serializable;
+
+import javax.jws.WebParam;
+import javax.jws.WebResult;
+import javax.jws.WebService;
+
+/**
+ * 公共业务（无安全验证）
+ * 
+ * 创建时间：2016-7-22 上午9:38:47
+ * 
+ * @author 崔旧涛
+ * 
+ */
+@WebService(serviceName = "CommonWService", targetNamespace = "http://www.moshco.cn/mhpay/ws")
+public interface CommonWService extends Serializable {
+
+	// 问好
+	@WebResult(name = "sayHello")
+	public String sayHello(
+			@WebParam(name = "CommonWService", targetNamespace = "http://www.moshco.cn/mhpay/ws") String trueName);
+
+	@WebResult(name = "getUserTotalMoney")
+	public String getUserTotalMoney(
+			@WebParam(name = "CommonWService", targetNamespace = "http://www.moshco.cn/mhpay/ws") String userName);
+
+}
+```
+
+***```CommonWServiceImpl.java```***
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-7-22 上午9:43:12
+ * @author：崔旧涛
+ */
+package cn.jbit.mhpay.ws;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jws.WebService;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Component;
+
+import cn.jbit.mhpay.entity.UserAccount;
+
+/**
+ * 
+ * 
+ * 创建时间：2016-7-22 上午9:43:12
+ * 
+ * @author 崔旧涛
+ * 
+ */
+@WebService(targetNamespace = "http://www.moshco.cn/mhpay/ws")
+@Component("commonWServiceImpl")
+public class CommonWServiceImpl extends MhpayBaseWService implements
+		CommonWService {
+
+	Logger logger = Logger.getLogger(CommonWServiceImpl.class);
+
+	/**
+	 * 
+	 * 
+	 * 
+	 * 开发时间：2016-7-22 上午9:47:55
+	 * 
+	 * @author：崔旧涛
+	 * @param trueName
+	 * @return
+	 */
+	@Override
+	public String sayHello(String trueName) {
+
+		String message = "你好，" + trueName + "！";
+
+		logger.info("=====================================");
+		logger.info("\r\n");
+		logger.info(message);
+		logger.info("\r\n");
+		logger.info("=====================================");
+
+		// 返回函数值
+		return message;
+	}
+
+	@Override
+	public String getUserTotalMoney(String userName) {
+
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("userName", userName);
+		UserAccount account = mhpayBaseService.findUserAccount(map);
+
+		if (account != null) {
+			return account.getTotalMoney();
+		}
+
+		return "用户不存在。";
+	}
+}
+```
+
+***```PayWService.java```***
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-7-22 上午9:56:54
+ * @author：崔旧涛
+ */
+package cn.jbit.mhpay.ws;
+
+import java.io.Serializable;
+import java.util.Map;
+
+import javax.jws.WebParam;
+import javax.jws.WebResult;
+import javax.jws.WebService;
+
+import cn.jbit.mhpay.entity.UserAccount;
+
+/**
+ * 支付业务（需要安全验证）
+ * 
+ * 创建时间：2016-7-22 上午9:56:54
+ * 
+ * @author 崔旧涛
+ * 
+ */
+@WebService(name = "PayWService", targetNamespace = "http://www.moshco.cn/mhpay/ws")
+public interface PayWService extends Serializable {
+
+	// 找寻 UserAccount 记录 - WebResult 不支持方法的重载
+	@WebResult(name = "findUserAccountResult")
+	UserAccount findUserAccount(
+			@WebParam(name = "userAccountId", targetNamespace = "http://www.moshco.cn/mhpay/ws") Integer accountId);
+
+	// 分页查询：交易记录
+	@WebResult(name = "queryPaginationTradeOrderRecordResult")
+	PaginationTradeOrderRecord queryPaginationTradeOrderRecord(
+			@WebParam(name = "pageIndex", targetNamespace = "http://www.moshco.cn/mhpay/ws") Integer pageIndex,
+			@WebParam(name = "pageSize", targetNamespace = "http://www.moshco.cn/mhpay/ws") Integer pageSize,
+			@WebParam(name = "userAccountId", targetNamespace = "http://www.moshco.cn/mhpay/ws") Map<String, Object> queryParamMap);
+
+}
+```
+
+***```PayWServiceImpl.java```***
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-7-22 上午9:57:54
+ * @author：崔旧涛
+ */
+package cn.jbit.mhpay.ws;
+
+import java.util.Date;
+import java.util.Map;
+
+import javax.jws.WebService;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.springframework.stereotype.Component;
+
+import cn.jbit.mhpay.entity.UserAccount;
+
+/**
+ * 支付业务（需要安全验证）
+ * 
+ * 创建时间：2016-7-22 上午9:57:54
+ * 
+ * @author 崔旧涛
+ * 
+ */
+@WebService(targetNamespace = "http://www.moshco.cn/mhpay/ws")
+@Component("payWServiceImpl")
+public class PayWServiceImpl extends AdminWService implements PayWService {
+
+	/**
+	 * 找寻用户账号
+	 * 
+	 * 开发时间：2016-7-25 上午11:14:21
+	 * 
+	 * @author：崔旧涛
+	 * @param userAccountId
+	 * @return
+	 */
+	@Override
+	public UserAccount findUserAccount(Integer userAccountId) {
+
+		UserAccount userAccount = baseService.find(UserAccount.class,
+				userAccountId);
+
+		// 返回函数值
+		return userAccount;
+	}
+
+	/**
+	 * 分页查询：交易记录
+	 * 
+	 * 
+	 * 开发时间：2016-8-4 下午12:22:20
+	 * 
+	 * @author：崔旧涛
+	 * @param pageIndex
+	 * @param pageSize
+	 * @param queryParam
+	 * @return
+	 */
+	@Override
+	public PaginationTradeOrderRecord queryPaginationTradeOrderRecord(
+			Integer pageIndex, Integer pageSize, Map<String, Object> queryParam) {
+
+
+		if(queryParam.get("tradeTime1") != null
+				&& queryParam.get("tradeTime2") != null){
+			// 读取日期区间值
+			XMLGregorianCalendar dt1 = (XMLGregorianCalendar)queryParam.get("tradeTime1");
+			XMLGregorianCalendar dt2 = (XMLGregorianCalendar)queryParam.get("tradeTime2");
+			
+			// 类型转换
+			Date dateTime1 = dt1.toGregorianCalendar().getTime();
+			Date dateTime2 = dt2.toGregorianCalendar().getTime();
+			
+			// 重新设置回去
+			queryParam.put("tradeTime1", dateTime1);
+			queryParam.put("tradeTime2", dateTime2);	
+		}
+		
+		// 分页查询：交易记录
+		Object[] aryPagination = mhpayBaseService
+				.queryPaginationTradeRecord(queryParam, pageIndex,
+						pageSize);
+
+		// 构建成 WebService 支持传输的数据类型
+		PaginationTradeOrderRecord pargination = new PaginationTradeOrderRecord(
+				aryPagination);
+
+		// 返回函数值
+		return pargination;
+	}
+
+}
+```
+
+***```PaginationTradeOrderRecord.xml```***
+
+与 ```PaginationTradeOrderRecord.java``` 放在同目录下
+
+此文件命名为 WebService 的接口名.aegis.xml,并与接口放在同一目录
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings xmlns:my="http://my.bjvsp.tongtech.com">
+	<mapping name="my:PaginationAlipayOrderRecord">
+		<property name="totalRecord" componentType="java.lang.Integer"></property>
+		<property name="currentPageList" componentType="cn.jbit.mhpay.entity.AlipayOrderRecord"></property>
+	</mapping>
+</mappings>
+```
+
+***```PaginationTradeOrderRecord.java```***
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-8-4 下午12:06:16
+ * @author：崔旧涛
+ */
+package cn.jbit.mhpay.ws;
+
+import java.io.Serializable;
+import java.util.List;
+
+import cn.jbit.mhpay.entity.TradeRecord;
+
+/**
+ * 交易记录分页查询结果
+ * 
+ * 创建时间：2016-8-4 下午12:06:16
+ * 
+ * @author 崔旧涛
+ * 
+ */
+public class PaginationTradeOrderRecord implements Serializable {
+
+	// 总记录数
+	protected Integer totalRecord = null;
+
+	// 当前页列表
+	protected List<TradeRecord> currentPageList = null;
+
+	/**
+	 * 
+	 * 构造函数
+	 * 
+	 * 开发时间：2016-8-4 下午12:08:51
+	 * 
+	 * @author：崔旧涛
+	 */
+	public PaginationTradeOrderRecord() {
+	}
+
+	/**
+	 * 
+	 * 构造函数
+	 * 
+	 * 开发时间：2016-8-4 下午12:08:46
+	 * 
+	 * @author：崔旧涛
+	 * @param aryPagination
+	 */
+	public PaginationTradeOrderRecord(Object[] aryPagination) {
+
+		// 总记录数
+		totalRecord = (Integer) aryPagination[0];
+
+		// 当前页列表
+		currentPageList = (List<TradeRecord>) aryPagination[1];
+
+	}
+
+	/**
+	 * @return the totalRecord
+	 */
+	public Integer getTotalRecord() {
+		return totalRecord;
+	}
+
+	/**
+	 * @param totalRecord the totalRecord to set
+	 */
+	public void setTotalRecord(Integer totalRecord) {
+		this.totalRecord = totalRecord;
+	}
+
+	/**
+	 * @return the currentPageList
+	 */
+	public List<TradeRecord> getCurrentPageList() {
+		return currentPageList;
+	}
+
+	/**
+	 * @param currentPageList the currentPageList to set
+	 */
+	public void setCurrentPageList(List<TradeRecord> currentPageList) {
+		this.currentPageList = currentPageList;
+	}
+}
+```
+
+***```SecurityVerifyInterceptor.java```***
+```java
+/**
+ * 
+ */
+package cn.jbit.mhpay.ws;
+
+import java.util.List;
+import java.util.logging.Logger;
+
+import javax.xml.soap.SOAPException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.cxf.binding.soap.SoapMessage;
+import org.apache.cxf.headers.Header;
+import org.apache.cxf.interceptor.Fault;
+import org.apache.cxf.phase.AbstractPhaseInterceptor;
+import org.apache.cxf.phase.Phase;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import cn.jbit.mhpay.entity.SysUser;
+import cn.jbit.mhpay.service.MhpayBaseService;
+
+/**
+ * 服务器端安全验证的拦截器
+ * 
+ * 
+ * 创建时间：2016-8-8 下午12:03:05
+ * 
+ * @author 崔旧涛
+ * 
+ */
+public class SecurityVerifyInterceptor extends
+		AbstractPhaseInterceptor<SoapMessage> {
+
+	// 创建日志对象
+	public static final Logger logger = Logger
+			.getLogger(SecurityVerifyInterceptor.class.getName());
+
+	@Autowired
+	@Qualifier("mhpayBaseService")
+	protected MhpayBaseService mhpayBaseService = null;
+
+	// 命名空间
+	protected static final String NAMESPACE_URI = "http://www.moshco.cn/mhpay/ws";
+
+	// 头元素名 [此元素是固定格式的]
+	protected static final String ELEMENT_HEADER = "soap:Header";
+
+	// 安全验证的元素名 [以下元素的值可以自定义，但是前缀格式要求统一]
+	protected static final String ELEMENT_AUTHENTIATION = "authentication";
+
+	// 项目Id 的元素名
+	protected static final String ELEMENT_APPID = "appId";
+
+	// 项目的账号元素名
+	protected static final String ELEMENT_USER_NAME = "userName";
+
+	// 项目的密码元素名
+	protected static final String ELEMENT_PASSWORD = "password";
+
+	/**
+	 * 
+	 * 构造函数
+	 * 
+	 * 开发时间：2016-8-8 下午12:04:15
+	 * 
+	 * @author：崔旧涛
+	 */
+	public SecurityVerifyInterceptor() {
+		// 在调用 WebService 服务接口之前，进行拦截器验证
+		super(Phase.PRE_INVOKE);
+	}
+
+	/**
+	 * 业务实现 - 如果这个方法抛出了 Fault 异常，就代表验证不通过，如果没有抛出异常，就表示验证通过
+	 * 
+	 * 
+	 * 开发时间：2016-8-8 下午12:04:21
+	 * 
+	 * @author：崔旧涛
+	 * @param message_从客户端传递过来的_SoapMessage_对象
+	 * @throws Fault
+	 */
+	@Override
+	public void handleMessage(SoapMessage message) throws Fault {
+
+		logger.info("payWService 接收到一个调用请求......");
+
+		// 获取头列表
+		List<Header> headerList = message.getHeaders();
+		logger.info(headerList.toString());
+		logger.info(headerList.size() + "");
+
+		if (headerList == null || headerList.size() <= 0) {
+			throw new Fault(new SOAPException("没有设置安全验证的头信息。"));
+		}
+
+		// 头元素
+		Element headerElement = null;
+
+		// 找寻安全验证的头元素
+		Element authentiactionElement = null;
+		for (Header header : headerList) {
+			// 头元素
+			headerElement = (Element) header.getObject();
+
+			// 读取节点类别
+			NodeList nodeList = headerElement.getElementsByTagNameNS(
+					NAMESPACE_URI, ELEMENT_AUTHENTIATION);
+
+			// 读取安全验证的头元素
+			if (nodeList != null && nodeList.getLength() > 0) {
+				authentiactionElement = (Element) nodeList.item(0);
+				break;
+			}
+		}
+		// 没有安全验证的元素
+		if (headerList == null || headerList.size() <= 0) {
+			throw new Fault(new SOAPException("没有设置安全验证的元素。"));
+		}
+
+		// 打印头元素
+		printNode(headerElement);
+
+		// 项目id
+		NodeList projectIdNodeList = authentiactionElement
+				.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT_APPID);
+
+		// 读取项目Id的元素
+		Element projectIdElement = null;
+		if (projectIdNodeList != null && projectIdNodeList.getLength() > 0) {
+			projectIdElement = (Element) projectIdNodeList.item(0);
+		}
+
+		if (projectIdElement == null) {
+			throw new Fault(new SOAPException("没有设置项目Id的元素：（" + ELEMENT_APPID
+					+ ")"));
+		}
+
+		// 读取项目Id
+		Integer projectId = null;
+		try {
+			String projectIdStr = projectIdElement.getTextContent();
+			projectId = Integer.parseInt(projectIdStr);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new Fault(new SOAPException("无效的项目Id：（"
+					+ projectIdElement.getTextContent() + ")"));
+		}
+
+		// 用户名
+		NodeList userNameNodeList = authentiactionElement
+				.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT_USER_NAME);
+
+		// 读取账号元素
+		Element userNameElement = null;
+		if (userNameNodeList != null && userNameNodeList.getLength() > 0) {
+			userNameElement = (Element) userNameNodeList.item(0);
+		}
+
+		if (userNameElement == null) {
+			throw new Fault(new SOAPException("没有设置账号元素：（" + ELEMENT_USER_NAME
+					+ ")"));
+		}
+
+		// 读取账号名
+		String userName = userNameElement.getTextContent();
+		// 账号不能为空
+		if (userName == null || userName.equals("")) {
+
+			throw new Fault(new SOAPException("账号不能为空"));
+		}
+
+		// 找寻账号对象
+		SysUser user = mhpayBaseService.findSysUser(projectId, userName, 1);
+
+		if (user == null) {
+			throw new Fault(new SOAPException("不存在对应账号（ProjectId：" + projectId
+					+ "userName：" + userName + "）"));
+		}
+
+		// 密码
+		NodeList passwordNodeList = authentiactionElement
+				.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT_PASSWORD);
+
+		// 找寻密码元素
+		Element passwordElement = null;
+		if (passwordNodeList != null && passwordNodeList.getLength() > 0) {
+			passwordElement = (Element) passwordNodeList.item(0);
+		}
+
+		if (passwordElement == null || passwordElement.equals("")) {
+			throw new Fault(new SOAPException("没有设置密码的元素（" + ELEMENT_PASSWORD
+					+ "）"));
+		}
+
+		// 读取密码
+		String password = passwordElement.getTextContent();
+		if (password == null || password.equals("")) {
+			throw new Fault(new SOAPException("密码（" + ELEMENT_PASSWORD
+					+ "）的值不能为空。"));
+		}
+
+		// 比对密码
+		if (!password.equalsIgnoreCase(user.getPassword())) {
+			throw new Fault(new SOAPException("密码错误。"));
+		}
+
+		logger.info("WebService 安全验证通过。");
+	}
+
+	/**
+	 * 打印节点对象
+	 * 
+	 * 
+	 * 开发时间：2016-8-9 上午8:54:06
+	 * 
+	 * @author：崔旧涛
+	 * @param node
+	 */
+	public static void printNode(Node node) {
+
+		try {
+
+			// 构建转换工厂
+			TransformerFactory factory = TransformerFactory.newInstance();
+			//
+			Transformer transformer = factory.newTransformer();
+			transformer.setOutputProperty("encoding", "utf-8");
+			transformer.setOutputProperty("indent", "yes");
+
+			// 构建 Dom 源
+			DOMSource source = new DOMSource();
+			source.setNode(node);
+
+			// 构建输出流
+			StreamResult result = new StreamResult();
+			result.setOutputStream(System.out);
+
+			// 转换输出
+			transformer.transform(source, result);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+```
+
+***```SOAP WebService Client End```***
+
+***```applicationContext.xml```***
+```xml
+<!-- WebService 安全验证的拦截器-->
+<bean id="client.securityVerifyInterceptor" class="cn.jbit.mhpay.ws.SecurityVerifyInterceptor"></bean>
+
+<!-- 配置 web service 的工厂Bean： CommonWService -->
+<!--
+    注意：
+        一个 WebService工厂Bean 只对应一个 WebService接口的代理对象
+    class：org.apache.cxf.jaxws.JaxWsProxyFactoryBean
+    注入属性：serviceClass = cn.jbit.mhpay.ws.CommonWService （接口类的全限定类名）
+    注入属性：address = http://localhost:8080/MHPayV4.0E1/ws/common?wsdl （WS服务端，开放接口调用的路径）
+-->
+<bean id="wscommonWServiceFactoryBean" class="org.apache.cxf.jaxws.JaxWsProxyFactoryBean">
+    <property name="serviceClass" value="cn.jbit.mhpay.ws.CommonWService"></property>
+    <property name="address" value="${wservice.url.common}"></property>
+</bean>
+ 
+<!-- 通过工厂Bean，创建 WebService 的代理对象 -->
+<bean id="commonWService" class="cn.jbit.mhpay.ws.CommonWService"
+    factory-bean="wscommonWServiceFactoryBean" factory-method="create"></bean>
+ 
+<!-- 配置 web service 的工厂Bean： PayWService -->
+<bean id="wspayWServiceFactoryBean" class="org.apache.cxf.jaxws.JaxWsProxyFactoryBean">
+    <property name="serviceClass" value="cn.jbit.mhpay.ws.PayWService"></property>
+    <property name="address" value="${wservice.url.pay}"></property>
+    <property name="outInterceptors">
+        <ref bean="client.securityVerifyInterceptor"/>
+    </property>
+</bean> 
+ 
+<!-- 通过工厂Bean，创建 WebService 的代理对象 -->
+<bean id="payWService" class="cn.jbit.mhpay.ws.PayWService"
+    factory-bean="wspayWServiceFactoryBean" factory-method="create"></bean>
+```
+
+***```CommonWService.java```***
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-7-22 上午9:38:47
+ * @author：崔旧涛
+ */
+package cn.jbit.mhpay.ws;
+
+import java.io.Serializable;
+
+import javax.jws.WebParam;
+import javax.jws.WebResult;
+import javax.jws.WebService;
+
+/**
+ * 公共业务（无安全验证）
+ * 
+ * 创建时间：2016-7-22 上午9:38:47
+ * 
+ * @author 崔旧涛
+ * 
+ */
+@WebService(serviceName = "CommonWService", targetNamespace = "http://www.moshco.cn/mhpay/ws")
+public interface CommonWService extends Serializable {
+
+	// 问好
+	@WebResult(name = "sayHello")
+	public String sayHello(
+			@WebParam(name = "CommonWService", targetNamespace = "http://www.moshco.cn/mhpay/ws") String trueName);
+	
+
+	@WebResult(name = "getUserTotalMoney")
+	public String getUserTotalMoney(
+			@WebParam(name = "CommonWService", targetNamespace = "http://www.moshco.cn/mhpay/ws") String userName);
+
+}
+```
+
+***```PayWService.java```***
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-7-22 上午9:56:54
+ * @author：崔旧涛
+ */
+package cn.jbit.mhpay.ws;
+
+import java.io.Serializable;
+import java.util.Map;
+
+import javax.jws.WebParam;
+import javax.jws.WebResult;
+import javax.jws.WebService;
+
+import cn.jbit.mhpay.entity.UserAccount;
+
+/**
+ * 支付业务（需要安全验证）
+ * 
+ * 创建时间：2016-7-22 上午9:56:54
+ * 
+ * @author 崔旧涛
+ * 
+ */
+@WebService(name = "PayWService", targetNamespace = "http://www.moshco.cn/mhpay/ws")
+public interface PayWService extends Serializable {
+
+	// 找寻 UserAccount 记录
+	@WebResult(name = "findUserAccountResult")
+	UserAccount findUserAccount(
+			@WebParam(name = "userAccountId", targetNamespace = "http://www.moshco.cn/mhpay/ws") Integer accountId);
+
+	// 分页查询：交易记录
+	@WebResult(name = "queryPaginationTradeOrderRecordResult")
+	PaginationTradeOrderRecord queryPaginationTradeOrderRecord(
+			@WebParam(name = "pageIndex", targetNamespace = "http://www.moshco.cn/mhpay/ws") Integer pageIndex,
+			@WebParam(name = "pageSize", targetNamespace = "http://www.moshco.cn/mhpay/ws") Integer pageSize,
+			@WebParam(name = "userAccountId", targetNamespace = "http://www.moshco.cn/mhpay/ws") Map<String, Object> queryParamMap);
+
+}
+
+```
+
+***```SecurityVerifyInterceptor.java```***
+```java
+/**
+ * 
+ * 
+ * 创建时间：2016-8-8 上午10:52:27
+ * @author：崔旧涛
+ */
+package cn.jbit.mhpay.ws;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.apache.cxf.binding.soap.SoapHeader;
+import org.apache.cxf.binding.soap.SoapMessage;
+import org.apache.cxf.binding.soap.interceptor.AbstractSoapInterceptor;
+import org.apache.cxf.headers.Header;
+import org.apache.cxf.helpers.DOMUtils;
+import org.apache.cxf.interceptor.Fault;
+import org.apache.cxf.phase.Phase;
+import org.apache.poi.ss.util.SSCellRange;
+import org.springframework.beans.factory.annotation.Value;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+/**
+ * 客户端 WebService 安全验证的拦截器
+ * 
+ * 创建时间：2016-8-8 上午10:52:27
+ * 
+ * @author 崔旧涛
+ * 
+ */
+public class SecurityVerifyInterceptor extends AbstractSoapInterceptor {
+
+	// 命名空间
+	protected static final String NAMESPACE_URI = "http://www.moshco.cn/mhpay/ws";
+
+	// 头元素名 [此元素是固定格式的]
+	protected static final String ELEMENT_HEADER = "soap:Header";
+
+	// 安全验证的元素名 [以下元素的值可以自定义，但是前缀格式要求统一]
+	protected static final String ELEMENT_AUTHENTIATION = "auth:authentication";
+
+	// 项目Id 的元素名
+	protected static final String ELEMENT_APPID = "auth:appId";
+
+	// 项目的账号元素名
+	protected static final String ELEMENT_USER_NAME = "auth:userName";
+
+	// 项目的密码元素名
+	protected static final String ELEMENT_PASSWORD = "auth:password";
+
+	// 项目ID
+	@Value("${wservice.project-id}")
+	protected String projectId = null;
+
+	// 项目账号（外部接口账号[该账号无法进行平台项目的登录，只用于请求 Web服务 使用]）
+	@Value("${wservice.user-name}")
+	protected String userName = null;
+
+	// 项目账号密码
+	@Value("${wservice.password}")
+	protected String password = null;
+
+	/**
+	 * 
+	 * 构造函数
+	 * 
+	 * 开发时间：2016-8-8 上午10:53:08
+	 * 
+	 * @author：崔旧涛
+	 */
+	public SecurityVerifyInterceptor() {
+		// 调用父类的构造方法
+		// Phase.WRITE , 在 Web服务 客户端，向 WebService服务器端 发送请求之前进行拦截器验证
+		super(Phase.WRITE);
+	}
+
+	/**
+	 * 业务方法
+	 * 
+	 * 开发时间：2016-8-8 上午10:52:29
+	 * 
+	 * @author：崔旧涛
+	 * @param message
+	 * @throws Fault
+	 */
+	@Override
+	public void handleMessage(SoapMessage message) throws Fault {
+
+		// message 是一个头列表
+		// message 中有很多的头
+		// 我们对其添加了一个安全验证的 头
+		// 我们在这个 头 中添加了，我们安全验证的信息
+
+		//
+		// header
+		// <header></header>
+
+		/*
+		 * 它拥有一个，命名空间、命名空间的简称、和一个元素名
+		 */
+		// 创建带有命名空间的元素
+		// soap:header
+		// <soap:header></soap:header>
+
+		// 创建文档对象和头对象
+		Document doc = DOMUtils.createDocument();
+
+		// 创建头元素
+		Element headerElement = doc.createElement(ELEMENT_HEADER);
+
+		// 创建安全验证的元素
+		Element authenticationElement = doc.createElementNS(NAMESPACE_URI,
+				ELEMENT_AUTHENTIATION);
+
+		// 追加到头元素下面
+		headerElement.appendChild(authenticationElement);
+
+		// 创建项目Id的元素
+		Element appIdElement = doc
+				.createElementNS(NAMESPACE_URI, ELEMENT_APPID);
+
+		// 设置项目Id
+		appIdElement.setTextContent(projectId);
+
+		// 追加到安全验证的元素下面
+		authenticationElement.appendChild(appIdElement);
+
+		// 创建项目账号的元素
+		Element userNameElement = doc.createElementNS(NAMESPACE_URI,
+				ELEMENT_USER_NAME);
+
+		// 设置用户名
+		userNameElement.setTextContent(userName);
+
+		// 追加到安全验证的的元素下面
+		authenticationElement.appendChild(userNameElement);
+
+		// 创建项目账号密码的元素
+		Element passwordElement = doc.createElementNS(NAMESPACE_URI,
+				ELEMENT_PASSWORD);
+
+		// 设置密码
+		passwordElement.setTextContent(password);
+
+		// 追加到安全验证的元素下面
+		authenticationElement.appendChild(passwordElement);
+
+		// 创建头元素的 QName 对象
+		QName headerQName = new QName(NAMESPACE_URI, ELEMENT_HEADER);
+
+		// 创建投元素的 SOAP 对象
+		SoapHeader soapHeader = new SoapHeader(headerQName, headerElement);
+
+		// 读取消息的头部对象
+		List<Header> headerList = message.getHeaders();
+
+		// 将新建头的 SOAP 对象加入到列表中
+		headerList.add(soapHeader);
+	}
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

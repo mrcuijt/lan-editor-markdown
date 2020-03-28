@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fiddler Https Principle</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Fiddler Https Principle
+
+&amp;#160; &amp;#160;最近想尝试基于 Fiddler 的录制功能做一些接口的获取和处理工作，碰到的一个问题就是简单连接 Fiddler 只能抓取 HTTP 协议，关键的登录请求等 HTTPS 协议都没有捕捉到，所以想让 Fiddler 能够同时抓取到 HTTPS 和 HTTP 协议，设置只是很小的一步，关键是了解 HTTPS 协议的原理、Fiddler 抓取 HTTPS 协议的原理，然后才能更好的理解如何进行设置。
+
+本文主要由三部分组成，
+
+ - 第一部分用比较通俗形象的方式简述了 HTTPS 的原理，
+
+ - 第二部分则是在第一部分的基础上介绍 Fiddler 抓取 HTTPS 协议的原理，
+
+ - 第三部分就是如何对 Fiddler 及手机进行设置让其捕捉 HTTPS 协议。
+
+##### 浅谈 HTTPS
+
+&amp;#160; &amp;#160;我们都知道 HTTP 并非是安全传输，在 HTTPS 基础上使用SSL协议进行加密构成的 HTTPS 协议是相对安全的。目前越来越多的企业选择使用 HTTPS 协议与用户进行通信，如百度、谷歌等。HTTPS 在传输数据之前需要客户端（浏览器）与服务端（网站）之间进行一次握手，在握手过程中将确立双方加密传输数据的密码信息。网上有诸多资料，有些写得过于晦涩难懂，尤其是需要密码学的一些知识。我做了一下简单的整理，刨除复杂的底层实现，单从理解 SSL 协议的角度宏观上认识一下 HTTPS。一言以弊之，HTTPS 是通过一次非对称加密算法（如 RSA 算法）进行了协商密钥的生成与交换，然后在后续通信过程中就使用协商密钥进行对称加密通信。HTTPS 协议传输的原理和过程简图如下所示：
+
+##### HTTPS 协议传输原理
+
+![fiddler-https-principle](./images/fiddler-https-principle/fiddler-https-principle-001.png)
+
+一共有 8 个步骤，我们针对每一步，具体看看发生了什么事：
+
+ - 第一步，客户端发起明文请求：将自己支持的一套加密规则、以及一个随机数（Random\_C）发送给服务器。
+
+ - 第二步，服务器初步响应：服务器根据自己支持的加密规则，从客户端发来的请求中选出一组加密算法与 HASH 算法，生成随机数，并将自己的身份信息以证书（CA）的形式发回给浏览器。CA 证书里面包含了服务器地址，加密公钥，以及证书的颁发机构等信息。这时服务器给客户端的包括选择使用的加密规则、CA 证书、一个随机数（Random\_S）。
+ 
+ - 第三步，客户端接到服务器的初步响应后做四件事情：
+ 
+  - （1）证书校验： 验证证书的合法性（颁发证书的机构是否合法，证书中包含的网站地址是否与正在访问的地址一致等）。
+  
+  - （2）生成密码：浏览器会生成一串随机数的密码（Pre\_master），并用 CA 证书里的公钥加密(enc\_pre\_master)，用于传给服务器。
+
+  - （3）计算协商密钥： 此时客户端已经获取全部的计算协商密钥需要的信息：两个明文随机数 Random\_C 和 Random\_S 与自己计算产生的 Pre-master，计算得到协商密钥enc\_key。
+  
+      enc_key=Fuc(random_C, random_S, Pre-Master)
+      
+  - （4）生成握手信息：使用约定好的 HASH 计算握手消息，并使用协商密钥 enc\_key 及约定好的算法对消息进行加密。
+  
+ - 第四步，客户端将第三步产生的数据发给服务器：
+ 
+  这里要发送的数据有三条：
+  
+  - （1）用公钥加密过的服务器随机数密码 enc\_pre\_master
+  
+  - （2）客户端发给服务器的通知，"以后我们都要用约定好的算法和协商密钥进行通信的哦"。 
+  
+  - （3）客户端加密生成的握手信息。
+  
+ - 第五步，服务器接收客户端发来的数据要做以下四件事情：
+ 
+  - （1）私钥解密：使用自己的私钥从接收到的 enc\_pre\_master 中解密取出密码 Pre\_master。
+  
+  - （2）计算协商密钥：此时服务器已经获取全部的计算协商密钥需要的信息：两个明文随机数 Random\_C 和 Random\_S 与 Pre-master，计算得到协商密钥 enc\_key。
+    
+     enc\_key=Fuc(random\_C, random\_S, Pre-Master)
+ 
+  - （3）解密握手消息：使用协商密钥 enc\_key 解密客户端发来的握手消息，并验证 HASH 是否与客户端发来的一致。
+
+  - （4）生成握手消息使用协商密钥 enc\_key 及约定好的算法加密一段握手消息，发送给客户端。
+  
+ - 第六步，服务器将第五步产生的数据发给客户端：
+ 
+    这里要发的数据有两条：
+    
+  - （1）服务器发给客户端的通知，”听你的，以后我们就用约定好的算法和协商密钥进行通信哦“。
+  
+  - （2）服务器加密生成的握手信息。
+  
+ - 第七步，客户端拿到握手信息解密，握手结束。
+ 
+  - 客户端解密并计算握手消息的 HASH，如果与服务端发来的 HASH 一致，此时握手过程结束。
+  
+ - 第八步，正常加密通信
+ 
+  - 握手成功之后，所有的通信数据将由之前协商密钥 enc\_key 及约定好的算法进行加密解密。
+
+&amp;#160; &amp;#160;这里客户端与服务器互相发送加密的握手消息并验证，目的是为了保证双方都获得了一致的密码，并且可以正常的加密解密数据，为后续真正数据的传输做一次测试。另外，HTTPS 一般使用的加密与 HASH 算法如下：非对称加密算法：RSA，DSA/DSS 对称加密算法：AES，RC4，3DESHASH 算法：MD5，SHA1，SHA256 其中非对称加密算法用于在握手过程中加密生成的密码，对称加密算法用于对真正传输的数据进行加密，而 HASH 算法用于验证数据的完整性。由于浏览器生成的密码是整个数据加密的关键，因此在传输的时候使用了非对称加密算法对其加密。非对称加密算法会生成公钥和私钥，公钥只能用于加密数据，因此可以随意传输，而服务器的私钥用于对数据进行解密，所以服务器都会非常小心的保管自己的私钥，防止泄漏。
+
+#### 二、Fiddler 抓取 HTTPS 协议原理
+
+&amp;#160; &amp;#160;我们都知道，Fiddler 是个很好的代理工具，可抓取协议请求用于调试。关于 Fiddler 抓取 HTTP 协议的原理和配置比较简单，对 Fiddler 和客户端稍作配置，便能使得 Fiddler 轻易地获取 HTTP 请求。但是由于 HTTPS 协议的特殊性，要进一步地配置 Fiddler，我们首先要了解一下 fiddler 抓取 HTTPS 协议的原理才能更好地理解如何对 fiddler 进行配置。Fiddler 本身就是一个协议代理工具，在上一节 HTTPS 原理图上，客户端与服务器端进行通信的过程全部都由 Fiddler 获取到，也就是如下图所示：
+
+##### Fiddler 抓取 HTTPS 协议原理图
+
+![fiddler-https-principle](./images/fiddler-https-principle/fiddler-https-principle-002.png)
+
+我们看到 Fiddler 抓取 HTTPS 协议主要由以下几步进行：
+
+ - 第一步，Fiddler 截获客户端发送给服务器的 HTTPS 请求，Fiddler 伪装成客户端向服务器发送请求进行握手 。
+ 
+ - 第二步，服务器发回相应，Fiddler 获取到服务器的 CA 证书，用根证书公钥进行解密，验证服务器数据签名，获取到服务器 CA 证书公钥。然后 Fiddler 伪造自己的 CA 证书，冒充服务器证书传递给客户端浏览器。
+ 
+ - 第三步，与普通过程中客户端的操作相同，客户端根据返回的数据进行证书校验、生成密码 Pre_master、用 Fiddler 伪造的证书公钥加密，并生成 HTTPS 通信用的对称密钥 enc\_key。
+ 
+ - 第四步，客户端将重要信息传递给服务器，又被 Fiddler 截获。Fiddler 将截获的密文用自己伪造证书的私钥解开， 获得并计算得到 HTTPS 通信用的对称密钥 enc\_key。Fiddler 将对称密钥用服务器证书公钥加密传递给服务器。
+ 
+ - 第五步，与普通过程中服务器端的操作相同，服务器用私钥解开后建立信任，然后再发送加密的握手消息给客户端。
+ 
+ - 第六步，Fiddler 截获服务器发送的密文，用对称密钥解开，再用自己伪造证书的私钥加密传给客户端。
+ 
+ - 第七步，客户端拿到加密信息后，用公钥解开，验证 HASH。握手过程正式完成，客户端与服务器端就这样建立了 “信任”。
+
+在之后的正常加密通信过程中，Fiddler 如何在服务器与客户端之间充当第三者呢？
+
+ - 服务器 —> 客户端：Fiddler 接收到服务器发送的密文，用对称密钥解开，获得服务器发送的明文。再次加密，发送给客户端。
+ 
+ - 客户端 —> 服务端：客户端用对称密钥加密，被 Fiddler 截获后，解密获得明文。再次加密，发送给服务器端。由于 Fiddler 一直拥有通信用对称密钥 enc\_key，所以在整个 HTTPS 通信过程中信息对其透明。
+
+&amp;#160; &amp;#160;从上面可以看到，Fiddler 抓取 HTTPS 协议成功的关键是根证书（具体是什么，可 Google）,这是一个信任链的起点，这也是 Fiddler 伪造的 CA 证书能够获得客户端和服务器端信任的关键。
+
+接下来我们就来看如果设置让 Fiddler 抓取 HTTPS 协议。
+
+#### 三、Fiddler 抓取 HTTPS 设置
+
+&amp;#160; &amp;#160;注意以下操作的前提是，手机已经能够连上 Fiddler，这部分的配置过程简单就不赘述了，可参考：手机如何连接 Fiddler 。
+如何继续配置让 Fiddler 抓取到 HTTPS 协议呢？
+
+（一）首先对 Fiddler 进行设置：打开工具栏->Tools->Fiddler Options->HTTPS
+
+对 Fiddler 进行设置
+
+![fiddler-https-principle](./images/fiddler-https-principle/fiddler-https-principle-003.png)
+
+&amp;#160; &amp;#160;选中 Capture HTTPS CONNECTs，因为我们要用 Fiddler 获取手机客户端发出的 HTTPS 请求，所以中间的下拉菜单中选中 from remote clients only。选中下方 Ignore server certificate errors.
+
+（二）然后，就是手机安装 Fiddler 证书。
+
+这一步，也就是我们上面分析的抓取 HTTPS 请求的关键。
+
+&amp;#160; &amp;#160;操作步骤很简单，打开手机浏览器，在浏览器地址输入代理服务器 IP 和端口，会看到一个 Fiddler 提供的页面。
+
+![fiddler-https-principle](./images/fiddler-https-principle/fiddler-https-principle-004.png)
+
+&amp;#160; &amp;#160;接着点击最下方的 FiddlerRoot certificate，这时候点击确定安装就可以下载 Fiddler 的证书了。
+
+&amp;#160; &amp;#160;下载安装完成好后，我们用手机客户端或者浏览器发出 HTTPS 请求，Fiddler 就可以截获到了，就跟截获普通的 HTTP 请求一样。
+
+&amp;#160; &amp;#160;好啦，以上就是关于 HTTPS 的简介以及 Fiddler 如何获取 HTTPS 协议的原理和配置，看到 Fiddler 整齐划一地截获到 HTTP 和复杂的 HTTPS 协议，心里还有点小激动呢。
+
+参考链接：
+
+ - <a href="https://www.zhoulujun.cn/html/theory/network/2017_0118_7945.html#announ" target="_blank">SSL/TLS协议的运行原理浅析—https原理及握手通信过程</a>
+
+ - <a href="https://blogs.msdn.microsoft.com/kaushal/2013/08/02/ssl-handshake-and-https-bindings-on-iis/" target="_blank">SSL Handshake and HTTPS Bindings on IIS</a>
+
+ - <a href="https://www.cnblogs.com/xinzhao/p/4949344.html" target="_blank">白话 Https</a>
+
+ - <a href="https://blog.csdn.net/xiaoming100001/article/details/81109617" target="_blank">HTTP和HTTPS协议，看一篇就够了</a>
+
+ - <a href="https://www.cnblogs.com/svan/p/5090201.html" target="_blank">HTTPS工作原理</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

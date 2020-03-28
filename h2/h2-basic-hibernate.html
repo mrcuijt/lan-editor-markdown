@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>h2-basic-hibernate</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### h2-basic-hibernate
+
+#### Hibernate H2 Database Example Tutorial
+
+In this Hibernate H2 database tutorial, you will learn how to create a Hibernate Application to connect the H2 in-memory database.
+
+
+Hibernate is an object-relational mapping framework for the Java language. It provides a framework for mapping an object-oriented domain model to a relational database. Object-relational mapping (ORM) is a programming technique for converting data between incompatible type systems in object-oriented programming languages.
+
+##### H2 Database Overview
+
+H2 is an open-source lightweight Java database. It can be embedded in Java applications or run in the client-server mode. 
+
+Mainly, the H2 database can be configured to run as an in-memory database, which means that data will not persist on the disk. Because of an embedded database, it is not used for production development but mostly used for development and testing.
+
+This database can be used in embedded mode or in server mode. Following are the main features of the H2 database −
+
+ - Extremely fast, open-source, JDBC API
+
+ - Available in embedded and server modes; in-memory databases
+
+ - Browser-based Console application
+
+ - Small footprint − Around 1.5MB jar file size
+
+##### Hibernate H2 Database Tutorial
+
+Let's start developing step by step Hibernate application using Maven as project management and build tool.
+
+###### Technologies and tools used
+
+ - Hibernate 5.3.7.Final
+
+ - IDE - Eclipse Noen
+
+ - Maven 3.5.3
+
+ - JavaSE 1.8
+
+ - H2 In-Memory - 1.4.200
+
+###### Development Steps
+
+ 1. Create a Simple Maven Project
+
+ 2. Project Directory Structure
+
+ 3. Add jar Dependencies to pom.xml
+
+ 4. Creating the JPA Entity Class(Persistent class)
+
+ 5. Create a Hibernate configuration file - hibernate.cfg.xml
+
+ 6. Create a Hibernate utility class
+
+ 7. Create the Main class and Run an Application
+
+##### 1. Create a Simple Maven Project
+
+Use <a href="http://www.javaguides.net/2018/11/how-to-create-simple-maven-project-in-eclipse.html" target="_blank">How to Create a Simple Maven Project in Eclipse</a> article to create a simple Maven project in Eclipse IDE.
+
+##### 2. Project Directory Structure
+
+The project directory structure for your reference -
+
+![title](images/h2-basic-hibernate/h2-basic-hibernate-001.png)
+
+##### 3. Add jar Dependencies to pom.xml
+
+Let's add h2 database and hibernate-core dependency to pom.xml:
+
+```xml
+<project
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.javaguides</groupId>
+    <artifactId>hibernate-helloworld-example</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>hibernate-helloworld-example</name>
+    <description>hibernate-helloworld-example</description>
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.200</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.3.7.Final</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+##### 4. Creating the JPA Entity Class(Persistent class)
+
+Let's create a **Student** persistent class that is mapped to a database "student" table.
+
+A simple persistent class should follow some rules:
+
+ - **A no-arg constructor**: It is recommended that you have a default constructor at least package visibility so that hibernate can create the instance of the Persistent class by newInstance() method.
+
+ - **Provide an identifier property**: It is better to assign an attribute as id. This attribute behaves as a primary key in a database.
+
+ - **Declare getter and setter methods**: The Hibernate recognizes the method by getter and setter method names by default.
+
+ - **Prefer non-final class**: Hibernate uses the concept of proxies, which depends on the persistent class. The application programmer will not be able to use proxies for lazy association fetching.
+
+Create a **Student** entity class under **net.javaguides.hibernate.entity** package as follows.
+
+```java
+package net.javaguides.hibernate.entity;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "student")
+public class Student {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private int id;
+
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
+    @Column(name = "email")
+    private String email;
+
+    public Student() {
+
+    }
+
+    public Student(String firstName, String lastName, String email) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Override
+    public String toString() {
+        return "Student [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email + "]";
+    }
+}
+```
+
+##### 5. Create a Hibernate configuration file - hibernate.cfg.xml
+
+The configuration file contains information about the database and mapping file. Conventionally, its name should be **hibernate.cfg.xml.**
+
+Let's create an XML file named **hibernate.cfg.xml** under the **resources** folder and write the following code in it.
+
+```xml
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- JDBC Database connection settings -->
+        <property name="connection.driver_class">org.h2.Driver</property>
+        <property name="connection.url">jdbc:h2:mem:test</property>
+        <property name="connection.username">sa</property>
+        <property name="connection.password"></property>
+        <!-- JDBC connection pool settings ... using built-in test pool -->
+        <property name="connection.pool_size">1</property>
+        <!-- Select our SQL dialect -->
+        <property name="dialect">org.hibernate.dialect.H2Dialect</property>
+        <!-- Echo the SQL to stdout -->
+        <property name="show_sql">true</property>
+        <!-- Set the current session context -->
+        <property name="current_session_context_class">thread</property>
+        <!-- Drop and re-create the database schema on startup -->
+        <property name="hbm2ddl.auto">create-drop</property>
+        <!-- dbcp connection pool configuration -->
+        <property name="hibernate.dbcp.initialSize">5</property>
+        <property name="hibernate.dbcp.maxTotal">20</property>
+        <property name="hibernate.dbcp.maxIdle">10</property>
+        <property name="hibernate.dbcp.minIdle">5</property>
+        <property name="hibernate.dbcp.maxWaitMillis">-1</property>
+        <mapping class="net.javaguides.hibernate.entity.Student" />
+    </session-factory>
+</hibernate-configuration>
+```
+
+In the above configuration, notice that Hibernate dialect for the h2 database(org.hibernate.dialect.H2Dialect). By default the Java application to connect to an H2 in-memory store with the username **sa** and an **empty** password. 
+
+##### 6. Create a Hibernate utility Class
+
+Create a helper class to bootstrap hibernate SessionFactory. In most Hibernate applications, the **SessionFactory** should be instantiated once during application initialization. The single instance should then be used by all code in a particular process, and any **Session** should be created using this single **SessionFactory**.
+
+ The **SessionFactory** is thread-safe and can be shared; a **Session** is a single-threaded object. Let's create a **HibernateUtil** class to configure singleton **SessionFactory** and use it throughout the application.
+
+The bootstrapping API is quite flexible, but in most cases, it makes the most sense to think of it as a 3 step process:
+
+ 1. Build the **StandardServiceRegistry**
+
+ 2. Build the **Metadata**
+
+ 3. Use those 2 to build the **SessionFactory**
+
+```java
+package net.javaguides.hibernate.util;
+
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+
+public class HibernateUtil {
+    private static StandardServiceRegistry registry;
+    private static SessionFactory sessionFactory;
+
+    public static SessionFactory getSessionFactory() {
+        if (sessionFactory == null) {
+            try {
+                // Create registry
+                registry = new StandardServiceRegistryBuilder().configure().build();
+
+                // Create MetadataSources
+                MetadataSources sources = new MetadataSources(registry);
+
+                // Create Metadata
+                Metadata metadata = sources.getMetadataBuilder().build();
+
+                // Create SessionFactory
+                sessionFactory = metadata.getSessionFactoryBuilder().build();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (registry != null) {
+                    StandardServiceRegistryBuilder.destroy(registry);
+                }
+            }
+        }
+        return sessionFactory;
+    }
+
+    public static void shutdown() {
+        if (registry != null) {
+            StandardServiceRegistryBuilder.destroy(registry);
+        }
+    }
+}
+```
+
+##### 7. Create the main App class and Run an Application
+
+Here is the main **App** class which is used to connect the H2 database and persist **Student** object in database table.
+
+```java
+package net.javaguides.hibernate;
+
+import java.util.List;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
+import net.javaguides.hibernate.entity.Student;
+import net.javaguides.hibernate.util.HibernateUtil;
+
+public class App {
+    public static void main(String[] args) {
+
+        Student student = new Student("Ramesh", "Fadatare", "rameshfadatare@javaguides.com");
+        Student student1 = new Student("John", "Cena", "john@javaguides.com");
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            // start a transaction
+            transaction = session.beginTransaction();
+            // save the student objects
+            session.save(student);
+            session.save(student1);
+            // commit transaction
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List < Student > students = session.createQuery("from Student", Student.class).list();
+            students.forEach(s - > System.out.println(s.getFirstName()));
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+##### Output
+
+![title](images/h2-basic-hibernate/h2-basic-hibernate-002.png)
+
+Download source code from my GitHub repository at <a href="https://github.com/RameshMF/Hibernate-ORM-Tutorials" target="_blank">https://github.com/RameshMF/Hibernate-ORM-Tutorials</a>.
+
+参考链接：
+
+ - <a href="https://www.javaguides.net/2019/11/hibernate-h2-database-example-tutorial.html" target="_blank">Hibernate H2 Database Example Tutorial </a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

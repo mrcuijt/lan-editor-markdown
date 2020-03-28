@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Position</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### HTML 定位
+
+&amp;#160; &amp;#160;定位-基本概念 CSS 定位(Positioning)属性允许你对元素进行定位。
+
+position 属性值：
+
+ - **static**(默认值):**元素框正常生产**。块级元素生成一个矩形框，作为文档流/标准流的一部分，行内元素则会创建一个或多个行框，置于其父元素中。对 static 而言，left 和 top 属性是没有效果的。
+
+ - **relative**:**元素框偏移某个距离**。元素仍保持其未定未前的形状，它原本所占的空间仍保留.从这一角度看，好像该元素仍然在文档流/标准流中一样。**相对定位就是以当前元素所在的位置向右或向下移动多少。**
+
+ - **absolute**:**元素框从文档流完全删除，并相对于其包含块定位**。包含块可能是文档中的另一个元素或者是初始包含块。元素原先在正常文档流中所占的空间会关闭，就好像元素原来就不存在一样。**元素定位后生成一个块级框，而不论原来它在正常流中生成何种类型的框。绝对定位，需要强调一点它的定位标准是对离自己最近的那个非标准流盒子而言的。元素从原来的位置脱离，并让出自己的空间，后面的元素就会占有让出的空间。**
+
+ - **fiexd**:**元素框的表现类似于将 position 设置为 absolute ,不过其包含块是视窗本身。以 body 为标准进行定位。**
+
+
+对绝对定位元素，依靠最近一层非标准文档流，进行定位的标准
+
+Example 1
+```css
+.context div {
+    width: 200px;
+    height: 200px;
+    border: 1px solid #000;
+    float: left;
+}
+
+div.chidren-box {
+    width: 100px;
+    height: 100px;
+}
+
+div.mbox {
+    /* 上级 div 中，最近一级 div position 为 relative 的 div 为标准进行偏移 */
+    position: relative;
+    float: none;
+}
+ 
+.mbox > .chidren-box {
+    float: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+```
+
+Example 2
+
+```css
+.context div {
+    width: 200px;
+    height: 200px;
+    border: 1px solid #000;
+    float: left;
+}
+
+div.chidren-box {
+    width: 100px;
+    height: 100px;
+}
+
+/* 上级 div 中，最近一级 div position 为 absolute 的 div 为标准进行偏移 */
+.div4 > .div4-box {
+    width: 150px;
+    height: 150px;
+    position: absolute;
+}
+
+.div4-box > .chidren-box {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+```
+
+![title](./images/html-position/html-position-001.png)
+
+![title](./images/html-position/html-position-002.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>网易云课堂2020年2月直播</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 网易云课堂2020年2月直播
+
+ - 001 2020/02/04 带你系统全面认识JVM
+
+ - 002 2020/02/05 90分钟带你轻松掌握Spring原理
+
+ - 003 2020/02/06 开年面试课 - 告诉你简历到底该怎么写
+
+ - 004 2020/02/08 【寒冬破冰-面试】并发编程面面观
+
+ - 005 2020/02/09 Spring-boot全自动化工作原理深度剖析
+
+ - 006 2020/02/10 微服务核心技术之玩转zookeeper高性能分布式锁
+
+ - 007 2020/02/11 教你理解SpringCloud的注册中心真正的含义
+
+ - 008 2020/02/12 【面试必听】Spring - 手写源码事务注解原理
+
+ - 009 2020/02/13 【新年面试】-互联网高并发技术全面剖析
+
+ - 010 2020/02/14 双十一百万请求的多线程优化方案
+
+ - 011 2020/02/15 【新年面试-加分】互联网搜索技术解密
+
+ - 012 2020/02/16 教你学会用架构师的思想来封装代码
+
+ - 013 2020/02/17 十年程序员分享他的设计模式经验
+
+ - 014 2020/02/18 利用自定义注解，和架构师一样来完成代码封装
+
+ - 015 2020/02/19 微服务统一配置中心原理揭秘
+
+ - 016 2020/02/20 互联网面试—分布式锁深度剖析
+
+ - 017 2020/02/21 互联网面试必问—NIO详解
+
+ - 018 2020/02/22 安全防护-Shiro深度应用
+
+ - 019 2020/02/23 Spring-boot全自动化工作原理深度剖析
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-oom</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-oom
+
+#### java.lang.OutOfMemoryError
+
+```python
+## Error
+java.lang.OutOfMemoryError: Java heap space 
+```
+
+在 JVM 中如果 98% 的时间是用于 GC 且可用的 Heap size 不足 2% 的时候将抛出此异常信息。JVM  堆的设置是指 Java 程序运行过程中JVM可以调配使用的内存空间的设置。JVM 在启动的时候会自动设置 Heap size 的值，其初始空间(即 -Xms)是物理内存的 1/64，最大空间(-Xmx)是物理内存的 1/4。可以利用JVM提供的 -Xmn -Xms -Xmx 等选项可进行设置。
+
+#### TOMCAT 运行时 OOM 解决
+
+统计分析系统因为内部系统，访问量不是太高，一直都是完成功能，没有对 TOMCAT 的配置关注过，直到最近发生了如下的报错：
+
+```python
+## Error
+Exception in thread "http-bio-8080-Acceptor-0" java.lang.OutOfMemoryError: Java heap space
+Exception in thread "ContainerBackgroundProcessor[StandardEngine[Catalina]]" java.lang.OutOfMemoryError: Java heap space
+```
+
+决定抽点时间，把 TOMCAT 的配置调整一下。
+
+##### ${TOMCAT_HOME}/bin/catalina.sh
+
+找到 “**# Copy CATALINA_BASE from CATALINA_HOME if not already set**” 在下面添加如下
+
+```python
+## JAVA_OPTS
+JAVA_OPTS=-Xms1024m -Xmx4096m -XX:PermSize=128m -XX:MaxPermSize=256m
+```
+
+参数说明：
+
+ - **-Xms**：初始 Heap 大小，使用的最小内存,cpu 性能高时此值应设的大一些
+
+ - **-Xmn**：最小值
+
+ - **-Xmx**：java heap 最大值，使用的最大内存
+
+上面三个值是分配 JVM 的初始大小，最小和最大内存，取决于硬件物理内存的大小，建议均设为物理内存的一半。Heap Size 最大不要超过可用物理内存的 80%，一般的要将 -Xms 和 -Xmx 选项设置为相同堆内存分配 (访问量比较大时设为一致)
+
+ - **-Xss** : 线程内存的大小，jdk5.0 以后可以不用设置；设置每个线程的堆栈大小。JDK5.0 以后每个线程堆栈大小为 1M，以前每个线程堆栈大小为 256K；
+
+ - **-XX:PermSize** : 设定初始的内存的永久保存区域， 指定类空间(用于加载类)的内存大小。
+
+ - **-XX:MaxPermSize** : 设定最大内存的永久保存区域。
+
+##### ${TOMCAT_HOME}/conf/server.xml
+
+```xml
+<!-- 并发数 -->
+<Executor name="tomcatThreadPool" namePrefix="catalina-exec-"  maxThreads="300" minSpareThreads="200" />
+
+<Connector executor="tomcatThreadPool"
+    port="80" protocol="HTTP/1.1"
+    connectionTimeout="20000" enableLookups="false"
+    redirectPort="8443" URIEncoding="UTF-8" acceptCount="1000" />
+```
+
+加大 **maxThreads**、**acceptCount** 两个参数可以更好的支持并发；
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/lazythinker/article/details/52458981" target="_blank">TOMCAT 运行时 OOM 解决</a>
+
+#### 一次 Tomcat OOM 的情况解决
+
+今天突然发现启动 Tomcat OOM 报错。结果查看了好久都没有问题。最终发现了一个问题的解决方案。
+
+![title](images/java-basic-oom/java-basic-oom-001.png)
+
+两个解决方案：
+
+ - （1）添加参数：
+
+```python
+-XX:MaxPermSize=256m 
+```
+
+然后尝试重新启动
+
+ - （2）修改参数：
+
+```python
+-Xms1024m -Xmx1024m
+```
+
+然后尝试重新启动
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/u012814696/article/details/72930340?depth_1-utm_source=distribute.pc_relevant.none-task&utm_source=distribute.pc_relevant.none-task" target="_blank">一次 Tomcat OOM 的情况解决</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate ManyToMany</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+##### 单向多对多
+
+***```Project.java```***
+
+![class-project](./images/hibernate-many-to-many/class-project.png)
+
+```java
+public class Project implements java.io.Serializable {
+
+	// Fields
+
+	private Integer proId;
+	private String proName;
+	private Set<Employee> emps = new HashSet<Employee>();
+}
+```
+
+***```Project.hbm.xml```***
+
+![project-001](./images/hibernate-many-to-many/xml-project-001.png)
+
+![project-002](./images/hibernate-many-to-many/xml-project-002.png)
+
+```xml
+<set name="emps" table="pro_r_emp" cascade="save-update"><!-- 级联操作 -->
+    <!-- 在关系表中项目表中的外键 -->
+    <key column="R_PROID"></key>
+    <!-- 在关系表中员工表的外键 -->
+    <many-to-many column="R_EMPID"
+        class="com.accp.hibernate.entity.Employee"></many-to-many>
+</set>
+```
+
+***```Test```***
+
+![test-001](./images/hibernate-many-to-many/test-001.png)
+
+```java
+public void manyToMany() {
+    Employee emp1 = new Employee();
+    emp1.setEmpName("丽丽");
+    Employee emp2 = new Employee();
+    emp2.setEmpName("李烈");
+ 
+    Project pro = new Project();
+    pro.setProName("BookManager");
+    pro.getEmps().add(emp1); // 建立多对多关联映射
+    pro.getEmps().add(emp2); // 建立多对多关联映射
+ 
+    Transaction tran = null;
+    try {
+        Session session = HibernateUtil.currentSession();
+        tran = session.beginTransaction();
+        session.save(pro);
+        tran.commit();
+    } catch (HibernateException e) {
+        e.printStackTrace();
+        tran.rollback();
+    } finally {
+        HibernateUtil.closeSession();
+    }
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

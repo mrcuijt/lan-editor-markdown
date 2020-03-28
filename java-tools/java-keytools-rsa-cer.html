@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Java KeyTools RSA CER</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Java Keytools RSA CER
+
+#### 生成自签名根证书 ROOT CA
+
+```python
+keytool ^
+  -genkey ^
+  -alias rootca ^
+  -keyalg RSA ^
+  -keypass changeit ^
+  -keystore rootca.keystore ^
+  -storepass changeit ^
+  -dname "CN=xx认证中心, OU=xx认证中心, O=xx认证中心, L=杭州, ST=杭州, C=CN"
+```
+
+#### 生成自签名证书，待使用 根证书 ROOT CA 对自签名证书进行签名
+
+```python
+keytool ^
+  -genkeypair ^
+  -alias baidu ^
+  -keyalg RSA ^
+  -keypass changeit ^
+  -keystore baidu.keystore ^
+  -storepass changeit ^
+  -dname "CN=www.baidu.com, OU=百度技术有限公司, O=百度技术有限公司, L=北京, ST=北京, C=CN" ^
+  -ext san=dns:www.baidu.com,dns:baidu.com
+
+## -ext san=dns:www.baidu.com,dns:baidu.com,ip:127.0.0.1,ip:192.168.1.1
+```
+
+#### 导出 ROOT CA 根证书
+
+```python
+keytool ^
+  -export ^
+  -alias rootca ^
+  -keystore rootca.keystore ^
+  -file rootca.crt ^
+  -storepass changeit
+```
+
+#### 导入 ROOT CA 根证书到， baidu.keystore 秘钥库中
+
+```python
+keytool ^
+  -import ^
+  -alias rootca ^
+  -file rootca.crt ^
+  -keystore baidu.keystore ^
+  -storepass changeit
+```
+
+```textarea
+所有者: CN=xx认证中心, OU=xx认证中心, O=xx认证中心, L=杭州, ST=杭州, C=CN
+发布者: CN=xx认证中心, OU=xx认证中心, O=xx认证中心, L=杭州, ST=杭州, C=CN
+序列号: f613bfb
+有效期为 Thu May 09 11:05:07 CST 2019 至 Wed Aug 07 11:05:07 CST 2019
+证书指纹:
+         MD5:  1B:10:10:82:EF:1F:4D:F0:6B:9E:CE:41:47:FA:FB:1D
+         SHA1: EB:04:A7:3D:D1:53:41:15:CA:28:63:4F:9A:CB:01:B6:CF:CD:69:6D
+         SHA256: 4E:77:A7:4D:8D:6A:F9:54:1F:3C:04:F5:02:BB:83:E3:AC:52:25:F9:9C:9D:F2:6A:B5:96:B2:62
+:34:96:8A:41
+签名算法名称: SHA256withRSA
+主体公共密钥算法: 2048 位 RSA 密钥
+版本: 3
+
+扩展:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: EB 11 D3 9C A1 3C C8 41   D0 AD 23 10 FF 33 0F 47  .....<.A..#..3.G
+0010: 48 F5 3F 95                                        H.?.
+]
+]
+
+是否信任此证书? [否]:  y
+证书已添加到密钥库中
+```
+
+#### 生成证书请求文件 baidu.csr
+
+```python
+keytool ^
+  -certreq ^
+  -alias baidu ^
+  -keystore baidu.keystore ^
+  -storepass changeit ^
+  -file baidu.csr
+```
+
+***```baidu.csr```***
+
+```textarea
+-----BEGIN NEW CERTIFICATE REQUEST-----
+MIIDAzCCAesCAQAwgY0xCzAJBgNVBAYTAkNOMQ8wDQYDVQQIDAbljJfkuqwxDzAN
+BgNVBAcMBuWMl+S6rDEhMB8GA1UECgwY55m+5bqm5oqA5pyv5pyJ6ZmQ5YWs5Y+4
+MSEwHwYDVQQLDBjnmb7luqbmioDmnK/mnInpmZDlhazlj7gxFjAUBgNVBAMTDXd3
+dy5iYWlkdS5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCrMo8s
+4uhX0TiT1FmmmRYKIX43UWsfsQJIMo4SSwFIRO5QHKEIOSvyCu86zwX701ktvFZJ
+FlBneiLTWPH7L71QoSQhrNRE6r7yZQBcdADGGSj/4w+sTFKIkF3fLnU2wK8tXlhF
+erOMj5UUjQSLCTTAx7SVKj/HGUuSrC5PZe8aSeBHvmFgi79nXC9UUBhTjVZO1L1s
+sZU19kPMwDkzc7mj804Tj3t0HvJsrkJ5OqKCgXUwZqo9+ijKVRteRQTnVlDZOzua
+GgffpM1B6JcEVR5FTE24kt73614vpEuRWMboPaKg93ticsCM0W/E3B81jWsGWPkV
+rm3srXaGreQyDHbtAgMBAAGgMDAuBgkqhkiG9w0BCQ4xITAfMB0GA1UdDgQWBBS3
+4E1ag3cRbd284z5aQja0KnTWYDANBgkqhkiG9w0BAQsFAAOCAQEALRca4bY87Oj+
+ZyafMLa2ouwjMCEw1Zl2z8bVquAXGwmKFpMQ19B6vWsrXTaIybaoXynoPHK88160
+xQOJJUpYWSXkGgaizfHpfLB4NmCADXfYJ1C2XnUR53dtM8UMC+oh4O5KvUUxo0e/
+CHLGionxm05TX3pZB3Lhz5YE4LM8OsxmuxHy6GA217s0D0OcaHNBgbhLP9YJ2vwq
+/bXM8ygny/nJbe4WecQgixjnExmgaBCYMD+/MyNIK35lYiKRvebzRNmTWBHnnw8B
+zaGT46ISqloHm1syWisdvsBlW+XEdh4vBPB3lWeLaNvdohrwhxj/s4Co8jdIPVd1
+TRjcFpvt3w==
+-----END NEW CERTIFICATE REQUEST-----
+```
+
+#### 使用 baidu.csr 去测试认证中心认证
+
+ - 得到 ROOT CA 签名认证后的，证书 baidu.cer
+
+```python
+keytool ^
+  -gencert ^
+  -alias rootca ^
+  -keystore rootca.keystore ^
+  -infile baidu.csr ^
+  -outfile baidu.cer ^
+  -ext san=dns:www.baidu.com,dns:baidu.com
+```
+
+***```baidu.cer```***
+
+```python
+keytool ^
+  -printcert ^
+  -file baidu.cer
+```
+
+```textarea
+所有者: CN=www.baidu.com, OU=百度技术有限公司, O=百度技术有限公司, L=北京, ST=北京, C=CN
+发布者: CN=xx认证中心, OU=xx认证中心, O=xx认证中心, L=杭州, ST=杭州, C=CN
+序列号: 2075ed32
+有效期为 Thu May 09 14:02:04 CST 2019 至 Wed Aug 07 14:02:04 CST 2019
+证书指纹:
+         MD5:  70:4B:1F:6F:E1:28:9B:5D:60:80:DF:F8:8E:16:09:70
+         SHA1: 30:BB:E7:0F:27:C7:A1:D3:51:87:DE:34:9E:E3:4F:CA:DE:89:D0:52
+         SHA256: 06:AF:AF:E8:E1:9D:B1:89:05:19:3F:47:91:8E:C5:40:BF:17:E6:46:30:AB:C7:83:E4:DE:78:48
+:0F:A8:F5:93
+签名算法名称: SHA256withRSA
+主体公共密钥算法: 2048 位 RSA 密钥
+版本: 3
+
+扩展:
+
+#1: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: EB 11 D3 9C A1 3C C8 41   D0 AD 23 10 FF 33 0F 47  .....<.A..#..3.G
+0010: 48 F5 3F 95                                        H.?.
+]
+]
+
+#2: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: B7 E0 4D 5A 83 77 11 6D   DD BC E3 3E 5A 42 36 B4  ..MZ.w.m...>ZB6.
+0010: 2A 74 D6 60                                        *t.`
+]
+]
+```
+
+#### 将签名后的证书导入到 baidu.keystore 中
+
+```python
+keytool ^
+  -import ^
+  -alias baidu ^
+  -file baidu.cer ^
+  -keystore baidu.keystore ^
+  -storepass changeit
+```
+
+#### 查看 baidu.keystore 证书秘钥库
+
+```python
+keytool ^
+  -list ^
+  -alias baidu ^
+  -v ^
+  -keystore baidu.keystore ^
+  -storepass changeit
+```
+
+```textarea
+别名: baidu
+创建日期: 2019-5-9
+条目类型: PrivateKeyEntry
+证书链长度: 2
+证书[1]:
+所有者: CN=www.baidu.com, OU=百度技术有限公司, O=百度技术有限公司, L=北京, ST=北京, C=CN
+发布者: CN=xx认证中心, OU=xx认证中心, O=xx认证中心, L=杭州, ST=杭州, C=CN
+
+扩展:
+
+#1: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: EB 11 D3 9C A1 3C C8 41   D0 AD 23 10 FF 33 0F 47  .....<.A..#..3.G
+0010: 48 F5 3F 95                                        H.?.
+]
+]
+
+#2: ObjectId: 2.5.29.17 Criticality=false
+SubjectAlternativeName [
+  DNSName: www.baidu.com
+  DNSName: baidu.com
+]
+
+#3: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 60 43 70 FB 74 2F BB 32   A3 35 FF 68 A9 8A 27 1E  `Cp.t/.2.5.h..'.
+0010: AA 3A 3A FF                                        .::.
+]
+]
+```
+
+```xml
+<!-- Tomcat -->
+<Connector port="443" protocol="org.apache.coyote.http11.Http11Protocol"
+           maxThreads="150" SSLEnabled="true" scheme="https" secure="true"
+           clientAuth="false" sslProtocol="TLS"
+           keystoreFile="baidu.keystore"
+           keystorePass="changeit"/>
+```
+
+#### 将根证书添加到系统信任根证书中
+
+```python
+## Windows + R
+certmgr.msc
+```
+
+![java-keytools-rsa-cer](./images/java-keytools-rsa-cer/java-keytools-rsa-cer-006.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

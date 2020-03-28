@@ -1,0 +1,12 @@
+#### java-basic-base64
+
+Base64 编码后包含换行符问题
+
+Base64 编码包有很多，稍不注意可能会得不到期望的结果引起bug。
+
+根据 FC822 规定，BASE64Encoder 编码每 76 个字符，还需要加上一个回车换行 
+
+部分 Base64 编码的 java 库还按照这个标准实行。
+
+如果不希望换行，换用 Apache 的 commons-codec.jar。
+

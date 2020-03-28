@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jquery-basic-plugin-exart</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### jquery-basic-plugin-exart
+
+##### Array.prototype.forEach 函数
+
+ - **forEach 遍历的范围在第一次调用 callback 前就会确定。**
+
+ - **调用 forEach 后添加到数组中的项不会被 callback 访问到。**
+
+ - **如果已经存在的值被改变，则传递给 callback 的值是 forEach 遍历到他们那一刻的值。**
+
+ - **已删除的项不会被遍历到。**
+
+ - **如果已访问的元素在迭代时被删除了（例如使用 shift()），之后的元素将被跳过 - 参见下面的示例。**
+
+forEach() 为每个数组元素执行 callback 函数；不像 map() 或者 reduce() ，它总是返回 undefined 值，并且不可链式调用。典型用例是在一个链的最后执行副作用。
+
+注意：没有办法终止或者跳出 forEach 循环，除了抛出一个异常。如果你需要这样，使用 forEach() 方法是错误的，你可以用一个简单的循环作为替代。如果您正在测试一个数组里的元素是否符合某条件，且需要返回一个布尔值，那么可以使用 Array.every 或 Array.some 。 如果可用，新方法 find() 或者 findIndex() 也可以被用于真值测试的提早终止。
+
+##### Array.prototype.shift 函数
+
+ - **shift()** 方法从数组中删除第一个元素，并返回该元素的值。此方法更改数组的长度。
+
+ **语法： arr.shift()**
+
+ **描述**： shift 方法移除索引为 0 的元素（即第一个元素），并返回被移除的元素，其他元素的索引值随之减 1 。如果 length 属性的值为 0（长度为 0），则返回 undefined 。
+
+ shift 方法并不局限于数组： 这个方法能够通过 call 或 apply 方法作用于类似数组的对象上。但是对于没有 length 属性（从 0 开始的一系列连续的数组属性的最后一个）的对象，调用该方法可能没有任何意义。
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

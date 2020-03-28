@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-string</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-string
+
+#### String 变量
+
+ - String s;
+ 
+ - String 是一个类，String 的变量是对象的管理者而非所有者。
+ 
+  - 就像数组变量时数组的管理者而非所有者一样。
+  
+     所有类的变量都是管理者而非所有者。
+
+##### 基础变量和对象变量
+
+ - 对象类型（引用类型）
+
+ - 基础类型
+
+![title](./images/java-basic-string/java-basic-string-001.png)
+
+     
+在类变量中并没有存储那个对象本身它里面是指有一个指针。
+     
+ - 这个指针会指向外面的那个对象。
+     
+ - 对象是在变量外面的
+
+##### 创建 String 对象
+
+ - **String s = "hello";**
+ 
+ - **String s = new String("hello");**
+
+new
+
+```java
+String s = new String("a string");
+```
+
+ - 创建了一个 String 的对象
+ 
+ - 用 "a string" 初始化这个对象
+ 
+ - 创建管理这个对象的变量 s
+ 
+ - 让 s 管理这个对象
+
+![title](./images/java-basic-string/java-basic-string-002.png)
+
+##### 比较两个 String
+
+```java
+// 比较是否是同一个 String 对象
+if(input == "byte"){
+  ...
+}
+
+// 比较内容是否相同
+if(input.equals("byte")){
+  ...
+}
+```
+
+ - **String 应该用 .equals() 来比较**
+
+##### String 相等比较
+
+ - _**boolean equals(Object anObject)**_
+ 
+ - _**boolean equalsIgnoreCase(String anotherString)**_
+
+![title](./images/java-basic-string/java-basic-string-003.png)
+
+![title](./images/java-basic-string/java-basic-string-004.png)
+
+![title](./images/java-basic-string/java-basic-string-005.png)
+
+![title](./images/java-basic-string/java-basic-string-006.png)
+
+![title](./images/java-basic-string/java-basic-string-007.png)
+
+##### Example
+
+```java
+public static void setStirng(){
+  // 文件内存在相同常量字符串，编译器会做优化处理
+  String sample = "demo";
+  String demo = "de" + "mo";
+  String temp0 = "demo";
+  String temp1 = new String("demo");
+  String temp2 = new String("demo");
+  String temp3 = new String(temp0);
+  byte[] bytes = sample.getBytes();
+  String temp4 = new String(bytes);
+  StringBuffer strb = new StringBuffer();
+  strb.append(sample);
+  String temp5 = strb.toString();
+  String temp6 = strb.toString();
+  char[] chars = sample.toCharArray();
+  String temp7 = new String(chars);
+  String temp8 = new String(chars);
+}
+```
+
+```java
+// 源文件
+  String sample = "demo";
+  String demo = "de" + "mo";
+  String temp0 = "demo";
+// 反编译后
+  String str1 = "demo";
+  String str2 = "demo";
+  String str3 = "demo";
+```
+
+```java
+// 前三个变量的内存地址相同，指向的同一个内存地址
++-----------------+-----------------+-----------------+
+|  Variable Name  |      Value      |  Memery Address |
++-----------------+-----------------+-----------------+
+|      sample     |       demo      |    366712642    |
+|       demo      |       demo      |    366712642    |
+|      temp0      |       demo      |    366712642    |
+|      temp1      |       demo      |    1829164700   |
+|      temp2      |       demo      |    2018699554   |
+|      temp3      |       demo      |    1311053135   |
+|      temp4      |       demo      |    118352462    |
+|      temp5      |       demo      |    1550089733   |
+|      temp6      |       demo      |    865113938    |
+|      temp7      |       demo      |    1442407170   |
+|      temp8      |       demo      |    1028566121   |
++-----------------+-----------------+-----------------+
+```
+
+##### Strings 大小的比较
+
+ - _**The fact that characters are primitive types with a numeric internal form allows you to compare them using the relational operatiors. If c1 and c2 are characters, the express `c1 < c2` is `true` if the Unicode value of c1 `is` less than of `c2`.**_
+ 
+ - _**The `String` class allows you to compare tow strings using the internal values of the characters, although you must use the `compareTo` method instead of the relational operators: `s1.compareTo(s2)` .**_
+ 
+ _**This call returns an integer that is less than () if `s1` is less than `s2`, greater than 0 if `s1` is greater than `s2`, and 0 if the tow strings are equal.**_
+
+
+ - **compareTo() - Compares tow strings lexicographically.**
+ 
+  - _**The result is a negative integer if this String object lexicographically precedes the argument string.**_
+  
+  - _**The result is a positive integer if the String object lexicographically follows the argument string.**_
+  
+  - _**The result is zore if the strings are equal.**_
+  
+  - _**compareTo return 0 exactly when the equals(Object) method would return true.**_
+  
+ - **public int compareTo(String anotherString)**
+ 
+ - **public int compareToIgnoreCase(String str)**
+
+#### 比较基础数据类型的包装类型变量
+
+ - **x.compareTo(y)**
+ 
+ - **Integer.compare(x,y)**
+
+基础数据类型和基础数据类型的包装类型
+
+ - 自动拆装箱机制
+
+ - 谁是所有者？
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

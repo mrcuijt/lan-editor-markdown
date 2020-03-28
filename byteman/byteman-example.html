@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Byteman Example</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+**在 Windows 上**
+
+ - <a href="http://byteman.jboss.org/docs.html" target="_blank">docs.html</a>
+
+ - <a href="http://byteman.jboss.org/downloads.html" target="_blank">downloads.html</a>
+
+ - <a href="http://downloads.jboss.org/byteman/4.0.6/byteman-download-4.0.6-bin.zip" target="_blank">byteman-download-4.0.6-bin.zip</a>
+
+```bash
+set BYTEMAN_HOME=C:\Downloads\byteman-1.6.0
+```
+
+```bash
+set PATH=%PATH%;%BYTEMAN_HOME%\bin
+```
+
+**Windows CMD Command 1**
+
+在服务端使用，可以动态卸载/加载 Rule
+
+```python
+java -classpath ".;D:\development_tools\eclipse\workspace\jaxws-binding-type-parent\jaxws-binding-type-client\target\dependency\*" ^
+-javaagent:%BYTEMAN_HOME%\lib\byteman.jar=listener:true,boot:%BYTEMAN_HOME%\lib\byteman.jar -Dorg.jboss.byteman.transform.all science.mrcuijt.jaxws.service.ComplexTypeServiceImpl
+```
+
+ - **查看 Rule**
+
+```python
+## Windows
+bmsubmit -l
+```
+
+ - **加载 Rule**
+
+```python
+## Windows
+bmsubmit -l appmain.btm
+```
+
+ - **卸载 Rule**
+
+```python
+## Windows
+bmsubmit -u appmain.btm
+```
+
+**Windows CMD Command 2**
+
+在客户端使用
+
+```python
+bmjava -l appmain.btm ^
+-Dorg.jboss.byteman.transform.all ^
+-classpath ".;D:\development_tools\eclipse\workspace\jaxws-binding-type-parent\jaxws-binding-type-client\target\dependency\*" science.mrcuijt.jaxws.client.Client
+```
+
+#### Match Specil Method OF Class
+
+***```Person.java```***
+
+```java
+package science.mrcuijt.byteman;
+
+/**
+ * @author Administrator
+ *
+ */
+public class Person {
+
+	private String name;
+	private int age;
+	private Region region;
+
+	public static Person getPerson() {
+		Person person = new Person();
+		person.setName("张三");
+		person.setAge(23);
+		person.setRegion(Region.getRegion());
+		return person;
+	}
+
+	// getter ... setter ...
+}
+```
+
+***```Region.java```***
+
+```java
+package science.mrcuijt.byteman;
+
+/**
+ * @author Administrator
+ *
+ */
+public class Region {
+
+	private String alias;
+
+	public static Region getRegion() {
+		Region region = new Region();
+		region.setAlias("India");
+		return region;
+	}
+
+	// getter ... setter ...
+}
+```
+
+***```appmain.btm```***
+
+```python
+## Entry Trace Rule
+RULE trace getRegion entry
+CLASS Region
+METHOD getRegion
+AT ENTRY
+IF TRUE
+    DO traceln("entering getRegion");
+    createTimer(Thread.currentThread());
+ENDRULE
+
+## N.B.
+## Specil Method Called Entry
+RULE fire when foo called from bar
+CLASS Region
+METHOD getRegion
+AT ENTRY
+IF callerEquals("Person.getPerson", true)
+    DO traceln("Region.getRegion() called from Person.getPerson()");
+	traceln(traceStack());
+ENDRULE
+
+## Exit Trace Rule
+RULE trace getRegion exit
+CLASS Region
+METHOD getRegion
+AT EXIT
+IF TRUE
+    DO traceln("exiting getRegion");
+    traceln("RT:----- " + getElapsedTimeFromTimer(Thread.currentThread()) + " ms");
+    deleteTimer(Thread.currentThread());
+ENDRULE
+```
+
+***```Main.java```***
+
+```java
+package science.mrcuijt.byteman;
+
+/**
+ * @author Administrator
+ *
+ */
+public class Main {
+
+	public static void main(String[] args) {
+
+		System.out.println(Region.getRegion().getAlias());
+
+		System.out.println(Person.getPerson().getRegion().getAlias());
+	}
+}
+```
+
+##### Run
+
+```python
+## Windows
+> java -javaagent:%BYTEMAN_HOME%\lib\byteman.jar=script:appmain.btm,boot:%BYTEMAN_HOME%\lib\byteman.jar science.mrcuijt.byteman.Main
+
+entering getRegion
+exiting getRegion
+RT:----- 1 ms
+India
+entering getRegion
+Region.getRegion() called from Person.getPerson()
+exiting getRegion
+RT:----- 2 ms
+India
+```
+
+#### Match Specil Method OF Class 2
+
+**JAXWS-JAXB-unmarshaller**
+
+```python
+com.sun.xml.bind.v2.util.QNameMap.getEntry(QNameMap.java:474)
+com.sun.xml.bind.v2.util.QNameMap.get(QNameMap.java:162)
+com.sun.xml.bind.v2.runtime.unmarshaller.StructureLoader.childElement(StructureLoader.java:248)
+com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallingContext._startElement(UnmarshallingContext.java:498)
+com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallingContext.startElement(UnmarshallingContext.java:480)
+com.sun.xml.bind.v2.runtime.unmarshaller.StAXStreamConnector.handleStartElement(StAXStreamConnector.java:246)
+com.sun.xml.bind.v2.runtime.unmarshaller.StAXStreamConnector.bridge(StAXStreamConnector.java:180)
+com.sun.xml.bind.v2.runtime.unmarshaller.UnmarshallerImpl.unmarshal0(UnmarshallerImpl.java:415)
+com.sun.xml.bind.v2.runtime.BridgeImpl.unmarshal(BridgeImpl.java:124)
+com.sun.xml.bind.api.Bridge.unmarshal(Bridge.java:237)
+com.sun.xml.ws.db.glassfish.BridgeWrapper.unmarshal(BridgeWrapper.java:272)
+com.sun.xml.ws.client.sei.ResponseBuilder$DocLit.readResponse(ResponseBuilder.java:650)
+com.sun.xml.ws.client.sei.StubHandler.readResponse(StubHandler.java:258)
+com.sun.xml.ws.db.DatabindingImpl.deserializeResponse(DatabindingImpl.java:181)
+com.sun.xml.ws.db.DatabindingImpl.deserializeResponse(DatabindingImpl.java:258)
+com.sun.xml.ws.client.sei.SyncMethodHandler.invoke(SyncMethodHandler.java:117)
+com.sun.xml.ws.client.sei.SyncMethodHandler.invoke(SyncMethodHandler.java:91)
+com.sun.xml.ws.client.sei.SEIStub.invoke(SEIStub.java:154)
+com.sun.proxy.$Proxy32.getList (Unknown Source)
+science.mrcuijt.jaxws.client.Client.main(Client.java:22)
+```
+
+**JAXWS-Service-getService**
+
+```python
+com.sun.xml.bind.v2.util.QNameMap.getEntry(QNameMap.java:474)
+com.sun.xml.bind.v2.util.QNameMap.get(QNameMap.java:162)
+com.sun.xml.bind.v2.runtime.NameBuilder.allocIndex(NameBuilder.java:123)
+com.sun.xml.bind.v2.runtime.NameBuilder.createName(NameBuilder.java:104)
+com.sun.xml.bind.v2.runtime.NameBuilder.createElementName(NameBuilder.java:75)
+com.sun.xml.bind.v2.runtime.NameBuilder.createElementName(NameBuilder.java:71)
+com.sun.xml.bind.v2.runtime.ClassBeanInfoImpl.<init>(ClassBeanInfoImpl.java:196)
+com.sun.xml.bind.v2.runtime.JAXBContextImpl.getOrCreate(JAXBContextImpl.java:514)
+com.sun.xml.bind.v2.runtime.JAXBContextImpl.<init>(JAXBContextImpl.java:331)
+com.sun.xml.bind.v2.runtime.JAXBContextImpl.<init>(JAXBContextImpl.java:142)
+com.sun.xml.bind.v2.runtime.JAXBContextImpl$JAXBContextBuilder.build(JAXBContextImpl.java:1174)
+com.sun.xml.bind.v2.ContextFactory.createContext(ContextFactory.java:162)
+sun.reflect.NativeMethodAccessorImpl.invoke0(NativeMethodAccessorImpl.java:-2)
+sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+java.lang.reflect.Method.invoke(Method.java:498)
+javax.xml.bind.ContextFinder.newInstance(ContextFinder.java:247)
+javax.xml.bind.ContextFinder.newInstance(ContextFinder.java:234)
+javax.xml.bind.ContextFinder.find(ContextFinder.java:441)
+javax.xml.bind.JAXBContext.newInstance(JAXBContext.java:641)
+javax.xml.bind.JAXBContext.newInstance(JAXBContext.java:584)
+com.sun.xml.ws.spi.ProviderImpl$2.run(ProviderImpl.java:274)
+com.sun.xml.ws.spi.ProviderImpl$2.run(ProviderImpl.java:271)
+java.security.AccessController.doPrivileged(AccessController.java:-2)
+com.sun.xml.ws.spi.ProviderImpl.getEPRJaxbContext(ProviderImpl.java:271)
+com.sun.xml.ws.spi.ProviderImpl.<clinit>(ProviderImpl.java:96)
+sun.reflect.NativeConstructorAccessorImpl.newInstance0(NativeConstructorAccessorImpl.java:-2)
+sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)
+sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+java.lang.reflect.Constructor.newInstance(Constructor.java:423)
+java.lang.Class.newInstance(Class.java:442)
+java.util.ServiceLoader$LazyIterator.nextService(ServiceLoader.java:380)
+java.util.ServiceLoader$LazyIterator.next(ServiceLoader.java:404)
+java.util.ServiceLoader$1.next(ServiceLoader.java:480)
+javax.xml.ws.spi.Provider.getProviderUsingServiceLoader(Provider.java:165)
+javax.xml.ws.spi.Provider.provider(Provider.java:125)
+javax.xml.ws.Service.<init>(Service.java:77)
+javax.xml.ws.Service.create(Service.java:707)
+science.mrcuijt.jaxws.util.WSDLParserUtil.getService(WSDLParserUtil.java:85)
+science.mrcuijt.jaxws.util.WSDLParserUtil.parseAvailableServicePort(WSDLParserUtil.java:100)
+science.mrcuijt.jaxws.util.WSDLParserUtil.parseWSDL(WSDLParserUtil.java:91)
+science.mrcuijt.jaxws.util.WSDLParserUtil.parseWSDL(WSDLParserUtil.java:96)
+science.mrcuijt.jaxws.client.Client.getService(Client.java:30)
+science.mrcuijt.jaxws.client.Client.main(Client.java:22)
+```
+
+***```appmain.btm```***
+
+```python
+RULE demo3
+CLASS QNameMap
+METHOD getEntry(String,String)
+AFTER WRITE $e
+## callerEquals(String, boolean, int, int)
+## String regExp
+## boolean includeClass 检查引入的类名
+## int startFrame 开始检查的帧索引，标识触发器方法帧(方法调用堆栈) defaut 1 
+## int frameCount 要检查的帧数(方法调用堆栈) default 1
+IF callerEquals("Bridge.unmarshal", true, 1, 10)
+    DO traceln("XmlResult entry" + "\t" + $1 + "\t" + $2);
+    traceln("local variable: e " + $e);
+ENDRULE
+```
+
+***origion ```appmain.btm```***
+
+```python
+RULE demo3
+CLASS QNameMap
+METHOD getEntry(String,String)
+AFTER WRITE $e
+IF TRUE
+    DO traceln("XmlResult entry" + "\t" + $1 + "\t" + $2);
+    traceln("local variable: e " + $e);
+ENDRULE
+```
+
+**Windows CMD Command**
+
+```python
+## Windows
+bmjava -l appmain.btm ^
+-Dorg.jboss.byteman.transform.all ^
+-classpath ".;D:\development_tools\eclipse\workspace\jaxws-binding-type-parent\jaxws-binding-type-client\target\dependency\*" science.mrcuijt.jaxws.client.Client
+```
+
+**Result**
+
+```python
+XmlResult entry	http://mrcuijt.science/ws	messages
+local variable: e "http://mrcuijt.science/ws","messages"=com.sun.xml.bind.v2.runtime.unmarshaller.ChildLoader@13e344d
+XmlResult entry	http://mrcuijt.science/ws	messages
+local variable: e "http://mrcuijt.science/ws","messages"=com.sun.xml.bind.v2.runtime.unmarshaller.ChildLoader@13e344d
+XmlResult entry	http://mrcuijt.science/ws	messages
+local variable: e "http://mrcuijt.science/ws","messages"=com.sun.xml.bind.v2.runtime.unmarshaller.ChildLoader@13e344d
+XmlResult entry	http://mrcuijt.science/ws	messages
+local variable: e "http://mrcuijt.science/ws","messages"=com.sun.xml.bind.v2.runtime.unmarshaller.ChildLoader@13e344d
+XmlResult entry	http://mrcuijt.science/ws	messages
+local variable: e "http://mrcuijt.science/ws","messages"=com.sun.xml.bind.v2.runtime.unmarshaller.ChildLoader@13e344d
+XmlResult entry	http://mrcuijt.science/ws	messages
+local variable: e "http://mrcuijt.science/ws","messages"=com.sun.xml.bind.v2.runtime.unmarshaller.ChildLoader@13e344d
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

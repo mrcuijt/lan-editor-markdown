@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-iframe-operator</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-iframe-operator
+
+#### iframe 监听鼠标点击事件
+
+需要实现的页面逻辑是：
+
+ 1. 点击父窗体中按钮，显示侧边栏；
+
+ 2. 点击页面其他区域（iframe）可以隐藏侧边栏
+
+先构造页面文档结构：
+
+```xml
+<html>
+    <body>
+        <aside id="sidebar">
+            <!-- 这是需要隐藏的侧边栏 -->
+        </aside>
+        <button><!-- 点击按钮显示侧边栏 --></button>
+        <iframe id="my-iframe">
+            <!-- 获取此区域的点击事件 -->
+        </iframe>
+    </body>
+</html>
+```
+
+因为相对于父窗体，iframe 中加载的是一个相对独立的 document 文档，如果直接在父窗体中使用iframe.onlick 监听该区域的点击事件，则不会返回任何结果。
+
+首先我们需要获取 iframe 所属的 document 对象：
+
+```js
+/* example code */
+document.getElementById('my-iframe').contentDocument
+```
+
+随后对这个 document 对象注册事件处理程序，监听响应鼠标点击事件：
+
+```js
+/* example code */
+document.getElementById('my-iframe').contentDocument.onclick = function () {
+    var sidebar = document.getElementById('sidebar');
+    if (sidebar.style.display == 'block')  sidebar.style.display = 'none';
+};
+```
+
+但是这样做还不能满足要求，因为 iframe 中内容会单独加载，如果我们在它的 DOM 解析完成之前就去获取 document 对象并绑定事件监听程序，将不会有任何效果。
+
+所以我们需要先监听 iframe 页面加载完成事件，在处理程序中获取文档对象：
+
+```js
+/* example code */
+var iframe = document.getElementById('my-iframe');
+iframe.onload = function() {
+    iframe.contentDocument.onclick = function () {
+        var sidebar = document.getElementById('sidebar');
+        if (sidebar.style.display == 'block')  sidebar.style.display = 'none';
+    };
+}
+```
+
+参考：
+
+ - sxqlmc000的博客
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

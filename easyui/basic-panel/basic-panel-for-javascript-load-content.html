@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>basic-panel-for-javascript-load-content</title>
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/icon.css">
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+</head>
+<body>
+<div id="p" style="padding:10px;">
+    <p>panel content.</p>
+    <p>panel content.</p>
+</div>
+<script>
+$('#p').panel({
+    href:'content_url.php',
+    onLoad:function(){
+        alert('loaded successfully');
+    }
+});
+</script>
+</body>
+</html>

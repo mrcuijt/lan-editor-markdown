@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-jdbc-auto_increment</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-jdbc-auto_increment
+
+#### Java prepared Statement get auto increment value after insert in MySQL
+
+##### How to get auto generated keys from MySQL database?
+
+```java
+PreparedStatement stmt = conn.prepareStatement(sql, 
+  PreparedStatement.RETURN_GENERATED_KEYS);
+//...
+ 
+ResultSet res = stmt.getGeneratedKeys();
+while (res.next())
+System.out.println("Generated key: " + res.getInt(1));
+```
+
+##### Sample Java source code to retrieve auto increment key values in MYSQL using JDBC prepared statement
+
+```java
+//insert new customer information and retrieve the generated customer id
+public String insertCustomer(String storeId, Customer customer) { 
+ 
+  String customerId = "";
+  DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+  String todaysDate = dateFormat.format(System.currentTimeMillis());
+ 
+  try {      
+    Context ctx = (Context) new InitialContext().lookup("java:comp/env");
+    conn = ((DataSource) ctx.lookup("jdbc/mysql")).getConnection(); 
+ 
+    String sql = "INSERT into customer " +
+    "(customer_id,first_name,last_name,email,active,store_id,address_id,create_date,last_update)" +
+    " values(null,?,?,?,?,?,?,?,?)";
+    stmt = conn.prepareStatement(sql,PreparedStatement.RETURN_GENERATED_KEYS);
+    stmt.setString(1,customer.getFirstName()); 
+    stmt.setString(2,customer.getLastName());
+    stmt.setString(3,customer.getEmail());
+    stmt.setInt(4,customer.isActive()? 1: 0);
+    stmt.setInt(5,Integer.parseInt(storeId)); 
+    stmt.setInt(6,5);
+    stmt.setString(7, todaysDate);
+    stmt.setString(8, todaysDate);
+ 
+    stmt.executeUpdate();
+ 
+    // Using the getGeneratedKeys() method to retrieve
+    // the key(s). In this case there is only one key column
+    ResultSet keyResultSet = stmt.getGeneratedKeys();
+    int newCustomerId = 0;
+    if (keyResultSet.next()) {
+      newCustomerId = (int) keyResultSet.getInt(1);
+      customerId = String.valueOf(newCustomerId);
+    }
+ 
+    stmt.close();
+    stmt = null;
+    conn.close();
+    conn = null;
+ 
+  } catch(Exception e){
+    System.out.println(e);
+  } finally {
+    if (stmt != null) {
+      try {
+        stmt.close();
+      } catch (SQLException sqlex) {
+        // ignore -- as we can't do anything about it here
+      }
+      stmt = null;
+    }
+ 
+    if (conn != null) {
+      try {
+        conn.close();
+      } catch (SQLException sqlex) {
+        // ignore -- as we can't do anything about it here
+      }
+      conn = null;
+    }
+  }
+  return customerId;
+}
+```
+
+参考链接：
+
+ - <a href="https://www.mysamplecode.com/2012/02/mysql-java-get-auto-increment-value.html" target="_blank">Java prepared Statement get auto increment value after insert in MySQL</a>
+
+ - <a href="https://stackoverflow.com/questions/1915166/how-to-get-the-insert-id-in-jdbc" target="_blank">How to get the insert ID in JDBC?</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

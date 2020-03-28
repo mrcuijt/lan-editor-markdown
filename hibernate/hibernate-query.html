@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate Query</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+### Hibernate 支持三种查询方式：
+
+#### HQL（Hibernate Query Language，Hibernate 查询语言）;
+
+&#160; &#160;HQL 是一种面向对象的查询语言，其中没有表和字段的概念，只有类、对象和属性的概念。
+
+##### ***```编写 HQL 语句```***
+
+ - HQL 语句除了 Java 类 和 属性的名称 外，查询语句对大小写不敏感。
+
+ - HQL 语句中的关键字建议使用小写字母，如 select 小写。
+
+***```From 子句```***
+
+```sql
+from cn.jbit.hibernatedemo.Dept
+-- cn.jbit.hibernatedemo.Dept 是全限定类名。
+```
+
+```sql
+from Dept 
+-- 省略了包名
+```
+
+```sql
+from Dept as dept
+```
+
+&#160; &#160;说明：这条 HQL 语句为持久化 Dept 指派了别名 dept，可以在 HQL 语句中使用这个别名调用类中的属性。
+
+as 关键字可以省略。
+
+```sql
+from Dept dept 
+```
+
+***```Select 子句```***
+
+Select 子句用于选取 ***对象*** 和 ***属性***。以下几条 HQL 语句都是用来查询所有部门。
+
+```sql
+select dept from Dept as dept 
+```
+
+&#160; &#160;说明：select 后面跟的是别名 dept
+
+```sql
+select dept.deptName from Dept as dept
+```
+
+&#160; &#160;说明：select 子句选取了一个属性 deptName ，也可以选择多个属性，逗号分隔。
+
+***```Where 子句```***
+
+where 子句用于表达查询的限制条件
+
+```sql
+from Dept where deptName = 'SALES'
+```
+
+&#160; &#160;说明：这条 HQL 语句用于查询名称为 SALES 的部门。在 where 子句中直接使用 deptName 属性。
+
+```sql
+from Dept as dept where dept.deptName = 'SALES'
+```
+
+&#160; &#160;说明：使用别名 dept 调用了属性 deptName
+
+```sql
+from Dept dept where dept.deptName = 'SALES'
+```
+
+&#160; &#160;省略的 as 关键字
+
+***```使用表达式```***
+
+表达式一般用在 where 子句中。
+
+```sql
+from Dept dept where lower（dept.deptName）= 'SALES'
+```
+
+&#160; &#160;这条 HQL 语句用于查询名称时 sales 的部门
+
+&#160; &#160;lower() 函数用于把字符串中的每个大写字母改为小写
+
+```sql
+from Emp where year（hireDate）= 1980
+```
+
+&#160; &#160;这条 HQL 语句用于查询 1980 年入职的员工
+
+&#160; &#160;year() 函数用于获取日期字段的年份
+
+***```order by 子句```***
+
+order by 子句用于指定属性排序。
+
+```sql
+from Emp order by hireDate asc
+```
+
+&#160; &#160;这条 HQL 语句用于查询所有员工，并按照员工的入职时间升序排序。
+
+&#160; &#160;关键字 asc desc 可以省略 ，不写默认是 asc ；
+
+```sql
+from Emp order by hireDate , salary desc
+```
+
+&#160; &#160;查询所有员工，并按照员工的入职时间升序排序，入职时间相同的按照员工工资降序排序；
+
+##### 执行 HQL 语句
+
+准备好 HQL 后，使用如下语句创建 Query 对象进行数据查询。
+
+```java
+//声明变量并初始化
+String HQL ="from emp"；
+//创建 Query 对象
+Query query = session.createQuery(HQL);
+```
+
+Query 对象创建好以后，执行查询语句，并获取查询结果。
+
+有两种方式执行查询：
+
+ - Query 对象的 list() 方法
+ 
+ - Query 对象的 iterator() 方法
+
+list() 方法执行查询，输出查询结果：
+
+```java
+//声明变量并初始化
+String hql = "from emp";
+//构建 Query 对象  
+Query query = session.createQuery（hql）;
+//执行查询
+List<Emp> empList = query.list（）;  //获取Emp对象的集合
+//遍历并输出结果
+for （Emp emp : empList）{
+   System.out.println（"员工姓名"+emp.getEmpName（））;
+}
+//生成的SQL语句
+select * from emp；
+```
+
+iterator() 方法执行查询，并输出查询结果。
+
+```java
+//执行查询
+Iterator<Emp> empIterator = query.iterate（）;  //获取Emp对象的集合
+Emp emp = null;
+//遍历并输出结果\
+while(empIterator .hasNext()){
+    //为变量赋值
+    emp =empIterator.next()；
+    System.out.println("员工姓名"+emp.getEmpName())；
+}
+```
+
+```sql
+//生成的SQL语句
+select empno from emp
+select * from emp  where empno = ?
+select * from emp  where empno = ?
+select * from emp  where empno = ?
+select * from emp  where empno = ?
+```
+
+list() 和 iterator() 方法的区别
+
+ - list() 方法直接从数据库中查询所有的记录，并将记录返回。
+
+ - lterator() 方法是只将所有记录的 id 返回，然后在需要某一对象的其他属性值时，在根据记录 id 去数据库将整条记录查询出来。
+
+执行 HQL 语句的步骤：
+
+ 1. 获取 Session 对象；
+ 2. 编写 HQL 语句；
+ 3. 创建 Query 对象；
+ 4. 执行查询，获得查询结果；
+
+***```HQL 语句参数的绑定形式```***
+
+HQL的参数绑定有以下两种形式
+
+ - 按参数位置绑定
+
+在 HQL 语句中用 “？”占位符来定义参数的位置，形式如下
+```java
+Query query = session.createQuery("from Emp where job = ? and salary > ?");
+```
+
+&#160; &#160;以上 HQL 查询语句定义了 2 个参数，调用 setXXX() 方法来绑定参数，第一个参数位置为零；
+
+```java
+query.setString（0,"job"）;
+query.setDouble（1,1234.33）;
+```
+
+&#160; &#160;Query 对象提供了绑定各种类型的参数的方法。这些 set 方法中，第一个参数代表 HQL 查询语句中的参数位置，第二个参数代表 HQL 语句中的参数的值。
+
+```java
+SessionFactory sessionFactory = null;
+Session session = null;
+try{
+     sessionFactory  = new Configuration().configure().buildSessionFactory();
+     session = sessionFactory.get();
+    //设置占位符
+    String hql = " from Dept dept where dept.deptName =  ?  ";
+    Query query = session.createQuery(hql);
+    query.setString(0，"SALES");
+    Iterator<Dept> dt= query.iterate();
+    while(dt.hasNext()){
+            System.out.println("部门地址为："+it.next().getLocation())；
+    }
+}catch（Exception e）{
+    e.printStackTrace();
+}finally{
+   session.close();
+}
+```
+ - 按参数名称绑定：
+
+在 HQL 语句中定义 命名参数，命名参数以```":"```开头。
+
+```java
+Query query = session.createQuery("from Emp where job = :empJob and salary > :empSalary");
+```
+
+&#160; &#160;在 HQL 语句中定义了 empJob 和 empSalary 两个命名参数。使用 setXXX() 方法来绑定参数。
+
+```java
+query.setString("empJob", empJob);
+query.setDouble("empSalary", empSalary);
+```
+
+&#160; &#160;setXXX() 方法中，第一个参数是命名参数的名称，第二个参数是命名参数的值。
+
+ - 使用 setParameter() 方法 绑定任意类型的参数；
+
+```java
+//为占位符赋值
+setParameter(0,"SALES")
+//为命名参数赋值
+setParameter("empJob",empJob);
+setParameter("empSalary",empSalary);
+```
+
+ - 使用 setProperites() 方法：绑定命名参数与一个对象的属性值；
+
+```java
+String hql = " from Dept as dept where dept.deptName = :deptName"; 
+Query query = session.createQuery(hql);
+query.setPerproites(DeptCondition);
+```
+
+&#160; &#160;在 ```deptCondition``` 对象中有与命名参数同名的字段，和它的 get，set，方法
+
+#### Criteria 查询
+
+&#160; &#160;Criteria 查询又称为对象查询，它采用面向对象的方式构造查询。
+
+#### 原生 SQL 查询
+
+&#160; &#160;原生 SQL 查询就是直接执行 SQL 语句。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Freemark</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Java 模板引擎 FreeMarker 介绍和使用
+
+##### 什么是 FreeMarker
+
+&amp;#160; &amp;#160;FreeMarker 是一个模板引擎，一个基于模板生成文本输出的通用工具，使用纯 Java 编写
+
+&amp;#160; &amp;#160;FreeMarker 被设计用来生成 HTML Web 页面，特别是基于 MVC 模式的应用程序
+
+&amp;#160; &amp;#160;虽然 FreeMarker 具有一些编程的能力，但通常由 Java 程序准备要显示的数据，由 FreeMarker 生成页面，通过模板显示准备的数据（如下图）
+
+![freemark](./images/freemark/freemark-001.png)
+
+ - FreeMarker 不是一个 Web 应用框架，而适合作为 Web 应用框架一个组件
+
+ - FreeMarker 与容器无关，因为它并不知道 HTTP 或 Servlet；FreeMarker 同样可以应用于非 Web 应用程序环境
+
+ - FreeMarker 更适合作为 Model2 框架（如 Struts）的视图组件，你也可以在模板中使用 JSP 标记库
+
+ - FreeMarker 是免费的
+
+&amp;#160; &amp;#160;你可以通过 Eclipse 的插件来编辑 FreeMarker，经过验证，FreeMarker 最好的 Eclipse 编辑插件是 JBoss Tools。
+
+#### FreeMarker 特性
+
+##### 通用目标
+
+ - 能够生成各种文本：HTML、XML、RTF、Java 源代码等等
+
+ - 易于嵌入到你的产品中：轻量级；不需要Servlet环境
+
+ - 插件式模板载入器：可以从任何源载入模板，如本地文件、数据库等等
+
+ - 你可以按你所需生成文本：保存到本地文件；作为 Email 发送；从 Web 应用程序发送它返回给 Web 浏览器
+
+##### 强大的模板语言
+
+ - 所有常用的指令：include、if/elseif/else、循环结构
+
+ - 在模板中创建和改变变量
+
+ - 几乎在任何地方都可以使用复杂表达式来指定值
+
+ - 命名的宏，可以具有位置参数和嵌套内容
+
+ - 名字空间有助于建立和维护可重用的宏库，或者将一个大工程分成模块，而不必担心名字冲突
+
+ - 输出转换块：在嵌套模板片段生成输出时，转换HTML转义、压缩、语法高亮等等；你可以定义自己的转换
+
+##### 通用数据模型
+
+ - FreeMarker 不是直接反射到 Java 对象，Java 对象通过插件式对象封装，以变量方式在模板中显示
+
+ - 你可以使用抽象（接口）方式表示对象（JavaBean、XML 文档、SQL 查询结果集等等），告诉模板开发者使用方法，使其不受技术细节的打扰
+
+##### 为 Web 准备
+
+ - 在模板语言中内建处理典型 Web 相关任务（如 HTML 转义）的结构
+
+ - 能够集成到 Model2 Web 应用框架中作为 JSP 的替代
+
+ - 支持 JSP 标记库
+
+ - 为 MVC 模式设计：分离可视化设计和应用程序逻辑；分离页面设计员和程序员
+
+##### 智能的国际化和本地化
+
+字符集智能化（内部使用 UNICODE）
+
+数字格式本地化敏感
+
+日期和时间格式本地化敏感
+
+非 US 字符集可以用作标识（如变量名）
+
+多种不同语言的相同模板
+
+##### 强大的 XML 处理能力
+
+ ```<#recurse>``` 和 ```<#visit>```指令（2.3版本）用于递归遍历 XML 树
+ 
+ 在模板中清楚和直觉的访问 XML 对象模型
+ 
+ 开源论坛 JForum 就是使用了 FreeMarker 做为页面模板。
+
+#### FreeMarker 在 struts2.0, JAVA, web 中的应用实例
+
+&amp;#160; &amp;#160;FreeMarker 是一个非常优秀的模板引擎,这个模板引擎可用于任何场景，FreeMarker 负责将数据模型中的数据合并到模板中，从而生成标准输出。界面开发人员只需要关于界面(也就是模板文件)的开发，而业务逻辑开发者只需要负责将需要显示的数据填入数据模型-----FreeMarker 负责合并数据模型和模板，从而生成标准输出。
+
+&amp;#160; &amp;#160;FreeMarker 特别适应于 MVC 模式的 Web 应用,虽然 FreeMarker 具有一些编程能力,但这种编程能力非常有限，无法实现业务逻辑，只能提供一些数据格式的转换功能。因此，通常由 Java 程序准备要显示的数据,由 FreeMarker 模板引擎来生成页面,而 FreeMarker 模板则提供页面布局支持.（**好处：严格实现 MVC 分离**）
+
+&amp;#160; &amp;#160;此外，FreeMarker 也是与 Web 容器无关的,也就是 FreeMarker 并不一定需要运行在 Web 容器中: FreeMarker 同样可以应用于非 Web 应用程序环境。而且，FreeMarker 并不是只能生成 HTML 页面，它也可以生成各种文本,如 XML,RTF,Java 源代码等。
+
+&amp;#160; &amp;#160;Struts2 默认采用 FreeMarker 作为其模板文件,而 Struts2 所有的主题模板文件都是采用 FreeMarker 编写的，eclipse 中的 JSP，Java 等模板文件也是采用 FreeMarker 技术。
+
+##### 在 Struts2 中使用 Freemarker
+
+普通的 Struts2 配置文件一般是这么配置的：
+
+```xml
+<action name="Action1" class="com.abc.Action1">  
+    <result type="freemarker">/fm.ftl</result>  
+</action>
+```
+
+当然我们希望能在 fm.ftl 上使用 Struts2 的标签，需要在 fm.ftl 页面最开始添加对 Struts2 标签的引用：
+
+```xml
+<#assign s=JspTaglibs["/WEB-INF/struts-tags.tld"] />
+```
+
+引用前把 struts2-core-2.0.x.x.jar 包里的 META-INF/struts-tags.tld 复制到 /WEB-INF/struts-tags.tld
+
+默认是不支持 JspTaglibs 的引用的，这里还需要一个额外的配置，修改 web.xml，添加如下内容：
+
+```xml
+<servlet>  
+    <servlet-name>JspSupportServlet</servlet-name>  
+    <servlet-class>  
+         org.apache.struts2.views.JspSupportServlet  
+    </servlet-class>  
+    <load-on-startup>1</load-on-startup>  
+</servlet>
+```
+
+一个简单的 fm.ftl 文件的例子：
+
+```xml
+<#assign s=JspTaglibs["/WEB-INF/struts-tags.tld"] />  
+<html>
+    <head>
+        <meta http-equiv=“Content-Type" content="text/html; charset=GB2312">
+        <title>Insert title here</title>
+    </head>
+    <body>
+        <@s.form action="Action1.action">
+            <@s.textfield name="username"></@s.textfield>
+            <@s.textfield name="password"></@s.textfield>
+            <@s.submit value="提交"/>
+        </@s.form>
+        <br/>登录用户名：${username}  
+    </body>
+</html>  
+```
+
+注意：Struts2在 Freemarker 页面中标签写法和 jsp 页面的写法不同，Freemarker 里是 ```<@s.form>```，jsp 里是 ```<s:form>```，一定不要写错了！
+
+使用时发现对中文的支持不好，显示时中文出现乱码，这里修改下 struts.xml 配置文件：
+
+```xml
+<constant name="struts.i18n.encoding" value="gb2312″ />  
+```
+
+现在就可以在 Struts2 中正常使用 Freemarker 了!
+
+##### 自己的一个实例：
+
+(1)在 struts.xml 添加跳转:
+
+```xml
+<package name="loginPackage" extends="jason-default">
+    <action name="jLogin" class="JLogin">
+        <result name="success" >/WEB-INF/jason/index.jsp</result>
+        <result name="error">/WEB-INF/jason/login.jsp</result>
+        <result name="input">/WEB-INF/jason/login.jsp</result>
+        <result name="search" type="freemarker">/WEB-INF/templates/jsearch.ftl</result>
+        <interceptor-ref name="jLoginStack"/>
+    </action>
+</package>
+```
+
+(2)在 ACTION 中,进行设置:
+
+```java
+Hits hits = JLuceneUtils.luceneSearch(indexPath, searchMess);
+System.out.println("----------hits.length():" + hits.length());
+for (int a = 0; a < hits.length(); a++) {
+    Document doc2 = (Document) hits.doc(a);
+    System.out.println(searchMess + "的值是:" + doc2.get("confContext"));
+    ActionContext.getContext().getSession().put("jsearch_value",
+        doc2.get("confContext"));
+}
+ActionContext.getContext().getSession().put("jsearch_cout", hits.length());
+ActionContext.getContext().getSession().put("jsearch_name", searchMess);
+```
+
+(3) 设置模板文件:jsearch.ftl:
+
+```xml
+<#assign s=JspTaglibs["/WEB-INF/struts-tags.tld"] />
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>jason search result</title>
+    </head>
+    <body>
+        <table width="98%" border="0" align="center" cellpadding="5" cellspacing="0">
+            <tr>
+                <td>
+                    <strong>以面是 jason 用 lucene 查询的结果,共有 ${jsearch_cout} 条符合：</strong>
+                </td>
+            </tr>
+            <tr>
+                <#-- Freemarker 插值（如下，是利用 EL 语言,即将 ACTION 中的值先放入 session/request/application） -->
+                <td>查询内容：${jsearch_name} --- 查询值：${jsearch_value}</td>
+            </tr>
+            <tr>
+                <td>
+                    <@s.url action="jLogin!login" id="login" />
+                    <a href="${login}">返回登录主页</a>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
+```
+
+(4) 如果要使用 Struts2.0 的标签,如上面.就要添加 Struts2.0 的标签库:
+
+web.xml 添加:
+
+```xml
+<servlet>
+    <servlet-name>JspSupportServlet</servlet-name>
+    <servlet-class>  
+             org.apache.struts2.views.JspSupportServlet  
+        </servlet-class>
+    <load-on-startup>1</load-on-startup>
+</servlet>
+```
+
+#### 在 Java 程序中使用 FreeMarker
+
+&amp;#160; &amp;#160;FreeMarker 的模板就是一个 .ftl 文本文件,在该文件中使用了一些 FreeMarker 的特别标记，这些标记会动态显示，或者控制程序输出，如下面的模板文件代码:
+
+```java
+${name}，你好！${msg}
+```
+
+这里类似于 ```${}``` 的就是动态的内容，称作 ```"插值"```。
+
+为了使用 FreeMarker 来将数据模型中的值合并到模板文件中,可按如下步骤进行:
+
+ 1. 创建 Configuration 实例，该实例负责管理 FreeMarker 的模板加载路径，负责生成模板实例
+ 
+ 2. 使用 Configuration 实例来生成 Template 实例，同进需要指定使用的模板文件
+ 
+ 3. 填充数据模型，数据模型就是一个 Map 对象
+ 
+ 4. 调用 Template 实例的 process 方法完成合并。
+
+下面是一个使用 FreeMarker 创建输出的 Java 程序，程序源代码如下:
+
+```java
+package lee;
+
+import java.util.*;
+import java.io.*;
+
+import freemarker.template.*;
+
+public class HelloFreeMarker {
+    private Configuration cfg;
+    public void init() throws Exception {
+        //初始化 FreeMarker 配置  
+        //创建一个 Configuration 实例  
+        cfg = new Configuration();
+        //设置 FreeMarker 的模版文件位置  
+        cfg.setDirectoryForTemplateLoading(new File("templates"));
+    }
+
+    public void process() throws Exception {
+        Map root = new HashMap();
+        root.put("name", "FreeMarker!");
+        root.put("msg", "您已经完成了第一个 FreeMarker 的示例");
+		// template/test.ftl
+        Template t = cfg.getTemplate("test.ftl");
+        t.process(root, new OutputStreamWriter(System.out));
+    }
+    public static void main(String[] args) throws Exception {
+        HelloFreeMarker hf = new HelloFreeMarker();
+        hf.init();
+        hf.process();
+    }
+}
+```
+
+&amp;#160; &amp;#160;上面的代码创建了一个 Map 实例，这个 Map 将作为模板文件的数据模型，我们要使用 FreeMarker 必须导入 freemarker.jar 文件。
+
+&amp;#160; &amp;#160;FreeMarker 的官网是 http://freemarker.sourceforge.net/，虽然 FreeMarker 可以在 Java 程序中使用，但大部分时候还是用来生成 HTML 页面.
+
+#### 在 Web 应用中使用 FreeMarker
+
+&amp;#160; &amp;#160;在 Web 应用中使用 FreeMarker 跟在 Java 程序中使用并没有太大的区别.下面是是一个在 Web 中使用的例子,用来生成 HTML 页面的模板文件内容如下:
+
+```xml
+<html>
+    <head>
+        <title>FreeMarker 的 HelloWorld</title>
+    </head>
+    <body>${message}</body>
+</html>
+```
+
+&amp;#160; &amp;#160;我们在 Web 应用中使用 FreeMarker 时,应该让 Servlet 来合并模板和数据,因此,Servlet 负责创建 Configuration 实例,并负责合并模板和数据,下面是 Servlet 源代码:
+
+```java
+package lee;
+
+import java.util.*;
+import java.io.*;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+
+import freemarker.template.*;
+
+public class HelloServlet extends HttpServlet {
+    private Configuration cfg;
+    public void init() {
+        //初始化FreeMarker配置  
+        //创建一个Configuration实例  
+        cfg = new Configuration();
+        //设置FreeMarker的模版文件位置  
+        cfg.setServletContextForTemplateLoading(getServletContext(), "WEB-INF/templates");
+    }
+
+    public void service(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        //建立数据模型  
+        Map root = new HashMap();
+        root.put("message", "Hello FreeMarker!");
+        //取得模版文件  
+        Template t = cfg.getTemplate("test.ftl");
+        // 开始准备生成输出  
+        // - 使用模版文件的 charset 作为本页面的 charset  
+        // - 使用 text/html MIME-type  
+        response.setContentType("text/html; charset=" + t.getEncoding());
+        Writer out = response.getWriter();
+
+        //合并数据模型和模版，并将结果输出到out中  
+        try {
+            t.process(root, out);
+        } catch (TemplateException e) {
+            throw new ServletException("处理 Template 模版中出现错误", e);
+        }
+    }
+}
+```
+
+可以看到这个 Servlet 类的代码与普通的 Java 程序中使用 FreeMarker 大致一样，区别有两个:
+
+ 1. 设置 FreeMarker 加载模板的方法不一样，在 Servlet 中设置加载的方法是 ```setServletContextForTemplateLoading()```
+ 
+  - 第一个参数是本 Web 应用的 ServletContext
+  
+  - 第二个参数是模板文件的路径。;
+
+ 2. 结果必须输出到 HttpServletResponse 中，才能被浏览器加载。
+
+配置 Servlet 的 web.xml 文件中的代码如下:
+
+```xml
+<web-app>
+    <servlet>
+        <servlet-name>hello</servlet-name>
+        <servlet-class>lee.HelloServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>hello</servlet-name>
+        <url-pattern>/hello</url-pattern>
+    </servlet-mapping>
+</web-app>
+```
+
+#### FreeMarker 的模板文件
+
+&amp;#160; &amp;#160;从上面的例子可以看到 FreeMarker 的模板文件并不比 HTML 页面复杂多少，FreeMarker 模板文件主要由如下4个部分组成:
+
+ 1. 文本: 直接输出的部分
+ 
+ 2. 注释: ```<#-- ... -->``` 格式部分，不会输出
+ 
+ 3. 插值: 即 ```${...}``` 或 ```#{...}``` 格式的部分，将使用数据模型中的部分替代输出
+ 
+ 4. FTL 指令: FreeMarker 指定，和 HTML 标记类似，名字前加 ```#``` 予以区分，不会输出
+ 
+下面是一个 FreeMarker 模板的例子，包含了以上所说的 4 个部分
+
+```xml
+<html>
+<head>
+    <title>Welcome!</title>
+</head>
+<body>
+    <#-- 注释部分 -->
+    <#-- 下面使用插值 -->  
+    <h1>Welcome ${user} !</h1>
+    <p>We have these animals:
+    <u1>
+        <#-- 使用 FTL 指令 -->  
+        <#list animals as being>
+            <li>${being.name} for ${being.price} Euros
+        <#list>
+    <u1>
+</body>
+</html>  
+```
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>editplus-regular-expression</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### editplus-regular-expression
+
+<text zoom="7.2">╔════════╤═════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ 表达式 │ 描述                                                                                                        ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ \t     │ 制表（跳格）字符。                                                                                          ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ \n     │ 换行。                                                                                                      ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ .      │ 匹配任何字符。                                                                                              ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ |      │ 在它的左边和右边的任何一个表达式匹配目标字符串。例如“a|b”匹配“a”和“b”。                                     ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ []     │ 括号内的任何字符可能匹配目标字符。例如“[ab]”匹配“a”和“b”；“[0-9]”匹配任何数字。                             ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ [^]    │ 括号内的没有任何字符可能匹配目标字符。例如“[^ab]”匹配“a”和“b”除外的所有字符；“[^0-9]”匹配任何非数字的字符。 ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ *      │ 在星号左边的字符在表达式中可能匹配 0 次或多次。例如“be*”匹配“b”，“be”和“bee”。                              ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ ＋     │ 在加号左边的字符在表达式中可能匹配 1 次或多次。例如“be+”匹配“be”和“bee”，但不匹配“b”。                      ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ ?      │ 在问号左边的字符在表达式中可能匹配 0 次或 1 次。例如“be?”匹配“b”和“be”，但不匹配“bee”。                     ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ ^      │ 仅当 ^ 右边的表达式在行开始的位置时匹配。例如“^A”仅匹配在行开始位置的“A”。                                  ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ $      │ 仅当 $ 左边的表达式在行结束的位置时匹配。例如“e$”仅匹配在行结束位置的“e”。                                  ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ ()     │ 影响表达式的计算顺序同时也用来标记表达式。                                                                  ║
+╟────────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ \      │ 转义字符。若您要使用字符“\”本身，您必须使用“\\\\”。                                                           ║
+╚════════╧═════════════════════════════════════════════════════════════════════════════════════════════════════════════╝</text>
+
+#### 每行前添加空格
+
+![title](./images/editplus-regular-expression/editplus-regular-expression-001.png)
+
+ - `ctrl + h` 打开替换窗口
+ 
+ - 查找内容中输入 `^` 
+ 
+ - 替换内容中输入 `  ` 两个空格或其它想要添加的内容
+ 
+ - 勾选 `正则表达式` 选项
+ 
+ - 点击 `替换` 按钮完成操作。
+
+#### 删除每行前的空格
+
+![title](./images/editplus-regular-expression/editplus-regular-expression-002.png)
+
+
+ - `ctrl + h` 打开替换窗口
+ 
+ - 查找内容中输入 `^  ` + 两个空格或其它要在开头替换的内容
+ 
+ - 替换内容中输入 `` 想要替换的内容
+ 
+ - 勾选 `正则表达式` 选项
+ 
+ - 点击 `替换` 按钮完成操作。
+
+#### 删除每行结尾的空格
+
+```python
+## editplus regex
+ +$
+```
+
+#### 删除代码块中的行号
+
+```python
+## editplus regex
+^ ?[0-9]+ 
+```
+
+参考链接：
+ 
+ - <a href="https://zhidao.baidu.com/question/390740420606286605.html?qbl=relate_question_1&word=editplus%20%C9%BE%B3%FD%D0%D0%C7%B0%BF%D5%B8%F1" target="_blank">editplus 正则表达式去除某一段前面的空格？</a>
+ 
+ - <a href="https://bbs.csdn.net/topics/360239589" target="_blank">editplus 如何去掉 去掉所有行前面的空格</a>
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

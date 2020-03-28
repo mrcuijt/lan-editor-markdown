@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-reflect-use</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-reflect-use
+
+##### 修饰符对应值
+
+<text>╔═════════════════════════╤════════════════╤═══════╗
+║ Modifier and Type       │ Constant Field │ Value ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ ABSTRACT       │ 1024  ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ FINAL          │ 16    ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ INTERFACE      │ 512   ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ NATIVE         │ 256   ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ PRIVATE        │ 2     ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ PROTECTED      │ 4     ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ PUBLIC         │ 1     ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ STATIC         │ 8     ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ STRICT         │ 2048  ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ SYNCHRONIZED   │ 32    ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ TRANSIENT      │ 128   ║
+╟─────────────────────────┼────────────────┼───────╢
+║ public static final int │ VOLATILE       │ 64    ║
+╚═════════════════════════╧════════════════╧═══════╝</text>
+
+```
+["Modifier and Type","Constant Field","Value"],
+["public static final int","ABSTRACT","1024"],
+["public static final int","FINAL","16"],
+["public static final int","INTERFACE","512"],
+["public static final int","NATIVE","256"],
+["public static final int","PRIVATE","2"],
+["public static final int","PROTECTED","4"],
+["public static final int","PUBLIC","1"],
+["public static final int","STATIC","8"],
+["public static final int","STRICT","2048"],
+["public static final int","SYNCHRONIZED","32"],
+["public static final int","TRANSIENT","128"],
+["public static final int","VOLATILE","64"]
+```
+
+##### Example
+
+```java
+package com.tutorialspoint;
+
+import java.lang.reflect.*;
+
+public class ClassDemo {
+
+   public static void main(String[] args) {
+    
+      ClassDemo cls = new ClassDemo();
+      Class c = cls.getClass();
+
+      try {          
+         // parameter type is null
+         Method m = c.getDeclaredMethod("show", null);
+         System.out.println("method = " + m.toString()); 
+
+         // method Integer
+         Class[] cArg = new Class[1];
+         cArg[0] = Integer.class;
+         Method lMethod = c.getDeclaredMethod("showInteger", cArg);
+         System.out.println("method = " + lMethod.toString());
+      } catch(NoSuchMethodException e) {
+         System.out.println(e.toString());
+      }
+   }
+
+   private Integer show() {
+      return 1;
+   }
+    
+   public void showInteger(Integer i) {
+      this.i = i;
+   }
+   public int i = 78655;
+}
+```
+
+##### Result
+
+```java
+method = private java.lang.Integer ClassDemo.show()
+method = public void ClassDemo.showInteger(java.lang.Integer
+```
+
+##### Example 2
+
+```java
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+
+/**
+ * 方法类
+ * 
+ * @author syh
+ * 
+ */
+public class ReflectionUtils {
+
+    //private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionUtils.class);
+    
+    public static void reflectAllFields(Class clazz) {
+
+        // Field
+        try {
+            // 获取所有的属性
+            Field[] fs = clazz.getDeclaredFields();
+            for (Field field : fs) {
+                String name = field.getName();
+                System.out.println("获取属性：" + name);
+            }
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+        
+    }
+
+    public static void reflectAllMethod(Class clazz) {
+        // 获取 Method 对象
+        Method[] methods = clazz.getDeclaredMethods();
+        for (Method method : methods) {
+            // 获取方法的名称
+            String methodName = method.getName();
+            // 获取方法的参数
+            Type[] types = method.getGenericParameterTypes();
+            // 获取方法的返回值
+            Class ret = method.getReturnType();
+            // 获取方法的异常
+            Type[] exceptionTypes = method.getGenericExceptionTypes();
+            // 获取方法的修饰符
+            int mods = method.getModifiers();
+            // 获取方法的注释
+            Annotation[] as = method.getAnnotations();
+            System.out.println("方法的名称是：" + methodName);
+            for (Type t : types) {
+                System.out.println("方法的参数是：" + t);
+            }
+            System.out.println("方法的返回值：" + ret.getName());
+            for (Type t : exceptionTypes) {
+                System.out.println("方法的异常是：" + t);
+            }
+            System.out.println("方法的修饰符：" + mods);
+            for (Annotation a : as) {
+                System.out.println("方法的注解是：" + a);
+            }
+        }
+    }
+    
+    /**
+     * 循环向上转型,获取对象的DeclaredField.
+     */
+    public static void getDeclaredField(final Object object) {
+        Field field = null;
+        Class<?> clazz = object.getClass();
+
+        for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+            try {
+                //LOGGER.info("Currnet Object Class = {}", clazz);
+                System.out.println(String.format("Currnet Object Class %s", clazz));
+                //LOGGER.info("DeclaredField");
+                System.out.println("DeclaredField");
+                reflectAllFields(clazz);
+                //LOGGER.info("DeclaredMethod");
+                System.out.println("DeclaredMethod");
+                reflectAllMethod(clazz);
+            } catch (Exception e) {
+                // 这里甚么都不要做！并且这里的异常必须这样写，不能抛出去。
+                // 如果这里的异常打印或者往外抛，则就不会执行clazz = clazz.getSuperclass(),最后就不会进入到父类中了
+            }
+        }
+    }
+    
+    /**
+     * 循环向上转型, 获取对象的 DeclaredMethod
+     * 
+     * @param object         : 子类对象
+     * @param methodName     : 父类中的方法名
+     * @param parameterTypes : 父类中的方法参数类型
+     * @return 父类中的方法对象
+     */
+    public static Method getDeclaredMethod(Object object, String methodName, Class<?>... parameterTypes) {
+        Method method = null;
+
+        for (Class<?> clazz = object.getClass(); clazz != Object.class; clazz = clazz.getSuperclass()) {
+            try {
+                method = clazz.getDeclaredMethod(methodName, parameterTypes);
+                return method;
+            } catch (Exception e) {
+                // 这里甚么都不要做！并且这里的异常必须这样写，不能抛出去。
+                // 如果这里的异常打印或者往外抛，则就不会执行clazz = clazz.getSuperclass(),最后就不会进入到父类中了
+
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 直接调用对象方法, 而忽略修饰符(private, protected, default)
+     * 
+     * @param object         : 子类对象
+     * @param methodName     : 父类中的方法名
+     * @param parameterTypes : 父类中的方法参数类型
+     * @param parameters     : 父类中的方法参数
+     * @return 父类中方法的执行结果
+     */
+    public static Object invokeMethod(Object object, String methodName, Class<?>[] parameterTypes,
+            Object[] parameters) {
+        // 根据 对象、方法名和对应的方法参数 通过反射 调用上面的方法获取 Method 对象
+        Method method = getDeclaredMethod(object, methodName, parameterTypes);
+
+        // 抑制Java对方法进行检查,主要是针对私有方法而言
+        method.setAccessible(true);
+
+        try {
+            if (null != method) {
+
+                // 调用object 的 method 所代表的方法，其方法的参数是 parameters
+                return method.invoke(object, parameters);
+            }
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * 循环向上转型, 获取对象的 DeclaredField
+     * 
+     * @param object    : 子类对象
+     * @param fieldName : 父类中的属性名
+     * @return 父类中的属性对象
+     */
+    public static Field getDeclaredField(Object object, String fieldName) {
+        Field field = null;
+
+        Class<?> clazz = object.getClass();
+
+        for (; clazz != Object.class; clazz = clazz.getSuperclass()) {
+            try {
+                field = clazz.getDeclaredField(fieldName);
+                return field;
+            } catch (Exception e) {
+                // 这里甚么都不要做！并且这里的异常必须这样写，不能抛出去。
+                // 如果这里的异常打印或者往外抛，则就不会执行clazz = clazz.getSuperclass(),最后就不会进入到父类中了
+
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 直接设置对象属性值, 忽略 private/protected 修饰符, 也不经过 setter
+     * 
+     * @param object    : 子类对象
+     * @param fieldName : 父类中的属性名
+     * @param value     : 将要设置的值
+     */
+    public static void setFieldValue(Object object, String fieldName, Object value) {
+
+        // 根据 对象和属性名通过反射 调用上面的方法获取 Field对象
+        Field field = getDeclaredField(object, fieldName);
+
+        // 抑制Java对其的检查
+        field.setAccessible(true);
+
+        try {
+            // 将 object 中 field 所代表的值 设置为 value
+            field.set(object, value);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * 直接读取对象的属性值, 忽略 private/protected 修饰符, 也不经过 getter
+     * 
+     * @param object    : 子类对象
+     * @param fieldName : 父类中的属性名
+     * @return : 父类中的属性值
+     */
+    public static Object getFieldValue(Object object, String fieldName) {
+
+        // 根据 对象和属性名通过反射 调用上面的方法获取 Field对象
+        Field field = getDeclaredField(object, fieldName);
+
+        // 抑制Java对其的检查
+        field.setAccessible(true);
+
+        try {
+            // 获取 object 中 field 所代表的属性值
+            return field.get(object);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-type-array</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-type-array
+
+#### 数组
+
+##### 学习目标
+
+ - 掌握数组的概念、特性、常用方法
+
+ - 掌握 Object，学会使用对象
+
+ - 了解其他引用类型对象
+
+
+```text
+数组：在 ECMAScript 中数组是非常常用的引用类型。
+
+    - ECMAScript 所定义数组和其他语言中的数组有着很大的区别。
+    - 首先要说的就是数组也是一中对象
+
+    特点：
+        - “数组”即一组数据的集合。 -- 更像是 Java 中的一种泛型集合
+        - js 数组更加类似 Java 的容器。长度可变，元素类型也可以不一同！
+        - 数组长度随时可变！随时可以修改！（length）属性获取当前数组的长度
+ 
+    常用方法：
+        - push 、pop
+        - shift、unshift
+        - splice、slice
+        - concat、join、sort、reverse 等
+```
+ 
+##### 定义数组
+
+```js
+// var arr1 = new Array(); 不推荐这样使用
+var arr = [1,2,"字符串",new Date(),true,false,1.2,1];
+ 
+console.info(arr.length);
+console.info(arr);
+```
+
+```text
+注意：
+    - 在 JavaScript 中数组就是一种对象
+    - alert 函数 和 console.info() 函数，要求输入的参数都是一个 String 类型的参数
+        - 在运行中 alert() 函数和 console.info() 函数，
+        - 都隐式调用了一个传入参数自身的一个转换成字符串的函数
+        - toString() 函数
+```
+ 
+##### 操作数组
+
+```js
+var arr2 = [1,2,true];
+console.info("输出当前数组的长度："+arr2.length);
+
+// push 和 pop 函数
+arr2.push(1,2,false); // 在数组最后添加一个或多个元素，并返回当前数组的长度
+console.info(arr2);
+
+arr2.pop(); // 移除数组中最后一个元素，并返回移除被移除的元素
+console.info(arr2);
+
+// shift 和 unshfit 函数
+arr2.shift(); // 移除数组中第一个元素，并返回被移除的元素
+console.info(arr2);
+
+arr2.unshift("我是新加入的","+1"); // 在数组头部添加1个或多个元素，并返回当前数组的长度
+console.info(arr2);
+
+console.info("更换数组");
+```
+
+##### splice 、 slice 函数
+
+```js
+var data = [1,2,3,4,5];
+var a2 = data.splice(1,2,3,4,5); // 从指定的位置开始截取，截取几个元素，在元素开始截取的位置插入新添加的元素，返回截取所有元素的数组
+console.info(data); // 获得 134545
+ 
+    /**
+     * splice 函数：操作数组本身，被截取元素会从数组中移除
+     *    - 参数：
+     *    - 第一个参数：起始位置
+     *    - 第二个参数：表示截取的个数
+     *    - 第三个参数(含)以后：表示新追加元素
+     *
+     *    使用技巧：可以通过该函数，简单的在指定位置增加、删除元素
+     */
+ 
+ 
+    /**
+     * slice 函数：不操作数组本身
+     *    - 参数：
+     *    - 第一个参数：(含)起始位置
+     *    - 第二个参数：(不含)结束的位置（左闭右开区间）
+     */
+var data1 = [1,2,3,4,5];
+var result = data1.slice(2,4); // 截取到 3,4 返回一个新的数字
+console.info(result); //
+```
+
+##### concat 函数和 join 函数
+
+```js
+// concat() 函数:不操作数组本身，对2个数组进行合并返回一个新的数组
+var result1 = data1.concat(arr); // 对2个数组进行合并返回一个新的数组
+console.info(result1);
+ 
+// join() 函数：不操作数组本身，对数组中的每个元素以 '-' 拼接，返回一个字符串
+var result2 = data1.join("-");
+console.info(result2);
+```
+
+##### sort 函数和 reverse
+
+```js
+var data2 = [2,42,3,6,true,7,45,true]; // 2,3,42,45,6,7,true,true
+// data2.sort();
+// console.info(data2);
+
+    /**
+     * sort() 函数：对数组进行排序
+     *
+     *    - 原理：将数组中的每个元素转换成字符串
+     *    - 在逐一进行比较
+     *    - 比较方式：2 = 42 = 4 = 7
+     *    - 首先 2 会与 42 中的 4 进行比较
+     *    - 2 < 4 所以 2 排在 42 前面
+     *    - 然后 42 与 4 比较
+     *    - 首先 42 中的 4 与 4 进行比较，结果相同
+     *    - 在取出 42 中的 2 准备比较，但是发现 4 没有下一位
+     *    - 所以 42 比 4 小，排在 4 后面
+     *    - 之后 42 在于 7 进行比较
+     *    - 首先 42 中的 7 与 7 进行比较，结果比 7 小
+     *    - 所以获得结果 42 排在 7 的前面
+     *    - 得到排序结果 2,4,42,7
+     *
+     *    - 但是结果不是我们想要的，我们需要对 sort 函数传入一个排序规则的函数完成我们需要的排序状态
+     *
+     */
+ 
+ 
+// 提供对数组调用排序的方法，正序
+function compare(value1,value2){
+  if(value1<value2){
+    return -1;
+  }else if(value1>value2){
+    return 1;
+  }else{
+    return 0;
+  }
+}
+
+data2.sort(compare);
+console.info(data2);
+
+    /**
+     * reverse 函数：对数组本身进行操作，将整个数组进行反排序
+     * 例如： [1,2,3] convert [3,2,1] || [4,2,1,2] convert [2,1,2,4]
+     */
+ 
+data2.reverse();
+console.info(data2);
+```
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

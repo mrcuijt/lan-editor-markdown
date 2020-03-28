@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Crypt RSA Modulus Exponent</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Crypt RSA Modulus Exponent
+
+#### RSA 模数和指数
+
+RSA 常见结构体定义
+
+```python
+d: ## 私钥指数
+dmp1:
+dmq1:
+e: ## 公钥指数
+n: ## 模数
+p: ## 质数因子
+q: ## 质数因子
+
+## n 和 e 决定了公钥
+## n 和 d 决定了私钥
+## 结构体中其它元素不论，能知道的是模数和指数决定了秘钥。
+
+## Modulus (hex):
+## a5261939975948bb7a58dffe5ff54e65f0498f9175f5a09288810b8975871e99
+## af3b5dd94057b0fc07535f5f97444504fa35169d461d0d30cf0192e307727c06
+## 5168c788771c561a9400fb49175e9e6aa4e23fe11af69e9412dd23b0cb6684c4
+## c2429bce139e848ab26d0829073351f4acd36074eafd036a5eb83359d2a698d3
+
+## Public exponent (hex, F4=0x10001):
+## 10001
+
+## Private exponent (hex):
+## 8e9912f6d3645894e8d38cb58c0db81ff516cf4c7e5a14c7f1eddb1459d2cded
+## 4d8d293fc97aee6aefb861859c8b6a3d1dfe710463e1f9ddc72048c09751971c
+## 4a580aa51eb523357a3cc48d31cfad1d4a165066ed92d4748fb6571211da5cb1
+## 4bc11b6e2df7c1a559e6d5ac1cd5c94703a22891464fba23d0d965086277a161
+```
+
+#### RSA 使用模数和指数进行加密解密
+
+##### 十进制模数和指数
+
+```java
+private static void rsaModulus() {
+
+    // 模数
+    String modulus = "119013762783552790664444510344126639271924844701717173872088828066827617618352052423868797764101050671675010273300968086768952758222793093337410679638385758438181998828779151354457120185810439862646172407875625351933121940976586295594801107405021633366112226209939925716039327701639315656827458274941425368677";
+    // 公钥指数
+    String publicExponent = "65537";
+    // 私钥指数
+    String privateExponent = "106917532045172255415411675710221707032269514269165514577919371366747681689703456650559215972034323501923156458960095779126430300336072236497450160586990533670480101946578693218455238274718168302034205034895891150713831453664198422986491449327196528842768860543017467669252798863303270185486892719101442835713";
+ 
+    // 获取公私钥
+    BigInteger modulusBigInteger = new BigInteger(modulus);
+    // 获取公钥
+    BigInteger publicExponentBigInteger = new BigInteger(publicExponent);
+    // 密文
+    BigInteger privateExponentBigInteger = new BigInteger(privateExponent);
+
+    // 原文
+    String input = " 你好123中文这个是测试";
+    byte[] inputByte = input.getBytes();
+    BigInteger inputByteBigInteger = new BigInteger(inputByte);
+
+    // 非对称加密：RSA 公钥加密，将明文加密为密文
+    byte[] encryptBytes = inputByteBigInteger.modPow(publicExponentBigInteger, modulusBigInteger).toByteArray();
+    // 非对称加密：RSA 私钥解密，将密文解密为明文
+    byte[] decryptBytes = new BigInteger(encryptBytes).modPow(privateExponentBigInteger, modulusBigInteger).toByteArray();
+
+    System.out.println("私钥解密" + new String(decryptBytes));
+ 
+}
+```
+
+##### 十六进制模数和指数
+
+```java
+private static void rsaModulus4() {
+ 
+    // Encrypt Hex
+    System.out.println();
+    System.out.println("密文:");
+    System.out.println();
+    String encryptHex = "114e1e5b364b70fe5d1e10a20a902ba77c2e5295af2be6e82f91d59bfdb60344471cd087457feceb7a5ebf9085a54706da4215db62a56f6924dad5d27a0a9a4ff7e4ede477a9e150d28f1fd4f460e1ffd57b07a44cdec62cb62da39617df2b35bce4d4b46aa6024dc627b08c8a1c6bf97b8374d9c6b948c2918cdbe80a2eddad";
+    encryptHex = "60eb9f5d5f0b63550bdf3a147084fe6edaf5a08464b13ec8f791967bf980971333bf127ad83ead6b3be2a04b5e5dc0aec0d8895ef130f5c8cb095ad7c50b082a1f639c54efa5f64d9aebfe9d6abfd292e801a0a09dbdd09072a643e0b0b027070d18177a155903f87760285e7d51db398d51b0063f6c687e9e4175f686826626";
+    byte[] encryptHexBytes = ParseSystemUtil.parseHexStr2Byte(encryptHex);
+    String encryptHexBytesString = ParseSystemUtil.showByteArray(encryptHexBytes);
+    System.out.println("密文长度:" + encryptHexBytes.length);
+    System.out.println("密文字节:" + encryptHexBytesString);
+    System.out.println("密文Hex:" + ParseSystemUtil.parseByte2HexStr(encryptHexBytes));
+ 
+    // Modulus Hex
+    System.out.println();
+    System.out.println("模数:");
+    System.out.println();
+    String modulus = "a5261939975948bb7a58dffe5ff54e65f0498f9175f5a09288810b8975871e99af3b5dd94057b0fc07535f5f97444504fa35169d461d0d30cf0192e307727c065168c788771c561a9400fb49175e9e6aa4e23fe11af69e9412dd23b0cb6684c4c2429bce139e848ab26d0829073351f4acd36074eafd036a5eb83359d2a698d3";
+    byte[] modulusBytes = ParseSystemUtil.parseHexStr2Byte(modulus);
+    String bytesString = ParseSystemUtil.showByteArray(modulusBytes);
+    System.out.println("模数长度:" + modulusBytes.length);
+    System.out.println("模数字节:" + bytesString);
+    System.out.println("模数Hex:" + ParseSystemUtil.parseByte2HexStr(modulusBytes));
+    BigInteger big = new BigInteger(modulus, 16);
+    System.out.println("模数Dec:" + big);
+ 
+    // Public Exponent
+    System.out.println();
+    System.out.println("公钥指数:");
+    System.out.println();
+    String publicExponent = "65537"; // (hex, F4=0x10001)
+    byte[] publicExponentBytes = new BigInteger(publicExponent).toByteArray();
+    String publicExponentBytesString = ParseSystemUtil.showByteArray(publicExponentBytes);
+    System.out.println("公钥指数长度:" + publicExponentBytes.length);
+    System.out.println("公钥指数字节:" + publicExponentBytesString);
+    System.out.println("公钥指数Hex:" + ParseSystemUtil.parseByte2HexStr(publicExponentBytes));
+ 
+    // Private Exponent
+    System.out.println();
+    System.out.println("私钥指数:");
+    System.out.println();
+    String privateExponent = "8e9912f6d3645894e8d38cb58c0db81ff516cf4c7e5a14c7f1eddb1459d2cded4d8d293fc97aee6aefb861859c8b6a3d1dfe710463e1f9ddc72048c09751971c4a580aa51eb523357a3cc48d31cfad1d4a165066ed92d4748fb6571211da5cb14bc11b6e2df7c1a559e6d5ac1cd5c94703a22891464fba23d0d965086277a161";
+    byte[] privateExponentBytes = ParseSystemUtil.parseHexStr2Byte(privateExponent);
+    String privateExponentBytesString = ParseSystemUtil.showByteArray(privateExponentBytes);
+    System.out.println("私钥指数长度:" + privateExponentBytes.length);
+    System.out.println("私钥指数字节:" + privateExponentBytesString);
+    System.out.println("私钥指数Hex:" + ParseSystemUtil.parseByte2HexStr(privateExponentBytes));
+ 
+    byte[] bmodulus = new byte[129];
+    System.arraycopy(modulusBytes, 0, bmodulus, 1, modulusBytes.length);
+    byte[] bprivateExponentBytes = new byte[129];
+    System.arraycopy(privateExponentBytes, 0, bprivateExponentBytes, 1, privateExponentBytes.length);
+ 
+    System.out.println();
+    System.out.println("私钥/公钥:");
+    System.out.println();
+    RSAPublicKey publicKey = generateRSAPublicKey(bmodulus, publicExponentBytes);
+    System.out.println("公钥模数Dec：" + publicKey.getModulus());
+    System.out.println("公钥指数Dec：" + publicKey.getPublicExponent());
+    RSAPrivateKey privateKey = generateRSAPrivateKey(bmodulus, bprivateExponentBytes);
+    System.out.println("私钥模数Dec：" + privateKey.getModulus());
+    System.out.println("私钥指数Dec：" + privateKey.getPrivateExponent());
+ 
+    try {
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        System.out.println("私钥解密：" + new String(cipher.doFinal(encryptHexBytes)));
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+```
+
+#### 通过模数和指数生成 RSA 公钥/私钥
+
+```java
+private static void rsaModulus5() {
+    // Encrypt Hex
+    String encryptHex = "114e1e5b364b70fe5d1e10a20a902ba77c2e5295af2be6e82f91d59bfdb60344471cd087457feceb7a5ebf9085a54706da4215db62a56f6924dad5d27a0a9a4ff7e4ede477a9e150d28f1fd4f460e1ffd57b07a44cdec62cb62da39617df2b35bce4d4b46aa6024dc627b08c8a1c6bf97b8374d9c6b948c2918cdbe80a2eddad";
+    // Modulus Hex
+    String modulus = "a5261939975948bb7a58dffe5ff54e65f0498f9175f5a09288810b8975871e99af3b5dd94057b0fc07535f5f97444504fa35169d461d0d30cf0192e307727c065168c788771c561a9400fb49175e9e6aa4e23fe11af69e9412dd23b0cb6684c4c2429bce139e848ab26d0829073351f4acd36074eafd036a5eb83359d2a698d3";
+    // Public Exponent
+    String publicExponent = "65537"; // (hex, F4=0x10001)
+    // Private Exponent
+    String privateExponent = "8e9912f6d3645894e8d38cb58c0db81ff516cf4c7e5a14c7f1eddb1459d2cded4d8d293fc97aee6aefb861859c8b6a3d1dfe710463e1f9ddc72048c09751971c4a580aa51eb523357a3cc48d31cfad1d4a165066ed92d4748fb6571211da5cb14bc11b6e2df7c1a559e6d5ac1cd5c94703a22891464fba23d0d965086277a161";
+ 
+    BigInteger bm = new BigInteger(modulus, 16);
+    BigInteger be = new BigInteger(publicExponent);
+    BigInteger bd = new BigInteger(privateExponent, 16);
+
+    // 生成 RSA 公钥
+    RSAPublicKey publicKey = generateRSAPublicKey(bm.toByteArray(), be.toByteArray());
+    // 生成 RSA 私钥
+    RSAPrivateKey privateKey = generateRSAPrivateKey(bm.toByteArray(), bd.toByteArray());
+}
+
+/**
+ * 生成 RSA 公钥
+ * @param modulus 模数
+ * @param publicExponent 公钥指数
+ * @return 
+ */
+public static RSAPublicKey generateRSAPublicKey(byte[] modulus, byte[] publicExponent) {
+    try {
+        KeyFactory keyFac = null;
+        keyFac = KeyFactory.getInstance("RSA");
+        RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(new BigInteger(modulus), new BigInteger(publicExponent));
+        return (RSAPublicKey) keyFac.generatePublic(pubKeySpec);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+/**
+ * 生成 RSA 私钥
+ * @param modulus 模数
+ * @param privateExponent 私钥指数
+ * @return 
+ */
+public static RSAPrivateKey generateRSAPrivateKey(byte[] modulus, byte[] privateExponent) {
+    try {
+        KeyFactory keyFac = null;
+        keyFac = KeyFactory.getInstance("RSA");
+        RSAPrivateKeySpec priKeySpec = new RSAPrivateKeySpec(new BigInteger(modulus),
+                new BigInteger(privateExponent));
+        return (RSAPrivateKey) keyFac.generatePrivate(priKeySpec);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+```
+
+
+```java
+/**    
+ * @Title: ParseSystemUtil.java  
+ * @Package net.huayiyun.aes.util  
+ * @Description: TODO  
+ * @author mrcuijt
+ * @date 2017年12月23日 下午3:32:27  
+ * @version     
+ */
+package science.mrcuijt.jks.util;
+ 
+/**  
+ * @ClassName: ParseSystemUtil  
+ * @Description: TODO  
+ * @author mrcuijt
+ * @date 2017年12月23日 下午3:32:27  
+ *    
+ */
+public class ParseSystemUtil {
+
+    /**
+     * 将二进制转换成16进制 
+     * @param buf 
+     * @return 
+     */
+    public static String parseByte2HexStr(byte buf[]) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < buf.length; i++) {
+            String hex = Integer.toHexString(buf[i] & 0xFF);
+            if (hex.length() == 1) {
+                hex = '0' + hex;
+            }
+            sb.append(hex.toUpperCase());
+        }
+        return sb.toString();
+    }
+ 
+    /**
+     * 将16进制转换为二进制 
+     * @param hexStr 
+     * @return 
+     */
+    public static byte[] parseHexStr2Byte(String hexStr) {
+        if (hexStr.length() < 1)
+            return null;
+        byte[] result = new byte[hexStr.length() / 2];
+        for (int i = 0; i < hexStr.length() / 2; i++) {
+            int high = Integer.parseInt(hexStr.substring(i * 2, i * 2 + 1), 16);
+            int low = Integer.parseInt(hexStr.substring(i * 2 + 1, i * 2 + 2), 16);
+            result[i] = (byte) (high * 16 + low);
+        }
+        return result;
+    }
+ 
+    /**
+     * 输出 byte 数组
+     * @param data
+     * @return
+     */
+    public static String showByteArray(byte[] data) {
+        if (null == data) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder("{");
+        for (byte b : data) {
+            sb.append(b).append(",");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append("}");
+        return sb.toString();
+    }
+ 
+    public static void main(String[] args) {
+        String content = "美女，约吗？";
+        String password = "123";
+        System.out.println(parseByte2HexStr(content.getBytes()));
+        System.out.println(new String(parseHexStr2Byte("E7BE8EE5A5B3EFBC8CE7BAA6E59097EFBC9F")));
+    }
+}
+```
+
+参考资料：
+
+ - <a href="https://www.cnblogs.com/tml839720759/p/3926006.html" target="_blank">RSA 加密：利用模数和指数生成公钥加密</a>
+
+ - <a href="https://blog.csdn.net/skiof007/article/details/78678490" target="_blank">RSA 指数模数加密</a>
+
+ - <a href="https://www.oschina.net/question/134051_2189540?sort=default" target="_blank">Java 如何根据指定的模数和指数实现 RSA 加密</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

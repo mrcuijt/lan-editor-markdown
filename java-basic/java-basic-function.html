@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-function</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-function
+
+##### 方法的基本概念
+
+**将重复的步骤封装成为可以直接拿来使用的`代码段`。**
+
+**利用此操作可以封装执行的代码。**
+
+在 Java 中，方法的定义格式比较复杂。
+
+**要求：**
+
+ - _**定义在主类当中，并且由主方法直接调用的方法。**_
+ 
+**方法创建语法：**
+
+```java
+public static 返回值类型 方法名称(参数类型 参数变量...){
+    方法体（本方法要执行的若干操作）;
+    [return [返回值]];
+}
+```
+
+在本定义格式之中，发现方法有一个返回值类型，值的是这个方法返回结果。
+
+对于此类的类型可以有两种：
+
+ - 直接设置 Java 中的数据类型（基本数据类型、引用数据类型）。
+ 
+ 如果方法设置了返回值，那么必须使用 return 语句返回与之数据类型对应的数据。
+ 
+ - 方法没有返回值: void ，可以不使用 return 返回内容。
+ 
+ 但是可以使用 return 结束方法调用。
+
+在定义方法名称的时候也是有自己的命名要求的：
+
+ - **第一个单词的字母小写，而后的每个单词首字母大写。**
+
+##### 范例：定义一个没有参数没有返回值的方法。
+
+```java
+public class TestDemo {
+    
+    public static void main(String[] args){
+        printInfo(); // 直接调用方法
+        printInfo(); // 直接调用方法
+        printInfo(); // 直接调用方法
+    }
+    
+    // 定义没有参数，没有返回值的方法
+    public static void printInfo(){
+        System.out.println("***********************");
+        System.out.println("*    Hello World !    *");
+        System.out.println("***********************");
+    }
+}
+```
+
+&amp;#160; &amp;#160;可以发现将若干代码封装在一个方法之中，那么就可以根据需要重复执行这些方法所定义的代码。实际上是否需要形成方法，并没有一个绝对的条件。
+
+但是有一点可以作为参考：
+
+ - 如果在代码之中发现你总是在对一些操作进行 “复制” 的时候，
+ 
+ 就可以考虑将此类代码定义为方法以供重复调用使用。
+
+##### 范例：定义一个有参数无返回值的方法。
+
+```java
+public class TestDemo {
+    
+    public static void main(String[] args){
+        get(10.0);
+        get(-10.0);
+    }
+    
+    // 定义没有参数，没有返回值的方法
+    // 购买
+    public static void get(double money){
+        if (money > 0.0){ // 现在已经给钱
+            System.out.println("可以进行支付！");
+        } else {
+            System.out.println("你穷疯了，没钱还买东西！");
+        }
+    }
+}
+```
+
+有了参数之后，那么就可以根据不同的参数的内容进行数据的处理。
+
+##### 范例：定义有返回值有参数的方法。
+
+```java
+public class TestDemo {
+    
+    public static void main(String[] args){
+        // 方法的返回值可以接收
+        int result = add(10, 20);
+        System.out.println("计算结果：" + result);
+        // 也可以直接将方法的返回值进行输出
+        System.out.println(add(50, 60));
+    }
+
+    public static void add(int x, int y){
+        return x + y;
+    }
+}
+```
+
+在以后编写代码的时候为了节约代码，可能就直接利用方法的返回结果进行输出了。
+
+如果说现在一个方法上使用了 void 定义为它的返回值，那么可以使用 return 结束一个方法的调用。
+
+##### 范例：利用 return 结束方法的调用。
+
+```java
+public class TestDemo {
+    
+    public static void main(String[] args){
+        set(100);
+        set(3);
+        set(10);
+    }
+
+    public static void add(int x){
+        if(x == 3){
+            return ; // 方法后面的内容不执行了。
+        }
+        System.out.println("x = " + x);
+    }
+}
+```
+
+只有在方法返回值类型为 void 的前提下才可以使用。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

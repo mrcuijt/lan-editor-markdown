@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-jvm-tools</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-jvm-tools
+
+#### JDK Tools
+
+##### jconsole
+
+基于 Java Managent Extensions（JMX）的实时图形化监测工具，这个工具利用了内建到 JVM 指令来提供实时的性能和资源监控，包括了 Java 程序的内存使用。
+
+ - Heap size
+ 
+ - 线程状态
+ 
+ - 类的分配状态 和 空间使用
+ 
+ - 等等。
+
+Linux 下设置环境变量如下：
+
+```bash
+export DISPLAY=:0.0
+```
+
+##### jps 
+
+jps 是用来查看 JVM 里面所有的进程的具体状态，包括进程 ID，进程启动的路径等等。
+
+ - m 输出传递给 main 方法的参数，如果是内嵌的 JVM 则输出为 null 。
+ 
+ - l 输出应用程序朱磊的完整包名，或者是应用程序 JAR 文件的完整路径。
+ 
+ - v 输出传给 JVM 的参数。
+
+##### jstack
+
+用于打印出给定 Java 进程 ID 或 Core File 或远程调试服务的 Java 堆栈信息，如果是在 64 位机器上，需要制定选项 **`-J -d64`**。
+
+如果 Java 程序崩溃生成 core 文件，jstack 工具可以用来获得 core 文件的 Java Stack 和 Native Stack 的信息。Windows 的 jstack 支持 **`-l`** 参数。
+
+ - F 当 **`jstack [-l] pid`** 没有相应的时候强制打印栈信息。
+ 
+ - l 长列表。打印关于锁的附加信息，如属于 java.util.concurrent 的 ownable synchronizers 列表。
+ 
+ - m 打印 Java 和 Native C/C++ 框架的所有栈信息。
+ 
+默认显示 JVM 中当前所有线程的运行情况和线程当前状态。
+
+```bash
+## 1111 为 Java 程序 PID
+jstack 1111
+```
+
+##### jstat
+
+利用了 JVM 内建的指令对 Java 应用程序的资源和性能进行实时的命令行监控，可以观察到 classloader，compiler，gc 相关信息，包括了对 Heap size 和垃圾回收状况的监控等等。
+
+ - class 统计 class loader 行为信息
+ 
+ - compiler 统计编译行为信息
+ 
+ - gc 统计 JDK gc 时 heap 信息
+ 
+ - gccapacity 统计不同区域下（包括新生区，老年区，permanent区）相应的 heap 容量情况。
+ 
+ - gccause 统计 gc 的情况，（同-gcutil）和引起gc的事件
+ 
+ - gcnew 统计gc时，新生代的情况
+ 
+ - gcnewcapacity 统计 gc 时，新生代 heap 容量
+ 
+ - gcold 统计gc时，老年区的情况
+ 
+ - gcoldcapacity 统计 gc 时，老年区 heap 容量
+ 
+ - gcpermcapacity 统计 gc 时，permanent 区 heap 容量
+ 
+ - gcutil 统计 gc 时，heap 情况
+ 
+ - snap 查看 Java 进程的 jvmstat 的各个 monitor 的值
+ 
+```bash
+## 
+jstat -gcutil 35980 200 2
+```
+
+##### jamp
+
+使用 jamp 命令手动导出映像文件
+
+```bash
+## file 后面的文件可以自定义命名，43939 是进程id
+jmap -dump:format=b,file=heap.hprof 43939  
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-array-search-exart</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-array-search-exart
+
+#### 二分查找--那个隐藏了 10 年的 Java Bug
+
+&amp;#160; &amp;#160;**一个偶然的机会，我想起以前还在谷歌上班的时候，有时候大家会在饭桌上讨论最新想出来的一些面试题。在众多有趣又有难度的题目中，有一道老题却是大家都纷纷选择避开的，那就是去实现 `二分查找`。**
+
+&amp;#160; &amp;#160;**因为它很好写，却很难写对。可以想象问了这道题后，在 5 分钟之内面试的同学会相当自信的将那一小段代码交给我们，剩下的就是考验面试官能否在更短的时间内看出这段代码的 bug 了。**
+
+&amp;#160; &amp;#160;**二分查找是什么呢，这个不只程序员，其他很多非技术人员也会。比如我想一个 1 到 100 以内的数，你来猜，我告诉你每次猜的是大了还是小了，你会先猜 50，然后 25， 然后。。。用不了几个问题就猜出来了。1 到 100 范围太小的话，我们放大点猜个人名，你问中国人外国人，古代人现代人，男的女的，用不了几个问题也问出来了。在计算机里，则是在一个有序数组里面，不断通过二分的方法缩小关键字的可能下标范围。当然了，我们不一定在一个有序数组里查找，也可以在一个很大的状态空间里，去查找一个单调函数的取值。这样的做法，似乎编个程序很容易实现，但是，**
+
+**D.Knuth 大神说了：`Although the basic idea of binary search is comparatively straightforward, the details can be surprisingly tricky` 虽然二分查找的基本思想相对来说很直接，但具体实现起来有特别多的坑。**
+
+&amp;#160; &amp;#160;**另一位大神，编程珠玑的作者 Jon Bentley，他做了我们在文章开头不敢做的事，他布置作业让他的学生们写二分查找，然后他一个个来看。结果呢，他发现 90% 是错的。因此在他的编程珠玑这本书中，专门有一章讲解了二分查找，虽然他的范例仍然是错的，见下面的 Java Bug。埋下这个 bug 的人，也正式 Jon Bentley 的学生。**
+
+&amp;#160; &amp;#160;**还有好事者，更是找了许多教科书，发现 20 本教科书里面，只有 5 本是写对了的，于是他发了一篇文章到 ACM。当然这是早在 1988 年的时候。**
+
+&amp;#160; &amp;#160;**然而这些都不算啥，更能让人感觉幸灾乐祸的是，Java 库里面的二分查找，有一个埋藏了 10 年之久的bug。这个 bug 呢，在 `java.util.Arrays.binarySearch` 里面，虽然这个 bug 的修复也已经是 10 年前的事了。那么我们来看下当年的错误代码吧。**
+
+**大家可能很难看出来，那毕竟这个 bug 藏了 10 年，不太容易发现。问题就在于**
+
+**`int mid = (low + high) / 2;`**
+
+&amp;#160; &amp;#160;**这里。`low + high` 是会溢出的。只要这个数组我们开的足够大，比如 1100000000，就能重现这个问题，虽然这需要我们费点内存。因此正确的解法是：`int mid = (low + high) >>> 1;` 三个>，无符号位移的意思。正如修复 bug 的同学说的那样：**
+
+**`"Can't even compute average of two ints" is pretty embarrassing.`**
+
+**这个 <a href="http://bugs.java.com/bugdatabase/view_bug.do?bug_id=5045582" target="_blank">bug</a> 的链接在这里。**
+
+那么我们究竟如何来把二分查找写正确呢？
+
+我们二分查找中常见的错误除了上面的溢出之外，最多的是下面几类：
+
+ - **`差 1 错误`。我们的左端点应该是当前可能区间的最小范围，那么右端点是最大范围呢，还是最大范围+1呢。我们取了中间值之后，在缩小区间时，有没有保持左右端点的这个假设的一致性呢？**
+
+ - **`死循环`。我们做的是整数运算，整除 2 了之后，对于奇数和偶数的行为还不一样，很有可能有些情况下我们并没有减小取值范围，而形成死循环。**
+
+ - **`退出条件`。到底什么时候我们才觉得我们找不到呢？**
+
+&amp;#160; &amp;#160;**我很喜欢二分查找这个案例。一个在理论上这么简单直接的算法，在计算机里实现却要考虑那么多实际的情况，除了理论的细化比如差 1 错误和退出条件，还有计算机的实际问题如整除 2，死循环，以及上面提到的溢出。正如我们以前同事每天挂在嘴边的**
+
+&amp;#160; &amp;#160;**`You know the difference between in theory and in practice? In theory there's no difference but in practice there are.`**
+
+&amp;#160; &amp;#160;**软件工程师，就是把现实生活用理论进行建模，然后再用现实来实现这样的理论。写出好的代码不容易，写出既让用户满意又好的代码，那更不容易。也许有时候，成就感就来自于此吧。**
+
+参考链接：
+
+ - <a href="https://www.imooc.com/article/19963" target="_blank">二分查找--那个隐藏了 10 年的 Java Bug</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

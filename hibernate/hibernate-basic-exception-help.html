@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hibernate-basic-exception-help</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### hibernate-basic-exception-help
+
+#### JPA 菜鸟教程 异常 集锦
+
+##### 异常 1. hibernate 升级到 3.5 版本
+
+ - **异常信息摘要：**
+
+ **Associations marked as mappedBy must not define database mappings like @JoinTable or @JoinColumn**
+
+ - **异常信息说明：**
+
+ **@JoinColumn 与 mappingBy 只能存在一个**
+
+hibernate 升级到 3.5 版本或者更新的版本时出现这样的异常 
+ 在 3.5 版本之后 @JoinColumn 与 mappingBy 是互斥的，而在更早版本的 hibernate 是允许这两个互相存在。 
+
+**解决思路：升级到 hibernate3.5 之后，mappBy="xxx",就应该去掉**
+
+##### 异常 2. No Persistence provider for EntityManager named com.jege.jpa
+
+ - **异常信息摘要：**
+
+ **javax.persistence.PersistenceException: No Persistence provider for EntityManager named com.jege.jpa**
+
+ - **异常信息说明：**
+
+ **没有找到提供 EntityManager 类**
+
+Hibernate 从 3.5 开始必须添加 hibernate-entitymanager 相应 jar 文件支持 JPA，否则使用 JPA 会出现如上异常 
+
+**解决思路：添加 EntityManager 对应 jar 文件**
+
+```xml
+<!-- 必须添加 -->
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-entitymanager</artifactId>
+    <version>${hibernate.version}</version>
+</dependency>
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/je_ge/article/details/53728700" target="_blank">JPA 菜鸟教程 异常 集锦</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

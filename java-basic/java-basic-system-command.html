@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-system-command</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-system-command
+
+```java
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+
+// Test
+public static String ping(String address){
+  String cmd = String.format("chcp 65001 && ping %s", address);
+  String retStr = "";
+  InputStreamReader insReader = null;
+  char[] tmpBuffer = new char[1024];
+  try {
+    int nRet = 0;
+    ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c", cmd);
+    Process p = pb.start();
+    p.waitFor();
+    insReader = new InputStreamReader(p.getInputStream(), Charset.forName("UTF-8"));
+    while ((nRet = insReader.read(tmpBuffer, 0, 1024)) != -1) {
+      retStr += new String(tmpBuffer, 0, nRet);
+    }
+    insReader.close();
+  } catch (Exception e) {
+    retStr = "bad command " + cmd ;
+  } finally {
+    return retStr;
+  }
+}
+```
+
+```java
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.win32.StdCallLibrary;
+
+/** For unicode output on windows platform
+ * @author Sandy_Yin
+ * 
+ */
+public class Console {
+    private static Kernel32 INSTANCE = null;
+
+    public interface Kernel32 extends StdCallLibrary {
+        public Pointer GetStdHandle(int nStdHandle);
+
+        public boolean WriteConsoleW(Pointer hConsoleOutput, char[] lpBuffer,
+                int nNumberOfCharsToWrite,
+                IntByReference lpNumberOfCharsWritten, Pointer lpReserved);
+    }
+
+    static {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.startsWith("win")) {
+            INSTANCE = (Kernel32) Native
+                    .loadLibrary("kernel32", Kernel32.class);
+        }
+    }
+
+    public static void println(String message) {
+        boolean successful = false;
+        if (INSTANCE != null) {
+            Pointer handle = INSTANCE.GetStdHandle(-11);
+            char[] buffer = message.toCharArray();
+            IntByReference lpNumberOfCharsWritten = new IntByReference();
+            successful = INSTANCE.WriteConsoleW(handle, buffer, buffer.length,
+                    lpNumberOfCharsWritten, null);
+            if(successful){
+                System.out.println();
+            }
+        }
+        if (!successful) {
+            System.out.println(message);
+        }
+    }
+}
+```
+
+```python
+chcp 65001
+javac -encoding UTF-8 Test2.java
+java -Dfile.encoding=UTF-8 Test2
+```
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/39239033/can-java-change-the-codepage-of-its-own-console" target="_blank">Can Java change the codepage of its own console?</a>
+
+ - <a href="http://www.java2novice.com/java-fundamentals/process-builder/run-os-command/" target="_blank">How to run operating system specific command and read its output?</a>
+
+ - <a href="https://www.concretepage.com/java/java-processbuilder-example" target="_blank">Java ProcessBuilder Example</a>
+
+ - <a href="https://alvinalexander.com/java/java-exec-processbuilder-process-1" target="_blank">Java execute system processes with Java ProcessBuilder and Process (part 1)</a>
+
+ - <a href="https://stackoverflow.com/questions/54952/java-utf-8-and-windows-console" target="_blank">Java, UTF-8, and Windows console</a>
+
+ - <a href="https://stackoverflow.com/questions/49016189/windows-10-cli-utf-8-encoding" target="_blank">Windows 10 CLI UTF-8 encoding</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

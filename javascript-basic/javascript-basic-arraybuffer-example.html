@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-arraybuffer-example</title>
+</head>
+<body>
+
+<script>
+(function () {
+  'use strict';
+
+  var root = this;
+
+  var arrayBufferToData = {
+    toBase64: function (arrayBuffer) {
+      var binary = '';
+      var bytes = new Uint8Array(arrayBuffer);
+      var len = bytes.byteLength;
+      for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return window.btoa(binary);
+    },
+
+    toString: function (arrayBuffer) {
+      try {
+        var base64 = this.toBase64(arrayBuffer);
+
+        return decodeURIComponent(escape(window.atob(base64)));
+      } catch (e) {
+        console.warn('Can not be converted to String');
+        return false;
+      }
+    },
+
+    toJSON: function (arrayBuffer) {
+      try {
+        var string = this.toString(arrayBuffer);
+        return JSON.parse(string);
+      } catch (e) {
+        console.warn('Can not be converted to JSON');
+        return false;
+      }
+    }
+  };
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = arrayBufferToData;
+  } else {
+    root.arrayBufferToData = arrayBufferToData;
+  }
+}).call(this);
+
+var domstring = '[{"id":1,"text":"Folder1","iconCls":"icon-save","children":[{"text":"File1","checked":true},{"text":"Books","state":"open","attributes":{"url":"/demo/book/abc","price":100},"children":[{"text":"PhotoShop","checked":true},{"id":8,"text":"Sub Bookds","state":"closed"}]}]},{"text":"Languages","state":"closed","children":[{"text":"Java"},{"text":"C#"}]}]';
+
+var jsonBlob = new Blob([domstring]);
+console.info(jsonBlob);
+var iframe=document.createElement("iframe");   
+iframe.src=URL.createObjectURL(jsonBlob);   
+document.body.appendChild(iframe);
+var blobUrl;
+if('msSaveOrOpenBlob' in navigator){
+    // Microsoft Edge and Microsoft Internet Explorer 10-11
+    blobUrl = window.navigator.msSaveOrOpenBlob(jsonBlob, "temp");
+}else{
+    // standard code for Google Chrome, Mozilla Firefox etc
+    blobUrl = URL.createObjectURL(jsonBlob);
+}
+appendSpan(blobUrl);
+
+loadBlob(blobUrl);
+
+function loadBlob(blobUrl){
+    var xhr = new XMLHttpRequest;
+    xhr.responseType = 'blob';
+
+    xhr.onload = function() {
+       var recoveredBlob = xhr.response;
+
+       var reader = new FileReader;
+
+       reader.onload = function() {
+         var result = reader.result;
+         appendSpan(result);
+         var json = arrayBufferToData.toJSON(result);
+         appendSpan(json);
+         appendSpan(JSON.stringify(json));
+       };
+
+       reader.readAsArrayBuffer(recoveredBlob);
+};
+
+xhr.open('GET', blobUrl);
+xhr.send();
+}
+
+function appendSpan(data){
+    var oSpan = document.createElement("span");
+    oSpan.innerHTML = data;
+    document.body.appendChild(oSpan);
+    document.body.appendChild(document.createElement("br"));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>basic-datagrid-example-1</title>
+    <link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/color.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+</head>
+<body>
+<table id="dg"></table>
+<script>
+
+var data = {
+    "total": 754,
+    "rows": [{
+        "code": 850,
+        "gmtCreate": "2019-01-22T14:46:19.000+0000",
+        "gmtModified": "2019-01-26T13:33:47.000+0000",
+        "name": "alert1\\/",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-26T13:33:47.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 854,
+        "gmtCreate": "2019-01-24T15:07:55.000+0000",
+        "gmtModified": "2019-01-24T15:09:00.000+0000",
+        "name": "1",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-24T15:09:00.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 852,
+        "gmtCreate": "2019-01-22T14:56:26.000+0000",
+        "gmtModified": "2019-01-22T15:00:19.000+0000",
+        "name": "alert1\\/",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-22T15:00:19.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 851,
+        "gmtCreate": "2019-01-22T14:55:21.000+0000",
+        "gmtModified": "2019-01-22T15:00:14.000+0000",
+        "name": "alert1/",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-22T15:00:14.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 853,
+        "gmtCreate": "2019-01-22T15:00:02.000+0000",
+        "gmtModified": "2019-01-22T15:00:02.000+0000",
+        "name": "alert1/",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-22T15:00:02.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 849,
+        "gmtCreate": "2019-01-22T11:53:29.000+0000",
+        "gmtModified": "2019-01-22T14:50:04.000+0000",
+        "name": "alert1\\\\\\/",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-22T14:50:04.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 848,
+        "gmtCreate": "2019-01-22T03:51:36.000+0000",
+        "gmtModified": "2019-01-22T03:51:54.000+0000",
+        "name": "",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-22T03:51:54.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 847,
+        "gmtCreate": "2019-01-22T03:51:14.000+0000",
+        "gmtModified": "2019-01-22T03:51:14.000+0000",
+        "name": "",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-22T03:51:14.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 846,
+        "gmtCreate": "2019-01-22T03:50:45.000+0000",
+        "gmtModified": "2019-01-22T03:50:57.000+0000",
+        "name": "",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 1850,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-22T03:50:57.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    },
+    {
+        "code": 845,
+        "gmtCreate": "2019-01-22T03:50:29.000+0000",
+        "gmtModified": "2019-01-22T03:50:29.000+0000",
+        "name": "",
+        "userInfoId": 3,
+        "lohHouseTypeId": 1,
+        "regionInfoProvinceId": 1,
+        "regionInfoCityId": 35,
+        "regionInfoCountyId": 41,
+        "houseAddress": "",
+        "price": 1,
+        "pushDate": "2019-01-22T03:50:29.000+0000",
+        "contacts": "",
+        "cellPhone": "",
+        "qrcodeLink": null
+    }]
+};
+
+var $datagrid = $('#dg').datagrid({
+        title:'datagrid',
+        fit:true,
+        showHeader:true,
+        striped:true,
+        remoteSort:true,
+        multiSort:true,
+        rownumbers:true,
+        singleSelect:true,
+        selectOnCheck:true,
+        checkOnSelect:true,
+        pagination:true,
+        pageNumber:1,
+        pageSize:10,
+        pageList:[10,20,30,40,50],
+        queryParams:{},
+        loadMsg:"数据加载中...",
+        emptyMsg: "未查询到数据。",
+	toolbar: [{
+                text:'查看',
+                iconCls:'',
+                handler:function(){
+                  console.info(this);
+                  console.info("this == $datagrid " + (this == $datagrid));
+                  var checkedItems = $datagrid.datagrid('getChecked');
+                  var id;
+                  var rowdata;
+                  checkedItems.forEach(function(item,index){
+                    console.info(item);
+                    id = item.code;
+                    rowdata = item;
+                  });
+                  var dialog = $("<div>").dialog();
+                  // dialog.window('center');
+                  var dialogBody = dialog.dialog('body');
+                  dialogBody.html($("<pre>").html(JSON.stringify(rowdata,null, 4)));
+                  dialog.dialog({
+                    title:'信息',
+                    width : 500,
+                    height : 280,
+                    collapsible : false,
+                    close : false,
+                    cache : false,
+                    modal : true,
+                    onClose : function() {
+                        $(this).dialog("destroy");
+                    },
+                     buttons : [ {
+                        text : "关闭",
+                        handler : function() {
+                          dialog.dialog("close");
+                        }
+                    }]
+                  });
+                }
+        },'-',{
+                text:'修改',
+		iconCls: 'icon-edit',
+		handler: function(){
+                  
+                }
+	},'-',{
+                text:'帮助',
+		iconCls: 'icon-help',
+		handler: function(){alert('help')}
+	}],
+        columns:[[
+          {field:'code',title:'',width:20,checkbox:true},
+          {field:'name',title:'Name',width:100,sortable:true},
+          {field:'price',title:'Price',width:100,sortable:true},
+          {field:'field1',title:'Field1',width:100},
+          {field:'field2',title:'Field2',width:100},
+          {field:'field3',title:'Field3',width:100},
+          {field:'field4',title:'Field4',width:100},
+          {field:'field5',title:'Field5',width:100},
+          {field:'field6',title:'Field6',width:100},
+        ]],
+        data:data,
+        onCheck:function(rowIndex,rowData){
+          console.info(rowData.code);
+        }
+});
+
+</script>
+</body>
+</html>

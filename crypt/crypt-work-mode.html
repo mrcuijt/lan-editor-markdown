@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Crypt Work Mode</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Crypt Work Mode
+
+#### 工作模式和填充模式
+
+ - AES/CBC/NoPadding(128)
+ - AES/CBC/PKCS5Padding(128)
+ - AES/ECB/NoPadding(128)
+ - AES/ECB/PKCS5Padding(128)
+ - DES/CBC/NoPadding(56)
+ - DES/CBC/PKCS5Padding(56)
+ - DES/ECB/NoPadding(58)
+ - DES/ECB/PKCS5Padding(56)
+
+##### 工作模式
+
+<text zoom="7.2">╔══════╤══════════════════════╤══════════════╤════════════════════════════╤════════════════════════════════╤══════════════════════════════════════════╗
+║ 名称 │ 英文                 │ 全名         │ 方法                       │ 优点                           │ 缺点                                     ║
+╟──────┼──────────────────────┼──────────────┼────────────────────────────┼────────────────────────────────┼──────────────────────────────────────────╢
+║ ECB  │ Electroniccodebook   │ 电子密码本   │ 每块独立加密               │ 1.分块可以并行处理。           │ 1.同样的原文得到相同的密文，容易被攻击。 ║
+╟──────┼──────────────────────┼──────────────┼────────────────────────────┼────────────────────────────────┼──────────────────────────────────────────╢
+║ CBC  │ Cipher-blockchaining │ 密码分组链接 │ 每块加密依赖于前一块的密文 │ 1.同样的原文得到不同的密文。   │ 1.加密需要串行处理。                     ║
+║      │                      │              │                            │                                │                                          ║
+║      │                      │              │                            │ 2.原文微小改动影响后面全部密文 │ 2.误差传递。                             ║
+╚══════╧══════════════════════╧══════════════╧════════════════════════════╧════════════════════════════════╧══════════════════════════════════════════╝</text>
+
+
+```
+    ["名称","英文","全名","方法","优点","缺点"],
+    ["ECB","Electroniccodebook","电子密码本","每块独立加密","1.分块可以并行处理。","1.同样的原文得到相同的密文，容易被攻击。"],
+    ["CBC","Cipher-blockchaining","密码分组链接","每块加密依赖于前一块的密文","1.同样的原文得到不同的密文。\n\n2.原文微小改动影响后面全部密文","1.加密需要串行处理。\n\n2.误差传递。"]
+```
+
+##### 填充模式
+
+ 填充（Padding）
+ 
+ - 是对需要按块处理的数据，当数据长度不符合块处理需求时，按照一定方法**`填充`**满块长的一种规则。
+
+<text zoom="7.2">╔════════════════╤═════════════════════════════════════════════════╤═════════════════════════════════════════════════╗
+║ 名称           │ 方法                                            │ 示例                                            ║
+╟────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────────╢
+║ Zero padding   │ 最常见的方式，全填充 0x00                       │ AA AA AA AA 00 00 00 00                         ║
+╟────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────────╢
+║ PKCS7          │ ANSI X.923 的变体                               │ AA AA AA AA AA AA AA 01                         ║
+║                │                                                 │                                                 ║
+║                │ 填充 1 个字符就全 0x01                          │ AA AA AA AA 04 04 04 04                         ║
+║                │                                                 │                                                 ║
+║                │ 填充 2 个字符就全 0x02                          │ AA AA AA AA AA AA AA AA 08 08 08 08 08 08 08 08 ║
+║                │                                                 │                                                 ║
+║                │ 不需要填充就增加一个块，填充块长度，            │                                                 ║
+║                │                                                 │                                                 ║
+║                │ 块长为 8 就填充 0x08，块长为 16 就填充 0x10     │                                                 ║
+╟────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────────╢
+║ ANSI X.923     │ Zero 的改进，最后一个字节为填充字节个数         │ AA AA AA AA 00 00 00 04                         ║
+╟────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────────╢
+║ ISO 10126      │ 随机填充                                        │ AA AA AA AA 81 A6 23 04                         ║
+╟────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────────╢
+║ ISO/IEC 7816-4 │ 以 0x80 开始作为填充开始标记，后续全部填充 0x00 │ AA AA AA AA AA AA AA 80                         ║
+║                │                                                 │                                                 ║
+║                │                                                 │ AA AA AA AA 80 00 00 00                         ║
+╚════════════════╧═════════════════════════════════════════════════╧═════════════════════════════════════════════════╝</text>
+
+```
+    ["名称","方法","示例"],
+    ["Zero padding","最常见的方式，全填充 0x00","AA AA AA AA 00 00 00 00"],
+    ["PKCS7","ANSI X.923 的变体\n\n填充 1 个字符就全 0x01\n\n填充 2 个字符就全 0x02\n\n不需要填充就增加一个块，填充块长度，\n\n块长为 8 就填充 0x08，块长为 16 就填充 0x10","AA AA AA AA AA AA AA 01\n\nAA AA AA AA 04 04 04 04\n\nAA AA AA AA AA AA AA AA 08 08 08 08 08 08 08 08"],
+    ["ANSI X.923","Zero 的改进，最后一个字节为填充字节个数","AA AA AA AA 00 00 00 04"],
+    ["ISO 10126","随机填充","AA AA AA AA 81 A6 23 04"],
+    ["ISO/IEC 7816-4","以 0x80 开始作为填充开始标记，后续全部填充 0x00","AA AA AA AA AA AA AA 80\n\n AA AA AA AA 80 00 00 00"]
+```
+
+##### 工作模式填充模式的使用
+
+ - 默认工作模式和填充模式： ECB/PKCS5Padding。
+
+ - CBC 工作模式：需要添加额外的参数
+ 
+ - Nopading 填充模式：
+ 
+  - DES：明文 8 个字节整数倍。
+  
+  - AES：明文 16 个字节整数倍。
+
+#### 示例
+
+##### DES 工作模式和填充模式
+
+```java
+import javax.crypto.*;
+import javax.crypto.spec.*;
+
+import java.security.*;
+import java.security.spec.*;
+
+/**
+ * 对称加密：DES 工作模式和填充模式
+ *
+ */
+public class DESCrypt{
+
+  // 如果默认不写工作模式和填充模式，默认使用的是：ECB/PKCS5Padding
+  // CBC 工作模式，要求 Cipher.init() 方法添加额外的参数
+  // IvParameterSpec iv = new IvParameterSpec("12345678".getBytes());
+  // cipher.init(password.getBytes(),key,iv)
+  private static final String transformation = "DES/ECB/PKCS5Padding"; // 算法/工作模式/填充模式
+  // private static final String transformation = "DES/ECB/NoPadding"; // 不填充: DES 原文长度必须是 8 个 Byte 的整数倍。
+  private static final String algorithm = "DES"; // 算法
+
+  public static void main(String[] args){
+
+  }
+
+  /**
+   * 对称加密：DES 加密
+   * @Param input
+   * @Param password
+   * @return
+   */
+  public static byte[] encrypt(String input, String password){
+    // 加密算法思路：通过查看 API 文档封装公司自己的加密算法。
+ 
+    // 加密算法核心类 Cipher
+ 
+    // 加密算法三部曲
+    // 1.创建 Cipher 对象
+    // 2.初始化模式：加密/解密
+    // 3.加密/解密
+ 
+    try{
+      // 1.创建 Cipher 对象
+      // 初始化 Cipher 有两种格式
+      //   - 1. "algorithm/mode/padding" 格式（算法/模式/填充方法）。
+      //   - 2. "algorithm" 格式（算法）。
+      Cipher cipher = Cipher.getInstance(algorithm); 
+      // 秘钥工厂
+      // SecretKeyFactory skf = SecretKeyFactory.getInstance(transformation);
+      SecretKeyFactory skf = SecretKeyFactory.getInstance(algorithm);
+      KeySpec keySpec = new DESKeySpec(password.getBytes());
+      // 秘钥对象
+      Key key = skf.generateSecret(keySpec);
+      // 2.初始化模式：加密/解密
+      // CBC 工作模式，要求 Cipher.init() 方法添加额外的参数
+      // IvParameterSpec iv = new IvParameterSpec("12345678".getBytes());
+      // cipher.init(Cipher.ENCRYPT_MODE,key,iv);
+      cipher.init(Cipher.ENCRYPT_MODE, key);
+      // 3.加密/解密
+      byte[] encryptBytes = cipher.doFinal(input.getBytes());
+      return encryptBytes;
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+ 
+  /**
+   * 对称加密：DES 解密
+   * @Param input
+   * @Param password
+   * @return
+   */
+  public static byte[] decrypt(byte[] input, String password){
+    // 加密算法思路：通过查看 API 文档封装公司自己的加密算法。
+ 
+    // 加密算法核心类 Cipher
+ 
+    // 加密算法三部曲
+    // 1.创建 Cipher 对象
+    // 2.初始化模式：加密/解密
+    // 3.加密/解密
+ 
+    try{
+      // 1.创建 Cipher 对象
+      // 初始化 Cipher 有两种格式
+      //   - 1. "algorithm/mode/padding" 格式（算法/模式/填充方法）。
+      //   - 2. "algorithm" 格式（算法）。
+      Cipher cipher = Cipher.getInstance(algorithm); 
+      // 秘钥工厂
+      // SecretKeyFactory skf = SecretKeyFactory.getInstance(transformation);
+      SecretKeyFactory skf = SecretKeyFactory.getInstance(algorithm);
+      KeySpec keySpec = new DESKeySpec(password.getBytes());
+      // 秘钥对象
+      Key key = skf.generateSecret(keySpec);
+      // 2.初始化模式：加密/解密
+      // CBC 工作模式，要求 Cipher.init() 方法添加额外的参数
+      // IvParameterSpec iv = new IvParameterSpec("12345678".getBytes());
+      // cipher.init(Cipher.DECRYPT_MODE,key,iv);
+      cipher.init(Cipher.DECRYPT_MODE, key);
+      // 3.加密/解密
+      byte[] decryptBytes = cipher.doFinal(input);
+      return decryptBytes;
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+}
+```
+
+##### AES 工作模式和填充模式
+
+```java
+import javax.crypto.*;
+import javax.crypto.spec.*;
+
+import java.security.*;
+import java.security.spec.*;
+
+/**
+ * 对称加密：AES 工作模式和填充模式
+ *
+ */
+public class AESCrypt{
+
+  // 如果默认不写工作模式和填充模式，默认使用的是：ECB/PKCS5Padding
+  // CBC 工作模式，要求 Cipher.init() 方法添加额外的参数
+  // IvParameterSpec iv = new IvParameterSpec("1234567812345678".getBytes());
+  // cipher.init(password.getBytes(),key,iv);
+  private static final String transformation = "AES/ECB/PKCS5Padding"; // 算法/工作模式/填充模式
+  // private static final String transformation = "AES/ECB/NoPadding"; // 不填充: AES 原文长度必须是 16 个 Byte 的整数倍。
+  private static final String algorithm = "AES"; // 算法
+
+  public static void main(String[] args){
+
+  }
+
+  public static String encrypt(String input,String password){
+ 
+    // 加密算法三部曲
+ 
+    // 1.创建 Cipher 对象
+    // 2.初始化加密/解密模式
+    // 3.加密/解密
+ 
+    try{
+      // 1.创建 Cipher 对象
+      Cipher cipher = Cipher.getInstance(algorithm);
+      // 秘钥工厂生成秘钥：没有 AES 参数
+      // 秘钥规则类
+      Key key = new SecretKeySpec(password.getBytes(),algorithm);
+      // 2.初始加密/解密模式
+      // CBC 工作模式，要求 Cipher.init() 方法添加额外的参数
+      // IvParameterSpec iv = new IvParameterSpec("1234567812345678".getBytes());
+      // cipher.init(Cipher.ENCRYPT_MODE,key,iv);
+      cipher.init(Cipher.ENCRYPT_MODE, key);
+      // 3.加密/解密
+      byte[] encodeBytes = cipher.doFinal(input.getBytes());
+ 
+      return Base64.encodeBase64(encryptBytes);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+  }
+ 
+  public static String decrypt(String input,String password){
+ 
+    // 加密算法三部曲
+ 
+    // 1.创建 Cipher 对象
+    // 2.初始化加密/解密模式
+    // 3.加密/解密
+ 
+    try{
+      // 1.创建 Cipher 对象
+      Cipher cipher = Cipher.getInstance(algorithm);
+      // 秘钥工厂生成秘钥：没有 AES 参数
+      // 秘钥规则类
+      Key key = new SecretKeySpec(password.getBytes(),algorithm);
+      // 2.初始加密/解密模式
+      // CBC 工作模式，要求 Cipher.init() 方法添加额外的参数
+      // IvParameterSpec iv = new IvParameterSpec("1234567812345678".getBytes());
+      // cipher.init(Cipher.DECRYPT_MODE,key,iv);
+      cipher.init(Cipher.DECRYPT_MODE, key);
+      // 3.加密/解密
+      byte[] decodeBytes = cipher.doFinal(Base64.decodeBase64(input));
+ 
+      return new String(decryptBytes);
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+  }
+
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

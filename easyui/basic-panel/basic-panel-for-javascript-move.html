@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>easyui-basic-panel-for-javascript</title>
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/icon.css">
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+</head>
+<body>
+<div id="p" style="padding:10px;">
+    <p>panel content.</p>
+    <p>panel content.</p>
+</div>
+<script>
+$('#p').panel({
+    width:500,
+    height:150,
+    title:'My Panel',
+    tools:[{
+        iconCls:'icon-add',
+        handler:function(){alert('new')}
+    },{
+        iconCls:'icon-save',
+        handler:function(){alert('save')}
+    }]
+}); 
+$('#p').panel('move',{
+    left:100,
+    top:100
+});
+$('#p').parents('.panel').css('position','relative');
+</script>
+</body>
+</html>

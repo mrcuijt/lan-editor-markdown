@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>git-bash-remote-repository</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### git-bash-remote-repository
+
+#### 提交到远程仓库
+
+```bash
+## 将远程仓库克隆到本地
+git clone https://github.com/mrcuijt/region_spider.git
+
+## 将文件添加到暂存区域
+git add test.text
+
+## 将暂存区内容提交到本地仓库
+git commit -m "Commit Message"
+
+## 将本地仓库推送到远程仓库
+git push origin master
+```
+
+**为了避免提交报错，在 `git push origin master` 之前需要先从远程仓库获取到本地**
+
+```bash
+## 同步远程仓库到本地仓库（本地仓库更新到最新）
+git pull
+```
+
+有时候如果报错：
+
+ - **提示：更新被拒绝，因为您当前分支的最新提交落后于其对应的远程分支。**
+
+ - **提示：再次推送前，先与远程变更合并（如 git pull ...）。详见**
+
+ - **提示：git pull --help 中的 Note about fast-forwards 小结。**
+
+引起这个问题是远程仓库和本地不同步引起的。
+
+#### git branch 命令切换远程 Github 仓库分支
+
+**git branch 命令**
+
+ - **`git branch` 不带参数：列出本地已经存在的分支，并且在当前分支的前面加“`*`”号标记**
+
+ - **`git branch -r` 列出远程分支**
+
+ - **`git branch -a` 列出本地分支和远程分支**
+
+ - **`git branch branchname` 创建分支**
+
+ - **`git checkout branchname` 切换分支**
+
+如果你想快速得到上面的分支，你可以直接切换到那个分支
+
+```bash
+## 切换到指定名称的分支仓库中
+git checkout branchname
+```
+
+但是，如果你想要在那个分支工作的话，你就需要创建一个本地分支
+
+```bash
+## 根据远程分支创建本地分支，并且切换到该分支中
+git checkout -b localbranchname remotebranchname
+```
+
+现在，如果你看看你的本地分支就会看到当前所在的分支
+
+```bash
+## 查看当前所在的仓库分支
+git branch
+```
+
+你还可以用 git remote 命令跟踪多个远程分支
+
+```bash
+git remote
+
+## 查看远程分支
+git branch -r
+```
+
+**你可以用 `gitk` 查看你做了些什么**
+
+```bash
+## 查看所有的 git 操作，类似于 SubVersion 中的历史记录
+gitk
+```
+
+#### 创建远程分支并提交
+
+现在我在 master 分支上，工作目标是干净的，也没有需要 commit 的：
+
+```bash
+$ git branch
+* master
+  release
+  
+$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+nothing to commit, working directory clean
+```
+
+##### 新建远程分支
+
+新建一个本地分支：
+
+```bash
+$ git checkout -b dbg_lichen_star
+```
+
+查看一下现在的分支状态:
+
+```bash
+$ git branch
+* dbg_lichen_star
+  master
+  release
+```
+
+星号(*)表示当前所在分支。现在的状态是成功创建的新的分支并且已经切换到新分支上。
+
+**`把新建的本地分支 push 到远程服务器，远程分支与本地分支同名（当然可以随意起名）：`**
+
+```bash
+## git push origin 本地分支名称:远程分支名称
+$ git push origin dbg_lichen_star:dbg_lichen_star
+```
+
+&amp;#160; &amp;#160;**使用 `git branch -a` 查看所有分支，会看到 `remotes/origin/dbg_lichen_star` 这个远程分支，说明新建远程分支成功。**
+
+##### 删除远程分支
+
+我比较喜欢的简单方式，推送一个空分支到远程分支，其实就相当于删除远程分支：
+
+```bash
+## git push origin 不指定本地分支名称:远程分支名称
+$ git push origin :dbg_lichen_star
+```
+
+也可以使用：
+
+```bash
+## git push origin --delete 远程分支名称
+$ git push origin --delete dbg_lichen_star
+```
+
+这两种方式都可以删除指定的远程分支
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

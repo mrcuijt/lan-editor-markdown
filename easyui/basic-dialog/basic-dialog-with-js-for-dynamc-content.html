@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>basic-dialog-with-js-for-dynamc-content</title>
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/icon.css">
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+</head>
+<body>
+<div id="dd">Dialog Content.</div>
+<script>
+// 创建 Dialog
+$('#dd').dialog({
+    title: 'My Dialog',
+    width: 400,
+    height: 200,
+    closed: false,
+    cache: false,
+    modal: true,
+    method: "get",
+    href: 'get_content.php',
+    queryParams: {demo:"demo"}
+});
+</script>
+</body>
+</html>

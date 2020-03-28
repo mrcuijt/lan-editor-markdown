@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>easyui-basic-tabs</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### easyui-basic-tabs
+
+通过 $.fn.tabs.defaults 重写默认的 defaults。
+
+The tabs display a collection of panel. It shows only one tab panel at a time. Each tab panel has the header title and some mini button tools, including close button and other customized buttons.
+
+
+##### 创建标签页（Tabs）
+
+ - <a href="basic-tabs/basic-tabs.html" target="_blank">basic-tabs</a>
+
+ - 1、通过标记创建标签页（Tabs）
+
+从标记创建标签页（Tabs）更容易，我们不需要写任何 JavaScript 代码。记住把 'easyui-tabs' class 添加到 `<div>` 标记。每个标签页面板（tab panel）通过子 `<div>` 标记被创建，其用法与面板（panel）一样。
+
+```xml
+<div id="tt" class="easyui-tabs" style="width:500px;height:250px;">
+    <div title="Tab1" style="padding:20px;display:none;">
+        tab1
+    </div>
+    <div title="Tab2" data-options="closable:true" style="overflow:auto;padding:20px;display:none;">
+        tab2
+    </div>
+    <div title="Tab3" data-options="iconCls:'icon-reload',closable:true" style="padding:20px;display:none;">
+        tab3
+    </div>
+</div>
+```
+
+ - 2、编程创建标签页（Tabs）
+
+ - <a href="basic-tabs/basic-tabs-with-javascript-1.html" target="_blank">basic-tabs-with-javascript-1</a>
+
+现在我们编程创建标签页（Tabs），我们同时捕捉 'onSelect' 事件。
+
+```xml
+<div id="tt" class="easyui-tabs" style="width:500px;height:250px;">
+    <div title="Tab1" style="padding:20px;display:none;">
+        tab1
+    </div>
+    <div title="Tab2" data-options="closable:true" style="overflow:auto;padding:20px;display:none;">
+        tab2
+    </div>
+    <div title="Tab3" data-options="iconCls:'icon-reload',closable:true" style="padding:20px;display:none;">
+        tab3
+    </div>
+</div>
+```
+
+```js
+$('#tt').tabs({
+    border:true,
+    onSelect:function(title){
+        alert(title+' is selected');
+    }
+});
+```
+
+##### 创建自适应它的父容器 Panel
+
+ - <a href="basic-tabs/basic-tabs-with-javascript-fit-1.html" target="_blank">basic-tabs-with-javascript-fit-1</a>
+
+ - 通过添加 DIV 标记创建自适应的 Panel
+
+```xml
+<!-- data-options="fit:true" -->
+<div id="tt" class="easyui-tabs" style="width:500px;height:250px;" data-options="fit:true">
+    <div title="Tab1" style="padding:20px;display:none;">
+        tab1
+    </div>
+    <div title="Tab2" data-options="closable:true" style="overflow:auto;padding:20px;display:none;">
+        tab2
+    </div>
+    <div title="Tab3" data-options="iconCls:'icon-reload',closable:true" style="padding:20px;display:none;">
+        tab3
+    </div>
+</div>
+```
+
+ - <a href="basic-tabs/basic-tabs-with-javascript-fit-2.html" target="_blank">basic-tabs-with-javascript-fit-2</a>
+
+ - 通过编程创建自适应的 Panel
+
+```xml
+<div id="tt">
+    <div title="Tab1" style="padding:20px;display:none;">
+        tab1
+    </div>
+    <div title="Tab2" data-options="closable:true" style="overflow:auto;padding:20px;display:none;">
+        tab2
+    </div>
+    <div title="Tab3" data-options="iconCls:'icon-reload',closable:true" style="padding:20px;display:none;">
+        tab3
+    </div>
+</div>
+```
+
+```js
+// 初始化 tabs
+$('#tt').tabs({fit:true});
+```
+
+##### 添加新的标签页面板（tab panel）
+
+ - <a href="basic-tabs/basic-tabs-with-javascript-2.html" target="_blank">basic-tabs-with-javascript-2</a>
+
+通过迷你工具添加一个新的标签页面板（tab panel），迷你工具图标（8x8）放置在关闭按钮前。
+
+```xml
+<div id="tt"></div>
+```
+
+```js
+// 初始化 tabs
+$('#tt').tabs();
+// 添加一个新的标签页面板（tab panel）
+$('#tt').tabs('add',{
+    title:'New Tab',
+    content:'Tab Body',
+    closable:true,
+	style:{padding:20},
+    tools:[{
+		iconCls:'icon-mini-refresh',
+		handler:function(){
+			alert('refresh');
+		}
+    }]
+});
+```
+
+获取选中的标签页（Tab）
+
+```js
+// 初始化 tabs
+$('#tt').tabs();
+// 获取选中的标签页面板（tab panel）和它的标签页（tab）对象
+var pp = $('#tt').tabs('getSelected');
+var tab = pp.panel('options').tab; // 相应的标签页（tab）对象 
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

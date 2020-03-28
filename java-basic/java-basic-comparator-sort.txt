@@ -1,0 +1,109 @@
+#### java-basic-comparator-sort
+
+Import
+
+```java
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Collections;
+
+import java.io.File;
+```
+
+集合分组代码抽象实现
+
+```java
+public static <T> List<List<T>> divider(Collection<T> list, 
+    Comparator<? super T> c){
+
+  // group list
+  List<List<T>> result = new ArrayList<List<T>>();
+
+  if(list == null) return result;
+
+  for(T t : list){
+
+    // create new group
+    boolean newGroup = true;
+
+    for(int i = 0; i < result.size(); i++){
+      // compare group
+      if(c.compare(t, result.get(i).get(0)) == 0){
+        // same group
+        newGroup = false;
+        // add to same group
+        result.get(i).add(t);
+        // exit group loop
+        break;
+      }
+    }
+
+    // create new group
+    if(newGroup){
+      List<T> innerList = new ArrayList<T>();
+      // result add new group
+      result.add(innerList);
+      // new group add group item
+      innerList.add(t);
+    }
+
+  }
+  // return group list
+  return result;
+}
+```
+
+使用
+
+```java
+List<FileModel> fileModels = FileUtil.generateFileModels(files);
+// Group By FileType
+List<List<FileModel>> groupList = divider(fileModels, new Comparator<FileModel>(){
+  @Override
+  public int compare(FileModel fm1, FileModel fm2){
+    return fm1.getFileType().compareTo(fm2.getFileType());
+  }
+});
+```
+
+分组集合排序
+
+```java
+fileModels = new ArrayList<FileModel>();
+for(List<FileModel> group : groupList){
+  // Group List Item Sort
+  Collections.sort(group, new Comparator<FileModel>(){
+    @Override
+    public int compare(FileModel fm1, FileModel fm2){
+      if(fm1.getFileName().length() == fm2.getFileName().length()){
+        return fm1.getFileName().compareTo(fm2.getFileName());
+      } else {
+        return fm1.getFileName().length() - fm2.getFileName().length();
+      }
+    }
+  });
+  fileModels.addAll(group);
+}
+```
+
+集合排序
+
+```java
+List<File> files = Files.dirs(input);
+Collections.sort(files, new Comparator<File>(){
+  @Override
+  public int compare(File f1, File f2){
+    if(f1.getName().length() == f2.getName().length()){
+      return f1.getName().compareTo(f2.getName());
+    } else {
+      return f1.getName().length() - f2.getName().length();
+    }
+  }
+});
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/u012250875/article/details/55126531" target="_blank">Java Comparator 的用法</a>

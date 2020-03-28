@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>basic-dialog-with-js-for-dynamc</title>
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/icon.css">
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+</head>
+<body>
+<button id="options" type="button">options</button>
+<button id="open" type="button">open</button>
+<button id="close" type="button">close</button>
+<button id="destroy" type="button">destroy</button>
+<div id="dialog" class="easyui-dialog" style="width:600px;height:300px"
+     closed="true"
+     data-options="title:'My Dialog',modal:false,
+         toolbar:[{
+             text:'Edit',
+             iconCls:'icon-edit',
+             handler:function(){alert('edit')}
+         },{
+             text:'Help',
+             iconCls:'icon-help',
+             handler:function(){alert('help')}
+         }]">
+    Dialog Content.
+</div>
+<script type="text/javascript">
+// 绑定按钮的 click 事件的事件处理函数
+document.getElementById("options").addEventListener("click",options,false);
+document.getElementById("open").addEventListener("click",open,false);
+document.getElementById("close").addEventListener("click",close,false);
+document.getElementById("destroy").addEventListener("click",destroy,false);
+
+function options(){
+  // 打开指定的 Dialog 对话框
+  var opts = $("#dialog").dialog("options");
+  console.info(opts);
+}
+
+function open(){
+  // 打开指定的 Dialog 对话框
+  $("#dialog").dialog("open");
+}
+ 
+function close(){
+  // 关闭指定的 Dialog 对话框
+  $("#dialog").dialog("close");
+}
+ 
+function destroy(){
+  // 销毁指定的对话框，从 DOM 文档中删除
+  $("#dialog").dialog("destroy");
+}
+</script>
+</body>
+</html>

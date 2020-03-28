@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CMD Charset</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### CMD 控制台字符集设置
+
+<a href="https://stackoverflow.com/questions/388490/how-to-use-unicode-characters-in-windows-command-line" target="_blank">参考资料</a>
+
+输出可用的字体到控制台
+
+```python
+# Query Regedit TrueTypeFont
+REG query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Console\TrueTypeFont"
+```
+
+```textarea
+    949    REG_SZ    *굴림체
+    0      REG_SZ    Lucida Console
+    950    REG_SZ    *細明體
+    932    REG_SZ    *ＭＳ ゴシック
+    936    REG_SZ    *新宋体
+    00     REG_SZ    Consolas
+    000    REG_SZ    *新宋体
+    (默认)    REG_SZ
+```
+
+添加新的字体作为 TrueTypeFont
+
+&amp;#160; &amp;#160;现在我们需要添加一个支持 ```Courier New``` 所需字符的 ```TrueType 字体```。我们通过在字符串名称中添加零来完成此操作，因此在这种情况下，下一个将是 ```“000”```：
+
+```python
+# Add new TrueTypeFont
+REG ADD "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Console\TrueTypeFont" /v 000 /t REG_SZ /d "Courier New"
+```
+
+现在我们实现 UTF-8 支持：
+
+```python
+# 实现对 UTF-8 字符集支持
+REG ADD HKCU\Console /v CodePage /t REG_DWORD /d 65001 /f
+```
+
+将默认字体设置为 “```Courier New```”：
+
+```python
+# 设置默认字体的名称
+REG ADD HKCU\Console /v FaceName /t REG_SZ /d "Courier New" /f
+```
+
+将字体大小设置为20：
+
+```python
+# 设置字体大小
+REG ADD HKCU\Console /v FontSize /t REG_DWORD /d 20 /f
+```
+
+如果您愿意，可以快速编辑：
+
+```python
+# 快速编辑
+REG ADD HKCU\Console /v QuickEdit /t REG_DWORD /d 1 /f
+```
+
+
+ ```SELECT CHCP PAGE```
+
+```python
+@ECHO off
+
+SET ROOT_KEY="HKEY_CURRENT_USER"
+
+
+FOR /f "skip=2 tokens=3" %%i in ('reg query HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Nls\CodePage /v OEMCP') do set OEMCP=%%i
+
+ECHO System default values:
+
+ECHO.
+ECHO ...............................................
+ECHO Select Codepage 
+ECHO ...............................................
+ECHO.
+ECHO 1 - CP1252
+ECHO 2 - UTF-8
+ECHO 3 - CP850
+ECHO 4 - ISO-8859-1
+ECHO 5 - ISO-8859-15
+ECHO 6 - US-ASCII
+ECHO.
+ECHO 9 - Reset to System Default (CP%OEMCP%)
+ECHO 0 - EXIT
+ECHO.
+
+
+SET /P  CP="Select a Codepage: "
+
+if %CP%==1 (
+    echo Set default Codepage to CP1252
+    reg add "%ROOT_KEY%\Software\Microsoft\Command Processor" /v Autorun /t REG_SZ /d "@chcp 1252>nul" /f
+) else if %CP%==2 (
+    echo Set default Codepage to UTF-8
+    reg add "%ROOT_KEY%\Software\Microsoft\Command Processor" /v Autorun /t REG_SZ /d "@chcp 65001>nul" /f
+) else if %CP%==3 (
+    echo Set default Codepage to CP850
+    reg add "%ROOT_KEY%\Software\Microsoft\Command Processor" /v Autorun /t REG_SZ /d "@chcp 850>nul" /f
+) else if %CP%==4 (
+    echo Set default Codepage to ISO-8859-1
+    add "%ROOT_KEY%\Software\Microsoft\Command Processor" /v Autorun /t REG_SZ /d "@chcp 28591>nul" /f
+) else if %CP%==5 (
+    echo Set default Codepage to ISO-8859-15
+    add "%ROOT_KEY%\Software\Microsoft\Command Processor" /v Autorun /t REG_SZ /d "@chcp 28605>nul" /f
+) else if %CP%==6 (
+    echo Set default Codepage to ASCII
+    add "%ROOT_KEY%\Software\Microsoft\Command Processor" /v Autorun /t REG_SZ /d "@chcp 20127>nul" /f
+) else if %CP%==9 (
+    echo Reset Codepage to System Default
+    reg delete "%ROOT_KEY%\Software\Microsoft\Command Processor" /v AutoRun /f
+) else if %CP%==0 (
+    echo Bye
+) else (
+    echo Invalid choice
+    pause
+)
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

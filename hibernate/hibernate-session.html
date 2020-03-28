@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate Session</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+Session 加载实体对象的过程
+
+&#160; &#160;首先，Hibernate 中维持了两级缓存。第一级缓存由 Session 实例维护，它是属于事务范围的缓存。其中保持了 Session 当前所有关联实体的数据，也称为内部缓存。而第二级缓存则存在于 SessionFactory 层次，它是属于进程范围或群集范围的缓存，由当前所有由本 SessionFactory 构造的 Session 实例共享。
+
+&#160; &#160;出于性能考虑，避免无谓的数据库访问，Session 在调用数据库查询功能之前，会先在缓存中进行查询。首先在第一级缓存（内部缓存）中，通过实体类型和 id 进行查找，如果第一级缓存查找命中，且数据状态合法，则直接返回。然后，Session 会在当前 “NonExists” 记录中进行查找，如果 “NonExists” 记录中存在同样的查询条件，则返回 null。 “NonExists” 记录了当前 Session 实例在之前所有查询操作中，未能查询到有效数据的查询条件（相当于一个查询黑名单列表）。如此一来，如果 Session 中一个无效的查询条件重复出现，即可迅速作出判断，从而获得最佳的性能表现。
+
+&#160; &#160;对于 load 方法而言，首先查找内部缓存，如果命中，则返回实例，如果内部缓存中未发现有效数据，则查询第二级缓存，如果第二级缓存命中，则返回。若二级缓存中依旧未发现有效数据，则发起数据库查询操作（Select SQL）。如果查询到，则返回实体类的代理对象，若经过查询未发现对应记录，则将此次查询的信息在 “NonExists” 中加以记录，并抛出 ObjectNotFoundException 异常。
+
+&#160; &#160;对于 get 方法而言，许多书上、网络博客里都说错了。get 方法同样是先查找内部缓存，如果命中，则返回，否则发起数据库查询操作，如果查询到，则返回实体类的对象，若经过查询未发现对应记录，则将此次查询的信息在 “NonExists” 中加以记录，并返回 null。所以网络上说的“当他人修改了数据后，用 load 可能读取不到最新的数据，而 get 肯定可以读取到最新修改的数据”的说法也是不成立的。
+
+&#160; &#160;这也就意味着，get 方法获取到的并不一定是实体类对象，load 方法也不一定是返回实体代理类对象。
+
+还有一个有趣的现象：
+
+```java
+User user5 = (User)session.load(User.class, "123");
+System.out.println(user5.getId());
+```
+
+运行结果直接输出 123
+
+&#160; &#160;从结果中也可以看出，前 2 句代码，不会去执行数据库操作。因为 load 后会在 hibernate 的一级缓存里存放一个 map 对象，该 map 的 key 就是 Id 的值，但是当你 getId() 时，它会去一级缓存里拿 map 的 key 值，正好找到了，所以不会再去执行数据库查询。也不会报任何错。就有了以上的结果。
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

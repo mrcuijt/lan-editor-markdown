@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>git-basic-branch</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### git-basic-branch
+
+#### 版本分支
+
+```bash
+## 克隆远程仓库到本地
+git clone xxx 
+
+## 切换到主分支
+git checkout master 
+
+## 创建名为 branchName 的空白分支
+git checkout --orphan branchName 
+
+## 为当前仓库分支指定对应的远程仓库分支
+git branch --set-upstream-to=origin/dev
+
+## 取消对 master 的跟踪
+git branch --unset-upstream master
+
+## 设置本地仓库分支对应的远程仓库分支
+git branch --set-upstream-to=master
+
+git branch --set-upstream-to=original/master
+
+## 拉取最新远程代码
+git pull 
+
+## 创建并切换分支
+## -b 参数表示创建并切换。 相当于 git branch dev 在 git checkout dev
+git checkout -b dev 
+
+## 显示所有分支，当前分支前有 * 号
+git branch 
+
+## 添加要提交到分支仓库的文件
+git add [文件名] 
+
+## 提交到了 dev 分支
+git commit [文件名] 
+
+## 切换到主干分支
+git checkout master 
+
+## 将主干代码更新到最新，必须更新，否则会覆盖
+git pull 
+
+## 合并 dev 分支到主干
+git merge dev 
+
+## 删除分支 -D 强制删除
+git branch -d dev 
+
+```
+
+#### 分支合并
+
+ - **查看分支：`git branch`**
+
+ - **创建分支：`git branch <name>`**
+
+ - **切换分支：`git checkout <name>`**
+
+ - **创建+切换分支：`git checkout -b <name>`**
+
+ - **合并指定分支到当前分支：`git merge <name>`**
+
+ - **删除分支：`git branch -d <name>`**
+
+##### Example
+
+ - **1、将提交错误的分支进行检出**
+
+  - **1）如果本地没有该分支，先在本地创建一个临时分支并根据本地提交的 id 进行检出**
+  
+  - **2）`git branch temp fef4501` (id 号)**
+
+ - **2、将该分支更新到最新（刚才的提交）**
+
+ - **3、切换到之前需要正确提交的分支中**
+
+ - **4、将正确的分支更新到最新**
+
+ - **5、在正确的分支下执行 `git merge temp` ，进行合并分支。**
+
+ - **6、合并完成后可以删除临时分支 `git branch -d temp`**
+
+ - **7、提交到远程仓库 `git push`**
+
+#### 删除远程分支
+
+##### git 删除远程分支和本地分支
+
+**问题描述：**
+
+**当我们集体进行项目时，将自定义分支 push 到主分支 master 之后，如何删除远程的自定义分支呢?**
+
+**问题解决：**
+
+ - **（1）使用命令 `git branch -a` 查看所有分支**
+
+ _注：其中，`remote/origin/master` 表示的是远程分支_
+
+ - **（2）删除远程分支 `git push origin --delete Chapater6`**
+
+ _注：如上所示，使用命令 `git push origin --delete Chapater6`_
+ 
+ _可以删除远程分支 `Chapater6`_
+ 
+ _再次使用命令 `git branch -a` 可以发现，远程分支 Chapater6 已经被删除。_
+
+ - **（3）删除本地分支**
+
+  _使用命令，`git branch -d Chapater8` 可以删除本地分支（在主分支中）_
+
+参考链接：
+
+ - <a href="https://git-scm.com/book/zh/v2/Git-%E5%88%86%E6%94%AF-%E5%88%86%E6%94%AF%E7%9A%84%E6%96%B0%E5%BB%BA%E4%B8%8E%E5%90%88%E5%B9%B6" target="_blank">Git 分支 - 分支的新建与合并</a>
+
+ - <a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/001375840038939c291467cc7c747b1810aab2fb8863508000" target="_blank">创建与合并分支</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

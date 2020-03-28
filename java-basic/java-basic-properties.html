@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-properties</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-properties
+
+#### Java 中 Properties 类的操作
+
+知识学而不用，就等于没用，到真正用到的时候还得重新再学。
+
+&amp;#160; &amp;#160;最近在看几款开源模拟器的源码，里面涉及到了很多关于 Properties 类的引用，由于 Java 已经好久没用了，而这些模拟器大多用Java来写，外加一些脚本语言 Python, Perl 之类的，不得已，又得重新拾起。
+
+本文通过看《Java 编程思想》和一些网友的博客总结而来，只为简单介绍 Properties 类的相关操作。
+
+#### 一、Java Properties 类
+
+&amp;#160; &amp;#160;Java 中有个比较重要的类 Properties（Java.util.Properties），主要用于读取 Java 的配置文件，各种语言都有自己所支持的配置文件，配置文件中很多变量是经常改变的，这样做也是为了方便用户，让用户能够脱离程序本身去修改相关的变量设置。像 Python 支持的配置文件是 .ini 文件，同样，它也有自己读取配置文件的类 ConfigParse，方便程序员或用户通过该类的方法来修改 .ini 配置文件。
+
+&amp;#160; &amp;#160;在 Java 中，其配置文件常为 .properties 文件，格式为文本文件，文件的内容的格式是“键=值”的格式，文本注释信息可以用"#"来注释。
+
+Properties 类继承自 Hashtable，如下：
+
+它提供了几个主要的方法：
+
+ - **getProperty(String key)** : 用指定的键在此属性列表中搜索属性。
+
+ 也就是通过参数 key ，得到 key 所对应的 value。
+
+ - **load(InputStream inStream)** : 从输入流中读取属性列表（键和元素对）。
+
+ 通过对指定的文件（比如说上面的 test.properties 文件）进行装载来获取该文件中的所有键 - 值对。以供 getProperty(String key) 来搜索。
+
+ - **setProperty(String key, String value)** : 调用 Hashtable 的方法 put 。
+
+ 他通过调用基类的 put 方法来设置 键 - 值对。
+
+ - **store(OutputStream out, String comments)** : 以适合使用 load 方法加载到 Properties 表中的格式，将此 Properties 表中的属性列表（键和元素对）写入输出流。
+
+ 与 load 方法相反，该方法将键 - 值对写入到指定的文件中去。
+
+ - **clear()** : 清除所有装载的 键 - 值对。该方法在基类中提供。
+
+#### 二、Java 读取 Properties 文件
+
+Java 读取 Properties 文件的方法有很多，详见：Java 读取 Properties 文件的六种方法
+
+但是最常用的还是通过 java.lang.Class 类的 getResourceAsStream(String name) 方法来实现，如下可以这样调用：
+
+```java
+InputStream in = getClass().getResourceAsStream("资源Name");
+```
+
+作为我们写程序的，用此一种足够。
+
+或者下面这种也常用：
+
+```java
+InputStream in = new BufferedInputStream(new FileInputStream(filepath));
+```
+ 
+#### 三、相关实例
+
+下面列举几个实例，加深对 Properties 类的理解和记忆。
+
+我们知道，Java 虚拟机（JVM）有自己的系统配置文件（system.properties），我们可以通过下面的方式来获取。
+
+1、获取 JVM 的系统属性
+
+```java
+import java.util.Properties;
+
+public class ReadJVM {
+  public static void main(String[] args) {
+    Properties pps = System.getProperties();
+    pps.list(System.out);
+  }
+}
+```
+
+结果：
+
+```python
+-- listing properties --
+java.runtime.name=Java(TM) SE Runtime Environment
+sun.boot.library.path=D:\JDK\jdk1.8.0_152\jre\bin
+java.vm.version=25.152-b16
+java.vm.vendor=Oracle Corporation
+java.vendor.url=http://java.oracle.com/
+path.separator=;
+java.vm.name=Java HotSpot(TM) 64-Bit Server VM
+file.encoding.pkg=sun.io
+user.script=
+user.country=CN
+sun.java.launcher=SUN_STANDARD
+sun.os.patch.level=Service Pack 1
+java.vm.specification.name=Java Virtual Machine Specification
+user.dir=D:\workspace\docworkspace\java-basic-...
+java.runtime.version=1.8.0_152-b16
+java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment
+java.endorsed.dirs=D:\JDK\jdk1.8.0_152\jre\lib\endorsed
+os.arch=amd64
+java.io.tmpdir=C:\Users\dev\AppData\Local\Temp\
+line.separator=
+
+java.vm.specification.vendor=Oracle Corporation
+user.variant=
+os.name=Windows 7
+sun.jnu.encoding=GBK
+java.library.path=D:\JDK\jdk1.8.0_152\bin;C:\Windows\Su...
+java.specification.name=Java Platform API Specification
+java.class.version=52.0
+sun.management.compiler=HotSpot 64-Bit Tiered Compilers
+os.version=6.1
+user.home=C:\Users\dev
+user.timezone=
+java.awt.printerjob=sun.awt.windows.WPrinterJob
+file.encoding=GBK
+java.specification.version=1.8
+user.name=dev
+java.class.path=.;D:\JDK\jdk1.8.0_152\lib\dt.jar;D:\J...
+java.vm.specification.version=1.8
+sun.arch.data.model=64
+java.home=D:\JDK\jdk1.8.0_152\jre
+sun.java.command=ReadJVM
+java.specification.vendor=Oracle Corporation
+user.language=zh
+awt.toolkit=sun.awt.windows.WToolkit
+java.vm.info=mixed mode
+java.version=1.8.0_152
+java.ext.dirs=D:\JDK\jdk1.8.0_152\jre\lib\ext;C:\Wi...
+sun.boot.class.path=D:\JDK\jdk1.8.0_152\jre\lib\resources...
+sun.stderr.encoding=ms936
+java.vendor=Oracle Corporation
+file.separator=\
+java.vendor.url.bug=http://bugreport.sun.com/bugreport/
+sun.cpu.endian=little
+sun.io.unicode.encoding=UnicodeLittle
+sun.desktop=windows
+sun.cpu.isalist=amd64
+```
+
+2、随便新建一个配置文件（Test.properties）
+
+```python
+name=JJ
+Weight=4444
+Height=3333
+```
+
+```java
+public class getProperties {
+  public static void main(String[] args) throws FileNotFoundException, IOException {
+    Properties pps = new Properties();
+    pps.load(new FileInputStream("Test.properties"));
+    Enumeration enum1 = pps.propertyNames();// 得到配置文件的名字
+    while(enum1.hasMoreElements()) {
+      String strKey = (String) enum1.nextElement();
+      String strValue = pps.getProperty(strKey);
+      System.out.println(strKey + "=" + strValue);
+    }
+  }
+}
+```
+
+3、一个比较综合的实例
+
+ - 根据 key 读取 value
+
+ - 读取 properties 的全部信息
+
+ - 写入新的 properties 信息
+
+```java
+//关于 Properties 类常用的操作
+public class TestProperties {
+  // 根据 Key 读取 Value
+  public static String GetValueByKey(String filePath, String key) {
+    Properties pps = new Properties();
+    try {
+      InputStream in = new BufferedInputStream (new FileInputStream(filePath));  
+      pps.load(in);
+      String value = pps.getProperty(key);
+      System.out.println(key + " = " + value);
+      return value;
+    }catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+     
+  // 读取 Properties 的全部信息
+  public static void GetAllProperties(String filePath) throws IOException {
+    Properties pps = new Properties();
+    InputStream in = new BufferedInputStream(new FileInputStream(filePath));
+    pps.load(in);
+    Enumeration en = pps.propertyNames(); // 得到配置文件的名字
+         
+    while(en.hasMoreElements()) {
+      String strKey = (String) en.nextElement();
+      String strValue = pps.getProperty(strKey);
+      System.out.println(strKey + "=" + strValue);
+    }
+  }
+     
+  // 写入 Properties 信息
+  public static void WriteProperties (String filePath, String pKey, String pValue) throws IOException {
+    Properties pps = new Properties();
+    InputStream in = new FileInputStream(filePath);
+    // 从输入流中读取属性列表（键和元素对） 
+    pps.load(in);
+    // 调用 Hashtable 的方法 put。使用 getProperty 方法提供并行性。  
+    // 强制要求为属性的键和值使用字符串。返回值是 Hashtable 调用 put 的结果。
+    OutputStream out = new FileOutputStream(filePath);
+    pps.setProperty(pKey, pValue);
+    // 以适合使用 load 方法加载到 Properties 表中的格式，  
+    // 将此 Properties 表中的属性列表（键和元素对）写入输出流  
+    pps.store(out, "Update " + pKey + " name");
+  }
+
+  public static void main(String [] args) throws IOException{
+    // String value = GetValueByKey("Test.properties", "name");
+    // System.out.println(value);
+    // GetAllProperties("Test.properties");
+    WriteProperties("Test.properties","long", "212");
+  }
+}
+```
+
+结果：
+```python
+Test.properties中文件的数据为：
+#Update long name
+#Sun Feb 23 18:17:16 CST 2014
+name=JJ
+Weight=4444
+long=212
+Height=3333
+```
+
+配合 xml , properties 配置文件使用，如构建 MyBaits SqlSessionFactory 。
+
+**`mybatis-config.xml`**
+
+```xml
+<!-- environments 环境 -->
+<environments default="development"><!-- 开发版 测试版 发布版 -->
+  <environment id="development">
+    <!-- transactionManager 事务管理 -->
+    <transactionManager type="JDBC" />
+    <dataSource type="POOLED"><!-- UNPOOLED 未使用数据库连接池 --><!-- JNDI 远程调用数据源 项目整合时 -->
+      <property name="driver" value="${jdbc.driver}" />
+      <property name="url" value="${jdbc.url}" />
+      <property name="username" value="${jdbc.username}"/>
+      <property name="password" value="${jdbc.password}"></property>
+    </dataSource>
+  </environment>
+</environments>
+```
+
+**`db.properties`**
+
+```python
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost/hylive?useUnicode=true&amp;characterEncoding=UTF-8&amp;
+jdbc.username=root
+jdbc.password=root
+```
+
+**`Run.java`**
+
+```java
+Properties prop = new Properties();
+prop.load(Resources.getResourceAsStream("db.properties"));
+
+String resource = "mybatis-config.xml";
+InputStream is = Resources.getResourceAsStream(resource);
+
+SqlSessionFactory sessionFactory = new SqlSessionFactoryBuilder().build(is, prop);
+SqlSession session = sessionFactory.openSession();
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

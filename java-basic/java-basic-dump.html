@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-dump</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-dump
+
+#### Java 程序性能分析之 thread dump 和 heap dump
+
+##### 一. dump 基本概念
+
+在故障定位(尤其是 out of memory)和性能分析的时候，经常会用到一些文件来帮助我们排除代码问题。这些文件记录了 JVM 运行期间的内存占用、线程执行等情况，这就是我们常说的 dump 文件。常用的有 heap dump 和 thread dump（也叫 javacore，或 java dump）。我们可以这么理解：heap dump 记录内存信息的，thread dump 是记录 CPU 信息的。
+
+ - heap dump
+
+ heap dump 文件是一个二进制文件，它保存了某一时刻 JVM 堆中对象使用情况。HeapDump 文件是指定时刻的 Java 堆栈的快照，是一种镜像文件。Heap Analyzer 工具通过分析 HeapDump 文件，哪些对象占用了太多的堆栈空间，来发现导致内存泄露或者可能引起内存泄露的对象。
+
+ - thread dump
+
+ thread dump 文件主要保存的是 Java 应用中各线程在某一时刻的运行的位置，即执行到哪一个类的哪一个方法哪一个行上。thread dump 是一个文本文件，打开后可以看到每一个线程的执行栈，以 stacktrace 的方式显示。通过对 thread dump 的分析可以得到应用是否“卡”在某一点上，即在某一点运行的时间太长，如数据库查询，长期得不到响应，最终导致系统崩溃。单个的 thread dump 文件一般来说是没有什么用处的，因为它只是记录了某一个绝对时间点的情况。比较有用的是，线程在一个时间段内的执行情况。
+
+两个 thread dump 文件在分析时特别有效，困为它可以看出在先后两个时间点上，线程执行的位置，如果发现先后两组数据中同一线程都执行在同一位置，则说明此处可能有问题，因为程序运行是极快的，如果两次均在某一点上，说明这一点的耗时是很大的。通过对这两个文件进行分析，查出原因，进而解决问题。
+
+##### 二. 利用 JDK 自带的工具获取 thread dump 文件和 heap dump 文件
+
+**jmap (JVM Memory Map) 命令用于生成 heap dump 文件，如果不使用这个命令，还可以使用 -XX:+HeapDumpOnOutOfMemoryError 参数来让虚拟机出现 OOM 的时候自动生成 dump 文件。** jmap 不仅能生成 dump 文件，还可以查询 finalize 执行队列、Java 堆和永久代的详细信息，如当前使用率、当前使用的是哪种收集器等。
+
+```python
+jmap --help
+
+Usage:
+
+    jmap [option] <pid>
+
+        (to connect to running process)
+
+    jmap [option] <executable <core>
+
+        (to connect to a core file)
+
+    jmap [option] [server_id@]<remote server IP or hostname>
+
+        (to connect to remote debug server)
+
+ 
+
+where <option> is one of:
+
+    <none>               to print same info as Solaris pmap
+
+    -heap                to print java heap summary
+
+    -histo[:live]        to print histogram of java object heap; if the "live"
+
+                         suboption is specified, only count live objects
+
+    -permstat            to print permanent generation statistics
+
+    -finalizerinfo       to print information on objects awaiting finalization
+
+    -dump:<dump-options> to dump java heap in hprof binary format
+
+                         dump-options:
+
+                           live         dump only live objects; if not specified,
+
+                                        all objects in the heap are dumped.
+
+                           format=b     binary format
+
+                           file=<file>  dump heap to <file>
+
+                         Example: jmap -dump:live,format=b,file=heap.bin <pid>
+
+    -F                   force. Use with -dump:<dump-options> <pid> or -histo
+
+                         to force a heap dump or histogram when <pid> does not
+
+                         respond. The "live" suboption is not supported
+
+                         in this mode.
+
+    -h | -help           to print this help message
+
+    -J<flag>             to pass <flag> directly to the runtime system
+```
+
+**命令格式**
+
+```python
+jmap [ option ] pid
+
+jmap [ option ] executable core
+
+jmap [ option ] [server-id@]remote-hostname-or-IP
+```
+
+**参数**
+
+ - **option** : 选项参数，不可同时使用多个选项参数
+
+ - **pid** : java 进程 id，命令 ps -ef | grep java 获取
+
+ - **executable** : 产生核心 dump 的 Java 可执行文件
+
+ - **core** : 需要打印配置信息的核心文件
+
+ - **remote-hostname-or-ip** : 远程调试的主机名或 ip
+
+ - **server-id** : 可选的唯一id，如果相同的远程主机上运行了多台调试服务器，用此选项参数标识服务器
+
+**options 参数**
+
+ - **heap** : 显示 Java 堆详细信息
+
+ - **histo** : 显示堆中对象的统计信息
+
+ - **permstat** : Java 堆内存的永久保存区域的类加载器的统计信息
+
+ - **finalizerinfo** : 显示在 F-Queue 队列等待 Finalizer 线程执行 finalizer 方法的对象
+
+ - **dump** : 生成堆转储快照
+
+ - **F** : 当 -dump 没有响应时，强制生成 dump 快照
+
+**-permstat**
+
+打印 Java 堆内存的永久区的类加载器的智能统计信息。对于每个类加载器而言，它的名称、活跃度、地址、父类加载器、它所加载的类的数量和大小都会被打印。此外，包含的字符串数量和大小也会被打印。
+
+```python
+jmap -permstat 24971
+
+Attaching to process ID 24971, please wait...
+
+Debugger attached successfully.
+
+Server compiler detected.
+
+JVM version is 24.79-b02
+
+finding class loader instances ..done.
+
+computing per loader stat ..done.
+
+please wait.. computing liveness....................................................liveness analysis may be inaccurate ...
+
+class_loader    classes bytes   parent_loader   alive?  type
+
+ 
+
+<bootstrap>   3034    18149440      null      live    <internal>
+
+0x000000070a88fbb8  1   3048      null      dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+
+0x000000070a914860  1   3064    0x0000000709035198  dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+
+0x000000070a9fc320  1   3056    0x0000000709035198  dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+
+0x000000070adcb4c8  1   3064    0x0000000709035198  dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+
+0x000000070a913760  1   1888    0x0000000709035198  dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+
+0x0000000709f3fd40  1   3032      null      dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+
+0x000000070923ba78  1   3088    0x0000000709035260  dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+
+0x000000070a88fff8  1   3048      null      dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+
+0x000000070adcbc58  1   1888    0x0000000709035198  dead    sun/reflect/DelegatingClassLoader@0x0000000703c50b58
+```
+
+**-finalizerinfo**
+
+打印等待回收的对象信息
+
+```python
+[root@localhost jdk1.7.0_79]# jmap -finalizerinfo 24971
+
+Attaching to process ID 24971, please wait...
+
+Debugger attached successfully.
+
+Server compiler detected.
+
+JVM version is 24.79-b02
+
+Number of objects pending for finalization: 0
+```
+
+**Number of objects pending for finalization: 0 说明当前 F-QUEUE 队列中并没有等待 Fializer 线程执行 finalizer 方法的对象。**
+
+**-F**
+
+强制模式。如果指定的 pid 没有响应，请使用 jmap -dump 或 jmap -histo 选项。此模式下，不支持 live 子选项。
+
+使用的 JDK 工具在 JDK_HOME/bin/ 目录下，使用到 jmap 和 jstack 这两个命令。
+
+ - 获取 heap dump 文件
+
+ Windows 下切换到 JDK_HOME/bin/，执行以下命令：**jmap -dump:format=b,file=heap.hprof 2576**
+
+ Linux 下切换到 JDK_HOME/bin/，执行以下命令：**./jmap -dump:format=b,file=heap.hprof 2576**
+
+```python
+## Windows
+jmap -dump:format=b,file=heap.hprof 2576
+
+## Linux
+./jmap -dump:format=b,file=heap.hprof 2576
+```
+
+ - 获取 thread dump 文件
+
+ Windows 下执行：**jstack 2576 > thread.txt**
+
+ Linux 下执行：**./jstack 2576 > thread.txt**
+
+```python
+## Windows
+jstack 2576 > thread.txt
+
+## Linux
+jstack 2576 > thread.txt
+```
+
+ - 只将 dump 中存活的对象导出，那么可以使用 :live 参数
+
+ **jmap -histo:live** 这个命令执行，JVM 会先触发 gc，然后再统计信息
+
+```python
+## 导出 dump 中存活的对象，JVM 会先触发 gc，然后再统计信息
+jmap -dump:live,format=b,file=heapLive.hprof 2576
+```
+
+执行完后，我们在当前目录 C:\Java\jdk1.6.0_27\bin 下看到刚生成的三个文件，如下所示：
+
+![title](images/java-basic-dump/java-basic-dump-001.png)
+
+##### 三. 使用工具分析 java heap dump 文件
+
+现在我们使用一些图形化工具，来帮助我们分析文件中的信息，有效地定位问题。
+
+##### 1.使用 JDK 自带的 jhat 命令
+
+jhat 是用来分析 Java 堆的命令，可以将堆中的对象以 html 的形式显示出来，包括对象的数量，大小等等，并支持对象查询语言。
+
+jhat（JVM Heap Analysis Tool） 主要是为了和 jmap 搭配使用，来分析 jmap 生成的转储快照。jhat 内置了一个微型的 HTTP/HTML 服务器，生成 dump 文件的分析结果后，可以在浏览器中查看。不过在实际工作中，一般都不会去直接使用 jhat 命令来分析 dump 文件。
+
+主要原因有：
+
+ - 1.一般不会在部署应用程序的服务器上直接分析 dump 文件，即使可以这样做，也会尽量将 dump 文件复制到其他机器上进行分析，因为分析工作是一个耗时而且消耗硬件资源的过程，既然都要在其他机器进行，就没有必要受到命令行工具的限制了。
+
+ - 2.再就是 jhat 的分析功能相比 VisualVM、Eclipse Memory Analyzer、IBM HeapAnalyzer 来说比较简陋。
+
+```python
+## 分析 heap dump
+jhat -port 5000 heap.hrof
+```
+
+![title](images/java-basic-dump/java-basic-dump-002.png)
+
+当服务启动完成后，我们就可以在浏览器中，通过 http://localhost:5000/ 进行访问，如下所示：
+
+![title](images/java-basic-dump/java-basic-dump-003.png)
+
+分析结果默认是以包为单位进行分组显示，分析内存泄漏问题主要会使用到其中的 “Show Heap Histogram”（与 jmap-histo 功能一样）与 Execute Object Query Language (OQL) query 页签的功能，前者可以找到内存中总容量最大的对象，后者是标准的对象查询语言，使用类似 SQL 的语法对内存中的对象进行查询统计。
+
+##### 2.使用 eclipse MAT 工具
+
+一般来说，应用程序的 dump 文件都是很大的，jdk 自带命令难以分析这些大文件。在实际的生产环境下，我们必须要借助第三方工具，才能快速打开这些大文件，进行分析定位。eclipse memory analyzer 是一款优秀的 heap 分析工具，能够帮我们快速定位内存泄露问题。
+
+参考链接：
+
+ - <a href="https://www.iteye.com/blog/bijian1013-2221240" target="_blank">Java 程序性能分析之 thread dump 和 heap dump</a>
+
+ - <a href="https://www.niuhp.com/java/jvm-jhat.html" target="_blank">jhat - 虚拟机堆转储快照分析工具</a>
+
+ - <a href="https://www.cnblogs.com/myna/p/7573843.html" target="_blank">JVM 调优命令 -jmap </a>
+
+#### jmap、 jhat 分析堆内存溢出
+
+##### 1.查看该进程下堆内存的使用情况
+
+```python
+jmap -heap 30774
+
+Attaching to process ID 30774, please wait...
+
+Debugger attached successfully.
+
+Server compiler detected.
+
+JVM version is 20.1-b02
+
+ 
+
+using thread-local object allocation.
+
+Parallel GC with 8 thread(s)
+
+ 
+
+Heap Configuration:
+
+   MinHeapFreeRatio = 40
+
+   MaxHeapFreeRatio = 70
+
+   MaxHeapSize      = 1073741824 (1024.0MB)
+
+   NewSize          = 1310720 (1.25MB)
+
+   MaxNewSize       = 17592186044415 MB
+
+   OldSize          = 5439488 (5.1875MB)
+
+   NewRatio         = 2
+
+   SurvivorRatio    = 8
+
+   PermSize         = 21757952 (20.75MB)
+
+   MaxPermSize      = 268435456 (256.0MB)
+
+ 
+
+Heap Usage:
+
+PS Young Generation
+
+Eden Space:
+
+   capacity = 353107968 (336.75MB)
+
+   used     = 9083624 (8.662818908691406MB)
+
+   free     = 344024344 (328.0871810913086MB)
+
+   2.572477775409475% used
+
+From Space:
+
+   capacity = 2359296 (2.25MB)
+
+   used     = 0 (0.0MB)
+
+   free     = 2359296 (2.25MB)
+
+   0.0% used
+
+To Space:
+
+   capacity = 2359296 (2.25MB)
+
+   used     = 0 (0.0MB)
+
+   free     = 2359296 (2.25MB)
+
+   0.0% used
+
+PS Old Generation
+
+   capacity = 715849728 (682.6875MB)
+
+   used     = 47522208 (45.320709228515625MB)
+
+   free     = 668327520 (637.3667907714844MB)
+
+   6.638573172720407% used
+
+PS Perm Generation
+
+   capacity = 40435712 (38.5625MB)
+
+   used     = 40067528 (38.21137237548828MB)
+
+   free     = 368184 (0.35112762451171875MB)
+
+   99.08945834810575% used
+```
+
+以上的输出很简单，第四行起开始输出此进程的 JAVA 使用的环境。 
+
+ - Heap Configuration
+
+ 指 Java 应用启动时设置的 JVM 参数。像最大使用内存大小，年老代，年青代，持久代大小等。
+
+ - Heap Usage
+
+ 当时的 heap 实际使用情况。包括新生代、老生代和持久代。
+
+其中新生代包括：Eden 区的大小、已使用大小、空闲大小及使用率。Survive 区的 From 和 To 同样。
+
+有这个可以很简单的查看本进程的内存使用情况。
+
+可以用于分析堆内存分区大小是否合理，新生代和老生代的大小分配是否合适等。
+
+也许进程占用的总内存比较多，但我们在这里可以看到真正用到的并没有多少，很多都是 "Free"。内存使用的堆积大多在老年代，内存池露始于此，所以要格外关心“Old Generation”。
+
+##### 2.快速定位内存泄露的方法：
+
+```python
+jmap -histo:live 1963 
+
+## 将信息输出到指定文件中
+jmap -histo:live 1963 >1.txt
+```
+
+这里会生成一个类的统计报表，此表非常简单，如显示什么类有多少个实例，共占了多少字节等。
+
+![title](images/java-basic-dump/java-basic-dump-004.png)
+
+其中关于I、B、C等的说明如下
+
+<text zoom="8.2">╔════════════════════╤═══════════╤════════════════════════════════════════╗
+║ BaseType Character │ Type      │ Interpretation                         ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ B                  │ byte      │ signed byte                            ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ C                  │ char      │ Unicode character                      ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ D                  │ double    │ double-precision floating-point value  ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ F                  │ float     │ single-precision floating-point value  ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ I                  │ int       │ integer                                ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ J                  │ long      │ long integer                           ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ L<classname>;      │ reference │ an instance of class de><classname>de> ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ S                  │ short     │ signed short                           ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ Z                  │ boolean   │ de>truede> or de>falsede>              ║
+╟────────────────────┼───────────┼────────────────────────────────────────╢
+║ [                  │ reference │ one array dimension                    ║
+╚════════════════════╧═══════════╧════════════════════════════════════════╝</text>
+
+可以找到造成内存溢出的具体方法。
+
+##### 3.还可以使用 jhat 分析内存溢出的原因
+
+使用 dump 内存信息到 heap.bin 文件
+
+```python
+jmap -dump:live,format=b,file=heap.bin 1963
+```
+
+![title](images/java-basic-dump/java-basic-dump-005.png)
+
+使用 jhat 对 heap.bin 文件进行分析
+
+```python
+jhat -J-mx512m heap.bin
+
+## 如果解析过程中出现内存不足，需要加大内存如
+jhat -J-mx800m heap.bin 
+```
+
+![title](images/java-basic-dump/java-basic-dump-006.png)
+
+在通过浏览器访问 http://localhost:7000/ 即可看到分析结果
+
+##### 4.jstat 监视垃圾回收（GC）时间，次数
+
+![title](images/java-basic-dump/java-basic-dump-007.png)
+
+ - **S0** : 幸存区0
+
+ - **S1** : 幸存区1
+
+ - **E** : 年轻代
+
+ - **O** : 年老代
+
+ - **M** : 持久代
+
+ （以上都是已使用所占百分比）
+
+ - **YGC** : 年轻代 YGC 的次数 
+
+ - **YGCT** : 年轻代 YGC 所消耗的时间 
+
+ - **FGC** : 年老代 full GC 的次数 
+
+ - **FGCT** : 年老代 full GC 所消耗的时间 
+
+ - **GCT** : 用于 GC 所消耗的总时间
+
+jstat 动态查看垃圾回收的情况：
+
+![title](images/java-basic-dump/java-basic-dump-008.png)
+
+每隔 3s 钟采集一次数据，采集 10 次。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/u012167045/article/details/57426640" target="_blank">jmap jhat 分析堆内存溢出</a>
+
+ - <a href="https://www.cnblogs.com/likehua/p/4025735.html" target="_blank">jmap,jhat 分析内存</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

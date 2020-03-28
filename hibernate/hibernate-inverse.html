@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate inverse</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### inverse 属性
+
+&#160; &#160;```<set>``` 元素的 ```inverse``` 属性 指明了 ```inverse``` 属性只能在 ```set``` 元素中。
+也就是说，```inverse``` 属性只能在 单向一对多，双向一对多中 一的一方进行使用。
+
+&#160; &#160;并且只用于在 一对多双向关联关系 使用；
+
+ - ***```inverse```*** 设置为 ***```false```*** ，则为主动方，有主动方负责维护关联关系，默认是 ***```false```*** 。
+ 
+ - ***```inverse```*** 设置为 ***```true```*** ，不负责维护关联关系。
+
+***```建议 inverse 设置为 true```***
+
+在建立两个对象的双向关联关系，应该同时修改关联两端的对象的相应属性。
+
+维护什么关系？
+
+&#160; &#160;定义：在一对多中双向关联关系中 维护多的一方```外键的值```
+
+&#160; &#160;理解：在 “one” 的一方要不要在 多的一方数据发生变化时，对多的一方外键的值进行更新，与 “one” 的一方的主键进行同步。
+
+***Hibernate 会按照持久化对象的```属性变化```来同步更新数据库。***
+
+一对多双向关联关系的配置后，在建立 Dept 和 Emp 的双向关联关系时
+
+```java
+Emp emp = (Emp)session.get(Emp.class,1);
+Dept dept = (Dept)session.get(Dept.calss,2);
+
+emp.setDept(dept);            //建立 Emp 与 dept 多对一的关系
+dept.getEmps().add(emp);  //建立 Dept 与 emp 一对多的关系
+```
+
+&#160; &#160;```建立关系后```他们就与 session 中的对象不同了，成了脏对象。
+
+&#160; &#160;```建立关系时```，是 emp 对象中的外键 deptNo 与 Dept 表的主键 deptNo  进行绑定。
+
+而在一对多关联关系中，dept 对象又负责维护，emp 对象；
+
+所以在事务提交时，Hibernate 会将 emp 对象进行 2 次修改：
+
+&#160; &#160;第一次 emp 对象与 dept 对象```建立多对一关联关系```时，准备进行修改；
+
+&#160; &#160;第二次 dept 对象与 emp 对象```建立一对多关联关系```时，发现 emp 对象的数据发生了变化，准备修改；
+
+但是在 第一次 emp 对象在建立 多对一关联关系时，就已经将数据同步了。
+
+第二次，有重复修改 emp 对象的数据。
+
+ - 在映射一对多的双向关联关系时，应该在“one”方把 ```<set>``` 元素的 inverse 属性设为 true ，这可以提高应用的性能。
+ 
+ - 在建立两个对象的双向关联时，应该同时修改关联两端的对象的相应属性：
+ 
+```java
+emp.setDept(dept);
+dept.getEmps().add(emp);
+```
+
+&#160; &#160;这样才会使程序更加健壮，提高业务逻辑层的独立性，使业务逻辑层的代码不受 Hibernate 实现的影响。
+
+同理，当解除双向关联的关系时，也应该修改关联两端的对象的相应属性：
+
+```java
+emp.setDept(null);
+dept.getEmps().remove(emp);
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

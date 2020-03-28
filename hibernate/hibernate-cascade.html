@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LanEditorPluginTemplate</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### cascade 屬性
+
+***cascade：```用于映射持久化类中的关联关系的元素```；***
+
+如：```<set>```、```<many-to-one>```元素，都有一个 ```cascade``` 的属性；
+
+***```它用于指定如何操纵与当前对象关联的其他对象```；***
+
+&#160; &#160;```cascade```：指定两个对象之间的操作联动关系，对一个对象执行了操作之后，对其```指定的```级联对象也需要执行相同的操作。
+
+***```cascade``` 属性值***：
+
+ - ***```none```***: 当 Session 操纵当前对象时，忽略其他关联的对象。它是 ```cascade``` 属性的默认值。
+
+ - ***```save-update```***: 当通过 Session 的 save()、update() 及 saveOrUpdate() 方法来保存或更新当前对象时，级联保存所有关联的新建的瞬时状态的对象，并且级联更新所有关联的游离状态的对象。
+
+ - ***```delete```***: 当通过 Session 的 delete() 方法删除当前对象时，会级联删除所有关联的对象。
+
+ - ***```all```***: 包含 save-update，delete 的行为。
+ 
+对已经建立了关联关系的对象，进行操作。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

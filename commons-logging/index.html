@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Commons Logging</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Commons-Loggin 简介
+
+&#160; &#160;```Jakarta Commons Logging （JCL）``` 提供的是一个日志 ```（Log）接口（interface）```，同时兼顾轻量级和不依赖与具体的日志实现工具。它提供给中间件/日志工具开发者一个简单的日志操作对象，允许程序开发人员使用不同的具体日志实现工具。用户被假定已经熟悉某种日志实现工具的更高级别的细节。```JCL``` 提供的接口，对其他一些日志工具，包括 ```Log4j``` , ```Avalon LogKit``` ，and ```JDK1.4``` 等，进行了简单的包装，此接口更近于 ```Log4J``` 和 ```LogKit``` 的实现。
+
+##### 快速入门
+
+&#160; &#160;```JCL``` 有两个基本的抽象类：```Log```（基本记录器）和 ```LogFactory```（负责创建 Log 实例）。当 ```commons-logging.jar``` 被加入到 ```CLASSPATH``` 之后，它会合理地猜测你想用的日志工具，然后进行自我设置，用户根本不需要做任何设置。默认的 ```LogFactory``` 是按照下列的步骤去发现并决定那个日志工具将被使用的（按照顺序，寻找过程会在找到第一个工具时中止）：
+
+ - 首先在 ```CLASSPATH``` 下寻找自己的配置文件 ```commons-logging.properites``` , 如果找到，则使用其中定义的 ```Log``` 实现类；
+
+ - 如果找不到 ```commons-logging.properites``` 文件，则在查找是否已定义系统变量 ```org.apache.commons.logging.Log``` ， 找到则使用其定义的 ```Log``` 实现类。
+ 
+<br />
+如果在 ```Tomcat``` 中可以建立一个叫 ：```CATALINAA_OPTS``` 的环境变量给他值 : 
+
+```python
+-Dorg.apache.commons.logging.Log = org.apache.commons.logging.impl.SimpleLog -Dorg.apache.commons.logging.simplelog.defaultlog = warn
+```
+
+ - 否则，查看 ```classpath``` 中是否有 ```Log4j``` 的包，如果发现，则自动使用 ```Log4j``` 作为实现
+ 
+ - 否则，使用 ```JDK``` 自身的日志实现类（```JDK1.4``` 以后才有日志实现类）；
+ 
+ - 否则，使用 ```commons-logging``` 自己提供的一个简单的日志实现类 ```SimpleLog``` ；
+
+ 
+##### 配置 commons-logging.properties
+
+在 ```classpath``` 根路径放置名为 ```commons-logging.properties``` 的文件（该路径不可改变），内容为：
+
+ ***```commons-logging.properties```***
+ 
+ ***```SimpleLog```***
+
+```python
+org.apache.commons.logging.Log=org.apache.commons.logging.impl.SimpleLog
+```
+
+ ***```Log4JLogger```***
+```python
+org.apache.commons.logging.Log=org.apache.commons.logging.impl.Log4JLogger
+```
+
+##### 创建Log实例
+
+```java
+private static final Log logger = LogFactory.getLog(CommonsLogTest.class);
+```
+
+输出为，默认日志级别为 INFO:
+
+![SimpleLog日志输出示例图片](./images/index/commons-log.png)
+
+##### 输出配置
+
+当然，```SimpleLog``` 也可以做一些简单的输出配置，打开 ```SimpleLog``` 的源码，可以看到在初始化时：
+```java
+static {
+    // Add props from the resource simplelog.properties
+    InputStream in =getResourceAsStream("simplelog.properties");
+    if (null != in) {
+        try {
+            simpleLogProps.load( in ); in .close();
+        } catch(java.io.IOException e) {
+            // ignored
+        }
+    }
+    showLogName = getBooleanProperty(systemPrefix + "showlogname", showLogName);
+    showShortName = getBooleanProperty(systemPrefix + "showShortLogname", showShortName);
+    showDateTime = getBooleanProperty(systemPrefix + "showdatetime", showDateTime);
+ 
+    if (showDateTime) {
+        dateTimeFormat = getStringProperty(systemPrefix + "dateTimeFormat", dateTimeFormat);
+        try {
+            dateFormatter = new SimpleDateFormat(dateTimeFormat);
+        } catch(IllegalArgumentException e) {
+            // If the format pattern is invalid - use the default format
+            dateTimeFormat = DEFAULT_DATE_TIME_FORMAT;
+            dateFormatter = new SimpleDateFormat(dateTimeFormat);
+        }
+    }
+}
+```
+
+可以看到最开始试图从 ```simplelog.properties``` 读取配置，若不存在后面指定了默认配置，因此只要在 ```classpath``` 根路径放置 ```simplelog.properties``` 文件即可控制日志输出行为。
+
+<a href="http://commons.apache.org/proper/commons-logging/apidocs/org/apache/commons/logging/impl/SimpleLog.html" target="_blank">SimpleLog 配置详情</a>
+
+***```org.apache.commons.logging.simplelog.defaultlog```***
+
+ - _trace_
+ 
+ - _debug_
+ 
+ - _info_ _```default is info```_
+ 
+ - _warn_
+ 
+ - _error_
+ 
+ - _fatal_
+ 
+***```org.apache.commons.logging.simplelog.log.xxxxx```***
+
+&#160; &#160;_Logging detail level for a ```SimpleLog instance named “xxxxx”```_
+
+ - _trace_
+ 
+ - _debug_
+ 
+ - _info_ _```default is info```_
+ 
+ - _warn_
+ 
+ - _error_
+ 
+ - _fatal_
+
+***```org.apache.commons.logging.simplelog.showlogname```***
+
+&#160; &#160;_Set to true if you want the ```Log instance name``` to be included in output messages. ```Defaults to false```._
+
+***```org.apache.commons.logging.simplelog.showShortLogname```***
+
+&#160; &#160;_Set to true if you want the ```last component of the name``` to be included in output messages.```Defaults to true```._
+
+***```org.apache.commons.logging.simplelog.showdatetime```***
+
+&#160; &#160;_Set to true if you want the current date_
+
+***```org.apache.commons.logging.simplelog.dateTimeFormat```***
+
+&#160; &#160;_The date and time format to be ```used in the output messages```._
+
+&#160; &#160;_The pattern describing the date and time format is the same that is used in ```java.text.SimpleDateFormat```._
+
+&#160; &#160;_If the format is not specified or is invalid, the default format is used._
+
+&#160; &#160;_The ```default format``` is ```yyyy/MM/dd HH:mm:ss:SSS zzz``` ._
+
+#### commons-logging 解耦原理
+
+&#160; &#160; ```commons-logging``` 最核心有用的功能是解耦，它的 ```SimpleLog``` 实现性能比不上其他实现，如 ```log4j``` 等。
+
+&#160; &#160; 首先，日志实例是通过 ```LogFactory``` 的 ```getLog(String)``` 方法创建的：
+
+![commons-logging 创建日志实例](./images/index/get_log.png)
+
+&#160; &#160; ```LogFatory``` 是一个抽象类，它负责加载具体的日志实现，分析其 ```Factory getFactory()```方法：
+
+```java
+public static org.apache.commons.logging.LogFactory getFactory() throws LogConfigurationException {
+    // Identify the class loader we will be using
+    ClassLoader contextClassLoader = getContextClassLoaderInternal();
+ 
+    if (contextClassLoader == null) {
+        // This is an odd enough situation to report about. This
+        // output will be a nuisance on JDK1.1, as the system
+        // classloader is null in that environment.
+        if (isDiagnosticsEnabled()) {
+            logDiagnostic("Context classloader is null.");
+        }
+    }
+ 
+    // Return any previously registered factory for this class loader
+    org.apache.commons.logging.LogFactory factory = getCachedFactory(contextClassLoader);
+    if (factory != null) {
+        return factory;
+    }
+ 
+    if (isDiagnosticsEnabled()) {
+        logDiagnostic("[LOOKUP] LogFactory implementation requested for the first time for context classloader " + objectId(contextClassLoader));
+        logHierarchy("[LOOKUP] ", contextClassLoader);
+    }
+ 
+    // Load properties file.
+    //
+    // If the properties file exists, then its contents are used as
+    // "attributes" on the LogFactory implementation class. One particular
+    // property may also control which LogFactory concrete subclass is
+    // used, but only if other discovery mechanisms fail..
+    //
+    // As the properties file (if it exists) will be used one way or
+    // another in the end we may as well look for it first.
+    // classpath根目录下寻找commons-logging.properties
+    Properties props = getConfigurationFile(contextClassLoader, FACTORY_PROPERTIES);
+ 
+    // Determine whether we will be using the thread context class loader to
+    // load logging classes or not by checking the loaded properties file (if any).
+    // classpath根目录下commons-logging.properties是否配置use_tccl
+    ClassLoader baseClassLoader = contextClassLoader;
+    if (props != null) {
+        String useTCCLStr = props.getProperty(TCCL_KEY);
+        if (useTCCLStr != null) {
+            // The Boolean.valueOf(useTCCLStr).booleanValue() formulation
+            // is required for Java 1.2 compatibility.
+            if (Boolean.valueOf(useTCCLStr).booleanValue() == false) {
+                // Don't use current context classloader when locating any
+                // LogFactory or Log classes, just use the class that loaded
+                // this abstract class. When this class is deployed in a shared
+                // classpath of a container, it means webapps cannot deploy their
+                // own logging implementations. It also means that it is up to the
+                // implementation whether to load library-specific config files
+                // from the TCCL or not.
+                baseClassLoader = thisClassLoader;
+            }
+        }
+    }
+ 
+    // 这里真正开始决定使用哪个factory
+    // 首先，尝试查找vm系统属性org.apache.commons.logging.LogFactory，其是否指定factory
+    // Determine which concrete LogFactory subclass to use.
+    // First, try a global system property
+    if (isDiagnosticsEnabled()) {
+        logDiagnostic("[LOOKUP] Looking for system property [" + FACTORY_PROPERTY + "] to define the LogFactory subclass to use...");
+    }
+ 
+    try {
+        String factoryClass = getSystemProperty(FACTORY_PROPERTY, null);
+        if (factoryClass != null) {
+            if (isDiagnosticsEnabled()) {
+                logDiagnostic("[LOOKUP] Creating an instance of LogFactory class '" + factoryClass + "' as specified by system property " + FACTORY_PROPERTY);
+            }
+            factory = newFactory(factoryClass, baseClassLoader, contextClassLoader);
+        } else {
+            if (isDiagnosticsEnabled()) {
+                logDiagnostic("[LOOKUP] No system property [" + FACTORY_PROPERTY + "] defined.");
+            }
+        }
+    } catch(SecurityException e) {
+        if (isDiagnosticsEnabled()) {
+            logDiagnostic("[LOOKUP] A security exception occurred while trying to create an" + " instance of the custom factory class" + ": [" + trim(e.getMessage()) + "]. Trying alternative implementations...");
+        }
+        // ignore
+    } catch(RuntimeException e) {
+        // This is not consistent with the behaviour when a bad LogFactory class is
+        // specified in a services file.
+        //
+        // One possible exception that can occur here is a ClassCastException when
+        // the specified class wasn't castable to this LogFactory type.
+        if (isDiagnosticsEnabled()) {
+            logDiagnostic("[LOOKUP] An exception occurred while trying to create an" + " instance of the custom factory class" + ": [" + trim(e.getMessage()) + "] as specified by a system property.");
+        }
+        throw e;
+    }
+ 
+    // 第二，尝试使用java spi服务发现机制，载META-INF/services下寻找org.apache.commons.logging.LogFactory实现
+    // Second, try to find a service by using the JDK1.3 class
+    // discovery mechanism, which involves putting a file with the name
+    // of an interface class in the META-INF/services directory, where the
+    // contents of the file is a single line specifying a concrete class
+    // that implements the desired interface.
+    if (factory == null) {
+        if (isDiagnosticsEnabled()) {
+            logDiagnostic("[LOOKUP] Looking for a resource file of name [" + SERVICE_ID + "] to define the LogFactory subclass to use...");
+        }
+        try {
+            // META-INF/services/org.apache.commons.logging.LogFactory, SERVICE_ID
+            final InputStream is = getResourceAsStream(contextClassLoader, SERVICE_ID);
+ 
+            if (is != null) {
+                // This code is needed by EBCDIC and other strange systems.
+                // It's a fix for bugs reported in xerces
+                BufferedReader rd;
+                try {
+                    rd = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                } catch(java.io.UnsupportedEncodingException e) {
+                    rd = new BufferedReader(new InputStreamReader(is));
+                }
+ 
+                String factoryClassName = rd.readLine();
+                rd.close();
+ 
+                if (factoryClassName != null && !"".equals(factoryClassName)) {
+                    if (isDiagnosticsEnabled()) {
+                        logDiagnostic("[LOOKUP]  Creating an instance of LogFactory class " + factoryClassName + " as specified by file '" + SERVICE_ID + "' which was present in the path of the context classloader.");
+                    }
+                    factory = newFactory(factoryClassName, baseClassLoader, contextClassLoader);
+                }
+            } else {
+                // is == null
+                if (isDiagnosticsEnabled()) {
+                    logDiagnostic("[LOOKUP] No resource file with name '" + SERVICE_ID + "' found.");
+                }
+            }
+        } catch(Exception ex) {
+            // note: if the specified LogFactory class wasn't compatible with LogFactory
+            // for some reason, a ClassCastException will be caught here, and attempts will
+            // continue to find a compatible class.
+            if (isDiagnosticsEnabled()) {
+                logDiagnostic("[LOOKUP] A security exception occurred while trying to create an" + " instance of the custom factory class" + ": [" + trim(ex.getMessage()) + "]. Trying alternative implementations...");
+            }
+            // ignore
+        }
+    }
+ 
+    // 第三，尝试从classpath根目录下的commons-logging.properties中查找org.apache.commons.logging.LogFactory属性指定的factory
+    // Third try looking into the properties file read earlier (if found)
+    if (factory == null) {
+        if (props != null) {
+            if (isDiagnosticsEnabled()) {
+                logDiagnostic("[LOOKUP] Looking in properties file for entry with key '" + FACTORY_PROPERTY + "' to define the LogFactory subclass to use...");
+            }
+            String factoryClass = props.getProperty(FACTORY_PROPERTY);
+            if (factoryClass != null) {
+                if (isDiagnosticsEnabled()) {
+                    logDiagnostic("[LOOKUP] Properties file specifies LogFactory subclass '" + factoryClass + "'");
+                }
+                factory = newFactory(factoryClass, baseClassLoader, contextClassLoader);
+ 
+                // TODO: think about whether we need to handle exceptions from newFactory
+            } else {
+                if (isDiagnosticsEnabled()) {
+                    logDiagnostic("[LOOKUP] Properties file has no entry specifying LogFactory subclass.");
+                }
+            }
+        } else {
+            if (isDiagnosticsEnabled()) {
+                logDiagnostic("[LOOKUP] No properties file available to determine" + " LogFactory subclass from..");
+            }
+        }
+    }
+ 
+    // 最后，使用后备factory实现，org.apache.commons.logging.impl.LogFactoryImpl
+    // Fourth, try the fallback implementation class
+    if (factory == null) {
+        if (isDiagnosticsEnabled()) {
+            logDiagnostic("[LOOKUP] Loading the default LogFactory implementation '" + FACTORY_DEFAULT + "' via the same classloader that loaded this LogFactory" + " class (ie not looking in the context classloader).");
+        }
+ 
+        // Note: unlike the above code which can try to load custom LogFactory
+        // implementations via the TCCL, we don't try to load the default LogFactory
+        // implementation via the context classloader because:
+        // * that can cause problems (see comments in newFactory method)
+        // * no-one should be customising the code of the default class
+        // Yes, we do give up the ability for the child to ship a newer
+        // version of the LogFactoryImpl class and have it used dynamically
+        // by an old LogFactory class in the parent, but that isn't
+        // necessarily a good idea anyway.
+        factory = newFactory(FACTORY_DEFAULT, thisClassLoader, contextClassLoader);
+    }
+ 
+    if (factory != null) {
+        /**
+             * Always cache using context class loader.
+             */
+        cacheFactory(contextClassLoader, factory);
+ 
+        if (props != null) {
+            Enumeration names = props.propertyNames();
+            while (names.hasMoreElements()) {
+                String name = (String) names.nextElement();
+                String value = props.getProperty(name);
+                factory.setAttribute(name, value);
+            }
+        }
+    }
+ 
+    return factory;
+}
+```
+
+&#160; &#160;可以看出，抽象类 LogFactory 加载具体实现的步骤如下：
+
+ - 从 ```vm``` 系统属性 ```org.apache.commons.logging.LogFactory```
+ 
+ - 使用 ```SPI``` 服务发现机制，发现 ```org.apache.commons.logging.LogFactory``` 的实现
+ 
+ - 查找 ```classpath``` 根目录 ```commons-logging.properties``` 的 ```org.apache.commons.logging.LogFactory``` 属性是否指定 ```factory``` 实现
+ 
+ - 使用默认 ```factory``` 实现，```org.apache.commons.logging.impl.LogFactoryImpl```
+```LogFactory``` 的 ```getLog()``` 方法返回类型是 ```org.apache.commons.logging.Log``` 接口，提供了从 ```trace``` 到 ```fatal``` 方法。可以确定，如果日志实现提供者只要实现该接口，并且使用继承自 ```org.apache.commons.logging.LogFactory``` 的子类创建 ```Log```，必然可以构建一个松耦合的日志系统。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Commons Logging LOG4j</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Commons-Logger for LOG4j
+
+ ***```pom.xml```***
+
+```xml
+<dependencies>
+    <!-- 引入 Commons-Logging Jar -->
+    <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>1.2</version>
+    </dependency>
+    <!-- 引入 Apache Log4j Jar -->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.17</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>javax.mail</groupId>
+        <artifactId>mail</artifactId>
+        <version>1.5.0-b01</version>
+    </dependency>
+</dependencies>
+```
+
+##### 配置 commons-logging.properties
+
+&#160; &#160;在 ```classpath``` 根路径放置名为 ```commons-logging.properties``` 的文件（该路径不可改变），内容为：
+
+ ***```commons-logging.properties```***
+ 
+ ***```Log4JLogger```***
+
+```python
+org.apache.commons.logging.Log=org.apache.commons.logging.impl.Log4JLogger
+```
+
+ ***```log4j.properties```***
+
+```python
+log4j.rootLogger=debug, stdout
+ 
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+# Pattern to output the caller's file name and line number.
+# log4j.appender.stdout.layout.ConversionPattern=%5p [%t] (%F:%L) - %m%n
+log4j.appender.stdout.layout.ConversionPattern=%d [%-5p] %l %rms: %m%n
+```
+
+&#160; &#160;This is sample test class
+
+```java
+public class TestLog {
+
+	private static Log log = LogFactory.getLog(TestLog.class);
+	public static void main(String[] args) {
+		log.info("Testing Info Message.");
+		if (log.isDebugEnabled()) {
+			log.debug("Testing Debug Message.");
+		}
+	}
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

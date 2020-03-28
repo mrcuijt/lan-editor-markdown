@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-out</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-out
+
+##### System.out.print 和 logger 输出日志路径
+
+第一天接触程序就敲出的命令：System.out.print("Hello World")，
+
+后来慢慢的接触到了 log4j，至今为止也一直在使用。
+
+而且在项目中也常常禁止使用 System.out 的方式输出日志，这是为什么呢？
+
+今天做了一个测试：
+
+System.out. 输出的日志只打印在控制台，而没有存储到一个日志文件中，如果我们在生产环境这样打印出来毫无意义。
+
+但我们的 log4j 是一个实实在在的日志解决方案，通过配置文件，打印出我们需要的日志，便于我们分析、追踪日志信息。后续有时间我会补一篇关于日志的项目,敬请期待。。。
+
+如果既想使用 System.out 还想打印出日志，下面有一个简单的方法，提供参考：
+
+```java
+@Test
+public void testLog() throws FileNotFoundException {
+    System.out.println("这是 System.out 日志");//打印在控制台
+    //System.setOut(new PrintStream(new File("outLog.txt")));
+    //有朋友发现多次输出日志会覆盖之前日志，特此修正
+    System.setOut(new PrintStream(new FileOutputStream("outLog.txt",true),true));
+    System.out.println("这是 System.out 日志");//打印在日志文件中
+    log.info("这是log日志");
+    logBussiness.info("这是 logBussiness日志");
+    logDb.info("这是logDb日志");
+    logFactory.info("这是logFactory日志");
+}
+```
+
+日志查看如下： 
+
+**outLog.txt**
+
+```java
+这是 System.out 日志
+```
+
+如果既想使用 System.err 还想打印出日志
+
+```java
+System.setOut(new PrintStream(new FileOutputStream("errorLog.txt",true),true));
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/csdn_0911/article/details/84315841" target="_blank">System.out.print 和 logger 输出日志路径</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

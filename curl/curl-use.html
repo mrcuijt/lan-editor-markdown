@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>curl-use</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### curl-use
+
+curl command syntax
+
+ - **`-H ""`** : 添加请求头
+
+ - **`-v`** : 显示详细信息
+
+ - **`-O`** : 文件下载
+
+ - **`-o filename`** : 文件下载重命名
+
+##### cURL Request Header Example 1
+
+```bash
+curl \
+  -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3" \
+  -H "Accept-Encoding: identity" \
+  -H "Accept-Language: en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7,zh-TW;q=0.6" \
+  -H "Cache-Control: max-age=0" \
+  -H "Connection: keep-alive" \
+  -H "Cookie: BAIDUID=" \
+  -H "Host: www.baidu.com" \
+  -H "Upgrade-Insecure-Requests: 1" \
+  -H "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131 Safari/537.36" \
+  -v https://www.baidu.com
+```
+
+##### cURL Request Header Example 2
+
+```bash
+curl \
+  -H "Accept: text/html" \
+  -H "Accept-Encoding: identity" \
+  -H "Cookie: BAIDUID=" \
+  -H "Host: www.baidu.com" \
+  -H "User-Agent: AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.131" \
+  -v https://www.baidu.com
+```
+
+```javascript
+(function(){
+    window._sp_async = 1;
+    window.__async_strategy=2;
+    bds.comm.indexSid="28884_1447_28777_21082_18559_28767_28722_28963_28832_28584_26350_28603";
+    bds.comm.queryId="9e00c72a00002680";
+        bds.comm.pdc=0;
+        bds.comm.user="末日来临逃吧";
+    bds.comm.username=bds.comm.user;
+    bds.comm.personalData={"sugSet":{"value":"","ErrMsg":"NOFOUND"},"sugStoreSet":{"value":"","ErrMsg":"NOFOUND"},"fullSkinName":{"value":"","ErrMsg":"NOFOUND"},"imeSwitch":{"value":"","ErrMsg":"NOFOUND"},"resultNum":{"value":"","ErrMsg":"NOFOUND"},"resultLang":{"value":"","ErrMsg":"NOFOUND"},"isSwitch":{"value":"","ErrMsg":"NOFOUND"},"skinOpen":{"value":"","ErrMsg":"NOFOUND"},"isJumpHttps":{"value":"","ErrMsg":"NOFOUND"},"duRobotState":{"value":"","ErrMsg":"NOFOUND"}};
+
+    bds.comm.dpquery="";
+    bds.comm.samSugApi=s_session.sid === "25219" ? 1 : 0;
+    var index_content = $('#head');
+    var index_foot= $('#ftCon');
+    var index_css= $('#style_super_inline');
+    var index_is_css = $('#s_is_index_css');
+    var index_css_content = index_css.html();
+    var index_u= $('#u_sp');
+    var result_u= $('#u');
+    window.index_links = [];
+    var result_head = $("#head");
+    window.index_on=function(){
+        s_session.index_off = false;
+    };
+    window.index_off=function(){
+        s_session.index_off = true;
+        $(document.body).attr('link', '#0000cc');
+        index_links = [];
+        $("head").find("link").each(function(){
+            index_links.push(this);
+            $(this).remove();
+        });
+        index_css.remove();
+        index_is_css.remove();
+        $('#head_wrapper').css('width','');
+        $('#kw').css('font-family','');
+        $('head').append($.decodeHTML($('#s_index_off_css').html()));
+        $('head').append($.decodeHTML($('#s_is_result_css').html()));
+        $('.s-tips-skin').remove();
+        $('.s-skin-container').remove();
+        $('#s_mancard_newmusic').remove();
+    };
+})();
+
+```
+
+##### cURL -v 详细信息
+
+```bash
+* Rebuilt URL to: https://www.baidu.com/
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0*   Trying 119.75.217.26...
+* TCP_NODELAY set
+* Connected to www.baidu.com (119.75.217.26) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* Cipher selection: ALL:!EXPORT:!EXPORT40:!EXPORT56:!aNULL:!LOW:!RC4:@STRENGTH
+* successfully set certificate verify locations:
+*   CAfile: D:/Program Files/Git/mingw64/ssl/certs/ca-bundle.crt
+  CApath: none
+* TLSv1.2 (OUT), TLS header, Certificate Status (22):
+} [5 bytes data]
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* TLSv1.2 (IN), TLS handshake, Server hello (2):
+{ [96 bytes data]
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+{ [3501 bytes data]
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+{ [333 bytes data]
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+{ [4 bytes data]
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+} [70 bytes data]
+* TLSv1.2 (OUT), TLS change cipher, Client hello (1):
+} [1 bytes data]
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+} [16 bytes data]
+* TLSv1.2 (IN), TLS change cipher, Client hello (1):
+{ [1 bytes data]
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+{ [16 bytes data]
+* SSL connection using TLSv1.2 / ECDHE-RSA-AES128-GCM-SHA256
+* ALPN, server accepted to use http/1.1
+* Server certificate:
+*  subject: C=CN; ST=beijing; L=beijing; OU=service operation department; O=Beijing Baidu Netcom Science Technology Co., Ltd; CN=baidu.com
+*  start date: Apr  3 03:26:03 2018 GMT
+*  expire date: May 26 05:31:02 2019 GMT
+*  subjectAltName: host "www.baidu.com" matched cert's "*.baidu.com"
+*  issuer: C=BE; O=GlobalSign nv-sa; CN=GlobalSign Organization Validation CA - SHA256 - G2
+*  SSL certificate verify ok.
+} [5 bytes data]
+> GET / HTTP/1.1
+> Host: www.baidu.com
+> Accept: text/html
+> Accept-Encoding: identity
+> Cookie: BAIDUID=
+> User-Agent: AppleWebKit/537.36 (KHTML, like Gecko)
+>
+{ [5 bytes data]
+< HTTP/1.1 200 OK
+< Accept-Ranges: bytes
+< Cache-Control: no-cache
+< Connection: Keep-Alive
+< Content-Length: 227
+< Content-Type: text/html
+< Date: Mon, 06 May 2019 06:55:25 GMT
+< Etag: "5cc18225-e3"
+< Last-Modified: Thu, 25 Apr 2019 09:47:17 GMT
+< Pragma: no-cache
+< Server: BWS/1.1
+< Set-Cookie: BD_NOT_HTTPS=1; path=/; Max-Age=300
+< Strict-Transport-Security: max-age=0
+< X-Ua-Compatible: IE=Edge,chrome=1
+<
+```
+
+##### 1. cURL Command to Download and Save File
+
+To simply download a file using curl use following syntax. -O is used for saving file on the local system with the same name on the remote system.
+
+```python
+$curl -O http://example.com/download/myfile.zip
+```
+
+##### 2. cURL Download and Save with Other Name
+
+If you want to save file with different name on local system, Use -o with new file name.
+
+```python
+$curl -o localname.zip http://example.com/download/myfile.zip
+```
+
+##### 3. cURL to Download Multiple Files
+
+Curl also provides an option to download multiple files simultaneously. To download multiple file use following syntax. All files will be saves with original file names.
+
+```python
+$curl -O http://example.com/myfile.zip -O http://example.com/myfile2.zip
+```
+
+##### 4. Passing Login Credential with cURL Download
+
+In case files are behind authenticated http or ftp server. You can pass login credentials using -u command line parameter like below examples.
+
+```python
+$curl -u user:password -O http://example.com/myfile.zip
+$curl -u ftpuser:ftppassword -O ftp://ftp.example.com/myfile.zip
+```
+
+##### 5. cURL Download File via Proxy Server
+
+If server file is only available through a proxy server, or you want to use a proxy for downloading files, Use -x followed by proxy address and port to download the file via a proxy server.
+
+```python
+$curl -x my.proxy.com:3128 -O http://example.net/myfile.zip
+```
+
+##### 续传
+
+```python
+## 下载 0-90000
+curl -H "Range: bytes=0-90000" http://192.168.96.35:8080/FileService/downloadstorefile.do?fileid=349933937 -v > test.m4a
+
+## 下载 90000- 至结束
+curl -H "Range: bytes=90000-" http://192.168.96.35:8080/FileService/downloadstorefile.do?fileid=349933937 -v > test.m4a
+```
+
+参考链接：
+
+ - <a href="https://www.thegeekstuff.com/2012/07/wget-curl/" target="_blank">wget vs curl: How to Download Files Using wget and curl</a>
+
+ - <a href="https://tecadmin.net/5-curl-commands-to-download-files/" target="_blank">5 Curl Commands to download Files</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

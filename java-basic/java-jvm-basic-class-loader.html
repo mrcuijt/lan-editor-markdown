@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-jvm-basic-class-loader</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-jvm-basic-class-loader
+
+#### JVM 加载类机制 Class Loading
+
+前提：Java 源文件被 javac 编译为 class 字节码文件。
+
+javac 编译时不进行连接(分配内存)工作，而是在 JVM 运行时才动态加载和动态连接。
+
+##### 什么是类的加载？
+
+JVM 将 class 文件读取到内存中，经过对 class 文件的校验、转换解析、初始化最终在 JVM 的 heap 和方法区分配内存形成可以被 JVM 直接使用的类型过程。
+
+##### 类的生命周期
+
+7 个阶段依次为：
+
+ - Loading
+
+ - Verification
+
+ - Preparation
+
+ - Resolution
+
+ - Initialization
+
+ - Using
+
+ - Unloading
+
+**加载 验证 准备 初始化 和 卸载 的顺序是确定的，而 `“解析”` 不一定在初始化之前，很有可能在初始化之后，实现 Java 的伟大特性。**
+
+运行时(晚期)绑定
+
+一个阶段的执行过程中会调用或激活另一个阶段。
+
+分阶段解释
+
+ - 1、加载 Loading
+
+ 这个阶段 JVM 完成一下动作：
+
+ 首先类加载器通过类的全路径限定名读取类的二进制字节流，
+
+ 然后将二进制字节流代表的类结构转化到运行时数据区的方法区中，
+
+ 最后在 JVM 堆中生成代表这个类型的 **java.lang.Class** 实例(不是这个类的实例)
+
+##### 类加载器
+
+获取类的二进制流既可以使用 JVM 自带的类加载器，也可以自己写加载器来加载，这一小步是完全可控的。不同的加载器可以从各种地方读取：zip 包、jar 包、class 文件、网络流...读取类的二进制字节流。
+
+ - 5、初始化 Initialiaction
+
+ 这个阶段才真正开始执行 Java 代码，静态代码块和设置变量的初始值为程序员设定的值。
+
+##### 主动引用
+
+有且只有下面 5 种情况才会立即初始化类，称为主动引用：
+
+ - 1) new 对象时
+
+ - 2) 读取或设置类的静态字段(除了被 final , 已在编译期把结果放入常量池的静态字段)或调用类的静态方法时；
+
+ - 3) 用 java.lang.reflect 包的方法对类进行反射调用没初始化过的类时
+
+ - 4) 初始化一个类时发现其父类没有初始化，则要先初始化其父类
+
+ - 5) 含 main 方法的那个类，JVM启动时，需要指定一个执行主类，JVM 先初始化这个类
+
+ **其他对类的引用称为被动引用，加载类时不会进行初始化动作。**
+
+**子类继承父类时的初始化顺序**
+
+ - 1) 首先初始化父类的 static 变量和块，按出现顺序。
+
+ - 2) 初始化子类的 static 变量和块，按出现顺序。
+
+ - 3) 初始化父类的普通变量，调用父类的构造函数。
+
+ - 4) 初始化子类的普通变量，调用子类的构造函数。
+
+#### JVM 类装载机制
+
+ - 1、**Class.forName("org.whatisjava.reflect.Foo")** 首先会将 **reflection.Foo** 类装入 JVM ，并返回与之关联的 Class 对象。JVM 装入 Foo 类后对齐进行初始化，调用了其 static 块中的代码。
+
+ - 2、类加载时 Java 程序运行的第一步，研究类的加载有助于了解 JVM 执行过程，并制指导开发者采取更有效的措施配合程序执行。
+
+研究类加载机制的第二个目的是让程序能动态的控制类的加载，比如热部署等，提高程序的灵活性和适应性。
+
+参考链接：
+
+ - <a href="http://www.cnblogs.com/panxuejun/p/5875481.html" target="_blank">JVM 类装载机制</a>
+
+ - <a href="http://www.cnblogs.com/flyme/p/4571030.html" target="_blank">JAVA 中类、实例与 Class 对象</a>
+
+ - <a href="http://blog.csdn.net/a19881029/article/details/17068191" target="_blank">JVM 笔记 6：JVM 类加载机制</a>
+
+ - <a href="http://blog.csdn.net/ns_code/article/details/17881581" target="_blank">【深入 Java 虚拟机】之四：类加载机制</a>
+
+ - <a href="http://blog.csdn.net/boyupeng/article/details/47951037" target="_blank">JVM（三）：类加载机制（类加载过程和类加载器）</a>
+
+ - <a href="http://www.cnblogs.com/mengdd/p/3594608.html" target="_blank">Java 虚拟机JVM学习 07 类的卸载机制</a>
+
+ - <a href="http://blog.csdn.net/chenleixing/article/details/47099771" target="_blank">JVM 中类的卸载机制</a>
+
+ - <a href="http://blog.csdn.net/feiyu8607/article/details/8308314" target="_blank">Java Class 卸载与 ClassLoader</a>
+
+ - <a href="http://blog.csdn.net/rabbit_in_android/article/details/50382739" target="_blank">JVM 生命周期和类加载机制</a>
+
+ - <a href="http://blog.csdn.net/biaobiaoqi/article/details/6909141" target="_blank">Java 类的装载(Loading)、链接(Linking)和初始化(Initialization)</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

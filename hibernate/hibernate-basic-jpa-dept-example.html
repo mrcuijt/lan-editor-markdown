@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hibernate-basic-jpa-dept-example</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### hibernate-basic-jpa-dept-example
+
+依赖配置
+
+```python
+plugins {
+	id 'org.springframework.boot' version '2.2.3.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+	id 'java'
+}
+
+group = 'science.mrcuijt.spring.boot.blog'
+version = '1.0.0'
+sourceCompatibility = '1.8'
+
+repositories {
+	//mavenCentral()
+	maven {
+	url 'http://maven.aliyun.com/nexus/content/groups/public/'
+	}
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-devtools'
+	// compile 'mysql:mysql-connector-java:6.0.5'
+	compile 'org.hibernate:hibernate-core:5.2.8.Final'
+	compile 'com.h2database:h2:1.4.193'
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+	testImplementation('org.springframework:spring-test:5.2.3.RELEASE')
+	testImplementation('junit:junit:4.12')
+}
+
+test {
+	useJUnitPlatform()
+}
+
+bootRun {
+	sourceResources sourceSets.main
+}
+```
+
+Dept 实体
+
+```java
+import java.util.Set;
+import java.util.HashSet;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.OneToMany;
+import javax.persistence.FetchType;
+import javax.persistence.CascadeType;
+import javax.persistence.JoinColumn;
+
+/**
+ * Dept Entity.
+ *
+ */
+@Entity
+public class Dept {
+
+  @Id // 主键
+  @GeneratedValue(strategy=GenerationType.IDENTITY) // 自增策略
+  private Long deptno; // identified
+  private String dname;
+  private String loc;
+  @OneToMany(fetch=FetchType.EAGER)
+  @JoinColumn(name = "deptno")
+  private Set<Emp> emps = new HashSet<Emp>();
+
+  protected Dept(){} // 无参考构造函数；设为 protected 防止直接使用
+
+  public Dept(Long deptno, String dname, String loc){
+    this.deptno = deptno;
+    this.dname = dname;
+    this.loc = loc;
+  }
+
+  public Long getDeptno(){ return deptno; }
+  public void setDeptno(Long deptno){ this.deptno = deptno; }
+
+  public String getDname(){ return dname; }
+  public void setDname(String dname){ this.dname = dname; }
+
+  public String getLoc(){ return loc; }
+  public void setLoc(String loc){ this.loc = loc; }
+
+  public Set<Emp> getEmps(){ return this.emps; }
+  public void setEmps(Set<Emp> emps){ this.emps = emps; }
+
+  @Override
+  public String toString(){
+    return String.format("Dept[deptno=%d,dname='%s',loc='%s']", deptno, dname, loc);
+  }
+}
+```
+
+Emp 实体
+
+```java
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.ManyToOne;
+import javax.persistence.FetchType;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.JoinColumn;
+import javax.persistence.ForeignKey;
+import javax.persistence.JoinTable;
+
+/**
+ * Emp Entity.
+ *
+ */
+@Entity
+public class Emp {
+
+  @Id // 主键
+  @GeneratedValue(strategy=GenerationType.IDENTITY) // 自增策略
+  private Long empno; // identified
+  private String empname;
+  private Long deptno;
+
+  protected Emp(){} // 无参考构造函数；设为 protected 防止直接使用
+
+  public Emp(Long empno, String empname){
+    this.empno = empno;
+    this.empname = empname;
+  }
+
+  public Long getEmpno(){ return empno; }
+  public void setEmpno(Long empno){ this.empno = empno; }
+
+  public String getEmpname(){ return empname; }
+  public void setEmpname(String empname){ this.empname = empname; }
+
+  public Long getDeptno(){ return deptno; }
+  public void setDeptno(Long deptno){ this.deptno = deptno; }
+
+  @Override
+  public String toString(){
+    return String.format("Emp[empno=%d,empname='%s']", empno, empname);
+  }
+
+}
+```
+
+测试类
+
+```java
+import java.util.List;
+import java.util.Optional;
+import java.sql.SQLException;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.runner.RunWith;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import org.h2.tools.Script;
+
+import org.springframework.data.repository.CrudRepository;
+
+import science.mrcuijt.spring.boot.blog.repository.EmpRepository;
+import science.mrcuijt.spring.boot.blog.repository.DeptRepository;
+import science.mrcuijt.spring.boot.blog.domain.Dept;
+import science.mrcuijt.spring.boot.blog.domain.Emp;
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class TestDeptRepository {
+
+  @Autowired
+  private EmpRepository empRepository;
+
+  @Autowired
+  private DeptRepository deptRepository;
+
+  @Test
+  public void testsSaveDeptAndEmp(){
+    Dept dept = new Dept(null, "dept", "deptloc");
+    Emp emp1 = new Emp(null, "emp1");
+    Emp emp2 = new Emp(null, "emp2");
+    emp1 = empRepository.save(emp1);
+    emp2 = empRepository.save(emp2);
+    dept.getEmps().add(emp1);
+    dept.getEmps().add(emp2);
+    dept = deptRepository.save(dept);
+  }
+
+  @AfterEach
+  public void tearDown(){
+    try {
+      Script.main(new String[]{"-url", "jdbc:h2:mem:testdb", "-user", "sa", "-script", "./dept-backup.sql"});
+    } catch(SQLException e){
+      e.printStackTrace();
+    }
+  }
+
+}
+```
+
+执行的 SQL
+
+```sql
+Hibernate: insert into emp (empno, deptno, empname) values (null, ?, ?)
+Hibernate: insert into emp (empno, deptno, empname) values (null, ?, ?)
+Hibernate: insert into dept (deptno, dname, loc) values (null, ?, ?)
+Hibernate: update emp set deptno=? where empno=?
+Hibernate: update emp set deptno=? where empno=?
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

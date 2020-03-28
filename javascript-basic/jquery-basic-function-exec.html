@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jquery-basic-function-exec</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### jquery-basic-function-exec
+
+#### 函数的调用
+
+在方法中通过使用函数的内部属性 arguments 的 callee 函数完成对当前函数的调用。
+
+在 arguments 这个对象中有一个 callee 的方法，arguments.callee(arg) 可以反向的调用函数
+
+```js
+/**
+ * 求一个数阶乘的函数
+ *
+ * @param num
+ * @returns {number}
+ */
+function factorial(num) {
+    if (num <= 1)return 1;
+    // 此时函数名耦合在一起
+    // else return num * factorial(num - 1);
+    else return num * arguments.callee(num -1);
+}
+```
+
+**`call 和 apply 方法是可以通过函数名称来调用函数自身。`**
+
+```js
+function sum(num1, num2) {
+    return num1 + num2;
+}
+ 
+function callSum1(num1, num2) {
+    // 使用 sum 这个函数来完成一次调用，调用的参数就是 callSum1 这个函数的参数
+    // apply 的第二个参数表示一组参数数组
+    return sum.apply(this, arguments);
+}
+ 
+function callSum2(num1, num2) {
+    // 关键就是第二个参数是数组
+    return sum.apply(this, [num1, num2]);
+}
+ 
+alert(callSum1(12, 22));
+alert(callSum2(22, 32));
+ 
+function callSum3(num1, num2) {
+    // call 是通过参数列表来完成传递，其他和 apply 没有任何区别
+    return sum.call(this, num1, num2);
+}
+ 
+alert(callSum3(22,22));
+```
+
+```js
+/**
+ * 当需要创建一个类的时候，设置类的属性和方法需要通过 this 关键字来引用
+ * 但是特别注意：this 关键字在调用时会根据不同的调用对象变得不同
+ */
+var color = "red";
+function showColor() {
+    alert(this.color);
+}
+/**
+ * 创建了一个类，有一个 color 属性和一个 show 方法
+ * @param color
+ * @constructor
+ */
+function Circle(color) {
+    this.color = color;
+    this.showColor = showColor;
+}
+ 
+var c = new Circle("yellow");
+ 
+showColor.call(this); // 使用上下文来调用 showColor ，结果是 red
+showColor.call(c); // 上下文对象是 c ，结果就是 yellow
+ 
+// 通过以上发现，使用 call 和 apply 之后，对象中可以不需要定义方法了
+// 这就是 call 和 apply 的一种运用
+
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

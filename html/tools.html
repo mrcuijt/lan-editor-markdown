@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tools</title>
+    <style rel="stylesheet" type="text/css">
+
+        textarea {
+            resize: none;
+            font: 14px/1.5 'Hiragino Sans GB', Tahoma, 'Simsun', 'Microsoft Yahei';
+            color: #444;
+            word-wrap: break-word;
+            flex-direction: column;
+            cursor: text;
+            white-space: pre-wrap;
+            text-rendering: auto;
+            letter-spacing: normal;
+            word-spacing: normal;
+            text-transform: none;
+            text-indent: 0px;
+            text-shadow: none;
+            display: inline-block;
+            text-align: start;
+            margin: 0em;
+            -webkit-appearance: textarea;
+            -webkit-rtl-ordering: logical;
+            -webkit-writing-mode: horizontal-tb !important;
+        }
+
+        .pt {
+            overflow-y: auto;
+            line-height: 17px;
+            border: 1px solid;
+            border-color: #848484 #E0E0E0 #E0E0E0 #848484;
+            background: #FFF
+        }
+
+        .pcb em {
+            color: #666;
+            font-weight: 700;
+            padding: 0 10px;
+            line-height: 21px;
+            font-style: normal;
+        }
+
+        button{
+            text-rendering: auto;
+            letter-spacing: normal;
+            word-spacing: normal;
+            text-transform: none;
+            text-indent: 0px;
+            text-shadow: none;
+            font: 12px/1.5 'Hiragino Sans GB',Tahoma,'Simsun','Microsoft Yahei';
+            -webkit-writing-mode: horizontal-tb !important;
+        }
+
+        p.mtn{
+            float: left;
+            position: fixed;
+            top: 20px;
+            width: 80px;
+            right: 20px;
+        }
+
+    </style>
+    <script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+    <script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+    <script type="text/javascript">
+
+        $(function(){
+            window.autosize = require("autosize");
+            // from a jQuery collection
+            autosize($('textarea'));
+        })
+
+        function runCode(obj) {
+//            var winname = window.open('', '_blank', 'top=10000');
+            var winname = window.open('', "_blank", '');
+            winname.document.open('text/html', 'replace');
+            winname.opener = null // 防止代码对论谈页面修改
+            winname.document.write(obj.value);
+            winname.document.close();
+        }
+        function copycode(obj) {
+            obj.select();
+            if (document.execCommand('copy')) {
+                document.execCommand('copy');
+            }
+        }
+        function saveCode(obj) {
+            var blob = new Blob([obj.value],{type:'text/html'});
+            var URL = window.webkitURL || window.mozURL || window.URL;
+            var blobURL = URL.createObjectURL(blob);
+            var a = document.createElement("a");
+            a.download = Date.now();
+            a.href = blobURL;
+            a.click();
+        }
+    </script>
+</head>
+<body>
+<textarea class="pt" id="runcode4" rows="12" style="padding:3px; font-family:&quot;Courier New&quot;,Courier,monospace;width:100%">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript addEventListener</title>
+</head>
+<body>
+
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>
+    
+</script>
+</body>
+</html>
+</textarea>
+<p class="mtn">
+    <button class="pn" onclick="runCode($('#runcode4')[0])" name="clickbutton[]" type="button"><em>运行代码</em></button>
+    <button class="pn" onclick="copycode($('#runcode4')[0])" name="clickbutton[]" type="button"><em>复制代码</em></button>
+    <button class="pn" onclick="saveCode($('#runcode4')[0])" name="clickbutton[]" type="button"><em>另存代码</em></button>
+	<button class="pn" onclick="eval(save(document.title,document.querySelector('textarea').value))" name="clickbutton[]" type="button"><em>保存</em></button>
+	<button class="pn" onclick="eval(load(document.title))" name="clickbutton[]" type="button"><em>加载</em></button>
+</p>
+<p>&nbsp;提示：您可以先修改部分代码再运行</p>
+<script src="tools.js"></script>
+</body>
+</html>

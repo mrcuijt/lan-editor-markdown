@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>downloader-project-sql</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### downloader-project-sql
+
+**`init.sql`**
+
+```sql
+DROP TABLE IF EXISTS `course_info`;
+CREATE TABLE `course_info` (
+  `course_info_id` int(11) NOT NULL auto_increment COMMENT '网易云课堂课程科目信息表主键 Id，自动增长',
+  `course_id` varchar(30) NOT NULL default '' COMMENT '课程科目信息编号',
+  `title` varchar(100) NOT NULL default '' COMMENT '课程科目标题',
+  `description` varchar(2000) NOT NULL default '' COMMENT '课程科目介绍',
+  PRIMARY KEY  (`course_info_id`),
+  UNIQUE (`course_id`)
+) CHARSET=utf8;
+
+DROP TABLE IF EXISTS `lesson_info`;
+CREATE TABLE `lesson_info` (
+  `lesson_info_id` int(11) NOT NULL auto_increment COMMENT '网易云课堂课程信息表主键 Id，自动增长',
+  `course_id` varchar(30) NOT NULL default '' COMMENT '课程科目信息编号',
+  `count` varchar(20) NOT NULL default '' COMMENT '课程信息计数',
+  `video_info_id` varchar(20) NOT NULL default '' COMMENT '课程视频信息编号',
+  `lesson_name` varchar(100) NOT NULL default '' COMMENT '课程名称',
+  `video_id` varchar(20) NOT NULL default '' COMMENT '课程视频编号',
+  `signature` varchar(1000) NOT NULL default '' COMMENT '课程视频签名',
+  `link` varchar(2000) NOT NULL default '' COMMENT '课程视频链接',
+  `size` bigint(20) NOT NULL default 0 COMMENT '课程视频大小（单位/byte）',
+  `task_id` int(11) NOT NULL default 0 COMMENT '下载任务信息 Id',
+  PRIMARY KEY  (`lesson_info_id`),
+  CONSTRAINT `uk_lesson_info_course_id_task_id` UNIQUE (`course_id`,`video_info_id`)
+) CHARSET=utf8;
+
+DROP TABLE IF EXISTS `task`;
+CREATE TABLE `task` (
+  `task_id` int(11) NOT NULL auto_increment COMMENT '下载任务信息主键 Id，自动增长',
+  `url` varchar(2000) NOT NULL default '' COMMENT '下载地址（URL）',
+  `file_name` varchar(100) NOT NULL default '' COMMENT '文件名称',
+  `content_length` bigint(20) NOT NULL default 0 COMMENT '文件大小单位（byte）',
+  `headers` varchar(4000) NOT NULL default '' COMMENT '附加请求头信息',
+  PRIMARY KEY  (`task_id`)
+) CHARSET=utf8;
+
+DROP TABLE IF EXISTS `task_entity`;
+CREATE TABLE `task_entity` (
+  `task_entity_id` int(11) NOT NULL auto_increment COMMENT '下载任务实体主键 Id，自动增长',
+  `task_id` int(11) NOT NULL default 0 COMMENT '下载任务信息 Id',
+  `entity_count` int(11) NOT NULL default 0 COMMENT '实体计数',
+  `url` varchar(2000) NOT NULL default '' COMMENT '下载地址（URL）',
+  `begin` bigint(20) NOT NULL default 0 COMMENT '下载开始位置（Range）',
+  `end` bigint(20) NOT NULL default 0 COMMENT '下载结束位置（Range）',
+  `read` bigint(20) NOT NULL default 0 COMMENT '已下载（单位/byte）',
+  `content_length` bigint(20) NOT NULL default 0 COMMENT '文件总大小（单位/byte）',
+  `finished` tinyint(4) NOT NULL default 0 COMMENT '状态（1,已完成 2,未完成）',
+  PRIMARY KEY  (`task_entity_id`),
+  CONSTRAINT `uk_task_entity_task_id_task_count` UNIQUE (`task_id`,`entity_count`)
+) CHARSET=utf8;
+```
+
+
+```sql
+ALTER TABLE `lesson_info` MODIFY COLUMN `signature` varchar(1000) NOT NULL default '' COMMENT '课程视频签名'
+ALTER TABLE `lesson_info` MODIFY COLUMN `link` varchar(2000) NOT NULL default '' COMMENT '课程视频链接'
+
+ALTER TABLE `task` MODIFY COLUMN `file_name` varchar(100) NOT NULL default '' COMMENT '文件名称'
+```
+
+```sql
+truncate table COURSE_INFO ;
+truncate table LESSON_INFO ;
+truncate table TASK ;
+truncate table TASK_ENTITY ;
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

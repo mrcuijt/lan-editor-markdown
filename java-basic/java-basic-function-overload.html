@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-function-overload</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-function-overload
+
+#### 方法的重载
+
+&amp;#160; &amp;#160;如果说现在有一个方法名称，有可能要执行多项操作，例如：一个 add() 方法它可能实现两个整数的相加，也可能执行三个整数的相加，或者可能执行两个小数的相加，那在这样的情况下，很明显，一个方法体肯定无法满足要为 add() 方法定义多个不同的功能实现，所以此类的功能就称为方法的重载，但是在进行方法的重载的时候要求方法的名称相同，参数的类型及个数不同。
+
+##### 范例：观察方法重载
+
+```java
+public class TestDemo {
+
+  public static void main(String[] args){
+    // 方法重载之后执行时会根据传入参数的类型或个数不同调用不同的方法
+    // 1 号方法
+    System.out.println("两个整型参数：" + add(10, 20));
+    // 2 号方法
+    System.out.println("三个整型参数：" + add(10, 20, 30));
+    // 3 号方法
+    System.out.println("两个浮点型参数：" + add(10.2, 20.3));
+  }
+
+  // add() 方法一共被重载 3 次
+  public static int add(int x, int y){ // 1 号方法
+    return x + y;
+  }
+
+  // 此时与之前的 add() 方法的参数个数不一样
+  public static int add(int x, int y, int z){ // 2 号方法  
+    return x + y + z;
+  }
+
+  // 此时与之前的 add() 方法的参数类型不一样
+  public static double add(double x, double y){ // 3 号方法
+    return x + y;
+  }
+}
+```
+
+**方法的重载：**
+
+_**方法名称相同，方法参数类型个数不同。**_
+
+```java
+public class TestDemo {
+
+  public static void main(String[] args){
+    System.out.println("hello"); // 输出 String
+    System.out.println(1); // 输出 int
+    System.out.println(10.2); // 输出 double
+    System.out.println('A'); // 输出 char
+    System.out.println(false); // 输出 boolean
+  }
+}
+```
+
+**可以发现 `"System.out.println()"` 所有的内容都可以输出，所以此方法就是被重载后的方法。**
+
+方法重载的概念本身很容易理解，但是对于方法重载有两点说明：
+
+ - 在进行方法重载的时候一定要考虑到参数类型的统一。
+ 
+ 虽然可以实现重载方法返回不同类型的操作，但是从标准的开发来讲，建议所有的重载后的方法使用同一种返回值类型；
+ 
+ - 方法重载的时候重点是根据参数类型和个数来区分不同的方法，而不是依靠返回值的不同来确定。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

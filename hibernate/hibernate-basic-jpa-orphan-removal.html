@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hibernate-basic-jpa-orphan-removal</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### hibernate-basic-jpa-orphan-removal
+
+#### Spring Data JPA OneToMany 注解参数 orphanRemoval，一对多删除详解
+
+##### orphanRemoval
+
+插入和更新都没有什么问题。但是删除就有些奇怪了，一方和多方均要操作，如果看过前面文章分析，倒也是合情合理。但操作起来实在是麻烦，今天 codereview 时，研发小伙伴们也提出疑问。如果一方通过对多方集合的 remove 操作即触发删除（无需多方显式删除），那就方便多了，而且直观好理解。可惜通过前文的实验，发现设置了 mappedBy，单纯的在集合中 remove 不会有任何效果；不设置 mappedBy，集合中 remove 只会把多方的外键 update 为 null。并不能达到删除的目的。
+
+难道真的不行？我又打开 OneToMany 的代码，发现这么一个属性：
+
+```java
+/**
+ * (Optional) Whether to apply the remove operation to entities that have
+ * been removed from the relationship and to cascade the remove operation to
+ * those entities.
+ * @since Java Persistence 2.0
+ */
+boolean orphanRemoval() default false;
+```
+
+看注释，说的很明白，如果设置为 true，当关系被断开时，多方实体将被删除。这不正是我们想要的效果嘛？！这么重要的参数之前怎么没注意到呢？回想一下，其实之前我也是试过这个参数的，但是印象中并没有达到我想要的效果，应该是没有执行删除的操作。但是这黑纸白字写的清清楚楚的注释，不应该啊。。。。
+
+我决定再测试一次，于是修改了我的配置，加上 orphanRemoval=true ：
+
+```java
+public class User {
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
+  private String userName;
+  private String password;
+  @Fetch(FetchMode.SUBSELECT)
+  @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, orphanRemoval=true, mappedBy = "user")
+  private List<ContactInfo> contactInfos = new ArrayList<>();
+}
+```
+
+持久化代码：
+
+```java
+User user=userRepository.findById(1L).get();
+ContactInfo deletedContact = user.getContactInfos().get(0);
+user.getContactInfos().remove(deletedContact);
+userRepository.save(user);
+```
+
+持久化代码只在一方维护的 list 中 remove 掉想删除的数据
+
+运行程序，看到如下 sql 输出：
+
+```sql
+Hibernate: delete from contact_info where id=?
+```
+
+成功了！！
+
+这是怎么回事呢？我清楚记得之前测试过这个设置，但没能删除成功。
+
+###### 犯的错误
+
+难道是之前没有设置 mappedBy 吗？于是我去掉 mappedBy 再次测试下，配置如下：
+
+```java
+public class User {
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
+  private String userName;
+  private String password;
+  @Fetch(FetchMode.SUBSELECT)
+  @OneToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY, orphanRemoval=true)
+  @JoinColumn(name = "user_id")
+  private List<ContactInfo> contactInfos = new ArrayList<>();
+}
+```
+
+运行下，打印如下 sql：
+
+```sql
+Hibernate: update contact_info set user_id=null where user_id=? and id=?
+```
+
+然后报错了：
+
+```python
+com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException: Column 'user_id' cannot be null
+```
+
+这是因为没有设置 mappedBy，所以在 list 中 remove 的操作，一方要维护关系，体现在 update 多方外键为空。但因为数据库设置了 not null 的约束，所以报错。
+
+###### 真相大白
+
+其实到现在真相已经水落石出了。由于之前我使用 orphanRemoval 时，没有设置 mappedBy，所以先执行了 update 语句（一方要维护关系）。但因为没有删除动作发生，并且程序报错，我错误的认为 orphanRemoval=true 没有效果。JPA 代码注释里也没有提到和 mappedBy 的关系，也是导致当时我判断错误的原因之一。
+
+不过注释没提到这一点，现在我也是理解的，因为如果外键没有设置 not null，在 update 之后是会执行 delete 的（已经测试过）。orphanRemoval 和 mappedBy 本来就是两个相互独立的属性，每人负责自己的事情，但是搭配不当就会产生意料之外的效果，并且很容易让人产生误会。JPA 坑就坑在这里，不过搞懂每个属性作用，以及执行的顺序后，我们运用起来就自如多了。
+
+到这里还没有完，我提个问题：
+
+设置了 orphanRemoval=true，导致级联删除。这和 oneToMany 配置的 cascade 有关系吗？
+
+答案是没有关系，我们设置 cascade={CascadeType.PERSIST,CascadeType.MERGE}，不设置 REMOVE 操作，发现一样可以通过从集合中 remove 来删除多方。这里再次印证了上篇文章开头我说的：CascadeType.REMOVE 只是指删除一方，是否把关联多方全部删除。
+
+###### 总结
+
+我们再聊下 mappedBy 和 orphanRemoval，在一方维护的 list 中 remove 掉多方时产生的效果。
+
+ - **mappedBy**
+
+ 设置 无效果
+
+ 不设置 update 被 remove 掉的多方的外键为 null
+
+ - **orphanRemoval**
+
+ 设置 remove 掉的数据会被彻底删除
+
+ 不设置 不会删除 remove 掉的数据
+
+之前我犯的错误就是未设置 mappedBy，但设置了 orphanRemoval。但是 JPA 会先执行 mappedBy 未设置产生的 update 语句，导致 not null 报错。而我错误的认为这是 orphanRemoval 引起的（或者说没产生删除效果）。
+
+我们得出一个结论，如果想通过对一方维护的多方集合做 remove 操作，就达到删除多方数据的效果，那么需要同时设置 **orphanRemoval=true, mappedBy = "一方对象"**。如果不设置 **orphanRemoval=true**，那么需要额外显式删除多方对象。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/liyiming2017/article/details/90613707" target="_blank">Spring Data JPA OneToMany 注解参数 orphanRemoval，一对多删除详解</a>
+
+#### jpa 中 orphanRemoval=true 如何理解
+
+最近在使用 jpa 进行开发，发现其中包含三种删除： 
+
+ 1. Explicit Remove  明确的删除 
+
+ 2. Cascading Remove   级联删除 
+
+ 3. Orphan Removal  ？？？  这个删除就不是很明白了？  请大家帮我理解一下
+
+按照官方给出的字面意思是：如果删除关系，是否删除关系上的实体，true 表示会删除，false 表示不删除。我们来举个例子说明一下，现在分别有 User 和 Address 两个实体，User 类上有一个 addresses 的字段，表示引用多个 Address 实例，User 和 Address 是一对多关系。大致的代码如下：
+
+```java
+public class User{
+    @OneToMany(orphanRemoval = true)
+    private Set<Address> addresses;
+//...
+}
+
+public class Address{
+//...
+}
+```
+
+我们操作 User 实体，并删除一个 address 实例。
+
+```java
+User user = em.find(User.class,1L);
+Address address = em.find(Address.class,1L);
+user.getAddresses().remove(address);
+em.save(user);
+```
+
+如果 orphanRemoval = true，那么这个操作会删除 address 对象，如果为 false，则会删除他们的关系，将 address 对 user 的引用设置为 null。
+
+借用楼上的关系测试一下，首先用单向一对多关系测试。没有设置 CascadeType.all  或者 remove，否则只会更新关联字段为 null。
+
+```java
+//单向一对多，user里有addresses
+public class User{
+    // @OneToMany(orphanRemoval = true) // 此时移除 user 里的某一个 address 会级联更新该 userId 字段为 null
+    // @OneToMany(orphanRemoval = false) // 此时移除 user 里的某一个 address 会级联更新该 userId 字段为 null
+    // @OneToMany(cascade=CascadeType.ALL,orphanRemoval = true) // 此时移除 user 里的某一个 address 会级联删除该 address
+    // @OneToMany(cascade=CascadeType.ALL,orphanRemoval = false) // 此时移除 user 里的某一个 address 会级联更新该 userId 字段为 null
+    @JoinColumn(name="userId")
+    private Set<Address> addresses;
+//...
+}
+
+// address 里没有 user
+public class Address{
+//...
+}
+```
+
+再来测试双向一对多的关系。
+
+```java
+//双向一对多的一端,user里有addresses
+public class User{
+    // @OneToMany(orphanRemoval = true,mappedBy="user",) // 此时移除 user 里的某一个 address 无任何效果
+    // @OneToMany(orphanRemoval = false,mappedBy="user",) // 此时移除 user 里的某一个 address 无任何效果
+    // @OneToMany(cascade=CascadeType.ALL,orphanRemoval = true,mappedBy="user",) // 此时移除 user里的某一个address会级联删除该address
+    // @OneToMany(cascade=CascadeType.ALL,orphanRemoval = false,mappedBy="user",) // 此时移除 user 里的某一个 address 无任何效果  
+    //注解 mappedBy 表示自己不维护关系，由 Address 来维护关系
+    private Set<Address> addresses;
+//...
+}
+
+//双向一对多的多端,address里有user
+public class Address{
+
+    @ManyToOne
+    @JoinColumn(name="userId")
+    private User user;
+//...
+}
+```
+
+在双向关联关系里，让一端维护关系所以设置失效了？？？但是设置 cascade=CascadeType.ALL,orphanRemoval=true 之后又可以删除。这点还得研究一下
+
+参考链接：
+
+ - <a href="https://www.oschina.net/question/925076_157346" target="_blank">jpa 中 orphanRemoval=true 如何理解</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

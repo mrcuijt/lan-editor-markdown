@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Struct</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### HTML 结构
+
+##### DOCTYPE 声明
+
+三种 DOCTYPE，告诉浏览器使用什么标准来解析 HTML
+
+ - **XHTML 1.0 Strict**
+
+```ruby
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+```
+
+ - **XHTML 1.0 Transitional**
+
+```ruby
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+```
+
+ - **XHTML 1.0 Frameset**
+
+```ruby
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Frameset//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd">
+```
+
+&amp;#160; &amp;#160;在做项目的过程中，我们经常会建立各种各样的规范，以方便团队之间更好的合作更好的完成项目；同样我们也经常会听到各种各样的协议，比如 Google 的 IM 软件 Gtalk 使用的开放的 XMPP 协议，只要其他 TM 软件也遵循 XMPP 协议就能与 Gtalk 使用互通；互联网上的信息无以计数，这些信息本身是独立存在的，如何将其串联并呈现在用户眼前，就需要使用 HTTP 协议。
+
+&amp;#160; &amp;#160;同样的道理，因为浏览器们各自的内核不同，对于默认样式的渲染也不尽相同，所以就需要一份各浏览器都遵循的规则来**保证同一个网页文档在不同浏览器上呈现出来的样式是一致的**，这个规则就是 DOCTYPE 声明。
+
+&amp;#160; &amp;#160;因为互联网是互通的，所以任意两个或两个以上的网页文档都可能会涉及到**数据交换**，而因为 xml 语言是允许用户自定义标签的，所以在任意两个交换文档就可能会出现相同的标签，从而导致相同标签的冲突，所以就需要一个命名空间以区分开**交换文档**中可能存在的相同标签。
+
+&amp;#160; &amp;#160;**XHTML 作为向 XML 过渡的一种语言，并不能实现 XML 语言中用户自定义标签，所以 XHTML 文档中的命名空间都是相同的**。
+
+参考链接：
+
+ - <a href="http://www.w3school.com.cn/tags/tag_doctype.asp" target="_blank">tag-doctype</a>
+
+##### namespace 名称空间
+
+&amp;#160; &amp;#160;紧跟在 DOCTYPE 声明之后是一个 XHTML 名字空间 (namespace) 声明，放在增强的 ```<html>``` 元素中，类似这样：
+
+```xml
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+```
+
+&amp;#160; &amp;#160;XML 的一个名字空间是收集元素类型和属性名字的一个特定的 DTD，名字空间声明允许你通过一个在线地址指向来识别你的名字空间，就像上面例子中的 www.w3c.org/1999/xhtml 。后面两个附加的属性，指定您的文档用英文，以及你使用的 XML 版本也是英文。
+
+ - **lang 属性 : HTML 语言声明属性，用来定义当前文档显示的语言。**
+ 
+ 如：**lang="en"** 表示定义语言为英文；**lang="zh-CN"** 表示定义语言为中文。
+ 
+&amp;#160; &amp;#160;在新的 XHTML 文档中，**lang 属性已经被 ```xml:lang``` 属性代替**。但是，**XHTML 规范建议在 XHTML 1.0 文档的 ```<html>``` 元素中同时使用 lang 属性和 xml:lang 属性**，以在不同的浏览器之间获得最大的兼容性。如果网页定义为 XHTML1.1 或者 XML 格式,那么可以使用 xml:lang 属性(因为 xml:lang 属性是在 XML 中确定语言信息的标准用法)。
+
+&amp;#160; &amp;#160;我们经常需要用缩写的代码来表示一种语言，比如用 en 表示英语，用 de 表示德语。ISO 639 就是规定语种代码的国际标准。
+
+&amp;#160; &amp;#160;最早的时候，ISO 639 规定的代码是，用两个拉丁字母表示一种语言，这被称为 ISO 639-1。但是，两个拉丁字母最多只有 26^2=676 种组合，而世界上已知的语言总数可能有六七千种，因此明显是不够的。所以，后来又规定了 ISO 639-2，用三个拉丁字母的组合表示一种语言。
+
+常见语言的 ISO 代码如下表。
+
+```textarea
+╔═══════════════╤═══════════════╤══════════╤════════════╗
+║ ISO639-1 Code │ ISO639-2 Code │ 中文名   │ 英文名     ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ ar            │ ara           │ 阿拉伯语 │ Arabic     ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ ko            │ kor           │ 朝鲜语   │ Korean     ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ de            │ deu           │ 德语     │ German     ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ ru            │ rus           │ 俄语     │ Russian    ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ fr            │ fra           │ 法语     │ French     ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ zh            │ zho           │ 汉语     │ Chinese    ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ la            │ lat           │ 拉丁语   │ Latin      ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ pt            │ por           │ 葡萄牙语 │ Portuguese ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ ja            │ jpn           │ 日语     │ Japanese   ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ es            │ spa           │ 西班牙语 │ Spainese   ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ en            │ eng           │ 英语     │ English    ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ it            │ ita           │ 意大利语 │ Italian    ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ hi            │ hin           │ 印地语   │ Hindi      ║
+╟───────────────┼───────────────┼──────────┼────────────╢
+║ yi            │ yid           │ 意第绪语 │ Yiddish    ║
+╚═══════════════╧═══════════════╧══════════╧════════════╝
+```
+
+&amp;#160; &amp;#160;目前，语言的标签表示法的国际标准是 RFC 4646，名称是《Tags for Identifying Languages》。
+
+简单说，这个文件规定，一种语言的标签应该按照如下方式排列：
+
+ **language-script-region-variant-extension-privateuse**
+ 
+ - **language**：这部分就是 ISO 639 规定的代码，比如中文是 zh。
+
+ - **script**：表示变体，比如简体汉字是 zh-Hans，繁体汉字是 zh-Hant。
+
+ - **region**：表示语言使用的地理区域，比如 zh-Hans-CN 就是中国大陆使用的简体中文。
+
+ - **variant**：表示方言。
+
+ - **extension-privateus**：表示扩展用途和私有标识。
+
+&amp;#160; &amp;#160;一般约定，language 标签全部小写，region 标签全部大写，script 标签只有首字母大写。不同标签之间用连字号-链接。
+
+Examples:
+
+```textarea
+╔════════╤══════════════════════════════════╤═════════════════╗
+║ Code   │ Language                         │ Subtags         ║
+╟────────┼──────────────────────────────────┼─────────────────╢
+║ en     │ English                          │ language        ║
+╟────────┼──────────────────────────────────┼─────────────────╢
+║ mas    │ Masai                            │ language        ║
+╟────────┼──────────────────────────────────┼─────────────────╢
+║ fr-CA  │ French as used in Canada         │ language+region ║
+╟────────┼──────────────────────────────────┼─────────────────╢
+║ es-419 │ Spanish as used in Latin America │ language+region ║
+╚════════╧══════════════════════════════════╧═════════════════╝
+```
+
+```textarea
+╔═════════╤════════════════════════════════════════╤═════════════════╗
+║ Code    │ Language                               │ Subtags         ║
+╟─────────┼────────────────────────────────────────┼─────────────────╢
+║ zh-CN   │ Chinese as used in China               │ language+region ║
+╟─────────┼────────────────────────────────────────┼─────────────────╢
+║ zh-Hans │ Chinese written with Simplified script │ language+script ║
+╚═════════╧════════════════════════════════════════╧═════════════════╝
+```
+
+```textarea
+╔════════════╤════════════════════════╤════════════════════════╗
+║ Code       │ Language               │ Subtags                ║
+╟────────────┼────────────────────────┼────────────────────────╢
+║ zh-Hans    │ 简体中文               │ language+region        ║
+╟────────────┼────────────────────────┼────────────────────────╢
+║ zh-Hans-CN │ 大陆地区使用的简体中文 │ language+script+region ║
+╟────────────┼────────────────────────┼────────────────────────╢
+║ zh-Hans-HK │ 香港地区使用的简体中文 │ language+script+region ║
+╟────────────┼────────────────────────┼────────────────────────╢
+║ zh-Hant    │ 繁体中文               │ language+region        ║
+╟────────────┼────────────────────────┼────────────────────────╢
+║ zh-Hant-CN │ 大陆地区使用的繁体中文 │ language+script+region ║
+╟────────────┼────────────────────────┼────────────────────────╢
+║ zh-Hant-HK │ 香港地区使用的繁体中文 │ language+script+region ║
+╚════════════╧════════════════════════╧════════════════════════╝
+```
+
+```xml
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN">
+```
+
+参考链接：
+
+ - <a href="http://www.ruanyifeng.com/blog/2008/02/codes_for_language_names.html" target="_blank">语种名称代码</a>
+
+ - <a href="https://www.w3.org/International/articles/language-tags/" target="_blank">language-tags</a>
+
+##### header 头部标签
+
+主要作为 SEO ，一般是给机器、搜索引擎来查看
+
+&amp;#160; &amp;#160;制作一个网页的时候，除了在开始的时候声明 DOCTYPE(文档类型)之外，如果是 XHTML 文档还需要声明命名空间，而第三个需要声明的就是网页文档的字符编码类型：
+
+```xml
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+```
+
+常用 Meta 标签
+
+```xml
+<!-- 搜索引擎关键字 -->
+<meta name="discription" content="网站介绍说明">
+<meta name="Keywords" content="搜索引擎关键字,多个使用 ',' 号分割">
+
+<!-- 通过 meta 标签完成前端重定向 -->
+<!-- http-equiv：refresh(重定向) , content：5(秒数);url=(跳转路径) -->
+<meta http-equiv="refresh" content="5;url=http://baidu.com"/>
+
+<!-- 网页的个性图标 -->
+<link rel="Bookmark" href="/images/module/favicon.icon" />
+<!-- 网页链接的快捷方式显示的图标 -->
+<link rel="Shortcut Icon" href="/images/module/favicon.icon" />
+```
+
+##### body 标签
+
+HTML 网页的主体
+
+Example
+
+```xml
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-CN" xml:lang="zh-CN">
+    <header>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>Tiitle</title>
+    </header>
+    <body></body>
+</html>
+```
+
+#### 什么是 XHTML
+
+&amp;#160; &amp;#160;**XHTML (The Extensible HyperText Markup Language)可扩展超文本标记语言**
+
+&amp;#160; &amp;#160;目前推荐遵循的是 W3C 于 2000 年 1 月 26 日发布的 XHTML1.0 ，虽然 XML 的数据转换能力强大，可完全替代 HTML , 但面对成千上万的 Internet 站点，直接采用 XML 还为时过早。因此，我们在 HTML4.0 的基础上，用 XML 的规则对其进行扩展，得到了 XHTML 。简单来说，建立 XHTML 的目的就是实现 HTML 象 XML 的过度。
+
+#### XHTML 的语法规范
+
+ 1. XHTML 标签名必须用小写字母
+ 
+ 2. XHTML 中的注释不能嵌套
+ 
+ 3. XHTML 标签必须结构完整，要么成对出现，要么自结束标签
+ 
+ 4. XHTML 标签可以嵌套，但是不能交叉嵌套
+ 
+ 5. XHTML 标签中的属性必须有值，且值必须加引号（单双引号都可以）
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

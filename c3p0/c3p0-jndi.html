@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>C3P0 JNDI</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Tomcat 下使用 C3P0 配置 JNDI 数据源
+
+##### C3P0 下载
+
+<a href="http://sourceforge.net/projects/c3p0/files/?source=navbar" target="_blank">下载</a>
+
+下载完成之后得到一个压缩包
+
+##### 使用 C3P0 配置 JNDI 数据源
+
+&amp;#160; &amp;#160;Tomcat6.x 中配置 JNDI 数据源时默认使用的是 Tomcat6.x 自带的 DBCP 连接池，Tomcat6.x 使用 DBCP 连接池配置 JNDI 数据源如下：
+
+```xml
+<Resource 
+    name="oracleDataSource" 
+    auth="Container" 
+    type="javax.sql.DataSource" 
+    maxActive="50" 
+    maxIdle="10" 
+    maxWait="10000" 
+    username="lead_oams" 
+    password="p" 
+    driverClassName="oracle.jdbc.OracleDriver" 
+    url="jdbc:oracle:thin:@192.168.1.229:1521:lead"/>
+```
+
+&amp;#160; &amp;#160;如果想让 Tomcat6.x 使用 C3P0 连接池配置 JNDI 数据源，在配置时，以下配置项需要修改
+
+ 1. type 和 factory 的值发生变化
+
+ 2. username => user
+
+ 3. url => jdbcUrl
+
+ 4. driverClassName => driverClass
+
+&amp;#160; &amp;#160;创建一个 Web 测试项目 C3P0_JNDI_Config，解压压缩包，找到 c3p0-0.9.5-pre9\lib 目录下的相关 Jar 包如下图所示： 
+
+![C3P0 Jar](./images/c3p0-jndi/c3p0-jndi-001.png)
+
+&amp;#160; &amp;#160;将 C3P0 的相关 Jar 包添加到项目中，在项目的 META-INF 目录下创建一个 context.xml 文件，目录结构如下图所示：
+
+![C3P0 Jar](./images/c3p0-jndi/c3p0-jndi-002.png)
+
+&amp;#160; &amp;#160;在 tomcat 服务器的 lib 目录下添加 Oracle、MySQL、SQLServer 三种数据库的驱动 jar 包，如下图所示：
+
+![C3P0 Jar](./images/c3p0-jndi/c3p0-jndi-003.png)
+
+在 context.xml 文件中加入如下配置信息
+
+***```context.xml```***
+```xml
+<Context>
+    <!--
+      |- name：表示以后要查找的名称。通过此名称可以找到 DataSource，此名称任意更换，但是程序中最终要查找的就是此名称，
+               为了不与其他的名称混淆，所以使用 jdbc/oracle，现在配置的是一个 jdbc 的关于 oracle 的命名服务。
+      |- auth：由容器进行授权及管理，指的用户名和密码是否可以在容器上生效
+      |- type：此名称所代表的类型，现在为 javax.sql.DataSource
+      |- maxActive：表示一个数据库在此服务器上所能打开的最大连接数
+      |- maxIdle：表示一个数据库在此服务器上维持的最小连接数
+      |- maxWait：最大等待时间。10000 毫秒
+      |- username：数据库连接的用户名
+      |- password：数据库连接的密码
+      |- driverClassName：数据库连接的驱动程序
+      |- url：数据库连接的地址
+    -->
+	<!-- 使用C3P0配置针对MySQL数据库的JNDI数据源 -->
+    <Resource 
+        name="jdbc/MysqlDataSource" 
+        auth="Container"
+        factory="org.apache.naming.factory.BeanFactory" 
+        type="com.mchange.v2.c3p0.ComboPooledDataSource"
+        driverClass="com.mysql.jdbc.Driver"
+        idleConnectionTestPeriod="60"
+        maxPoolSize="50" 
+        minPoolSize="2"
+        acquireIncrement="2" 
+        user="root" 
+        password="root"
+        jdbcUrl="jdbc:mysql://192.168.1.144:3306/leadtest"/>
+        
+    <!-- 使用C3P0配置针对Oracle数据库的JNDI数据源 -->
+    <Resource 
+        name="jdbc/OracleDataSource" 
+        auth="Container"
+        factory="org.apache.naming.factory.BeanFactory" 
+        type="com.mchange.v2.c3p0.ComboPooledDataSource"
+        driverClass="oracle.jdbc.OracleDriver"
+        idleConnectionTestPeriod="60"
+        maxPoolSize="50" 
+        minPoolSize="2"
+        acquireIncrement="2" 
+        jdbcUrl="jdbc:oracle:thin:@192.168.1.229:1521:lead"
+        user="lead_oams"
+        password="p"/>
+        
+        
+    <!--使用C3P0配置针对SQLServer数据库的JNDI数据源-->
+    <Resource 
+        name="jdbc/SqlServerDataSource"
+        auth="Container"
+        factory="org.apache.naming.factory.BeanFactory" 
+        type="com.mchange.v2.c3p0.ComboPooledDataSource"
+        driverClass="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+        idleConnectionTestPeriod="60"
+        maxPoolSize="50" 
+        minPoolSize="2"
+        acquireIncrement="2" 
+        jdbcUrl="jdbc:sqlserver://192.168.1.51:1433;DatabaseName=demo"
+        user="sa" 
+        password="p@ssw0rd"/>
+</Context>
+```
+
+在 web.xml 引用 JDNI 数据源：
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" 
+    xmlns="http://java.sun.com/xml/ns/javaee" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+    http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+  
+  <!-- 
+      JNDI配置的资源引用：
+       • res-ref-name：表示引用资源的名称
+       • res-type：此资源对应的类型为 javax.sql.DataSource
+       • res-auth：容器授权管理
+   -->
+  <!-- Oracle 数据库 JNDI 数据源引用 -->
+  <resource-ref>
+      <description>Oracle DB Connection</description>
+      <res-ref-name>jdbc/OracleDataSource</res-ref-name>
+      <res-type>javax.sql.DataSource</res-type>
+      <res-auth>Container</res-auth>
+  </resource-ref>
+  
+  <!-- MySQL 数据库 JNDI 数据 -->
+  <resource-ref>
+      <description>MySQL DB Connection</description>
+      <res-ref-name>jdbc/MysqlDataSource</res-ref-name>
+      <res-type>javax.sql.DataSource</res-type>
+      <res-auth>Container</res-auth>
+  </resource-ref>
+  
+  <!-- SQLServer 数据库JNDI数据源引用 -->
+  <resource-ref>
+      <description>SQLServer DB Connection</description>
+      <res-ref-name>jdbc/SqlServerDataSource</res-ref-name>
+      <res-type>javax.sql.DataSource</res-type>
+      <res-auth>Container</res-auth>
+  </resource-ref>
+  
+</web-app>
+```
+
+部署 C3P0_JNDI_Config Web 应用到 Tomcat 服务器测试 JNDI 数据源
+
+![C3P0 Jar](./images/c3p0-jndi/c3p0-jndi-004.png)
+
+&amp;#160; &amp;#160;部署到 tomcat 服务器的 webapps 目录之后，tomcat 服务器就会自动在 \conf\Catalina\localhost 目录下生成一个 C3P0_JNDI_Config.xml 文件，如下图所示：
+
+![C3P0 Jar](./images/c3p0-jndi/c3p0-jndi-005.png)
+
+```xml
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<!-- 引入JSTL标签库  -->
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/sql" prefix="sql"%>
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>C3P0配置JNDI数据源连接测试</title>
+  </head>
+  
+  <body>
+        <h3>针对MySQL数据库JNDI数据源测试</h3>
+        <!-- 使用sql:query标签发送SQL语句去数据库查询数据，查询的结果集保存到rs变量当中，dataSource属性指明使用的数据源 -->
+        <sql:query var="rs" dataSource="jdbc/MysqlDataSource">
+            <!-- MySQL JNDI数据源测试 SQL -->
+             select * from ld_user
+        </sql:query>
+        <!-- 使用c:forEach标签遍历查询结果集rs中的每一行 -->
+        <c:forEach var="row" items="${rs.rows}">
+            <!-- ${row.字段名}获取字段的值 -->
+            ${row.id}---${row.username}---${row.password}<br/>
+        </c:forEach>
+        <hr/>
+        <h3>针对Oracle数据库JNDI数据源测试</h3>
+          <!-- 使用sql:query标签发送SQL语句去数据库查询数据，查询的结果集保存到rs变量当中，dataSource属性指明使用的数据源 -->
+        <sql:query var="rs" dataSource="jdbc/OracleDataSource">
+            <!-- Oracle JNDI数据源测试 SQL -->
+            SELECT * FROM LEAD_OAMS_DBSOURCES
+        </sql:query>
+        <!-- 使用c:forEach标签遍历查询结果集rs中的每一行 -->
+        <c:forEach var="row" items="${rs.rows}">
+            <!-- ${row.字段名}获取字段的值 -->
+            ${row.RESOURCEID}---${row.DBSOURCE_NAME}---${row.DBSOURCE_TYPE}<br/>
+        </c:forEach>
+        <hr/>
+  </body>
+</html>
+```
+
+配置完数据源连接池之后，就可以按照以下的步骤进行访问：
+
+ - 初始化名称查找上下文
+ 
+ - 通过 JNDI 名称找到 DataSource
+ 
+ - 通过 DataSource 取得一个连接
+ 
+ - 操作数据库
+ 
+ - 关闭数据库，关闭的时候是将连接放回到连接池之中
+
+```xml
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*,javax.sql.*,javax.naming.*" %>
+
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>JNDI数据源测试</title>
+  </head>
+  
+  <body>
+        <%
+            Connection connOracle = null;
+            try {
+                //1、初始化名称查找上下文
+                Context ctx = new InitialContext();
+                //InitialContext ctx = new InitialContext();亦可 
+                //2、通过JNDI名称找到DataSource,对名称进行定位java:comp/env是必须加的,后面跟的是DataSource名
+                /*
+                DataSource名在web.xml文件中的<res-ref-name>oracleDataSource</res-ref-name>进行了配置
+                 <!--Oracle数据库JNDI数据源引用 -->
+                 <resource-ref>
+                      <description>Oracle DB Connection</description>
+                      <res-ref-name>oracleDataSource</res-ref-name>
+                      <res-type>javax.sql.DataSource</res-type>
+                      <res-auth>Container</res-auth>
+                 </resource-ref>
+                */
+                DataSource ds = (DataSource)ctx.lookup("java:comp/env/oracleDataSource");
+                //3、通过DataSource取得一个连接
+                connOracle = ds.getConnection();
+                out.println("Oracle Connection pool connected !!");
+                //4、操作数据库
+            } catch (NamingException e) {
+                System.out.println(e.getMessage());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                //5、关闭数据库，关闭的时候是将连接放回到连接池之中
+                connOracle.close();
+            }
+        %>
+        <hr/>
+        <%
+            Connection connMySQL = null;
+            try {
+                //1、初始化名称查找上下文
+                Context ctx = new InitialContext();
+                //InitialContext ctx = new InitialContext();亦可 
+                //2、通过JNDI名称找到DataSource,对名称进行定位java:comp/env是必须加的,后面跟的是DataSource名
+                /*
+                DataSource名在web.xml文件中的<res-ref-name>mysqlDataSource</res-ref-name>进行了配置
+                  <!--MySQL数据库JNDI数据源引用 -->
+                  <resource-ref>
+                      <description>MySQL DB Connection</description>
+                      <res-ref-name>mysqlDataSource</res-ref-name>
+                      <res-type>javax.sql.DataSource</res-type>
+                      <res-auth>Container</res-auth>
+                  </resource-ref>
+                */
+                DataSource ds = (DataSource)ctx.lookup("java:comp/env/mysqlDataSource");
+                //3、通过DataSource取得一个连接
+                connMySQL = ds.getConnection();
+                out.println("MySQL Connection pool connected !!");
+                //4、操作数据库
+            } catch (NamingException e) {
+                System.out.println(e.getMessage());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                //5、关闭数据库，关闭的时候是将连接放回到连接池之中
+                connMySQL.close();
+            }
+        %>
+        <hr/>
+        <%
+            Connection connSQLServer = null;
+            try {
+                //1、初始化名称查找上下文
+                Context ctx = new InitialContext();
+                //InitialContext ctx = new InitialContext();亦可 
+                //2、通过JNDI名称找到DataSource,对名称进行定位java:comp/env是必须加的,后面的是DataSource名
+                /*
+                DataSource名在web.xml文件中的<res-ref-name>sqlserverDataSource</res-ref-name>进行了配置
+                <!--SQLServer数据库JNDI数据源引用 -->
+                  <resource-ref>
+                      <description>SQLServer DB Connection</description>
+                      <res-ref-name>sqlserverDataSource</res-ref-name>
+                      <res-type>javax.sql.DataSource</res-type>
+                      <res-auth>Container</res-auth>
+                  </resource-ref>
+                */
+                DataSource ds = (DataSource)ctx.lookup("java:comp/env/sqlserverDataSource");
+                //3、通过DataSource取得一个连接
+                connSQLServer = ds.getConnection();
+                out.println("SQLServer Connection pool connected !!");
+                //4、操作数据库
+            } catch (NamingException e) {
+                System.out.println(e.getMessage());
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                //5、关闭数据库，关闭的时候是将连接放回到连接池之中
+                connSQLServer.close();
+            }
+        %>
+    </body>
+</html>
+```
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

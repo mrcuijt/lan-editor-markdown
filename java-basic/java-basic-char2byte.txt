@@ -1,0 +1,41 @@
+#### java-basic-char2byte
+
+首先，byte[] 是字节数组类型，和 int[] 类似，只是一个是字节型的，一个是整型的；
+
+char 是 UNICOEDE 字符,为 16 位的整数；
+
+String 是个类，一般用来表示字符串的；
+
+hello.getBytes() 意思就是把 hello 这个字符串转化为字节流（byte 型）；一般前面加个 byte[] 型的变量，就是把转化后的字节流放到这个变量里，如下：
+
+byte[] bt=hello.getBytes();
+
+```java
+// char 转 byte
+private byte[] getBytes (char[] chars) {
+  Charset cs = Charset.forName("UTF-8");
+  CharBuffer cb = CharBuffer.allocate(chars.length);
+  cb.put(chars);
+  cb.flip();
+  ByteBuffer bb = cs.encode(cb);
+  return bb.array();
+}
+```
+
+```java
+// byte 转 char
+private char[] getChars (byte[] bytes) {
+  Charset cs = Charset.forName("UTF-8");
+  ByteBuffer bb = ByteBuffer.allocate(bytes.length);
+  bb.put(bytes);
+  bb.flip();
+  CharBuffer cb = cs.decode(bb);
+  return cb.array();
+}
+```
+
+参考链接：
+
+ <a href="http://blog.csdn.net/chenzhanhai/article/details/6367842" target="_blank">java 中 char 和 byte 的转换方法</a>
+
+ <a href="https://way2java.com/casting-operations/java-char-to-byte/" target="_blank">char to byte Java </a>

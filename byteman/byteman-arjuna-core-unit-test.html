@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Byteman ArjunaCore UnitTest</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Byteman ArjunaCore UnitTest
+
+ - <a href="https://anonsvn.jboss.org/repos/labs/labs/jbosstm/trunk/ArjunaCore/arjuna/tests/byteman-scripts/" target="_blank">ArjunaCore UnitTest</a>
+
+ - <a href="https://anonsvn.jboss.org/repos/labs/labs/jbosstm/trunk/XTS/sar/tests/dd/scripts/" target="_blank">Web 服务事务崩溃恢复测试</a>
+
+***objectstore.txt***
+
+```python
+########################################################################
+#
+# byteman script used to ensure that core tests can sequence various
+# operations which normally depend upon waiting around for a background
+# thread to be scheduled.
+#
+
+#########################################################################
+# 3 rules to stop the log purger from proceeding until it is signalled
+# at a suitable point during a test. the log purger also signals in
+# order to allow the test code to detect that a purge has completed
+# should it wish to do so
+
+# rule to ensure the transaction log purger uses a very small timeout
+# so that it is ready to proceed straight away when signalled
+
+RULE override TRANSACTION_LOG_PURGE_TIME
+CLASS com.arjuna.ats.internal.arjuna.objectstore.LogStore
+METHOD <clinit>
+AT ENTRY
+BIND NOTHING
+IF TRUE
+DO com.arjuna.ats.arjuna.common.arjPropertyManager.getObjectStoreEnvironmentBean().setPurgeTime(100)
+ENDRULE
+
+# rule to ensure that the LogStore does not proceed to purge any
+# logs until the test signals it do so
+
+RULE delay log purge
+CLASS com.arjuna.ats.internal.arjuna.objectstore.LogPurger
+METHOD run()
+AT CALL writeRemovalEntries
+BIND NOTHING
+IF TRUE
+DO debug("LogStore waiting before purge"),
+   waitFor("LogStore.purge"),
+   flag("LogStore do purge"),
+   debug("LogStore proceeding with purge")
+ENDRULE
+
+# matching rule to ensure that the LogStore signals any thread which
+# is waiting for it to finish purging the logs
+
+RULE done log purge
+CLASS com.arjuna.ats.internal.arjuna.objectstore.LogPurger
+METHOD run()
+AFTER CALL truncateLogs
+BIND NOTHING
+IF TRUE
+DO debug("Signalling purge complete"),
+   signalWake("LogStore.purged", true),
+   flag("LogStore done purge"),
+   debug("Signalled purge complete")
+ENDRULE
+
+#########################################################################
+#
+# rules appropriate to specific tests
+#
+# n.b. several of the test don't want the purger to run. this happens by
+# default since the purger hist the waitFor and never gets signalled
+#
+
+#########################################################################
+# LogStoreRecoveryTest wants to delay the purge until it is ready for it
+# and then delay proceeding with the test until the purge has actually
+# happened
+
+RULE log store recovery test allow purge to proceed
+CLASS com.hp.mwtests.ts.arjuna.objectstore.LogStoreRecoveryTest
+METHOD test()
+AT CALL InputObjectState.<init>
+BIND NOTHING
+IF TRUE
+DO debug("Signalling purge to proceed"),
+   signalWake("LogStore.purge", true),
+   debug("Signalled purge to proceed -- waiting for completion"),
+   waitFor("LogStore.purged"),
+   debug("Purge completed")
+ENDRULE
+
+# throw an error if the purge did not start and finish correctly
+
+RULE log store recovery test throw error if not purged
+CLASS com.hp.mwtests.ts.arjuna.objectstore.LogStoreRecoveryTest
+METHOD test()
+AT EXIT
+BIND NOTHING
+IF !(flagged("LogStore do purge") && flagged("LogStore done purge"))
+DO throw RuntimeException("failed to run purge")
+ENDRULE
+
+#########################################################################
+# LogStoreTest2 wants to delay the purge until it is ready for it
+# and then delay proceeding with the test until the purge has actually
+# happened
+
+RULE log store recovery test allow purge to proceed 2
+CLASS com.hp.mwtests.ts.arjuna.objectstore.LogStoreTest2
+METHOD test()
+AT CALL InputObjectState.<init>
+BIND NOTHING
+IF TRUE
+DO debug("Signalling purge to proceed"),
+   signalWake("LogStore.purge", true),
+   debug("Signalled purge to proceed -- waiting for completion"),
+   waitFor("LogStore.purged"),
+   debug("Purge completed")
+ENDRULE
+```
+
+***reaper.txt***
+
+```python
+########################################################################
+#
+# byteman script used to ensure that core transaction reaper tests can
+# sequence various operations which normally depend upon waiting around
+# for the reaper thread and reaper worker thread to be scheduled.
+#
+
+#########################################################################
+# rules to control progress of the transaction reaper thread
+#
+
+# for each possible point at which a client may want to pause the
+# reaper check if a rendezvous has been set up and if so make the
+# reaper rendezvous twice so the client can latch it and then unleash it
+
+# rendezvous before checking the reaper element queue
+
+RULE pause transaction reaper 1
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AT SYNCHRONIZE
+BIND NOTHING
+IF isRendezvous("reaper1", 2)
+DO debug("reaper1"),
+   rendezvous("reaper1"),
+   debug("reaper1"),
+   rendezvous("reaper1")
+ENDRULE
+
+# rendezvous and set a flag to record which reaper element is about to be timed out
+# if a client enables this rendezvous then it must also check and clear the flag
+RULE track next element to be processed
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AT SYNCHRONIZE 2
+BIND NOTHING
+IF isRendezvous("reaper element", 2)
+DO debug("reaper element"),
+   flag($reaperElement._control),
+   rendezvous("reaper element"),
+   debug("reaper element"),
+   rendezvous("reaper element")
+ENDRULE
+
+# rendezvous before processing a timed out reaper element
+
+RULE pause transaction reaper 2
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AT READ _status
+BIND NOTHING
+IF isRendezvous("reaper2", 2)
+DO debug("reaper2"),
+   rendezvous("reaper2"),
+   debug("reaper2"),
+   rendezvous("reaper2")
+ENDRULE
+
+# rendezvous before queueing in the worker queue a timed out reaper element tagged for cancellation
+
+RULE pause transaction reaper 3
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AT CALL add 2
+BIND NOTHING
+IF isRendezvous("reaper3", 2)
+DO debug("reaper3"),
+   rendezvous("reaper3"),
+   debug("reaper3"),
+   rendezvous("reaper3")
+ENDRULE
+
+# rendezvous before rescheduling checkup on a timed out reaper element tagged for cancellation
+
+RULE pause transaction reaper 4
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AT CALL add 3
+BIND NOTHING
+IF isRendezvous("reaper4", 2)
+DO debug("reaper4"),
+   rendezvous("reaper4"),
+   debug("reaper4"),
+   rendezvous("reaper4")
+ENDRULE
+
+# rendezvous before interrupting a timed out reaper element tagged for cancellation
+
+RULE pause transaction reaper 5
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AT CALL interrupt
+BIND NOTHING
+IF isRendezvous("reaper5", 2)
+DO debug("reaper5"),
+   rendezvous("reaper5"),
+   debug("reaper5"),
+   rendezvous("reaper5")
+ENDRULE
+
+# rendezvous before setting a worker thread to be a zombie
+
+RULE pause transaction reaper 6
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AT WRITE _status 3
+BIND NOTHING
+IF isRendezvous("reaper6", 2)
+DO debug("reaper6"),
+   rendezvous("reaper6"),
+   debug("reaper6"),
+   rendezvous("reaper6")
+ENDRULE
+
+# rendezvous before calling prevent commit on a reaper element tagged cancel interrupted
+
+RULE pause transaction reaper 7
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AT WRITE _status 3
+BIND NOTHING
+IF isRendezvous("reaper7", 2)
+DO debug("reaper7"),
+   rendezvous("reaper7"),
+   debug("reaper7"),
+   rendezvous("reaper7")
+ENDRULE
+
+#########################################################################
+# rules to control progress of the transaction reaper worker thread
+#
+
+# for each possible point at which a client may want to pause the
+# reaper worker thread check if a rendezvous has been set up and if so
+# make the reaper worker rendezvous twice so the client can latch it and
+# then unleash it
+
+# rendezvous before removing an element from the reaper element queue
+
+RULE pause transaction reaper worker 1
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD doCancellations
+AT SYNCHRONIZE
+BIND NOTHING
+IF isRendezvous("reaperworker1", 2)
+DO debug("reaperworker1"),
+   rendezvous("reaperworker1"),
+   debug("reaperworker1"),
+   rendezvous("reaperworker1")
+ENDRULE
+
+# rendezvous before marking an element as CANCEL
+
+RULE pause transaction reaper worker 2
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD doCancellations
+AT SYNCHRONIZE 2
+BIND NOTHING
+IF isRendezvous("reaperworker2", 2)
+DO debug("reaperworker2"),
+   rendezvous("reaperworker2"),
+   debug("reaperworker2"),
+   rendezvous("reaperworker2")
+ENDRULE
+
+# rendezvous before calling cancel on an element
+
+RULE pause transaction reaper worker 3
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD doCancellations
+AT CALL cancel
+BIND NOTHING
+IF isRendezvous("reaperworker3", 2)
+DO debug("reaperworker3"),
+   rendezvous("reaperworker3"),
+   debug("reaperworker3"),
+   rendezvous("reaperworker3")
+ENDRULE
+
+# rendezvous before calling prevent_commit on an element
+
+RULE pause transaction reaper worker 4
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD doCancellations
+AT CALL prevent_commit
+BIND NOTHING
+IF isRendezvous("reaperworker4", 2)
+DO debug("reaperworker4"),
+   rendezvous("reaperworker4"),
+   debug("reaperworker4"),
+   rendezvous("reaperworker4")
+ENDRULE
+
+#########################################################################
+#  rules to track and flag actions by the reaper and reaper worker
+
+RULE ReaperTestCase2 flag interrupt
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AFTER CALL interrupt
+BIND NOTHING
+IF TRUE
+DO debug("reaper called interrupt on " + $reaperElement),
+   flag("interrupted")
+ENDRULE
+
+RULE ReaperTestCase2 flag zombie
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD check
+AFTER WRITE _zombieCount
+BIND NOTHING
+IF TRUE
+DO debug("reaper incremented zombie count " + $reaperElement),
+   flag("zombied")
+ENDRULE
+
+#########################################################################
+#
+# rules appropriate to specific tests
+
+#########################################################################
+# ReaperMonitorTest wants remote control of the reaper thread
+#
+
+RULE ReaperMonitorTest reaper remote control
+CLASS com.hp.mwtests.ts.arjuna.reaper.ReaperMonitorTest
+METHOD test()
+AT CALL TransactionReaper.insert
+BIND NOTHING
+IF TRUE
+DO createRendezvous("reaper1", 2, true)
+ENDRULE
+
+# ReaperMonitorTest wants to delay the reaper check until it has inserted
+# a reapable
+
+RULE ReaperMonitorTest unlatch reaper thread
+CLASS com.hp.mwtests.ts.arjuna.reaper.ReaperMonitorTest
+METHOD test()
+AFTER CALL TransactionReaper.insert
+BIND NOTHING
+IF TRUE
+DO debug("reaper1"),
+   rendezvous("reaper1"),
+   # ensure timed out
+   delay(1000),
+   debug("reaper1"),
+   rendezvous("reaper1")
+ENDRULE
+
+#########################################################################
+# ReaperTestCaseControl provides methods used by its three
+# ReaperTestCase<N> subclasses to enable, disable and trigger rule
+# activity during the course of the test.
+
+RULE ReaperTestCaseControl enable trigger rendezvous
+CLASS com.hp.mwtests.ts.arjuna.reaper.ReaperTestCaseControl
+METHOD enableRendezvous(Object, boolean)
+AT ENTRY
+BIND NOTHING
+IF TRUE
+DO createRendezvous($1, 2, $2)
+ENDRULE
+
+RULE ReaperTestCaseControl disable trigger rendezvous
+CLASS com.hp.mwtests.ts.arjuna.reaper.ReaperTestCaseControl
+METHOD disableRendezvous(Object)
+AT ENTRY
+BIND NOTHING
+IF TRUE
+DO deleteRendezvous($1, 2)
+ENDRULE
+
+# if the supplied string matches a known rendezvous then trigger it
+
+RULE ReaperTestCaseControl rendezvous
+CLASS com.hp.mwtests.ts.arjuna.reaper.ReaperTestCaseControl
+METHOD triggerRendezvous(Object)
+AT ENTRY
+BIND thread = Thread.currentThread()
+IF isRendezvous($1, 2)
+DO debug("" + $1 + " " + thread),
+   rendezvous($1),
+   return
+ENDRULE
+
+RULE ReaperTestCaseControl rendezvous 2
+CLASS com.hp.mwtests.ts.arjuna.reaper.ReaperTestCaseControl
+METHOD triggerRendezvous(Object)
+AT ENTRY
+BIND NOTHING
+IF NOT isRendezvous($1, 2)
+DO throw RuntimeException("invalid rendezvous for trigger " + $1)
+ENDRULE
+
+# trigger a delay
+
+RULE ReaperTestCaseControl wait
+CLASS com.hp.mwtests.ts.arjuna.reaper.ReaperTestCaseControl
+METHOD triggerWait(int)
+AT ENTRY
+BIND NOTHING
+IF TRUE
+DO debug("wait " + $1),
+   delay($1),
+   return
+ENDRULE
+
+RULE ReaperTestCaseControl check and clear
+CLASS com.hp.mwtests.ts.arjuna.reaper.ReaperTestCaseControl
+METHOD checkAndClearFlag(Object)
+AT ENTRY
+BIND value = flagged($1)
+IF TRUE
+DO debug("setAndClear(" + $1 + ") => " + value),
+   clear($1),
+   return value
+ENDRULE
+
+#########################################################################
+# ReaperTestCase wants to ensure that the reaper is single stepped
+# through processing of inserted reaper elements
+#
+
+# debug tracing rules
+# RULE ReaperTestCase trace element remove
+# CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+# METHOD doCancellations
+# AT CALL removeElement
+# BIND NOTHING
+# IF TRUE
+# DO debug("removing reapable " + $e)
+# ENDRULE
+
+# RULE ReaperTestCase trace element add
+# CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+# METHOD check
+# AT CALL List.add
+# BIND NOTHING
+# IF TRUE
+# DO debug("adding reapable " + $e)
+# ENDRULE
+
+#########################################################################
+# ReaperTestCase3 wants the reaper and reaper worker threads to
+# be suspended until it has reset the timeouts for the reapables
+# to zero forcing them to be cancelled early
+#
+
+RULE ReaperTestCase3 unlatch reaper and reaper worker
+CLASS com.arjuna.ats.arjuna.coordinator.TransactionReaper
+METHOD shutdown
+AT CALL wait
+BIND NOTHING
+IF TRUE
+DO debug("removing latches on reaper and reaper worker"),
+   deleteRendezvous("reaper1", 2),
+   deleteRendezvous("reaperworker1", 2)   
+ENDRULE
+```
+
+***recovery.txt***
+
+```python
+########################################################################
+#
+# byteman script used to ensure that tests can synchronize with various
+# actions performed by the recovery code
+
+#########################################################################
+# rules to identify progress of the periodic recovery listener thread
+#
+
+# if a test has set up a rendezvous under key "PR listener run" then
+# flag the listener so that it enters the rendezvous when it starts runnning
+
+RULE periodic recovery set up listener for rendezvous
+CLASS com.arjuna.ats.internal.arjuna.recovery.PeriodicRecovery
+METHOD <init>
+AT CALL  Listener.start
+BIND pr : PeriodicRecovery = $0
+IF isRendezvous("PR listener run", 2)
+DO debug("flagging PR listener"),
+   flag(pr.getListener())
+ENDRULE
+
+# if the listener has been flagged then make it enter
+# the PR run rendezvous just before calling accept
+
+RULE listener rendezvous at run
+CLASS com.arjuna.ats.internal.arjuna.recovery.Listener
+METHOD run()
+AT ENTRY
+BIND listener : Listener = $0
+IF flagged(listener) && isRendezvous("PR listener run", 2)
+DO debug("listener rendezvous at PR listener run"),
+   rendezvous("PR listener run")
+ENDRULE
+
+#########################################################################
+#
+# rules appropriate to specific tests
+
+#########################################################################
+# RecoveryManagerStartStopTest wants to rendezvous at the point where
+# the periodic recovery worker service has started running
+#
+
+# set up the PR listener rendezvous and add a rendezvous
+# for the Connection class to enter once it is started
+
+RULE RecoveryManagerStartStopTest create rendezvous
+CLASS com.hp.mwtests.ts.arjuna.recovery.RecoveryManagerStartStopTest
+METHOD testStartStop()
+AT ENTRY
+BIND NOTHING
+IF TRUE
+DO debug("create rendezvous for PR listener run"),
+   createRendezvous("PR listener run", 2),
+   createRendezvous("RecoveryManagerStartStopTest Connection run", 3),
+   createJoin("Listener Connection", 2)
+ENDRULE
+
+# rendezvous with the PR listener to make sure it has started before
+# any listener clients are added
+
+RULE RecoveryManagerStartStopTest rendezvous before adding clients
+CLASS com.hp.mwtests.ts.arjuna.recovery.RecoveryManagerStartStopTest
+METHOD testStartStop()
+AT CALL addRecoveryClient
+BIND NOTHING
+IF TRUE
+DO debug("RecoveryManagerStartStopTest rendezvous at PR listener run"),
+   rendezvous("PR listener run")
+ENDRULE
+
+# make the connection threads rendezvous with the test thread
+
+RULE RecoveryManagerStartStopTest connection rendezvous at run
+CLASS com.arjuna.ats.internal.arjuna.recovery.Connection
+METHOD run()
+AT CALL doWork
+BIND NOTHING
+IF isRendezvous("RecoveryManagerStartStopTest Connection run", 3)
+DO debug("connection rendezvous at doWork"),
+   rendezvous("RecoveryManagerStartStopTest Connection run")
+ENDRULE
+
+# make the test threads rendezvous with the connection thread
+# this ensures the shutdown does not happen until the connection threads
+# have started running
+
+RULE RecoveryManagerStartStopTest rendezvous after client connections started
+CLASS com.hp.mwtests.ts.arjuna.recovery.RecoveryManagerStartStopTest
+METHOD testStartStop()
+AFTER CALL addRecoveryClient 2
+BIND NOTHING
+IF TRUE
+DO debug("RecoveryManagerStartStopTest rendezvous after 2nd addRecoveryClient"),
+   rendezvous("RecoveryManagerStartStopTest Connection run")
+ENDRULE
+
+# The listener code gets notified that its connection thread is exiting but does not
+# bother to join the thread at shutdown since it would also be forced to join all other
+# threads during normal operation. it avoids doing this because it is waiting in an
+# accept and so can only be woken via an interrupt -- a pointless waste of CPU. however for
+# testing we want to be sure that the connection thread has actually exited. so we
+# use a joiner to join the connection threads from the listener thread.
+# the connection threads register themselves when they run the listener
+# callback by calling the helper method joinEnlist(key). the listener thread joins
+# N enlisted threads by calling the helper method joinWait(key, N). The Object
+# supplied as key must match.
+
+RULE listener join wait
+CLASS com.arjuna.ats.internal.arjuna.recovery.Listener
+METHOD run()
+AT RETURN
+BIND NOTHING
+IF isJoin("Listener Connection", 2)
+DO debug("Listener Connection calling joinWait 2 " + Thread.currentThread()),
+   joinWait("Listener Connection", 2),
+   debug("Listener Connection called joinWait 2 " + Thread.currentThread())
+ENDRULE
+
+RULE connection join enlist
+CLASS com.arjuna.ats.internal.arjuna.recovery.Listener
+METHOD removeConnection
+AT RETURN
+BIND NOTHING
+IF joinEnlist("Listener Connection")
+DO debug("Listener Connection joinEnlist " + Thread.currentThread())
+ENDRULE
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

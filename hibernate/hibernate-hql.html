@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate HQL</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+<table>
+    <tr>
+        <td>连接类型</td>
+        <td>HQL语法</td>
+    </tr>
+    <tr>
+        <td>内连接</td>
+        <td>inner join 或 join</td>
+    </tr>
+    <tr>
+        <td>迫切内连接</td>
+        <td>inner join fetch 或 join fetch</td>
+    </tr>
+    <tr>
+        <td>左外连接</td>
+        <td>left outer join 或 left join</td>
+    </tr>
+    <tr>
+        <td>迫切左外连接</td>
+        <td>left outer join fetch 或 left join fetch</td>
+    </tr>
+    <tr>
+        <td>右外连接</td>
+        <td>right outer join 或 right join</td>
+    </tr>
+</table>
+
+<text>
+┌──────────────┬──────────────────────────────────────────┐
+│ 连接类型     │ HQL语法                                  │
+├──────────────┼──────────────────────────────────────────┤
+│ 内连接       │ inner join 或 join                       │
+├──────────────┼──────────────────────────────────────────┤
+│ 迫切内连接   │ inner join fetch 或 join fetch           │
+├──────────────┼──────────────────────────────────────────┤
+│ 左外连接     │ left outer join 或 left join             │
+├──────────────┼──────────────────────────────────────────┤
+│ 迫切左外连接 │ left outer join fetch 或 left join fetch │
+├──────────────┼──────────────────────────────────────────┤
+│ 右外连接     │ right outer join 或 right join           │
+└──────────────┴──────────────────────────────────────────┘
+</text>
+
+内连接，查询2张表公共的数据
+
+***```内连接查询```***
+
+![内连接查询](./images/hibernate-hql/hibernate-hql-query-001.png)
+
+```java
+/**
+ * 内联接查询
+ */
+private static void test_inner_join() {
+    // 面向对象方式导航的写法
+    // select e.*,d.* from emp e inner join dept d on e.deptno = d.deptno;
+    // 查询到的每一行的结果是 员工 和 部门
+    // 查询到的对象都已经建立关联关系的引用
+    String HQL = "from Emp e inner join e.dept";
+    Session session = HibernateUtil.currentSession();
+    Query query = session.createQuery(HQL);
+    // 一条 Emp 记录对应一条 Dept 记录存储在 Object 数组中
+    List<Object[]> list = query.list();
+    List<Emp> empList = new ArrayList<Emp>();
+    for (Object[] objects : list) {
+        // objects[0] == Emp
+        // objects[1] == Dept
+        System.out.println(((Emp) objects[0]).getEname() + "===="
+                + ((Dept) objects[1]).getDname());
+    }
+    HibernateUtil.closeSession();
+}
+```
+
+***```内连接查询结果```***
+
+```python
+舰娘====就业部
+宫卫士郎====就业部
+张三====就业部
+李四====就业部
+消防====就业部
+消了====天台
+四季====天台
+任免====某天台
+```
+
+***```迫切内连接```***
+
+![迫切内连接](./images/hibernate-hql/hibernate-hql-query-002.png)
+
+```java
+/**
+ * 迫切内连接
+ */
+private static void test_inner_join_fetch() {
+    // 面向对象方式导航的写法
+    // 使用迫切内连接时只返回员工对象集合,但是查询到的员工对象与部门对象建立关联关系的引用
+    String HQL = "from Emp e inner join fetch e.dept";
+    Session session = HibernateUtil.currentSession();
+    Query query = session.createQuery(HQL);
+    List<Emp> empList = query.list();
+    for (Emp emp : empList) {
+        System.out.println((emp.getEname() + "====" + emp.getDept()
+                .getDname()));
+    }
+    HibernateUtil.closeSession();
+}
+```
+
+***```迫切内连接查询结果```***
+
+```python
+舰娘====就业部
+宫卫士郎====就业部
+张三====就业部
+李四====就业部
+消防====就业部
+消了====天台
+四季====天台
+任免====某天台
+```
+
+***```隐式内联```***
+
+![隐式内联](./images/hibernate-hql/hibernate-hql-query-003.png)
+
+```java
+/**
+ * 隐式内联
+ */
+private static void test_Hidden_Join() {
+    // 使用隐式内连接时同样只返回员工对象集合，同样与部门对象建立关联关系的引用
+    String HQL = "from Emp e where e.dept.dname = '就业部' ";
+    Session session = HibernateUtil.currentSession();
+    Query query = session.createQuery(HQL);
+    List<Emp> empList = query.list();
+    for (Emp emp : empList) {
+        System.out.println((emp.getEname() + "====" + emp.getDept()
+                .getDname()));
+    }
+    HibernateUtil.closeSession();
+}
+```
+
+***```隐式内联查询结果```***
+
+```python
+舰娘====就业部
+宫卫士郎====就业部
+张三====就业部
+李四====就业部
+消防====就业部
+```
+
+***```左链接查询```***
+
+![左链接查询](./images/hibernate-hql/hibernate-hql-query-004.png)
+
+```java
+/**
+ * 左连接查询
+ *
+ * 将查询到所有左边表的数据全部查询出来，右边没有的补空
+ * 
+ * 查询到的对象都已经建立关联关系的引用
+ * 
+ */
+private static void test_left_join() {
+    String HQL = "from Emp e left join e.dept";
+    Session session = HibernateUtil.currentSession();
+    Query query = session.createQuery(HQL);
+    // 返回 Emp 和 Dept 对象数组集合
+    List<Object[]> list = query.list();
+    for (Object[] objects : list) {
+        System.out.println(((Emp) objects[0]).getEname() + "===="
+                + ((Dept) objects[1]).getDname());
+    }
+    HibernateUtil.closeSession();
+}
+```
+
+***```左链接查询查询结果```***
+```python
+消防====就业部
+李四====就业部
+张三====就业部
+宫卫士郎====就业部
+舰娘====就业部
+四季====天台
+消了====天台
+任免====某天台
+我还====NullPointException
+```
+
+***```迫切左链接```***
+
+![迫切左链接](./images/hibernate-hql/hibernate-hql-query-005.png)
+
+```java
+/**
+ * 迫切左连接
+ * 
+ * 使用迫切左连接时只返回 LEFT 语句左边的员工对象集合，右边没有的补空
+ * 
+ * 查询到的对象都已经建立关联关系的引用
+ */
+private static void test_left_join_fetch() {
+    String HQL = "from Emp e left join fetch e.dept";
+    Session session = HibernateUtil.currentSession();
+    Query query = session.createQuery(HQL);
+    // 返回 Emp 对象集合
+    List<Emp> empList = query.list();
+    for (Emp emp : empList) {
+        System.out.println((emp.getEname() + "====" + emp.getDept()
+                .getDname()));
+    }
+    HibernateUtil.closeSession();
+}
+```
+
+***```迫切左链接查询结果```***
+```python
+消防====就业部
+李四====就业部
+张三====就业部
+宫卫士郎====就业部
+舰娘====就业部
+四季====天台
+消了====天台
+任免====某天台
+我还====NullPointException
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

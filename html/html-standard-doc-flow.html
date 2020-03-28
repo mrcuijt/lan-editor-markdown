@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Standard DOC Flow</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 标准文档流
+
+&amp;#160; &amp;#160;**文档流：将窗体自上而下分成一行一行，并在每行中按从左至右的挨次排放元素，即为文档流。**
+
+&amp;#160; &amp;#160;每个非浮动的块级元素都独有一行。浮动元素则按规则浮在行的一端，若当时行容不下，则另起一行再浮动。内联元素也不会独有一行。一切元素(包括块级，内联和列表元素)均可生成子行，用于摆放子元素。有三种情况将使得元素离开文档流而存在，分别是浮动、固定定位。
+
+然在 IE 中浮动元素也存在于文档流中。
+
+&amp;#160; &amp;#160;**浮动元素不占任何正常文档流空间，而浮动元素的定位照样基于正常的文档流，然后从文档流中抽出并尽能够远的挪动至左侧或许右侧。当一个元素脱离正常文档流后，依然存在文档流中的其他元素将忽略该元素并填补其原先的空间。**
+
+基于文档流，理解以下的定位形式：
+
+ - **相对定位**：元素框偏移某个距离。元素仍保持其为定位前的形状，它原本所占的空间仍保留。
+ 
+ - **绝对定位**：即完全离开文档流，相当于 position 属性非 static 的值子元素对其父级元素进行偏移。
+ 
+ - **固定定位**：即完全离开文档流，相当于视区进行偏移。
+
+&amp;#160; &amp;#160;文档流是文档中可显示对象在排列时所占用的位置。比如网页的 div 标签它默认占用的宽度位置是一整行，p 标签默认占用宽度也是一整行，因为 div 标签和 p 标签是块状对象。
+
+&amp;#160; &amp;#160;网页中大部分对象是默认占用文档流，也有一些对象不占文档流，这就要用到 CSS 中属性 position 来控制。
+
+CSS 2.0 对 position 的定义：检索对象的定位方式。共有 4 中取值。
+
+ - **absolute**：绝对定位。将对象从文档流中拖出，使用 left , right ,top ,bottom ,等属性相对于其最接近的一个最有定位设置的父对象进行绝对定位。如果不存在这样的父对象，则依据 body 对象。而其层叠通过 z-index 属性定义。当对象定位在浏览器窗口以外，浏览器因此显示滚动条。
+
+ - **fixed**：固定定位。对象定位遵从绝对(absolute)方式。但是要遵守一些规范。当对象定位在浏览器窗口外，浏览器不会因此显示滚动条，而当滚动条滚动时，对象始终固定在原来位置。
+
+ - **relative**：相对定位。对象不可层叠，但将依据 left , right , top , bottom 等属性正在正常文档流中偏移位置。当对象定位在浏览器窗口以外，浏览器因此显示滚动条。
+
+ - **static**：元素框正常生成。块级元素生成一个矩形框，作为文档流的一部分，行内元素则会创建一个或多个行框，置于其父元素中。
+
+ - **inherit**：继承值，对象将继承其父对象相应的值。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

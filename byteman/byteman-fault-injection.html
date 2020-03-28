@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Byteman 的故障注入测试</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Byteman 的故障注入测试
+
+#### 什么是故障注入测试？
+
+&amp;#160; &amp;#160;故障注入是一种可用于进行测试，更简单，更清晰和更可靠的技术。它涉及在一个或多个特定位置更改测试中的应用程序代码，以便在控制在测试期间到达该点时执行附加代码（或者可能是替代代码）。通过仔细选择您引入的副作用并通过包含适当的条件来控制它们何时运行，可以模拟异常或错误情况的复杂测试场景，迫使测试沿着代码路径处理这些异常情况。这在尝试测试具有时序依赖性的代码时尤其有用，特别是多线程代码。
+
+&amp;#160; &amp;#160;故障注入的一个优点是它通常比其他形式的测试（例如编写测试工具或实现模拟组件）需要更少的工作量。通常只需几行注入代码即可确保执行所需的测试方案。这样做的一个有益结果是，测试运行主要是运行真正的应用程序代码而不是为了运行测试而引入的代码。这限制了测试代码引入或掩盖错误或影响内存占用和时序的机会。
+
+&amp;#160; &amp;#160;故障注入的使用通常也意味着可以从应用程序中省略许多允许测试设置和验证测试场景所需的锅炉板仪表代码。相反，只能在每个特定测试需要的地方注入检测代码。Byteman 提供了进一步的优势，它注入的任何代码都可以绕过控制对非公共方法或字段的访问的正常隐私限制。这改进了常规测试，其中通常不可能在不包括访问器方法的情况下验证私有行为或数据，然后将访问器方法作为部署的应用程序的一部分发送。
+
+&amp;#160; &amp;#160;故障注入测试通常依赖于使用在源文件或二进制文件上运行的某种排序或代码重写方案来脱机转换应用程序。但是，使用基于字节码的虚拟机（如 JVM），还可以通过在加载时或甚至可能在加载后修改字节码来动态地将更改注入测试代码。虽然这听起来既复杂又昂贵，但 JVM 的 Java 代理功能使得修改应用程序字节码变得简单而且便宜，或者，如果需要，还可以修改属于 Java 运行时类的字节码。动态转换具有额外的优势，即应用程序和 JVM 类可以仅在特定测试期间重新定义，注入特定的任何故障或仪器更改，然后在之后取消注意这些更改。这意味着在单个测试运行中，您可以重新定义应用程序行为的不同方面，以执行许多不同的测试方案。相比之下，使用脱机源或二进制转换需要维护从不同版本的源构建的应用程序的几个不同版本，或者重写然后重建应用程序代码，或者至少在测试运行之间重建它的一些子集。
+
+#### 我能看到一个简单的故障注入示例吗？
+
+&amp;#160; &amp;#160;本教程系列的第二部分提供了几个非常简单的故障注入示例。他们使用 Byteman 注入代码，该代码模拟 Java 运行时的 FileStream 例程中的失败。这用于测试编写非常基本的Web页面的小型测试应用程序的错误处理功能。如果您还没有看过该教程，那么在阅读本教程的其余部分之前，现在可能更好。
+
+&amp;#160; &amp;#160;本教程探讨了故障注入的更复杂用途，其中可靠的自动化测试几乎不可能以任何其他方式实现。每个应用程序都使用多个线程，并使用 Java 运行时类链接它们，这些类封装了用于共享输入和输出的数据流。因此，这意味着应用程序无法轻松控制操作的时间或提供对数据和数据流管理的访问。所有这些都使传统的测试方法难以应用。本教程首先介绍如何使用 Byteman 使用跟踪规则使控件和数据流可见。然后继续显示如何使用故障注入来修改控制流和时序，
+
+#### 示例管道处理器应用程序
+
+&amp;#160; &amp;#160;在本文的最后，您将找到有关如何下载和安装应用程序源，库类和测试代码以及​​使用 Byteman 测试它所需的 Byteman 规则脚本和库的详细信息。源被组织为 maven 项目，包括应用程序源子模块和三个测试模块。但是，源代码树还包含 ant 构建脚本，允许您编译和打包源代码并使用 ant 运行测试。本教程的其余部分将指导您完成执行每个操作所需的步骤。
+
+&amp;#160; &amp;#160;下载并解压缩应用程序源后，请查看子目录应用程序。它包含应用程序库类和一些运行库的主程序类。如果要构建库，可以运行命令
+
+```python
+> mvn package
+
+. . .
+```
+
+在顶级目录中。或者，如果您使用 ant，则可以运行命令
+
+```python
+> ant build
+
+. . .
+```
+
+&amp;#160; &amp;#160;这应该在子目录 app 中创建一个名为 target 的目录，在其中你应该找到一个名为 bmunit-tutorial2-app-1.0.0.jar 的 jar
+
+要运行示例应用程序，请更改到 app 目录并运行任何主类。例如：
+
+```python
+> cd app
+
+> java -classpath target/bmunit-tutorial2-app-1.0.0.jar \
+
+      org.my.app.PipelineAppMain1
+```
+
+以下示意图描述了程序 PipelineAppMain1 使用的管道：
+
+![title](./images/byteman-fault-injection/byteman-fault-injection-001.png)
+
+```python
+[source]    FileSource "foo.txt"
+
+                |
+
+                v
+
+[pipe 0]    PatternReplacer "adinn" --> "msmith"
+
+                |
+
+                v
+
+[pipe 1]    TeeProcessor    --->      FileSink "bar1.txt"    [sink 1]
+
+                |
+
+                v
+
+[pipe 2]    PatternReplacer "[Aa]ndrew" --> "Michael"
+
+                |
+
+                v
+
+[pipe 3]    TeeProcessor    --->      FileSink "bar2.txt"    [sink 2]
+
+                |
+
+                v
+
+[pipe 4]    PatternReplacer "(.*)[Dd]inn(.*)" =--> "\\2Smith\\1"
+
+                |
+
+                v
+
+[sink 0]    FileSink "bar.txt"
+```
+
+&amp;#160; &amp;#160;应用程序使用管道库提供的 4 个 Processor 实现类（在 org.my.pipeline.impl 包中）构建其管道，如图中蓝色所示。这些实现类中的每一个都是 Thread 的子类，并且有自己的 run 方法，它实现为主循环。它们各自代表一个独立的过程，它独立地消耗输入数据流或产生输出数据流（在处理器具有输入和输出链接的情况下）。链接图中显示的处理器实例的箭头为红色是用于从一个处理器向下一个处理器提供值的数据流。每个链路通过属于上游处理器的 PipedWriter 实现，该上游处理器馈送属于下游处理器的 PipedReader。绿色标签标识处理器的类型，要么是将数据提供给管道的源，要么在管道末端累积数据的接收器，要么是管道元素，它读取输入流并将其转换为产生一个（或更多）输出流。
+
+&amp;#160; &amp;#160;在这种情况下，管道以单个 FileSource 开始，该 FileSource 生成从文件 foo.txt 读取的文本字符流。终止管道的处理器都是 FileSink 类的  实例。他们每个人只是将其传入文本字符流转储到磁盘上的文件，特别是文件 bar.txt，bar1.txt 和 bar2.txt。
+
+&amp;#160; &amp;#160;阵列的第 0,2 和 4 阶段的处理器是 PatternReplacer 的实例。此类从其输入流中读取连续的文本行，用替换文本替换匹配模式的出现，然后将替换文本写入其输出流。第一个 PatternReplacer 执行简单替换，用 “msmith” 替换 “adinn” 的出现。第二个PatternReplacer使用实际正则表达式作为其模式，匹配 “Andrew” 或 “andrew” 的出现。替换文本是简单的字符串 “Michael”。第三个 PatternReplacer 使用多模式，使用两个括号内的子模式来匹配输入文本的特定元素。使用替换形式 "\\1" 和 "\\2" 将这些元素替换回输出文本。因此，例如，文本  "    Michael Dinn" 将被替换为 "Smith    Michael "。
+
+&amp;#160; &amp;#160;管道阶段 1 和 3 是 TeeProcessor 的实例，TeeProcessor 是用于在管道中创建分支（也称为 Tee）的类。此处理器不会更改其输入流中的数据。相反，它只是将输入的相同副本转发到其两个输出流中的每一个。
+
+&amp;#160; &amp;#160;应用程序主例程创建管道元素，按照正确的顺序将它们链接在一起，然后调用 Thread.start 来运行每个处理器。FileSource 将数据推送到管道中。每个中间处理器读取输入数据，对其进行转换并将其传递给下一个处理器。最后，FileSink 实例将传入的文本转储到磁盘文件。一旦所有线程退出并被主线程文件 bar1.txt 连接应该包含应用了第一个替换的原始文件文本的转储，文件 bar2.txt 应该包括第一个和第二个替换，bar.txt 应该包括所有 3 个替换。运行程序后，您可以比较文件以查看每个替换阶段如何引入对文本的更改：
+
+```python
+> diff foo.txt bar1.txt
+
+15c15
+
+<    adinn
+
+---
+
+>    msmith
+
+> diff bar1.txt bar2.txt
+
+6c6
+
+<    Andrew is a member of the Red Hat JVM development team and also
+
+---
+
+>    Michael is a member of the Red Hat JVM development team and also
+
+10c10
+
+<    Andrew has been writing system software for over 25 years, 10 of
+
+---
+
+>    Michael has been writing system software for over 25 years, 10 of
+
+17c17
+
+<    andrew dinn
+
+---
+
+>    Michael dinn
+
+> diff bar2.txt bar.txt
+
+17c17
+
+<    Michael dinn
+
+---
+
+> Smith    Michael
+```
+
+如您所见，特定的正则表达式模式匹配，并由每个管道阶段的替换文本替换。
+
+&amp;#160; &amp;#160;您可以尝试的其他主要类是 PipelineAppMain2 和 PipelineAppMain3。他们使用更复杂的匹配和替换模型（将在本教程后面解释）来跨多行执行匹配和替换。后面这些类使用 String 输入并生成 String 输出，因此主例程可以打印输入，中间结果和输出到 System.out。您现在可以浏览这些类以了解它们的作用或阅读本教程的其余部分，这将逐步解释它们的行为。
+
+#### 一个非常测试的问题
+
+&amp;#160; &amp;#160;本教程选择了管道库，因为它为计时和通信错误提供了一些有趣的机会，并且很难使用传统方法进行调试或测试。应用程序管道的每个阶段都是一个单独的线程，并且无法保证管道的一个元素执行的操作将在下游管道元素中发生的操作之前或之后发生。显然，在上游处理器使其可用之前，处理器不能转换输入线。但是，不能保证下游处理器在后续行处理之前或之后处理给定的输入行并由上游处理器提供。通过长管道操作可以在许多不同的订单中发生。那'
+
+&amp;#160; &amp;#160;测试此代码的另一个困难是使用一对 PipedWriter 和 PipedReader 实例将数据从线程传递到线程。这些 Java 运行时类完全封装了应用程序中不同线程之间的数据传输。它们无法在执行期间的任何给定点识别管道中缓冲的数据，也无法控制从写入器到读取器的传播方式和时间。这使得很难控制测试的进度，确保在测试期间实际实现并验证在部署时可能发生的特定排序。
+
+&amp;#160; &amp;#160;即使您放弃自动化测试并尝试使用调试器来验证此应用程序的正确操作，也很难确保所有操作都正确并且以所有可能的顺序运行。如果您尝试停止一个线程以查看它正在执行的操作，那么当您逐步执行特定阶段的操作时，所有其他上游管道线程以及下游管道中的任何线程仍然有待处理的数据将继续运行。更有甚者，当多个线程运行相同的代码而破坏特定方法意味着您通常最终必须同时单步执行多个线程。
+
+&amp;#160; &amp;#160;管道类的实现可以通过提供执行模式来帮助执行不同的顺序和验证正确的操作，该执行模式支持在处理数据时检查数据和/或对管道元素的执行进行排序。然而，由于两个原因，这是没有吸引力的。首先，使用过程数据流模型的主要吸引力是尝试通过并行执行操作来获得性能提升。如果在关闭串行执行时不降低应用程序的速度，则很难添加对串行执行的支持。即使可以避免这种减速，串行与并行执行模式的存在也可能在全球范围内发生变化应用程序运行的方式，因此使测试不太现实。对执行的特定有限修改仅控制给定测试场景的操作时序，这将更好，因为它仍将在部署时观察到的条件下运行大多数应用程序代码。
+
+&amp;#160; &amp;#160;第二个问题是提供代码钩子，例如，允许序列化执行或者应该对应用程序私有的数据暴露使得部署的代码比实际需要的更笨重，更复杂和更不安全。这可能会对性能产生影响，也可能会影响可重用性和可维护性。在测试时注入代码以仅提供给定测试场景所需的有限控制或数据可访问性，避免了这些风险。
+
+#### 管道核心类
+
+&amp;#160; &amp;#160;为了展示我们如何测试管道库，首先需要了解它是如何实现的。该库分为两个包，core 和 impl，我们将首先看一下核心类。一旦理解了它们就很容易理解 impl 包中的类是如何构建的，实际上是用新的 impl 类扩展库。
+
+核心类的类和接口层次结构是一个很好的起点。这是主要类和接口的简单原理图：
+
+![title](./images/byteman-fault-injection/byteman-fault-injection-002.png)
+
+```textarea
+.------------.                              .-----------------------.
+
+| Source     |              +--------+      | Sink                  |
+
+| feed(Sink) |              | Thread |      | setInput(PipedReader) |
+
+'------------'              +----+---+      '-----------------------'
+
+    \      \                    |              /            /
+
+      \    +----------------------+---------------------+    /
+
+      \  |  \____________      |      ______/      |  /
+
++-------\--+---------+  +---\----+-----/----+  +-------+--/--------+
+
+| SourceProcessor    |  | PipelineProcessor |  | SinkProcessor    |
+
+| run()              |  | run()            |  | run()            |
+
+| produce()          |  | processPipeline() |  | consume()        |
+
+| PipedWriter output |  | input      output |  | PipedReader input |
+
++--------------------+  +--------+----------+  +-------------------+
+
+                                  |
+
+                        +--------+----------+
+
+                        | TextLineProcessor |
+
+                        | transform(String) |
+
+                        +-------------------+
+```
+
+&amp;#160; &amp;#160;Java 类名称为棕色，它们之间的扩展关系由  红色链接显示。Java 接口名称为绿色，它们之间的实现链接和类由  蓝色链接显示。每个名称下面列出了属于每个类/接口的最重要的字段和方法。
+
+&amp;#160; &amp;#160;接口源和接收器定义了一个协议，用于将上游源连接到下游接收器，并且该协议在创建时依赖。管道元素按数据流的顺序构建。因此，当创建一个Sink时，它的构造函数将提供它的上游 Source 作为参数。此时所需的步骤是上游源建立到其下游接收器的链路。该协议期望 Sink 的构造函数调用 Source.feed（this）将其自身作为参数传递。该源创建 PipedWriter，它在现场输出中存储。它将它连接到 PipedReader 并回调到 Sink.setInput（pipedReader），从而将下游 Sink 传递给 PipedReader 上的句柄。该水槽专卖店这位读者在外地输入。因此，源现在能够将数据写入到输出该水槽可以读取输入。
+
+&amp;#160; &amp;#160;库中的三个主要类是抽象类，它们实现 Source 或 Sink 协议。类 PipelineProcessor 实现了这两种协议，因为它抽象了接受输入和生成输出所需的行为。所有这三个子类都扩展了 Thread，提供了自己的方法 run() 实现。因此，这些抽象类封装了创建输入和输出链接，处理 IO 异常以及调度输入和输出处理的工作。它们将输入和/或输出数据的实际读取和/或写入委托给它们的子类必须定义的抽象方法。
+
+作为示例，以下是 SourceProcessor 类的一些源代码：
+
+```java
+public class SourceProcessor extends thread implements Source {
+
+    PipedWriter output;
+
+    public feed(Sink sink) throws IOException {
+
+        if (output != null) {
+
+            throw new IOException("output already connected");
+
+        }
+
+        output = new PipedWriter();
+
+        sink.setInput(new PipedReader(output));
+
+    }
+
+    public abstract void produce() throws IOException;
+
+    public void run() {
+
+        if (output==null) { //nothing to do
+
+            return;
+
+        }
+
+        try {
+
+            produce();
+
+        } catch (IOException ioe) {
+
+            ioe.printStackTrace();
+
+        } finally {
+
+            try {
+
+                output.close();
+
+            } catch (IOException ioe) {
+
+                ioe.printStackTrace();
+
+            }
+
+        }
+
+    }
+
+    . . .
+```
+
+&amp;#160; &amp;#160;SourceProcessor 的子类只需实现产生，将数据写入输出，然后在没有更多项目发布时关闭输出。SourceProcessor 实现的一个示例是类 CharSequenceSink，它从 CharSequence（这是一个由类 String 实现的接口）中写入数据。
+
+```java
+public class CharSequenceSource extends SourceProcessor
+
+{
+
+    CharSequence charseq;
+
+    public CharSequenceSource(CharSequence charseq) throws IOException {
+
+        super();
+
+        this.charseq = charseq;
+
+    }
+
+    @Override public void produce() throws IOException {
+
+        if (charseq instanceof String) {
+
+            output.write((String) charseq);
+
+        } else {
+
+            int l = charseq.length();
+
+            for (int i = 0; i < l; i++) {
+
+                output.write(charseq.charAt(i));
+
+            }
+
+        }
+
+    }
+
+}
+```
+
+&amp;#160; &amp;#160;另外两个抽象处理器类的操作类似。SinkProcessor.run 委托给抽象方法使用，而 PipelineProcessor.run 委托给抽象方法 processPipeline：
+
+```java
+public class SinkProcessor extends Thread implements Sink {
+
+    . . .
+
+    public void run()
+
+    {
+
+        if (input==null) { //nothing to do
+
+            return;
+
+        }
+
+        try {
+
+            consume();
+
+        } catch (IOException ioe) {
+
+            ioe.printStackTrace();
+
+        } finally {
+
+            try {
+
+                input.close();
+
+            } catch (IOException ioe) {
+
+                ioe.printStackTrace();
+
+            }
+
+        }
+
+    }
+
+    . . .
+```
+
+```java
+
+public class PipelineProcessor extends Thread implements Source, Sink {
+
+    . . .
+
+    public void run() {
+
+        boolean excepted = false;
+
+        if (input == null || output == null) {
+
+            throw new RuntimeException("unconnected pipeline");
+
+        }
+
+        try {
+
+            processPipeline();
+
+        } catch (IOException ioe) {
+
+            //ioe.printStackTrace();
+
+            // when we got an exception then we need try to close our
+
+            // input as well as our output otherwise we may leave our
+
+            // feeder thread sitting on a write to a full pipeline.
+
+            // so remember that this happened
+
+            excepted = true;
+
+        } finally {
+
+            try {
+
+                output.close();
+
+            } catch (IOException ioe) {
+
+                // only print this if we have not already printed another
+
+                // one. if we already excepted it might have been caused
+
+                // by the same stream
+
+                if (!excepted) {
+
+                    // ioe.printStackTrace();
+
+                }
+
+            }
+
+            if (excepted) {
+
+                try {
+
+                    input.close();
+
+                } catch (IOException ioe2) {
+
+                    // the input may be the source of the original exception
+
+                    //so don't bother to print this
+
+                }
+
+            }
+
+        }
+
+    }
+
+    . . .
+```
+
+#### PipelineProcessor 核心子类
+
+&amp;#160; &amp;#160;该库提供了两个扩展基类 PipelineProcessor 的核心类。第一个是类 TeeProcessor，用于将输入管道分成两个流：
+
+```java
+public class TeeProcessor extends PipelineProcessor {
+
+    protected PipedWriter output2;
+
+    public TeeProcessor(Source source) throws IOException {
+
+        super(source);
+
+        this.output2 = null;
+
+    }
+
+ 
+
+    /**
+
+    * TeeProcessor expects and will only accept two feed requests.
+
+    * @param sink
+
+    * @throws IOException
+
+    */
+
+    public void feed(Sink sink) throws IOException
+
+    {
+
+        if (output == null) {
+
+            super.feed(sink);
+
+        } else if (output2 == null) {
+
+            output2 = new PipedWriter();
+
+            sink.setInput(new PipedReader(output2));
+
+        } else {
+
+            throw new IOException("output already connected");
+
+        }
+
+    }
+
+ 
+
+    /**
+
+    * Copies the input stream to both output streams
+
+    * @throws RuntimeException if a second output has not been configured
+
+    */
+
+    public void processPipeline() throws IOException
+
+    {
+
+        if (output2 == null) {
+
+            throw new IOException("unconnected tee");
+
+        }
+
+ 
+
+        try {
+
+            int next = input.read();
+
+            while (next != -1) {
+
+                output.write(next);
+
+                output2.write(next);
+
+                next = input.read();
+
+            }
+
+        } finally {
+
+            output2.close();
+
+        }
+
+    }
+
+}
+```
+
+&amp;#160; &amp;#160;PipelineProcessor 还由位于核心包 TextLineProcessor 中的另一个抽象类扩展。这个子类在其输入文本上强加了一个行规则，提供了方法 processPipeline() 的实现，它循环，重复读取输入文本中的一行，处理它，然后将该行的（可能）转换版本附加到输出。它将实际处理委托给其子类，这些子类有望实现抽象方法 transform（String）。此方法将输入文本（省略行尾字符）作为参数，并返回已转换的行（如果可接受，则返回原始输入）作为要写入输出的值。 
+
+```java
+public abstract class TextLineProcessor extends PipelineProcessor {
+
+    . . .
+
+    public void processPipeline() throws IOException
+
+    {
+
+        TextLine lineBuffer = new TextLine(input);
+
+        String text = lineBuffer.readText();
+
+        while (text != null) {
+
+            text = transform(text);
+
+            output.write(text);
+
+            if (lineBuffer.isCrLf()) {
+
+                output.write('\r');
+
+                output.write('\n');
+
+            } else if (lineBuffer.isLf()){
+
+                output.write('\n');
+
+            }
+
+            text = lineBuffer.readText();
+
+        }
+
+    }
+
+
+
+    public abstract String transform(String line);
+
+    . . .
+
+
+```
+
+&amp;#160; &amp;#160;请注意，类 TextLineProcessor 依赖于辅助类 TextLine 来处理输入文本的解析并保留行尾约定的详细信息。
+
+#### 非核心库类
+
+&amp;#160; &amp;#160;库提供的所有剩余的 PipelineProcessor 子类都属于 impl 包，是 TextLineProcessor 的子类。PatternReplacer，我们之前在 PipelineAppMain1 实现中看到的类就是这样一个子类。这种对核心类中许多必要行为的抽象使得扩展库以添加新的管道处理器元素变得容易。类 PatternReplacer 不需要知道如何将自身连接到管道，也不需要知道如何读取或写入输入流或输出流的文本行，也不需要提供代码来处理 IO 异常。它所做的就是实现方法转换，接受 String 作为输入，查找模式匹配并在找到匹配时返回替换的 String，如果没有匹配则返回原始 String。
+
+&amp;#160; &amp;#160;类似地，从磁盘文件或 String（实际上，接口 CharSequence 将执行的任何实现）填充管道的输入类 FileSource 和 CharSequenceSource 也非常简单。只需要集中精力实施方法生产。同样，输出类 FileSink 和 CharSequence 只需要实现方法消耗，将输入数据转储到文件或使用 StringBuffer 将其收集到内存中。作为 SinkProcessor 实现的一个例子，这里是 CharSequenceSink 的代码。注意执行产品只有几行。大部分代码用于实现接口 CharSequence，允许在处理完成后检索接收器收集的文本。
+
+```java
+public class CharSequenceSink extends SinkProcessor implements CharSequence {
+
+    private StringBuffer buffer;
+
+    public CharSequenceSink(Source source) throws IOException {
+
+        super(source);
+
+        this.buffer = new StringBuffer();
+
+    }
+
+    public void consume() throws IOException {
+
+        int next = input.read();
+
+        while  (next >= 0) {
+
+            buffer.append((char) next);
+
+            next = input.read();
+
+        }
+
+    }
+
+    public int length() {
+
+        return buffer.length();
+
+    }
+
+    public char charAt(int index) {
+
+        return buffer.charAt(index);
+
+    }
+
+    public CharSequence subSequence(int start, int end) {http://github.com/adinn/bmunit-tutorial2/blob/master/app/src/main/java/org/my/pipeline/impl/PatternReplacer.java
+
+        return buffer.subSequence(start, end);
+
+    }
+
+    public String toString()
+
+    {
+
+        return buffer.toString();
+
+    }
+
+}
+```
+
+#### 管道库功能的简单测试
+
+&amp;#160; &amp;#160;示例应用程序包含一个名为 junit 的子目录，其中包含一个测试类 BytemanJUnitTests。它包含一个测试方法，testPipeline，其行使使用内置管道  PatternReplacer。以下是该方法如何创建其管道：
+
+```java
+@Test public void testPipeline() throws Exception
+
+{
+
+    System.out.println("testPipeLine:");
+
+    String input = "hello world! goodbye cruel world, goodbye!\n";
+
+    CharSequenceSource cssource = new CharSequenceSource(input);
+
+    PatternReplacer replacer = new PatternReplacer("world", "mum", cssource);
+
+    CharSequenceSink cssink = new CharSequenceSink(replacer);
+
+    . . .
+```
+
+&amp;#160; &amp;#160;在这个例子中，模式是一个简单的字符串 "world"，替换是另一个字符串 "mum"。这些值将传递给构造函数中的 PatternReplacer。输入文本由 CharSequenceSource 输入管道，CharSequenceSource 将字符从常量 String 下游写入行中的下一个管道处理器。注意如何 CharSequenceSource 作为在构造函数中的参数传递 PatternReplacer 使两个管道元件都可以连接。输出文本由 CharSequenceSink 收集，CharSequenceSink 将输入数据收集为一系列字符。它是用它构建的 PatternReplacer 作为其上游源。管道启动并完成处理后，可以通过调用其 toString() 方法检索 CharSequenceSink 收集的输出文本。
+
+测试方法如下
+
+```java
+    . . .
+
+    cssource.start();
+
+    replacer.start();
+
+    cssink.start();
+
+    cssource.join();
+
+    replacer.join();
+
+    cssink.join();
+
+    String output = cssink.toString();
+
+    assert(output.equals("hello mum! goodbye cruel mum, goodbye!\n"));
+
+}
+```
+
+&amp;#160; &amp;#160;测试例程必须等待所有三个管道阶段完成才能访问输出文本。断言确保 "world" 一词在每次出现时都被替换为 "mum"。所以，显然这个测试已经完成了。但是，即使它通过了这个也不是很有趣，不清楚测试实际上在做什么。更糟糕的是，如果失败了，我们就不知道它出了什么问题。
+
+#### 我们如何追踪管道活动？
+
+&amp;#160; &amp;#160;能够在运行此测试时查看正在发生的事情会很好，这样我们就可以看到线路何时被转换。我们可以在管道中插入一些 TeeProcessor 阶段，但这在几个方面都存在问题。首先，这意味着我们正在测试一个非常不同的管道。引入额外的管道阶段肯定会影响其他管道元素的时序，这也意味着我们感兴趣的阶段不会像在使用库构建的实际应用程序中那样直接相互馈送。
+
+&amp;#160; &amp;#160;其次，添加 TeeProcessor 阶段会使测试代码更加复杂，因为在测试中引入了元素，这些元素对于执行我们感兴趣的代码并不是真正必需的。此代码仅用于提供在测试期间监视执行的方法。如果我们能将这个仪器代码与驱动测试的代码分开，那将是很好的。
+
+&amp;#160; &amp;#160;第三，TeeProcessor 阶段可以向我们展示进入每个流水线阶段的内容或出现的内容，但是他们无法向我们展示任何中间状态来解释当每个管道元素处理其输入时发生的情况。事实上，对于这种应用，问题尤其困难。由于管道处理器是作为自包含线程实现的，因此测试线程在执行期间不能在不同阶段可靠地检查管道对象中的字段状态。这就要求它们提供某种同步机制，以便测试代码可以停止他们执行，识别他们的状态然后让他们继续。
+
+&amp;#160; &amp;#160;这三个问题不仅仅针对这个例子。它们几乎是所有被测应用程序的典型代表。幸运的是，我们可以使用一些 Byteman 解决所有这三个问题。我们可以在一个配置中注入源代码，接收器和模式替换器线程的特定行为的代码，这些代码更接近我们真正希望测试的配置，而不需要使用仪器例程来混淆我们的测试代码或实际的应用程序代码。
+
+我们将使用的跟踪规则包含在目录 junit/src/resources 中的脚本 trace.btm 中:
+
+```python
+# A rule which dumps the text passed to a CharSequenceSource when it is created
+
+RULE trace input characters
+
+CLASS CharSequenceSource
+
+METHOD <init>(CharSequence)
+
+AT EXIT
+
+IF TRUE
+
+DO traceln("#INPUT\n" + $1.toString() + "#END")
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;第一个规则转储创建 CharSequenceSource 时提供的输入文本。该文本用 #INPUT 和 #END 括起来，让我们可以看到正在输入管道的内容。
+
+```python
+# A rule which dumps the text stored in a CharSequenceSink
+
+# when it is retrieved
+
+RULE trace output characters
+
+CLASS CharSequenceSink
+
+METHOD toString()
+
+AT EXIT
+
+IF TRUE
+
+DO traceln("#OUTPUT\n" + $! + "#END")
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;这第二个规则转储由收集文本 CharSequenceSink 用括号 #OUTPUT 和 #END 当它是由测试程序检索，让我们看到从管道什么出现了。请注意，该规则在方法 toString() 调用结束时触发。它指的是使用特殊变量 $! 从调用返回的值。
+
+```python
+# A rule which traces replacements made by a PatternReplacer
+
+# if the returned line of text differs from the input line it
+
+# is dumped to System.out
+
+
+RULE dump pattern transformed text
+
+CLASS PatternReplacer
+
+METHOD transform(String)
+
+AT EXIT
+
+IF NOT $1.equals($!)
+
+DO traceln(" patternReplace(" + $1 + " -> " +$! +")")
+
+ENDRULE
+````
+
+&amp;#160; &amp;#160;此规则在类 PatternReplacer 的方法转换（String）调用结束时触发。条件将作为参数提供的文本行 $1 与返回值 $! 进行比较。。如果这两个字符串不同，则规则将触发并打印跟踪消息。如果线条相同则无效。
+
+最后，我们添加了一些允许我们查看管道线程启动和退出的规则
+
+```python
+# A rule which prints a trace message whenever a thread's run method is entered
+
+RULE trace Thread.run entry
+
+CLASS ^Thread
+
+METHOD run()
+
+AT ENTRY
+
+IF TRUE
+
+DO traceln("entered run for " + $this.getClass().getName());
+
+ENDRULE
+
+ 
+
+# A rule which prints a trace message whenever a thread's run method is exited
+
+RULE trace Thread.run exit
+
+CLASS ^Thread
+
+METHOD run()
+
+AT EXIT
+
+IF TRUE
+
+DO traceln("exited run for " + $this.getClass().getName());
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;注意，类名前面的 ^ 意味着这些规则通过类 Thread 注入到所有子类的 run 方法中，包括核心管道处理器类。
+
+#### 使用 BMUnit 注入跟踪规则
+
+通过将一些注释附加到测试类，可以在运行测试时自动加载脚本 trace.btm 中的规则：
+
+```java
+@RunWith(BMUnitRunner.class)
+
+@BMUnitConfig(loadDirectory="target/test-classes")
+
+@BMScript(value="trace")
+
+public class BytemanJUnitTests
+
+{
+
+    . . .
+```
+
+&amp;#160; &amp;#160;第一个 @RunWith 注释告诉 JUnit 使用 Byteman 类 BMUnitRunner 来运行测试。BMUnitRunner 是标准 JUnit4 测试运行器类的子类，它将运行测试的大部分工作委托给 JUnit。但是，它作为一个包装类运行，在测试开始时加载 Byteman 代理，并在运行特定测试时需要加载和卸载 Byteman 规则。
+
+&amp;#160; &amp;#160;在这种情况下，运行器会检测测试类上是否存在 @BMUnitConfig 和 @BMScript 注释。所述 @BMUnitConfig 注释设置的配置参数，其运作模式及该 BMUNit 包控制之一，具体地它告诉 BMUNit 该 Byteman scritps 应当寻找在目录“目标/测试类”，其是行家拷贝位于所述脚本测试/资源目录。所述 @BMScript 注释标识要装载用于此测试的持续时间的脚本。
+
+&amp;#160; &amp;#160;在运行类中的任何测试方法之前，BMUnitRunner 确保已将 Byteman 代理加载到当前 JVM 中。接下来，它通过代理的侦听器套接字上传脚本 trace.btm 中的规则。一旦执行了类中的所有测试，BMUnitRunner 就会连接到代理侦听器并卸载脚本中定义的所有规则。
+
+&amp;#160; &amp;#160;如果您正在使用 maven，那么您可以通过启用 junit 配置文件从下载树的根目录运行模块 junit 中的测试。顶级 pom 中的配置文件 junit 的配置文件条目将子目录 junit 添加为模块，确保其测试作为顶级构建过程的一部分运行
+
+```python
+> mvn test -P junit
+
+. . .
+
+-------------------------------------------------------
+
+T E S T S
+
+-------------------------------------------------------
+
+Running org.my.BytemanJUnitTests
+
+byteman jar is /ssd/home/adinn/.m2/repository/org/jboss/byteman/byteman/2.2.1/byteman-2.2.1.jar
+
+Setting org.jboss.byteman.allow.config.update=true
+
+testPipeLine:
+
+#INPUT
+
+hello world!
+
+goodbye cruel world!
+
+goodbye!
+
+#END
+
+entered run for org.my.pipeline.impl.PatternReplacer
+
+entered run for org.my.pipeline.impl.CharSequenceSource
+
+entered run for org.my.pipeline.impl.CharSequenceSink
+
+exited run for org.my.pipeline.impl.CharSequenceSource
+
+patternReplace(hello world! -> hello mum!)
+
+patternReplace(goodbye cruel world! -> goodbye cruel mum!)
+
+exited run for org.my.pipeline.impl.CharSequenceSink
+
+exited run for org.my.pipeline.impl.PatternReplacer
+
+#OUTPUT
+
+hello mum!
+
+goodbye cruel mum!
+
+goodbye!
+
+#END
+
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.427 sec
+
+ 
+
+Results :
+
+ 
+
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+
+. . .
+```
+
+&amp;#160; &amp;#160;请注意，要使此 ant 命令起作用，必须确保已设置 BYTEMAN_HOME 并标识下载和解压缩 Byteman 二进制版本的目录。此外，请确保首先运行命令 ant build 以确保已在应用程序 jar 中编译和安装应用程序类。
+
+#### 使用 Byteman 打破管道应用程序
+
+&amp;#160; &amp;#160;现在让我们考虑一些 Byteman 规则，它们通过注入故障代码来测试类 TextLineProcessor，在这种情况下，执行应用程序异常处理。注入错误的方式与注入跟踪规则的方式完全相同，即使用 BMUnit 包提供的注释。但是，在大多数情况下，您希望在特定测试之前注入故障规则，然后在测试完成后将其删除。这是因为您通常只想以一种高度特定于相关测试的方式中断应用程序或 Java 运行时。
+
+&amp;#160; &amp;#160;该 junit2 子目录包含在课堂上另外两个 JUnit 测试 BytemanJUnitTests2 其采用的规则破坏应用程序。这是第一种方法：
+
+```java
+@RunWith(BMUnitRunner.class)
+
+@BMScript(value="trace", dir="target/test-classes")
+
+public class BytemanJUnitTests2
+
+{
+
+    @Test
+
+    @BMRule(name="throw IOException at 1st transform",
+
+            targetClass = "TextLineProcessor",
+
+            targetMethod = "processPipeline",
+
+            action = "throw new java.io.IOException()")
+
+    public void testErrorInPipeline() throws Exception
+
+    {
+
+        System.out.println("testErrorInPipeline:");
+
+        StringBuffer buffer = new StringBuffer("hello world!");
+
+        buffer.append(" goodbye cruel world, goodbye!\n");
+
+        CharSequenceSource cssource = new CharSequenceSource(buffer);
+
+        PatternReplacer replacer = new PatternReplacer("world", "mum",reader);
+
+        CharSequenceSink cssink = new CharSequenceSink(replacer);
+
+        cssource.start();
+
+        replacer.start();
+
+        cssink.start();
+
+        cssource.join();
+
+        replacer.join();
+
+        cssink.join();
+
+        String output = cssink.toString();
+
+        assert(output.equals(""));
+
+    }
+
+    . . .
+```
+
+&amp;#160; &amp;#160;如果忽略不同的断言，则这与前一个示例中的方法基本相同。但是，此测试在第一个测试方法上使用 @BMRule 注释，该方法将异常注入管道。通过在方法上放置注释，可确保在运行测试之前加载规则，并在测试完成后立即卸载。因此，这会停止影响下一个测试方法的规则。
+
+&amp;#160; &amp;#160;与类上的 @BMScript 注释相反，@BMRule 在注释中提供内联的规则文本。该规则被注入到类 TextLineProcessor 的方法 processPipeline 中，并在触发时抛出 IOException。注释的位置字段未指定，因此默认为 “AT ENTRY”。同样，条件默认为 “TRUE”。因此，此规则将导致 PatternReplacer 在开始运行时立即抛出异常。应该关闭到接收器的输出流，而没有写入输入。断言条件检查输出确实是空字符串。
+
+&amp;#160; &amp;#160;请注意，该类仍然具有 @BMScript 注释以加载跟踪规则。在运行类中的任何测试之前加载这些规则，因此当执行此测试方法和下一个测试方法时，它们仍将生成显示输入，文本替换和输出的跟踪。您可以在类或方法级别使用注释，@BMScript 或 @BMRule，但是此类配置中，您在附加到类的脚本中具有跟踪规则，并且测试方法附加的内联错误规则是最常见的配置。
+
+&amp;#160; &amp;#160;第二种测试方法是上述方法的变体，但它使用一对倒计时规则来延迟异常，直到某些数据通过管道。 
+
+```java
+@Test
+ 
+@BMRules(rules={@BMRule(name="create countDown for TextLineProcessor",
+ 
+                targetClass = "TextLineProcessor",
+ 
+                targetMethod = "<init>",
+ 
+                action = "createCountDown($0, 2)"),
+ 
+                @BMRule(name="throw IOException at 3rd transform",
+ 
+                targetClass = "TextLineProcessor",
+ 
+                targetMethod = "processPipeline",
+ 
+                targetLocation = "AT CALL transform(String)",
+ 
+                condition = "countDown($0)",
+ 
+                action = "throw new java.io.IOException()")})
+ 
+public void testErrorInStuffedPipeline() throws Exception
+ 
+{
+ 
+    System.out.println("testErrorInStuffedPipeline:");
+ 
+    StringBuffer buffer = new StringBuffer("hello world!\n");
+ 
+    buffer.append("goodbye cruel world, goodbye!\n");
+ 
+    for (int i = 0; i < 40; i++) {
+ 
+        buffer.append("goodbye! goodbye! goodbye!\n");
+ 
+    }
+ 
+    CharSequenceSource cssource = new CharSequenceSource(buffer);
+ 
+    PatternReplacer replacer = new PatternReplacer("world", "mum",reader);
+ 
+    CharSequenceSink cssink = new CharSequenceSink(replacer);
+ 
+    cssource.start();
+ 
+    replacer.start();
+ 
+    cssink.start();
+ 
+    cssource.join();
+ 
+    replacer.join();
+ 
+    cssink.join();
+ 
+    String output = cssink.toString();
+ 
+    assert(output.equals("hello mum!\ngoodbye cruel mum, goodbye!\n"));
+ 
+}
+```
+
+&amp;#160; &amp;#160;请注意，我们在这里使用了多个 @BMRule 注释，因此我们使用一个封闭的 @BMRules 注释来括起它们。当你有两个或三个简单的规则时，这是可以的，但是对于更大的数字，从脚本加载规则通常更清楚。等效脚本如下
+
+```python
+RULE create countdown for TextLineProcessor
+
+CLASS TextLineProcessor
+
+METHOD <init>
+
+IF TRUE
+
+DO createCountDown($0, 2)
+
+ENDRULE
+
+ 
+
+RULE throw IOException at 3rd transform
+
+CLASS TextLineProcessor
+
+METHOD processPipeline
+
+AT CALL transform(String)
+
+IF countDown($0)
+
+DO THROW new java.io.IOException()
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;第一个规则附加到 TextLineProcessor 的构造函数（<init>是构造函数的JVM内部名称）。每当构造 TextLineProcessor 时都会触发它。它调用内置操作 createCountDown（Object，int）来创建一个带有计数器 2 的 CountDown 实例。第一个参数 TextLineProcessor 实例 $0 用于标记 CountDown，允许后续规则检索相同的 CountDown。顾名思义，这个 CountDown 对象用于确保在计数过程达到零时触发规则。
+
+&amp;#160; &amp;#160;在调用方法转换处理下一行文本之前，第二个规则被注入到方法 processPipeline() 的循环中。该条件使用相关的内置 countDown（Object），传递 TextLineProcessor 对象 $0 以标识要使用的 CountDown。当 CountDown 计数器的值为 0 时，此内置函数仅返回 true。因此，在第一次调用 transform（String）时计数器从 2 递减到 1，条件评估为假。这意味着规则不会触发，并且执行将返回到继续调用的方法processPipeline（）。在第二次调用时，计数器从1递减到0并且条件仍为假，因此再次调用 transform（String）。在第三次调用时，计数器为 0，因此对 countDown（Object）的调用返回 true。该规则触发并抛出 IOException，导致 TextLineProcessor 关闭其输入和输出流并退出。
+
+&amp;#160; &amp;#160;这里有另一个细节值得考虑。对于此测试，CharSequenceSource 将 40 个额外行发布到其输出中。这足以填充馈送 PatternReplacer 的管道流，导致 CharSequenceSource 暂停。因此，当抛出异常时，CharSequenceSource 应在挂起的写操作下唤醒，并将生成的管道完全异常打印到 System.err。在之前的测试中，不会打印异常（通常），因为 CharSequenceSource 已将其两行输入文本写入 ouptut 管道并在 PatternReplacer 开始运行之前退出。
+
+#### 运行故障注入代码
+
+可以通过执行以下命令来运行目录 junit2 中的测试
+
+```python
+> mvn test -P junit2
+
+. . .
+
+-------------------------------------------------------
+
+T E S T S
+
+-------------------------------------------------------
+
+Running org.my.BytemanJUnitTests2
+
+byteman jar is /ssd/home/adinn/.m2/repository/org/jboss/byteman/byteman/2.2.1/byteman-2.2.1.jar
+
+Setting org.jboss.byteman.allow.config.update=true
+
+testErrorInPipeline:
+
+#INPUT
+
+hello world! goodbye cruel world!
+
+#END
+
+#OUTPUT
+
+#END
+
+testErrorInFullPipeline:
+
+#INPUT
+
+hello world!
+
+goodbye cruel world!
+
+goodbye! goodbye! goodbye!
+
+. . .
+
+goodbye! goodbye! goodbye!
+
+#END
+
+patternReplace(hello world! -> hello mum!)
+
+patternReplace(goodbye cruel world! -> goodbye cruel mum!)
+
+*** IO exception created here ***
+
+java.io.IOException.<init>(IOException.java:59)
+
+java.io.PipedReader.receive(PipedReader.java:173)
+
+java.io.PipedWriter.write(PipedWriter.java:124)
+
+org.my.pipeline.impl.CharSequenceSource.produce(CharSequenceSource.java:52)
+
+org.my.pipeline.core.SourceProcessor.run(SourceProcessor.java:70)
+
+***
+
+java.io.IOException: Pipe closed
+
+    at java.io.PipedReader.receive(PipedReader.java:173)
+
+    at java.io.PipedWriter.write(PipedWriter.java:124)
+
+    at org.my.pipeline.impl.CharSequenceSource.produce(CharSequenceSource.java:52)
+
+    at org.my.pipeline.core.SourceProcessor.run(SourceProcessor.java:70)
+
+#OUTPUT
+
+hello mum!
+
+goodbye cruel mum!
+
+#END
+
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.414 sec
+
+. . .
+```
+
+如果您正在使用 ant，则可以使用以下命令从顶级目录执行 JUnit 错误注入测试
+
+```python
+> ant junit2
+
+. . .
+```
+
+您应该看到与运行 maven 版本的测试时基本相同的输出。
+
+#### 打破并进入计时窗口
+
+&amp;#160; &amp;#160;BMUnit 包可以与 TestNG 一起使用，其方式与 JUnit 使用的方式几乎完全相同。唯一的主要区别在于您如何通知 TestNG 测试需要使用 Byteman 规则。我们看到使用 JUnit，您需要在测试类中添加 @RunWith 注释。对于基于 TestMG 的测试，您需要使测试类继承自名为 BMNGRunner 的类。此父类提供确保在运行测试之前加载规则并在测试完成后卸载所需的所有行为。
+
+&amp;#160; &amp;#160;基于 TestNG 的下一个示例显示了一些在管道应用程序中显示时序依赖性的规则。通过将同步引入流水线中的线程，可以控制不同流水线级处理特定行的顺序。这可以用于证明给定相同的流水线和输入，输出可以根据线程执行的顺序而变化。这种时序依赖性通常不明显，因为管道中的上游线程倾向于在下游线程开始执行之前处理关键线。但是，通过注入合适的规则，我们可以延迟上游线程，确保下游线程首先运行，反之亦然。
+
+&amp;#160; &amp;#160;强制线程进入不常见的时序窗口的能力是故障注入测试提供的最强大的功能之一。它使得在部署应用程序时很少发生的情况下可靠且可重复地执行代码变得简单。这里显示的技术适用于一个相对简单且稍微有点人为的情况，其中库的设计中存在明显（并且故意！）错误。但是，对于确认组成 JBoss 应用程序服务器的许多多线程库的正确性，这种技术的变化已被证明是非常有价值的。
+
+&amp;#160; &amp;#160;时序测试使用 TextLineProcessor，Binder和BindingReplacer 两个新的子类。甲粘合剂径直通过输入线到其输出而无需修改。但是，它确实处理输入。所述粘合剂相匹配元件出的输入线和所述文本具有可变相关联，存储所述关联，对于偏爱称为结合，在一个 BindingMap。因此，例如，配置为使用模式 “[Aa]（[A-Za-z] +）” 和前缀 “X” 的 Binder 将匹配输入行 “A boy and a dog” 两次，将变量 X1 绑定到 "boy" 和变量 X2 到 "dog"。请注意，此示例匹配表达式使用组术语（由一对圆括号标识）来标识要用作绑定值的匹配 String 的子字符串。如果不包括组术语，则使用整个匹配值。
+
+&amp;#160; &amp;#160; BindingReplacer 与 Binder 协同工作，将绑定值插入到文本中。它使用 BindingMap 查找绑定变量的值，并使用相关值替换对变量的引用。因此，给定输入行 "The ${X1} chases the ${X2}" 和绑定 [X1 -> "boy", X2 -> "dog"] 一个 BindingReplacer 将输出变形线 "The boy chases the dog"。
+
+&amp;#160; &amp;#160;测试类 BytemanNGTests 位于 testng 目录下。它实现了两个测试，两个测试都使用相同的管道和输入设置。这是显示正常执行顺序的那个
+
+```java
+@BMScripts(scripts = {@BMScript(value="trace", dir="target/test-classes"),
+
+        @BMScript(value="trace2", dir="target/test-classes")})
+
+public class BytemanNGTests extends BMNGRunner
+
+{
+
+    @BMScript(value="timing", dir="target/test-classes")
+
+    @Test
+
+    public void testForwardPublishingGood() throws Exception
+
+    {
+
+        System.out.println("testForwardPublishingGood:");
+
+        BindingMap bindings = new BindingMap();
+
+ 
+
+        StringBuffer buffer = new StringBuffer("the boy threw the stick for the dog to catch\n");
+
+        buffer.append("a ${X1} broke a ${X4} with a ${X2}\n");
+
+        buffer.append("the boy threw the stick at the window\n");
+
+ 
+
+        CharSequenceSource cssource = new CharSequenceSource(buffer);
+
+        Binder binder = new Binder("the ([A-Za-z]+)", "X", bindings, reader);
+
+        BindingReplacer replacer = new BindingReplacer(bindings, binder);
+
+        CharSequenceSink cssink = new CharSequenceSink(replacer);
+
+        cssource.start();
+
+        binder.start();
+
+        replacer.start();
+
+        cssink.start();
+
+        . . .
+```
+
+&amp;#160; &amp;#160;该类使用 @BMScripts 注释进行注释，该注释用于包含一对 @BMScript 注释。这些注释中的第一个加载了前面示例中使用的跟踪脚本 trace.btm。第二个加载了一个额外的跟踪脚本 trace2.btm，其中包含显示 Binder，BindingReplacer 和 BindingMap 操作的规则。
+
+&amp;#160; &amp;#160;测试管道包括 Source，Binder，BindingReplacer 和 Sink。请注意，在方法开头创建的绑定映射将传递给 Binder 和 BindingReplacer。因此，BinderReplacer 可以使用 Binder 插入的绑定。
+
+&amp;#160; &amp;#160;第一个输入行包含三个与 Binder 模式匹配的术语 "the ([A-Za-z]+)": "the boy" ， "the stick" 和 "the dog" 。因此，当Binder看到这些值时，它将连续变量 X1，X2 和 X3 绑定到每个相应的匹配，将绑定映射更新为 [X1 -> "boy", X2 -> "stick", X3 -> "dog"]。然后它将该行传递给 BindingReplacer 不变。第二行输入不包含任何匹配的术语，因此该行直接传递。第三行包含两场比赛， "the boy" 和 "the stick"，其匹配值已经绑定，分别对应变量 X1 和 X2。因此，这些匹配不会导致任何新的绑定。但是，"the window" 的匹配是新的，因此变量 X4 绑定到 "window" 。绑定更新为 [X1 -> "boy", X2 -> "stick", X3 -> "dog", X4 -> "window"] ，第 3 行传递给 BindingReplacer。
+
+&amp;#160; &amp;#160;该 BindingReplacer 不感兴趣线 1 和 3，因为它们不包含在形式上 ${AANN} 。但是，它确实尝试转换第 2 行，将值替换为变量 X1，X2 和 X4。现在应该开始明确定时问题将在何处发生。通常，在 BindingReplacer 能够处理第 2 行之前， Binder 将处理第 1 行和第 3 行。这意味着在 BindingReplacer 尝试查找之前，所有四个变量都将被绑定。但是，如果有可能在写入第 2 行和 BindingReplacer 后暂停 Binder 线程允许线程运行并处理第 1 行和第 2 行，然后 X4 的绑定将不会出现在绑定映射中。
+
+&amp;#160; &amp;#160;那么，我们如何确保遵循特定的执行顺序呢？那么，关键问题是控制 Binder 是否在 BindingReplacer 处理其第二行之前处理其第三行。我们需要做的第一件事是计算每个管道元素正在处理哪条线。然后我们需要能够在处理相关行之前停止每个线程，然后在之后再次与它同步，这样我们就可以确定该行已被处理。执行此操作的规则包含在子目录 testng/src/test/resources 中的脚本 timing.btm 中。这是前两条规则
+
+```python
+RULE create Binder rendezvous and counter
+
+CLASS Binder
+
+METHOD <init>
+
+IF TRUE
+
+DO createRendezvous($0, 2, true);
+
+  createCounter($0)
+
+ENDRULE
+
+ 
+
+RULE create BindingReplacer rendezvous and counter
+
+CLASS BindingReplacer
+
+METHOD <init>
+
+IF TRUE
+
+DO createRendezvous($0, 2, true);
+
+  createCounter($0)
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;这些规则中的每一个都调用内置的 createRendezvous（Object，int，boolean）来创建一个名为 Rendezvous 的对象（也称为屏障或线程障碍）。createRendezvous 调用的第一个参数，用于标记 Rendezvous，以便以后可以查找，分别是 $0，Binder 或 BindingReplacer。因此，每个管道元素都有自己的个性 Rendezvous。
+
+&amp;#160; &amp;#160;使用作为第二个参数提供的特定计数创建 Rendezvous，在本例中为 2，它标识将在集合点处遇到的线程数。当 Binder 或 BindingReplacer 线程执行下面调用相关内置集合（Object）的规则之一时，它可能会在从调用返回之前挂起。规则是，在 N 个线程进入 Rendezvous 之前，没有线程可以退出对集合点的调用，其中 N 是创建 Rendezvous 时提供的计数。因此，在这种情况下，当 Binder 或 BindingReplacer 线程调用时 rendezvous 它必须与另一个也可以继续之前调用了 rendezvous 的线程同步。在任何一种情况下，另一个线程将是运行测试的线程。通过确定测试线程进入每个 Rendezvous 的顺序，它可以控制 Binder 和 BindingReplacer 线程执行的顺序。请注意，Rendezvous 本身不是有序的 - 例如，测试线程或 Binder 线程是否首先到达并不重要，只是两个线程必须在对 Rendezvous 的调用内部才能退出。
+
+&amp;#160; &amp;#160;createRendezvous 的第三个可选参数确定是在第一个出口处删除集合点（默认值）还是重置为允许重复的集合点操作。对于此测试，我们需要每个线程两次进入集合，因此提供参数 true 以允许重新进入集合点。
+
+&amp;#160; &amp;#160;DO  列表中的第二个调用使用内置的 createCounter 来创建数字计数器。每个计数器分别使用 Binder 或 BindingReplacer 实例进行标记，以便识别它。在随后的电话中。计数器通常用于在程序进行时保持运行总计，而 Byteman 提供内置操作，允许计数器从注入的代码递增，递减或读取。在这种情况下，计数器用于跟踪已读取的输入行数。 
+
+下一个规则用于计算 Binder 和 BindingReplacer 处理的行。这使得可以决定何时进入受欢迎程度
+
+```python
+RULE increment Binder or BindingReplacer line counter
+
+CLASS ^TextLineProcessor
+
+METHOD transform
+
+AT ENTRY
+
+IF TRUE
+
+DO incrementCounter($0)
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;此规则将注入 TextLineProcessor 声明的转换方法中。但是，这是一种抽象方法。类名前面的符号 ^ 请求将规则从类层次结构注入到由 TextLineProcessor 的子类定义的任何实现中。因此，它被注入到 Binder 和 BindingReplacer 定义的方法中  ，并且每当向管道元素呈现新的文本行时，其相关的计数器就会递增。注意如何将 $0 作为参数传递以标识正确的 Counter 实例。
+
+使用接下来的两个规则使得 Binder 在处理第 3 行文本之前和刚完成处理行之后进入集合点
+
+```python
+RULE enter first Binder rendezvous
+
+CLASS Binder
+
+METHOD transform
+
+AT ENTRY
+
+IF readCounter($0) == 3
+
+DO rendezvous($0)
+
+ENDRULE
+
+
+RULE enter second Binder rendezvous
+
+CLASS Binder
+
+METHOD transform
+
+AT EXIT
+
+IF readCounter($0) == 3
+
+DO rendezvous($0)
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;第一个规则是注入 AT ENTRY，因此它将在处理线之前触发。它仅在计数器为 3 时触发，因此 Binder 线程将在它处理第 3 行之前第一次进入集合点。非常，第二条规则是 AT EXIT 注入。因此，Binder 线程将在处理完第 3 行后再次进入集合点。
+
+除了将计数器与常数值 2 进行比较之外，BindingReplacer 的规则大致相同。
+
+```python
+RULE enter first BindingReplacer rendezvous
+
+CLASS BindingReplacer
+
+METHOD transform
+
+AT ENTRY
+
+IF readCounter($0) == 2
+
+DO rendezvous($0)
+
+ENDRULE
+
+
+RULE enter second BindingReplacer rendezvous
+
+CLASS BindingReplacer
+
+METHOD transform
+
+AT EXIT
+
+IF readCounter($0) == 2
+
+DO rendezvous($0)
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;这个难题的另一个部分是测试线程将如何进入这些会合点？在所有测试代码都无法访问 Byteman 内置操作之后。答案是我们安排测试代码调用一个虚方法并将一个调用 rendezvous 注入这个虚方法。这是规则
+
+```python
+RULE allow test thread to enter rendezvous
+
+CLASS BytemanNGTests
+
+METHOD triggerRendezvous
+
+IF TRUE
+
+DO rendezvous($1)
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;该规则被附接到方法 triggerRendezvous 的测试类，BytemanNGTests。这个方法有一个空体，所以通常调用它什么也不做
+
+```java
+private void triggerRendezvous(PipelineProcessor processor)
+
+{
+
+    // nothing to do here as Byteman will inject the
+
+    // relevant code into this method
+
+}
+```
+
+&amp;#160; &amp;#160;但是，当加载 Byteman 规则时，将发生对集合点的调用，将 $1（调用 triggerRendezvous 中提供的管道元素）作为调用 rendezvous 的参数传递。测试方法可以选择仅通过调用 triggerRendezvous 与任一管道处理器会合。
+
+所以。这是测试方法 testForwardPublishingGood 的其余实现
+
+```java
+        . . .
+
+        triggerRendezvous(binder);
+
+        triggerRendezvous(binder);
+
+
+
+        String value = bindings.get("X4");
+
+        assert("window".equals(value));
+
+
+
+        triggerRendezvous(replacer);
+
+        triggerRendezvous(replacer);
+
+
+
+        cssource.join();
+
+        binder.join();
+
+        replacer.join();
+
+        cssink.join();
+
+
+
+        String output = cssink.toString();
+
+        assert(output.equals("the boy threw the stick for the dog to catch\n" +
+
+                            "a boy broke a window with a stick\n" +
+
+                            "the boy threw the stick at the window\n"));
+
+ 
+
+    }
+```
+
+&amp;#160; &amp;#160;当测试线程从第一次调用返回到 triggerRendezvous 时，可以确定 Binder 即将开始处理第 3 行。当它从第二次调用返回到 triggerRendezvous 时，可以确定第 3 行已被处理，因此绑定 X4 已添加到绑定映射中。因此，跟随这两个调用的断言不应该失败。
+
+&amp;#160; &amp;#160;测试线程也可以确定 BindingReplacer 此时没有处理第二行，因为直到测试线程从第三次调用退出到 triggerRendezvous 时才会发生这种情况。该 BindingReplacer 将被迫在此交会要等到测试线程到达。对 triggerRendezvous 的最后调用允许 BindingReplacer 在处理第 3 行之后退出集合点。由于在执行此行时 X4 的绑定存在，因此 ouptut 应该包含在方法结束时声明的此变量的替换。
+
+第二个测试方法 testForwardPublishingBad 是第一个测试方法的一个小变体。很明显它如何设法扭转执行顺序。
+
+```java
+@BMScript(value="timing", dir="target/test-classes")
+ 
+@Test()
+ 
+public void testForwardPublishingBad() throws Exception
+ 
+{
+ 
+    System.out.println("testForwardPublishingBad:");
+ 
+    BindingMap bindings = new BindingMap();
+ 
+ 
+ 
+    StringBuffer buffer = new StringBuffer("the boy threw the stick for the dog to catch\n");
+ 
+    buffer.append("a ${X1} broke a ${X4} with a ${X2}\n");
+ 
+    buffer.append("the boy threw the stick at the window\n");
+ 
+ 
+ 
+    CharSequenceSource cssource = new CharSequenceSource(buffer);
+ 
+    Binder binder = new Binder("the ([A-Za-z]+)", "X", bindings, reader);
+ 
+    BindingReplacer replacer = new BindingReplacer(bindings, binder);
+ 
+    CharSequenceSink cssink = new CharSequenceSink(replacer);
+ 
+ 
+ 
+    cssource.start();
+ 
+    binder.start();
+ 
+    replacer.start();
+ 
+    cssink.start();
+ 
+ 
+ 
+    triggerRendezvous(replacer);
+ 
+    triggerRendezvous(replacer);
+ 
+ 
+ 
+    String value = bindings.get("X4");
+ 
+    assert(value == null);
+ 
+ 
+ 
+    triggerRendezvous(binder);
+ 
+    triggerRendezvous(binder);
+ 
+ 
+ 
+    cssource.join();
+ 
+    binder.join();
+ 
+    replacer.join();
+ 
+    cssink.join();
+ 
+ 
+ 
+    String output = cssink.toString();
+ 
+    assert(output.equals("the boy threw the stick for the dog to catch\n" +
+ 
+                        "a boy broke a ${X4} with a stick\n" +
+ 
+                        "the boy threw the stick at the window\n"));
+ 
+}
+```
+
+&amp;#160; &amp;#160;这次对 triggerRendezvous 的第一对调用允许 BindingReplacer 在插入 X4 绑定之前转换第二行。该粘结剂是无法处理的第 3 行，并插入此绑定直到第 3 个电话 triggerRendezvous 已经竞争。这反映在最终输出中，其中对变量 X4 的引用保持未被取消为断言。
+
+要使用 maven 运行测试，请在顶级目录中执行以下命令
+
+```python
+> mvn test -P testng
+
+. . .
+
+-------------------------------------------------------
+
+T E S T S
+
+-------------------------------------------------------
+
+Running TestSuite
+
+byteman jar is /ssd/home/adinn/.m2/repository/org/jboss/byteman/byteman/2.2.1/byteman-2.2.1.jar
+
+Setting org.jboss.byteman.allow.config.update=true
+
+testForwardPublishingGood:
+
+#INPUT
+
+the boy threw the stick for the dog to catch
+
+a ${X1} broke a ${X4} with a ${X2}
+
+the boy threw the stick at the window
+
+#END
+
+  install(X1 -> boy)
+
+  bind(X1 -> boy)
+
+  install(X2 -> stick)
+
+  bind(X2 -> stick)
+
+  install(X3 -> dog)
+
+  bind(X3 -> dog)
+
+  reject(X4 -> boy)
+
+  reject(X4 -> stick)
+
+  install(X4 -> window)
+
+  bind(X4 -> window)
+
+bindingReplace(a ${X1} broke a ${X4} with a ${X2} -> a boy broke a window with a stick)
+
+#OUTPUT
+
+the boy threw the stick for the dog to catch
+
+a boy broke a window with a stick
+
+the boy threw the stick at the window
+
+#END
+
+testForwardPublishingBad:
+
+#INPUT
+
+the boy threw the stick for the dog to catch
+
+a ${X1} broke a ${X4} with a ${X2}
+
+the boy threw the stick at the window
+
+#END
+
+  install(X1 -> boy)
+
+  bind(X1 -> boy)
+
+  install(X2 -> stick)
+
+  bind(X2 -> stick)
+
+  install(X3 -> dog)
+
+  bind(X3 -> dog)
+
+bindingReplace(a ${X1} broke a ${X4} with a ${X2} -> a boy broke a ${X4} with a stick)
+
+  reject(X4 -> boy)
+
+  reject(X4 -> stick)
+
+  install(X4 -> window)
+
+  bind(X4 -> window)
+
+#OUTPUT
+
+the boy threw the stick for the dog to catch
+
+a boy broke a ${X4} with a stick
+
+the boy threw the stick at the window
+
+#END
+
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.361 sec
+
+. . .
+```
+
+或者，您可以执行以下 ant 命令
+
+```python
+> ant testng
+
+. . .
+```
+
+#### 我在哪里可以下载教程资源？
+
+教程源可以从JBoss下载服务器获得，作为<a href="http://downloads.jboss.org/byteman/tutorial/bmunit-tutorial2.zip" target="_blank">zip</a> 文件或从 <a href="https://github.com/adinn/bmunit-tutorial2" target="_blank">github</a> 获得 
+
+&amp;#160; &amp;#160;为了运行作为此下载的一部分提供的示例应用程序主程序和测试，您将需要安装支持动态代理程序加载功能的 JDK6（或更高版本）发行版。这包括 OpenJDK，Oracle 的 Hotspot JDK 和 JRockit JDK 的最新版本（版本 jrmc-4.0.1-已知可行）。您应确保 JDK bin目录中的 Java 二进制文件在 PATH 中可用。
+
+&amp;#160; &amp;#160;您还需要安装 ant 或 maven。本教程已经使用 ant 7.1 和 maven 3.0.2 进行了测试，但它可能适用于早期版本。您再次确保在您的路径中可以使用 ant 或 maven 二进制文件。
+
+&amp;#160; &amp;#160;如果您使用 maven 构建和运行测试程序，则不需要下载并安装 Byteman 版本，因为 maven 将自动从网络中提取相关的 jar。但是，您需要配置 maven 以在位于的公共 JBoss 存储库上找到<a href="http://repository.jboss.org/nexus/content/groups/public" target="_blank"> jar </a>
+
+&amp;#160; &amp;#160;如果您使用 ant 构建并运行测试程序，则需要下载 Byteman 2.1.1 或更高版本。最新版本可从 Byteman 下载页面获得<a href="http://www.jboss.org/byteman/downloads" target="_blank"></a>
+
+&amp;#160; &amp;#160;解压缩发行版并设置环境变量 BYTEMAN_HOME 以标识生成的目录树的顶级目录。它应该包含几个子目录，包括 lib 和 bin。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

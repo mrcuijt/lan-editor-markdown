@@ -1,0 +1,116 @@
+#### javascript-basic-syntax
+
+##### 变量命名
+
+JavaScript 是一种区分大小写的语言。因此变量名称 myCounter 和变量名称 mYCounter 是不一样的。变量的名称可以是任意长度。创建合法的变量名称应遵循如下规则： 
+
+ - 第一个字符必须是一个 ASCII 字母（大小写均可），或一个下划线(_)，或美元符号（$）。注意第一个字符不能是数字。 
+
+ - 后续的字符必须是字母、数字或下划线。 
+
+ - 变量名称一定不能是 保留字。 
+
+<text>╔══════════╤═════════╤════════════╤════════╤════════╗
+║ 保留字   │         │            │        │        ║
+╟──────────┼─────────┼────────────┼────────┼────────╢
+║ break    │ delete  │ function   │ return │ typeof ║
+╟──────────┼─────────┼────────────┼────────┼────────╢
+║ case     │ do      │ if         │ switch │ var    ║
+╟──────────┼─────────┼────────────┼────────┼────────╢
+║ catch    │ else    │ in         │ this   │ void   ║
+╟──────────┼─────────┼────────────┼────────┼────────╢
+║ continue │ false   │ instanceof │ throw  │ while  ║
+╟──────────┼─────────┼────────────┼────────┼────────╢
+║ debugger │ finally │ new        │ true   │ with   ║
+╟──────────┼─────────┼────────────┼────────┼────────╢
+║ default  │ for     │ null       │ try    │        ║
+╚══════════╧═════════╧════════════╧════════╧════════╝</text>
+
+```
+["保留字","","","",""],
+["break","delete","function","return","typeof"],
+["case","do","if","switch","var"],
+["catch","else","in","this","void"],
+["continue","false","instanceof","throw","while"],
+["debugger","finally","new","true","with"],
+["default","for","null","try", ""]
+```
+
+<text>╔════════════════╤═════════╤════════════╤═══════════╤══════════════╗
+║ 为将来保留的词 │         │            │           │              ║
+╟────────────────┼─────────┼────────────┼───────────┼──────────────╢
+║ abstract       │ double  │ goto       │ native    │ static       ║
+╟────────────────┼─────────┼────────────┼───────────┼──────────────╢
+║ boolean        │ enum    │ implements │ package   │ super        ║
+╟────────────────┼─────────┼────────────┼───────────┼──────────────╢
+║ byte           │ export  │ import     │ private   │ synchronized ║
+╟────────────────┼─────────┼────────────┼───────────┼──────────────╢
+║ char           │ extends │ int        │ protected │ throws       ║
+╟────────────────┼─────────┼────────────┼───────────┼──────────────╢
+║ class          │ final   │ interface  │ public    │ transient    ║
+╟────────────────┼─────────┼────────────┼───────────┼──────────────╢
+║ const          │ float   │ long       │ short     │ volatile     ║
+╚════════════════╧═════════╧════════════╧═══════════╧══════════════╝</text>
+
+```
+["为将来保留的词","","","",""],
+["abstract","double","goto","native","static"],
+["boolean","enum","implements","package","super"],
+["byte","export","import","private","synchronized"],
+["char","extends","int","protected","throws"],
+["class","final","interface","public","transient"],
+["const","float","long","short","volatile"]
+```
+
+##### 对象字面量
+
+属性命名：
+
+ - 对象属性名字可以是任意字符串，包括空串。如果对象属性名字不是合法的 javascript 标识符，它必须用 **`""`** 包裹。属性的名字不合法，那么便不能用.访问属性值，而是通过类数组标记(**"`[]`"**)访问和赋值。
+
+```js
+var unusualPropertyNames = {
+  "": "An empty string",
+  "!": "Bang!"
+}
+console.log(unusualPropertyNames."");   // 语法错误: Unexpected string
+console.log(unusualPropertyNames[""]);  // An empty string
+console.log(unusualPropertyNames.!);    // 语法错误: Unexpected token !
+console.log(unusualPropertyNames["!"]); // Bang!
+```
+
+##### 增强的对象字面量 (Enhanced Object literals)
+
+在ES2015，对象字面值扩展支持在创建时设置原型，简写了 foo: foo 形式的属性赋值，方法定义，支持父方法调用，以及使用表达式动态计算属性名。总之，这些也使对象字面值和类声明更加紧密地联系起来，让基于对象的设计从这些便利中更加受益。
+
+```js
+var obj = {
+    // __proto__
+    __proto__: theProtoObj,
+    // Shorthand for ‘handler: handler’
+    handler,
+    // Methods
+    toString() {
+     // Super calls
+     return "d " + super.toString();
+    },
+    // Computed (dynamic) property names
+    [ 'prop_' + (() => 42)() ]: 42
+};
+```
+
+请注意：
+
+```js
+var foo = {a: "alpha", 2: "two"};
+console.log(foo.a);    // alpha
+console.log(foo[2]);   // two
+//console.log(foo.2);  // SyntaxError: missing ) after argument list
+//console.log(foo[a]); // ReferenceError: a is not defined
+console.log(foo["a"]); // alpha
+console.log(foo["2"]); // two
+```
+
+参考链接：
+
+ - <a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Grammar_and_types#字面量_(Literals)" target="_blank">字面量_(Literals)</a>

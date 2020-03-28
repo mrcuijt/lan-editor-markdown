@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>easyui-datagrid-example</title>
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="https://www.jeasyui.com/easyui/themes/icon.css">
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.min.js"></script>
+<script type="text/javascript" src="https://www.jeasyui.com/easyui/jquery.easyui.min.js"></script>
+</head>
+<body>
+
+<table id="dg" style="width:700px;height:250px"></table>
+
+<script>
+var dg = $('#dg').datagrid({
+    url:'datagrid_data.json',
+    toolbar: [{
+		iconCls: 'icon-edit',
+		handler: function(){alert('edit')}
+	},'-',{
+		iconCls: 'icon-help',
+		handler: function(){alert('help')}
+	}],
+    frozenColumns:[[
+       {field:'code',title:'Code',width:100},
+    ]],
+    columns:[[
+        {field:'name',title:'Name',width:100},
+        {field:'price',title:'Price',width:100,align:'right'},
+        {field:'field1',title:'field',width:100},
+        {field:'field2',title:'field',width:100},
+        {field:'field3',title:'field',width:100},
+        {field:'field4',title:'field',width:100},
+        {field:'field5',title:'field',width:100},
+        {field:'field6',title:'field',width:100},
+        {field:'field7',title:'field',width:100},
+        {field:'field8',title:'field',width:100}
+    ]],
+    data:[
+       {code:"001",name:"Lisa",price:"200"},
+       {code:"002",name:"Alex",price:"100"}
+    ],
+    striped:true,
+    loadMsg:"数据加载中...",
+	emptyMsg: "未查询到数据。",
+    pagination:true,
+    rownumbers:true,
+    singleSelect:true,
+    pagePosition:"bottom",
+    pageNumber:1,
+    pageSize:10,
+    pageList:[10,20,30,40,50,100],
+    queryParams:{}
+});
+
+dg.datagrid('getPager').pagination({
+    layout:['list','sep','first','prev','sep','manual','sep','next','last','sep','refresh','info']
+    // layout:['list','sep','first','prev','sep','links','sep','next','last','sep','refresh','info']
+});
+</script>
+</body>
+</html>

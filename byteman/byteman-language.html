@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Byteman Language</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 代理转型
+
+&amp;#160; &amp;#160;Byteman 执行的字节码修改是使用 Java 代理程序实现的。JVM 类加载器为代理提供了在编译之前修改加载的字节码的机会（有关 Java 代理如何工作的详细信息，请参阅包 java.lang.Instrumentation）。Byteman 代理在 JVM 引导程序中读取规则脚本。然后，它在加载时监视方法代码，查找触发点，方法字节码中与规则事件中指定的位置匹配的位置。
+
+&amp;#160; &amp;#160;代理将触发器调用插入到与规则事件匹配的每个点的代码中。触发调用是对规则执行引擎的调用，用于标识：
+
+ - 触发方法，即，其含有的触发点的方法
+
+ - 已经匹配的规则
+
+ - 触发器方法的参数
+
+&amp;#160; &amp;#160;如果多个规则匹配相同的触发点，则会有一系列触发器调用，每个匹配规则一个。在这种情况下，规则主要按照它们在脚本中出现的顺序触发。唯一的例外是指定 AFTER 位置的规则，例如 AFTER READ myField 或 AFTER INVOKE someMethod，它们以相反的出现顺序执行。
+
+&amp;#160; &amp;#160;当发生触发器调用时，规则执行引擎会找到相关规则然后执行它。规则执行引擎为规则事件中提到的变量建立绑定，然后测试规则条件。如果条件评估为 true，则触发规则。按顺序执行每个规则操作
+
+&amp;#160; &amp;#160;触发器调用将方法接收者（this）和方法参数传递给规则引擎。这些值可以在条件和操作中使用标准命名约定引用，$0，$1 等。事件规范可以引入其他变量的绑定。可以使用文字数据或通过对方法参数和/或静态数据调用方法或操作来初始化这些变量的绑定。事件中绑定的变量可以简单地通过条件或操作中的名称引用。绑定允许在条件中测试来自触发上下文的任意数据，以便决定是否触发规则并将其用作规则动作的目标或参数。请注意，在启用相关调试选项的情况下编译触发器代码的情况下，代理能够将触发点范围内的局部变量作为触发器调用的参数传递，使它们可用作默认绑定。**规则可以通过在符号名称前加上 $ 字符，例如 $this，$arg1，$i 等来引用范围内变量（包括方法接收者和参数）**。
+
+&amp;#160; &amp;#160;代理还围绕触发器调用编译异常处理程序代码，以便处理规则处理期间可能出现的异常。这不是为了处理在规则执行引擎操作期间检测到的错误（它们都应该被捕获并在内部处理）。从执行引擎中抛出异常以通过触发方法改变控制流。通常，在从触发器调用返回之后，触发线程继续执行原始方法代码。但是，规则可以使用 return 和 throw 内置操作来指定应该从触发器方法执行早期返回或异常抛出。规则语言实现通过在触发器调用之下抛出自己的私有内部异常来实现此目的。编译到触发器方法中的处理程序代码捕获这些内部异常，然后返回到调用者或递归抛出运行时或特定于应用程序的异常。这避免了在触发方法的主体中正常执行剩余代码。如果在触发点处还有其他触发器调用未决，则在执行 return 或 throw 操作时也会绕过这些调用。
+
+#### Byterman 规则语言
+
+&amp;#160; &amp;#160;规则在脚本中定义，脚本由一系列与注释行交错的规则定义组成。注释可能出现在规则定义的主体内以及定义之前或之后，但必须与规则文本分开。注释是以＃字符开头的行：
+
+```python
+######################################
+# Example Rule Set
+#
+# a single rule definition 单个规则定义
+RULE example rule
+# comment line in rule body 规则体中的注释符 "#"
+. . .
+ENDRULE
+```
+
+#### 规则事件
+
+&amp;#160; &amp;#160;规则事件规范标识与目标类关联的目标方法中的特定位置。目标方法可以是静态方法，也可以是实例方法或构造方法。如果未指定详细位置，则默认位置是目标方法的入口。因此，单个规则的基本架构如下：
+
+```python
+# rule skeleton
+RULE <rule name>
+CLASS <class name>
+METHOD <method name>
+BIND <bindings>
+IF  <condition>
+DO  <actions>
+ENDRULE
+```
+
+&amp;#160; &amp;#160; ```RULE``` 关键字后面的规则名称可以是任何自由格式文本，但必须包含至少一个非空格字符。规则名称不必是唯一的，但如果它们清楚地标识规则，则在调试规则脚本时显然会有所帮助。只要在解析，类型检查，编译或执行期间遇到错误，就会打印规则名称。
+
+&amp;#160; &amp;#160; ```CLASS``` ＆ ```METHOD``` 关键字后面的类和方法名称必须在同一行。类名可以标识具有或不具有包限定的类。方法名称可以标识带或不带参数列表或返回类型的方法。使用特殊名称标识构造函数方法，并使用特殊名称<init>标识类初始化方法<clinit>。例如，
+
+```python
+# class and method example
+RULE any commit on any coordinator engine
+CLASS CoordinatorEngine
+METHOD commit
+. . .
+ENDRULE
+```
+
+&amp;#160; &amp;#160;将规则与任何名称为的类匹配 ```CoordinatorEngine```，而不管其所属的包。当加载任何具有此名称的类时，代理将在任何名为 commit 的方法的开头插入一个触发点。如果此方法出现多次，使用不同的签名，则每个方法都会插入一个触发点。
+
+&amp;#160; &amp;#160;通过添加包括参数类型列表和可选的返回类型的签名，可以保证更精确的匹配。例如，
+
+```python
+# class and method example 2
+RULE commit with no arguments on wst11 coordinator engine
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD State commit()
+AT LINE 324
+. . .
+ENDRULE
+```
+
+&amp;#160; &amp;#160;此规则仅匹配 ```CoordinatorEngine``` 包中的类， ```com.arjuna.wst11.messaging.engines``` 并且仅匹配不带参数的方法提交和名称为 State 的返回类型。请注意，在此示例中，未指定类 State 的包。类型检查器将从匹配的方法推断参数包或返回类型，省略它。前面的示例还使用了 ***```位置说明符```*** ```AT LINE```。必须能够解析 line 关键字后面的文本以派生整数行号。这会指示代理在源代码中特定行的开头插入触发器调用。注意：
+
+ - 该 Byteman 代理将无法正常转换的类在包 ```java.lang``` 和包永远不会改变类 ```org.jboss.byteman``` 的 byteman 包本身（也可以通过设置系统属性以去除第一的这些限制，但你必须要真正确保你知道什么你在做什么 - 见下面的详细信息）。
+
+ - 内部类可通过采用（内部格式）来指定$分离器来区分其包围外部类例如一个内部类 org.my.List$Cons， Map$Entry$Wrapper。
+
+#### 类规则与接口规则
+
+&amp;#160; &amp;#160;Byteman 规则可以附加到接口和类。如果 ```CLASS``` 关键字替换为关键字，```INTERFACE``` 则该规则适用于实现指定接口的任何类。例如，以下规则
+
+```python
+# interface rule example
+RULE commit with no arguments on any engine
+INTERFACE com.arjuna.wst11.messaging.engines.Engine
+METHOD commit()
+. . .
+ENDRULE
+```
+
+&amp;#160; &amp;#160;附加到接口的方法提交 ```Engine```。如果 ```Engine``` 由类实现 ```CoordinatorEngine```，```ParticipantEngine``` 则规则意味着两个触发点，一个在方法的开头，```CoordinatorEngine.commit()``` 另一个在方法的开头 ```ParticipantEngine.commit()``` 。代理确保将每个实现类转换为包含规则的触发器调用。
+
+#### 覆盖规则
+
+&amp;#160; &amp;#160;通常，Byteman 只会将规则代码注入到由 CLASS 子句中标识的类定义的方法中。这有时不是很有帮助。例如，以下规则用处不大：
+
+```python
+RULE trace Object.finalize
+CLASS java.lang.Object
+METHOD finalize
+IF TRUE
+DO System.out.println("Finalizing " + $0)
+ENDRULE
+```
+
+&amp;#160; &amp;#160;print 语句被插入到方法中 ```Object.finalize()```。但是，JVM 仅在对象的类重写时调用 finalize ```Object.finalize()``` 。因此，此规则不会执行预期的操作，因为不会修改重写方法。（这不是完整的故事 - 直接覆盖 Object.finalize 并调用 super.finalize() 的方法实现将触发规则）。在许多其他情况下，可能需要将代码注入到重写方法实现中。例如，类 ```Socket``` 是由各种类专门提供的，它们提供了自己的方法 bind，accept 等实现。因此，```Socket.bind()``` 当调用其中一个子类的bind方法时，不会触发附加到的规则（除非子类方法调用 ```super.bind()```）。
+
+&amp;#160; &amp;#160;当然，始终可以为每个重写类定义特定规则。但是，这很乏味，并且在更改代码库时可能会遗漏某些情况。因此，Byteman 提供了一些简单的语法，用于指定规则也应该注入到重写实现中。
+
+```python
+RULE trace Object.finalize
+CLASS ^java.lang.Object
+METHOD finalize
+IF TRUE
+DO System.out.println("Finalizing " + $0)
+ENDRULE
+```
+
+&amp;#160; &amp;#160; ```^``` 附加到类名的前缀告诉代理该规则应该应用于由类 ```Object``` 或任何扩展的类定义的 finalize 的实现 ```Object```。此前缀也可以与接口规则一起使用，要求代理将规则代码注入实现接口的类的方法中，并且还要覆盖实现类的子类的重写方法。
+
+&amp;#160; &amp;#160;请注意，如果重写方法调用 super 方法，则此注入方式可能会导致注入的规则代码被多次触发。特别是，注入构造函数（不可避免地，调用某种形式的超级构造函数）通常会导致规则的多次触发。通过向规则添加条件来检查调用方法的名称，可以轻松避免这种情况。因此，例如，上面的规则将被更好地重写为
+
+```python
+RULE trace Object.finalize at initial call
+CLASS ^java.lang.Object
+METHOD finalize
+IF NOT callerEquals("finalize")
+DO System.out.println("Finalizing " + $0)
+ENDRULE
+```
+
+&amp;#160; &amp;#160;此规则使用内置方法 ```callerEquals```，可以使用各种备用签名调用（下面将详细介绍）。此版本调用 ```String.equals()``` 将调用触发器方法的方法的名称与其 String 参数进行比较并返回结果。条件使用 ```NOT``` 运算符（编写 Java ```!``` 运算符的另一种方式）否定了这一点。因此，当 ```finalize``` 通过终结器线程的 ```runFinalizer()``` 方法调用实现时，此条件的计算结果为 true，并且规则将触发。当通过 ```super.finalize()``` 条件调用它时，计算结果为 false，并且规则不会触发。
+
+#### 覆盖接口规则
+
+&amp;#160; &amp;#160;该 ```^``` 前缀也可与结合使用 ```INTERFACE``` 的规则。通常，接口规则仅注入直接实现接口方法的类中。这可能意味着普通 ```INTERFACE``` 规则并不总是被注入您感兴趣的类中。
+
+&amp;#160; &amp;#160;例如，类 ```ArrayList``` 扩展了类 ```AbstractList```，而后者实现了接口 ```List```。```INTERFACE``` 列表附带的规则将被考虑注入 ```AbstractList``` 但不会被考虑注入 ```ArrayList``` 。这是有道理的，因为 ```AbstractList``` 它将包含每个方法的实现 ```List```（其中一些方法可能是抽象的）。因此，类 ```ArrayList``` 中重新实现接口的任何方法都被认为是重写方法。但是，```^``` 前缀可用于实现所需的效果。如果规则被连接到 ```INTERFACE``` ^名单，然后它会考虑注入两 ```AbstractList``` 和 ```ArrayList```。
+
+&amp;#160; &amp;#160;请注意，在类扩展超类和接口扩展超接口的情况下，这些情况之间存在细微差别。可以使用相同的类层次结构作为示例来解释如何处理接口扩展。
+
+&amp;#160; &amp;#160;让我们看一下界面 ```Collection``` 扩展的界面 ```List```。当附加规则时，```INTERFACE Collection``` 它被考虑注入任何实现的 ```Collection``` 类以及实现扩展的任何类 ```Collection```。由于 ```List``` 扩展， ```Collection``` 这意味着类似的实现类 ```AbstractList``` 将成为规则的候选者。这是因为它是 ```AbstractList``` 从 ```Collection``` via 到达链的第一个类，```List``` 所以它是类层次结构中的第一个点，可以找到方法的实现 ```Collection``` （即使它只是一个抽象方法）。类 ```ArrayList``` willl 不是注入的候选者，因为重新实现 ```Collection``` 声明的方法的任何方法仍然只会覆盖在其中实现的方法 ```AbstractList```。如果您希望将规则注入到类中定义的这些重写方法中，```ArrayList``` 那么您可以通过将规则附加到 ```INTERFACE ^Collection```。
+
+#### 位置说明
+
+&amp;#160; &amp;#160;上面的示例要么将目标方法中触发点的精确位置指定为特定的行号，```AT LINE``` 要么将其默认为方法的开头。显然，行号可用于在执行期间指定几乎任何点，并且在不受更改的代码中使用简单方便。但是，这种方法对于测试自动化非常有用，因为测试代码可能会被修改。显然，当编辑代码时，需要修改相关的测试。但是对代码库的修改可以轻松地改变未修改代码的行号，从而使与编辑无关的测试脚本无效。幸运的是，还有其他几种方法可以指定触发点应该插入目标方法的位置。例如，
+
+```python
+# location specifier example
+RULE countdown at commit
+CLASS CoordinatorEngine
+METHOD commit
+AFTER WRITE $current
+. . .
+ENDRULE
+```
+
+&amp;#160; &amp;#160;当前带有 ```$``` 符号前缀的名称标识局部变量，或者可能是方法参数。在这种情况下，当前恰好是在 ```CoordinatorEngine.commit``` 类型为枚举的方法的开头声明和初始化的局部变量 ```State```。
+
+```java
+public State commit() {
+  final State current ;
+  synchronized(this) {
+    current = this.state ;
+    if (current == State.STATE_PREPARED_SUCCESS) {
+      . . .
+```
+
+&amp;#160; &amp;#160;因此，触发点将在字节码（istore）中的第一次写操作之后立即插入，该字节码更新用于存储电流的堆栈位置。这实际上与说触发点将发生在源代码中初始化局部变量电流的点，即同步块内的第一行。
+
+相比之下，以下规则将在第一次从恢复的字段读取后找到触发点：
+
+```python
+# location specifier example 2
+RULE add countdown at recreate
+CLASS CoordinatorEngine
+METHOD <init>
+AT READ CoordinatorEngine.recovered
+. . .
+ENDRULE
+```
+
+&amp;#160; &amp;#160;请注意，在最后一个示例中，字段类型是合格的，以确保写入属于类实例的字段 ```CoordinatorEngine```。如果没有该类型，则规则将匹配来自具有名称的字段的任何读取 ```recovered```。
+
+完整的位置说明符集如下：
+
+```python
+AT ENTRY
+AT EXIT
+AT LINE number
+AT READ [type .] field [count | ALL ]
+AT READ $var-or-idx [count | ALL ]
+AFTER READ [ type .] field [count | ALL ]
+AFTER READ $var-or-idx [count | ALL ]
+AT WRITE [ type .] field [count | ALL ]
+AT WRITE $var-or-idx [count | ALL ]
+AFTER WRITE [ type .] field [count | ALL ]
+AFTER WRITE $var-or-idx [count | ALL ]
+AT INVOKE [ type .] method [ ( argtypes ) ] [count | ALL ]
+AFTER INVOKE [ type .] method [ ( argtypes ) ][count | ALL ]
+AT NEW [ type ] [ [] ] * [count | ALL ]
+AFTER NEW [ type ] [ [] ] * [count | ALL ]
+AT SYNCHRONIZE [ count | ALL ]
+AFTER SYNCHRONIZE [ count | ALL ]
+AT THROW [count | ALL ]
+AT EXCEPTION EXIT
+```
+
+&amp;#160; &amp;#160;如果提供了位置说明符，则必须紧跟说明 ```METHOD``` 符。如果没有提供位置说明符，则默认为 ```AT ENTRY```。
+
+#### ***```AT ENTRY```***
+
+&amp;#160; &amp;#160; ```AT ENTRY```说明符通常定位在所述触发的方法，所述第一可执行指令之前的触发点。在构造函数方法的情况下会发生异常，在这种情况下，触发点位于调用超级构造函数或重定向调用替代构造函数之后的第一条指令之前。这对于确保规则在构造之前不尝试绑定和操作实例是必要的。
+
+#### ***```AT EXIT```***
+
+&amp;#160; &amp;#160;一个 ```AT EXIT``` 其中发生控制的一个正常返回（即只要有隐式或显式的返回而不是其中掷退出方法）说明符定位在触发方法中的每个位置的触发点。
+
+#### ***```AT LINE```***
+
+&amp;#160; &amp;#160; ```AT LINE``` 说明符定位在所述触发的方法，其源极线数为大于或等于作为参数将指定符提供的行号的第一个可执行字节代码指令之前的触发点。如果在指定的行号处（或之后）没有可执行代码，则代理将不会插入触发点（请注意，在这种情况下它不会打印错误，因为这可能仅表示该规则不适用于此特定类或方法）。
+
+#### ***```AT READ```***
+
+&amp;#160; &amp;#160; ```AT READ``` 后跟字段名称的说明符在第一次提到名称与提供的字段名称匹配的对象字段之前定位触发点，即它对应于字节码中相应的 getField 指令的第一次出现。如果指定了类型，则仅当命名字段由名称与提供的类型匹配的类声明时，才匹配 getField 指令。如果提供计数 N，则第 N 个匹配的 getField 将用作触发点。注意，计数标识字段访问的第 N 个文本出现，而不是运行时特定执行路径中的第 N 个字段访问。如果指定关键字 ALL 代替计数，则将在所有匹配的 getField 调用中触发规则。
+
+&amp;#160; &amp;#160; ```AT READ``` 后跟 $ -prefixed 本地变量名，方法参数名或方法参数索引的说明符在第一条指令之前定位触发点，该指令读取相应的本地或方法参数变量，即它对应于 iload，dload，aload etc 中的指令。字节码。如果提供计数 N，则第 N 个匹配读取将用作触发点。请注意，计数标识第 N 个文本出现的变量读取，而不是运行时特定执行路径中的第 N 个访问。如果指定关键字 ALL 代替计数，则在每次读取变量之前将触发规则。
+
+&amp;#160; &amp;#160;请注意，如果触发器方法字节码包含局部变量表，例如，如果已使用 ```-g``` 标志编译，则只能使用本地或参数变量名称，例如 $i，$this 或 $arg1。与此相反，它总是可以参考参数使用索引符号变量的读操作 ```$0```，```$1``` 等（但要注意的位置 ```AT READ``` ```$0``` 将只匹配在触发方法是一个实例方法）。
+
+#### ***```AFTER READ```***
+
+&amp;#160; &amp;#160; ```AFTER READ``` 规格是相同的一个 ```AT READ``` 不同之处在于它所处的 getfield 命令或变量读操作之后的触发点规范。
+
+#### ***```AT WRITE``` ```AFTER WRITE```***
+
+&amp;#160; &amp;#160; ```AT WRITE``` 和 ```AFTER WRITE``` 说明符与相应的 READ 说明符相同，除了它们对应于源代码中指定字段或命名变量的赋值，即它们标识 putField 或 istore，dstore 等指令。
+
+&amp;#160; &amp;#160;请注意，位置 ```AT WRITE $0``` 或等效地 ```AT WRITE $this``` 永远不会匹配任何候选触发器方法，因为永远不会分配实例方法调用的目标对象。
+
+&amp;#160; &amp;#160;还要注意，对于给定的局部变量，localvar，location ```AT WRITE``` $localvar 或等效的 ```AT WRITE``` $localvar 1 在初始化局部变量之后立即标识位置，即将其视为 ```AFTER WRITE``` $localvar。这是必要的，因为变量在初始化之后才在范围内。这还确保可以在规则体中安全地访问已写入的局部变量。
+
+#### ***```AT INVOKE``` ```AFTER INVOKE```***
+
+&amp;#160; &amp;#160; ```AT INVOKE``` 和 ```AFTER INVOKE``` 说明符类似 ```READ``` 和 ```WRITE``` 说明符，除了它们将触发器方法中的方法或构造函数的调用标识为触发点。可以使用裸方法名称来标识该方法，或者可以通过可能的包限定类型或描述符来限定该名称。描述符由括号内的逗号分隔的类型名称列表组成。类型名称标识方法参数的类型，可以使用包限定符作为前缀，并使用数组括号对作为后缀。
+
+#### ***```AT NEW``` ```AFTER NEW```***
+
+&amp;#160; &amp;#160; ```AT NEW``` 和 ```AFTER NEW``` 说明符标识目标方法中 ```new``` 操作创建 Java 对象类或数组类的位置。一个 ```AT NEW``` 规则对象之前触发或数组分配。一个 ```AFTER NEW``` 规则的对象或数组的创建和初始化后触发。
+
+&amp;#160; &amp;#160; ```NEW``` 可以通过提供各种可选参数，类型名称，一对或多对方括号以及整数计数或关键字来约束触发位置的 选择 ```ALL```。这些参数可以独立地指定，并且它们各自用于为可以考虑将规则注入目标方法的点选择或多或少精确的匹配集。
+
+&amp;#160; &amp;#160;如果提供了类型名称，则注入仅限于创建命名类型的实例（或数组）的点。可以在没有包限定符的情况下提供类型名称，在这种情况下，具有共享相同非包限定名称的类型的任何新操作都将匹配。
+
+&amp;#160; &amp;#160;如果省略类型名称，则可以在创建实例（或数组）的任何位置进行注入。
+
+&amp;#160; &amp;#160;需要注意的是 ```extends``` 和 ```implements``` 匹配关系时被忽略。例如，如果规则指定，```AT NEW Foo``` 则 ```new Foobar``` 即使 该位置也不会与操作匹配 ```FooBar extends Foo``` 。同样，```Foo implements IFoo``` 指定位置 ```AT NEW IFoo``` 时也不匹配。确实指定任何接口都是错误的。新操作总是实例化一个特定的类，而不是一个接口。因此，指定接口名称的位置永远不会匹配。
+
+&amp;#160; &amp;#160;如果包括一个或多个支撑对，则注入限于方法中的点，其中创建具有等效维数的阵列。因此，例如，指定 ```AT NEW [][]``` 将匹配创建 2d 数组的任何新操作，而不管数组基类型是什么，相反，指定 ```AT NEW int[]``` 将仅匹配创建 1d int 数组的新操作。如果没有提供大括号，则匹配将限制为实例化 Java 对象类（即非数组类）的新操作。
+
+&amp;#160; &amp;#160;当方法中存在多个 canidate 注入点时，可以提供整数计数以选择特定注入点（如果未指定，则计数默认为1）。```ALL``` 可以提供关键字以在所有匹配的注射点处请求注射。
+
+#### ***```AT SYNCHRONIZE``` ```AFTER SYNCHRONIZE```***
+
+&amp;#160; &amp;#160; ```AT SYNCHRONIZE``` 和 ```AFTER SYNCHRONIZE``` 说明符标识目标方法中的同步块，即它们对应 ```MONITORENTER``` 于字节码中的指令。请注意，AFTER SYNCHRONIZE 在进入同步块后立即识别该点，而不是在从块退出后立即识别该点。
+
+#### ***```AT THROW```***
+
+&amp;#160; &amp;#160; ```AT THROW``` 说明符标识触发方法作为触发点内投掷操作。throw 操作可以由一个可能是包限定的 typename 限定，该 typename 标识抛出的异常的词法类型。如果提供计数 N，则该位置指定投掷的第 N 个文本出现。如果指定关键字 ALL 代替计数，那么将在抛出的所有匹配事件处触发规则。
+
+#### ***```AT EXCEPTION EXIT```***
+
+&amp;#160; &amp;#160; ```AT EXCEPTION EXIT``` 说明符标识在方法返回通过未处理的异常控制流控制返回给其调用者的点。这可能是因为方法本身抛出异常，或者因为它调用了其他抛出异常的方法。当方法在 Java 语言中执行某些操作时也会发生这种情况，例如，取消引用空对象值或索引超出数组的末尾。
+
+&amp;#160; &amp;#160;注入此位置的规则将在异常通常传播回调用方的位置触发。一旦规则执行完成，通常会恢复异常流程。但是，该规则可以通过执行 RETURN 来破坏此恢复的流程。它也可以通过执行 THROW 显式地重新抛出原始异常或抛出一些新创建的异常（如果后者是一个经过检查的异常则为 nb，那么它必须通过触发器方法声明为可能的异常）。
+
+&amp;#160; &amp;#160;nb 当多个规则指定相同的位置时，触发器调用的注入顺序通常遵循各自脚本中规则的顺序。例外情况是 AFTER 位置，其中注入顺序与发生顺序相反。
+
+&amp;#160; &amp;#160;nbb 当一个位置说明符（ENTRY 或 EXIT 除外）与覆盖规则一起使用时，如果该位置与所讨论的方法匹配，则仅将规则代码注入原始方法或覆盖方法。因此，例如，如果使用位置 AT READ myField 2，则该规则将仅被注入到包括两个字段 myField 的方法的实现中。忽略与位置不匹配的方法。
+
+&amp;#160; &amp;#160;nbbb 由于历史原因 CALL 可以用作同义词 ```INVOKE```，```RETURN``` 可以用作同义词，```EXIT``` 并且 ```AT``` 在 ```AT LINE``` 说明符中是可选的。
+
+#### 规则绑定
+
+&amp;#160; &amp;#160;事件规范包括绑定规范，该规范计算随后可在规则体中引用的变量的值。每次在测试规则条件之前触发规则时，都将计算这些值。例如，
+
+```python
+# binding example
+RULE countdown at commit
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+AT READ state
+BIND engine:CoordinatorEngine = $0;
+     recovered:boolean = engine.isRecovered();
+     identifier:String = engine.getId()
+. . .
+ENDRULE
+```
+
+&amp;#160; &amp;#160;创建一个名为的变量 ```engine```。此变量绑定到提交方法调用的接收方，该方法调用触发由参数引用标识的规则 ```$0```（如果 commit 是静态方法，则引用 ```$0``` 将导致类型检查异常）。参数传递给触发方法可以使用具有连续索引参数的引用被识别，```$1```，```$2```等发动机的声明指定其类型为 CoordinatorEngine 尽管这不是严格必需的，因为它可以推断形式的类型 ```$0```。
+
+&amp;#160; &amp;#160;类似地，变量 ```recovered``` 并 ```identifier``` 通过评估=运算符右侧的表达式来约束。请注意，绑定 ```engine``` 已在绑定这些变量之前建立，因此可以在计算表达式中引用它。再次提供了类型规范，但可以推断它们。特殊语法 ```BIND NOTHING``` 适用于规则不需要使用任何绑定的情况。或者，该 ```BIND``` 条款可以省略。
+
+#### 规则变量初始化中的向下转发
+
+&amp;#160; &amp;#160;绑定初始化不仅可以简单地为初始化表达式中计算的值引入占位符，并且在这方面它与规则体中其他位置发生的赋值明显不同。可以在绑定初始化中执行“向下转换”，即将某些泛型类类型的值分配给其类型是兼容子类型的规则变量。
+
+例如，在以下规则中
+
+```python
+# downcast example
+RULE countdown at commit
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+AT READ state
+BIND engine:CoordinatorEngine = $0;
+     endpoint : javax.xml.ws.EndpointReference = engine.participant;
+     w3cEndpoint javax.xml.ws.wsaddressing.W3CEndpointReference = endpoint;
+. . .
+ENDRULE
+```
+
+&amp;#160; &amp;#160;存储在 ```CoordinatorEngine``` 字段中的引用 ```participant``` 用于初始化 ```endpoint``` 其类型为通用 JaxWS 类的规则变量 ```EndpointReference```。规则变量的第二个绑定 ```w3cEndpoint``` 使用存储的值 ```endpoint``` 。第二个变量的类型是初始化表达式类型的 ```w3cEdpoint``` 子类。在规则中的任何其他位置的赋值中，这将导致类型错误。Byteman 类型检查器忽略了此初始化赋值中的类型不匹配，但仅仅因为它知道它是 intiializer 表达式的类型的子类 。它假定此时的“向下转换”是故意的，即规则作者知道初始化表达式返回的值实际上属于子类型。
+
+ ```W3CEndpointReference``` ```EndpointReference``` ```W3CEndpointReference``` ```endpoint```
+
+&amp;#160; &amp;#160;Byteman 在执行初始化时仍然执行类型检查，以确保该值确实是所需类型，如果测试失败则抛出异常。nb 在这种情况下，赋值永远不会失败，因为 ```CoordinatorEngine``` field ```participant``` 实际上声明为 ```W3CEndpointReference```。
+
+&amp;#160; &amp;#160;当规则需要处理泛型类型 ```List``` 等时，向下转换特别有用. Byteman 类型检查器无法从字节码中识别有关泛型类型的信息，因为它在编译时被擦除。因此，例如，列表 ```get``` 操作将始终键入为返回 Object。如果您知道注入点处可用的特定列表存储某些给定类型的值，则可以将从列表中检索的值向下转换为 BIND 子句中的所需类型。
+
+#### 规则表达式
+
+&amp;#160; &amp;#160;在事件绑定中出现在=运算符右侧的表达式可以是 Byteman 支持的任何 Java 表达式。这包括所有常见的简单表达式以及一些额外的特殊情况，即
+
+ - 对先前绑定变量的引用
+
+ - 引用触发器方法的接收者或参数
+
+ - 引用触发点范围内的局部变量
+
+ - 特殊变量的引用 ```$!```，```$^```，```$#```，```$*```，```$@```，```$CLASS``` 和 ```$METHOD```
+
+ - 静态字段引用
+
+ - 原始文字
+
+ - 数组文字
+
+ - 现场访问
+
+ - 静态或实例方法调用
+
+ - 内置操作调用
+
+nb 内置操作将在下面详细说明。
+
+&amp;#160; &amp;#160;表达式也可以被构造为使用通常的 Java 运算符从其他表达式组成复杂的表达式：```+```，```-```，```*```，```/```，```%```，```&```，```|```， ```^```，```&&```，```||```，```!```，```=```，```==```，```!=```，```<```， ```⇐```，```>```，```>=```，```new```，等。三元条件表达式运算符，```?``` ```:``` 也可以采用。类型检查器尽可能地识别简单和复杂表达式的类型。因此，例如，如果它知道绑定变量引擎的类型，那么它将能够使用反射来推断字段访问引擎的类型。恢复，方法调用 ```engine.isRecovered()``` 等。
+
+注意：
+
+ - ```throw``` 并且 ```return``` 只允许操作作为一系列规则操作中的最后一个操作（参见下文）。
+
+ - 表达式应遵守关于关联性和优先级的常规规则。
+
+ - 触发方法接收者和参数可以通过使用符号的索引来引用 ```$0```（对于静态方法无效）```$1``` 等。如果该方法已经用相关的调试选项编译，则也可以使用符号引用。因此，例如，```$this``` 可被用作用于别名 ```$0``` 和 ```$myArg``` 可以用作一个别名 ```$1```，如果该方法的第一个参数与名称声明 ```myArg```，
+
+ - 如果使用相关的调试选项编译了触发器方法，则可以使用与方法参数相同的语法以符号方式引用局部变量。因此，例如，如果变量 ```idx``` 在触发点的范围内，则 ```$idx``` 可以用于获取其值。
+
+ - 特殊变量提供对其他触发方法数据的访问。目前有7个这样的特殊变量：
+
+  - ```$!``` 在 ```AT EXIT``` 规则中有效，并且在触发规则的位置绑定到堆栈上的返回值。其类型与触发器方法返回类型相同。如果触发器方法返回类型为 void，则规则将无法注入。
+
+  - ```$!``` 在 ```AFTER INVOKE``` 规则中也有效，并且在触发规则的位置绑定到堆栈上的返回值。它的类型与调用的方法返回类型相同。如果调用的方法返回类型为 void，则规则将无法注入。
+
+  - ```$!``` 在 ```AFTER NEW``` 规则中也有效，并绑定由触发规则的新操作创建的实例或数组。它的类型是触发器方法中相应的新表达式。
+
+  - ```$^``` 在 ```AT THROW``` 规则中有效，并且在触发规则的位置绑定到堆栈上的 throwable。它的类型是 Throwable。
+
+  - ```$^``` 在 ```AT EXCEPTION EXIT``` 规则中也有效，并且绑定到通过异常控制流从方法返回的 throwable。它的类型是 Throwable。
+
+  - ```$#``` 具有int类型并标识提供给触发器方法的参数数量。
+
+  - ```$*``` 绑定到一个 ```Object[]``` 含有所述触发方法收件人，阵列 ```$this```，在时隙 0 和触发方法的参数值，```$1```，```$2```等在插槽 1，2 等（为一个静态触发器方法在时隙 0的值是 ```null```）。
+
+  - ```$@``` 仅在 ```AT INVOKE``` 规则中有效并绑定到 ```Object[]``` 包含 ```AT INVOKE``` 插槽 0 中的目标方法接收方的数组， 以及在调用顺序中向上安装在插槽1中的目标方法的调用参数（如果目标方法是静态的，则插槽 0 中的值为 ```null```） 。请注意，此变量在 ```AFTER INVOKE``` 规则中无效。该数组包含在触发器方法调用 ```AT INVOKE``` 目标方法之前位于堆栈上的调用参数。呼叫完成后，这些值将不再可用。
+
+  - ```$CLASS``` 在所有规则中都有效，并且绑定到 ```String``` 其值是规则的触发器类的完整包限定名称。触发器类是注入规则的方法的类。请注意，这通常与 ```CLASS```规则子句中提到的目标类相同。但是，当注入接口或使用重写注入时，触发器类可以分别是目标类的实现或子类。因此，对于任何给定的目标类，可能存在多个触发器类。
+
+  - ```$METHOD``` 在所有规则中都有效，并且绑定到 ```String``` 其值是注入规则的触发器方法的全名，使用签名和返回类型进行限定。请注意，这通常与 ```METHOD``` 规则子句中提到的目标方法相同。但是，目标方法可以省略签名和返回类型。因此，对于任何给定的目标方法，可能存在多个触发方法。
+
+  - ```$NEWCLASS``` 仅在 ```AT NEW``` 和 ```AFER NEW``` 规则中有效。它被绑定到一个字符串是对象或由所述新的操作例如在阵列的规范名称 ```org.my.Foo```，```int[]```， ```org.my.Bar[][]```。
+
+ - 数组文字表达式是用括号括起来的逗号分隔的表达式序列，例如 ```{}```，```{ "foo", "bar" }```。数组文字只能用于定义以下任一项的初始值：```BIND``` 子句中声明的数组变量，例如：
+
+ ```x:int[] = {1, 2, 3};```
+ 
+ 或者通过新表达式创建的数组，例如
+ 
+ ```names = new Object[][] {{$0, $0.name()},{$1, $1.name()}};```
+ 
+ nb Byteman 不会将初始化程序中嵌入的表达式类型限制为其他文字。正如您在上面的第二个示例中所看到的，可以使用任意 Java 表达式计算嵌入值。只要表达式类型兼容，Byteman 还允许从属括号内的术语具有不同数量的项目; 它只是使用提供的值的数量创建相关的子数组。
+
+ NBB 当使用具有混合值类型的初始化程序初始化 ```BIND``` 子句中的无类型变量时， 值必须具有与第一个元素的类型一致的类型，可以一致地使用它来推断相应的数组类型，例如，给定以下绑定 ```x = { $1, "foo", $2 };```
+
+ 类型 ```Object[]``` 将是推断 ```x``` if if ```$1``` 是类型 ```Object```,类型 ```String[]``` 将推断 if ```$1``` 和 ```$2``` 是否都是类型 ```String```。对于任何其他类型，将发生类型错误。
+
+ - 赋值可以更新 ```BIND``` 子句，参数或局部变量，实例字段，静态字段或返回值特殊变量中引入的规则变量的绑定 ```$!```。目前不允许分配更新任何其他特殊变量。
+ 
+ - 在恢复触发方法时，可以看到对参数变量或局部变量的赋值。例如，假设规则包括一个赋值，例如 ```$name = "Ernie"```，name 在触发点的范围内是参数变量或局部变量。如果name ```"Bert"``` 在触发规则并且实际执行赋值时具有值，那么在恢复触发器方法时 ```name``` 将具有值 ```"Ernie"```。请注意，无法进行分配 ```$this```（或等效地 ```$0```）; 实例方法的 recipient 参数始终是 ```final```。
+ 
+ - 分配到 ```$!``` AT RETURN，AFTER INVOKE 或 AFTER NEW 规则更新触发点堆栈顶部的值。对于 AT RETURN 规则，这会导致触发器方法返回此更新的值。通过执行 ```RETURN``` 表达式，可以在 AT RETURN 规则中实现相同的效果。对于 AFTER INVOKE 或 AFTER NEW 规则，这将替代刚刚完成的呼叫或新操作的替代结果。
+ 
+ - Byteman 提供低于所列的英文关键字来代替相关标准的 Java 运算符的使用（括号内）： ，
+ 
+ ```OR (||)```，```AND (&&)```，```NOT (!)```，```LE (< =)```，```LT (<)```，```EQ (==)```，```NE (!=)```，```GE (>=)```，```GT (>)```， ```TIMES (*)```，```DIVIDE (/)```，```PLUS (+)```，```MINUS (-)```，```MOD (%)``` 关键字是在上或下的认可（但不混合）案例。
+ 
+ 关键字可能会与它们出现的相同名称冲突，作为 Byteman 规则中指定的目标类和方法中的合法 Java 标识符
+ 
+#### 规则条件
+
+规则条件只不过是布尔类型的规则表达式。例如，
+
+```python
+# condition example
+RULE countdown at commit
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+AT READ state
+BIND engine:CoordinatorEngine = $this;
+     recovered:boolean = engine.isRecovered();
+     identifier:String = engine.getId()
+IF recovered
+. . .
+ENDRULE
+```
+
+仅测试恢复的绑定变量的值。使用以下条件可以实现相同的效果：
+
+```python
+# condition example
+RULE countdown at commit
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+AT READ state
+BIND engine:CoordinatorEngine = $this;
+     recovered:boolean = engine.isRecovered();
+     identifier:String = engine.getId()
+IF recovered
+. . .
+ENDRULE
+```
+
+&amp;#160; &amp;#160;或者，如果实例使用公共字段（已恢复）来存储方法返回的布尔值，```isRecovered``` 则通过以下条件可以实现相同的效果。
+
+```python
+# condition example 3
+RULE countdown at commit
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+AT READ state
+BIND engine:CoordinatorEngine = $this,
+. . .
+IF engine.recovered
+. . .
+ENDRULE
+```
+
+请注意，布尔文字 ```true``` 可用于表达式，因此应始终触发的规则可以将其用作条件表达式。
+
+#### 规则行动
+
+规则操作可以是规则表达式，也可以是返回或抛出操作或由分号分隔的一系列规则表达式，可能以 return 或 throw 操作结束。动作列表中出现的规则表达式可以具有任意类型，包括 void 类型。
+
+&amp;#160; &amp;#160;返回操作是 ```return``` 关键字，后面可能跟一个用于计算返回值的规则表达式。返回操作会导致从触发方法返回，因此当且仅当方法无效时，它才会省略返回值。如果使用返回值，则类型检查器将确保其类型可分配给触发器方法的返回类型。因此，例如，假设方法 ```commit``` 具有返回类型，则以下使用 return 是合法的 ```boolean```：
+
+```python
+# return example
+RULE countdown at commit
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+AT READ state
+     . . .
+DO debug("returning early with failure");
+   return false
+ENDRULE
+```
+
+&amp;#160; &amp;#160;throw 动作是 ```throw``` 关键字，后跟可抛出的构造函数表达式。throwable 构造函数表达式是关键字，```new``` 后跟 throwable 的类名，后者将引用参数列表。参数列表可以是空的，即它可以由开括号和右括号对组成。或者，括号可以包括单个规则表达式或由逗号分隔的一系列规则表达式。如果没有提供参数，则 throwable 类型必须实现一个空构造函数。如果提供了参数，则 throwable 类型必须实现其签名类型兼容的构造函数。nb 由于歇斯底里的原因，new 关键字可能会从 throw 关键字后面的 throwable 构造函数表达式中省略。
+
+&amp;#160; &amp;#160;throw 操作会导致在触发方法中创建并抛出异常构造函数中指定类型的 throwable 。为了使这是有效的表达式类型必须是分配给 ```java.lang.RuntimeException``` 或 ```java.lang.Error``` 或显式声明为触发方法的 throws 列表检查异常。如果不满足其中任何一个条件，则类型检查器将抛出类型异常。因此，例如，以下使用 throw 是合法的，假设方法 commit 包含 WrongStateException 在其 throws 列表中。
+
+```python
+# throw example
+RULE countdown at commit
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+AT READ state
+. . .
+DO debug("throwing wrong state");
+   throw new WrongStateException()
+ENDRULE
+```
+
+可以使用关键字指定空动作列表 ```NOTHING```.
+
+#### 内置调用(Call)
+
+&amp;#160; &amp;#160;内置调用是对一系列有用方法的调用，这些方法实现了在规则条件或操作中通常有用的族操作。它们是在没有收件人的情况下编写的，就好像它们是对方法的调用一样 ```this```。规则引擎以这种格式标识调用，并将它们转换为辅助类的实例方法的运行时调用，默认情况下是 Byteman 本身提供的类 Helper。因此，回过头几个例子，很明显 Helper 类实现了一个带签名的调试方法
+
+```java
+boolean debug(String message)
+```
+
+&amp;#160; &amp;#160;此方法将提供的字符串打印到，```System.out``` 但仅在 ```org.jboss.byteman.debug`` `设置了属性时。当您希望调试规则执行时，它可以在规则操作中用于显示消息，例如：
+
+```python
+DO debug("killing JVM"), killJVM()
+```
+
+&amp;#160; &amp;#160;因此，在此示例中，当执行 ```debug``` 内置函数时，规则引擎会调用当前帮助程序实例的相应方法，并将其传递给字符串 ```"killing JVM"```。方法 ```killJVM``` 是由相应的实例方法实现的另一种内置方法 ```Helper```。它可用于立即停止 JVM，模拟 JVM 崩溃。
+
+&amp;#160; &amp;#160;请注意，该方法 ```debug``` 具有 ```boolean``` 返回类型。它总是返回 true。这是为了允许 ```AND``` 在 ```debug``` 与其余条件的 呼叫中跟踪规则 IF 子句。这通常与某些绑定变量或方法参数的测试结合使用，例如：
+
+```python
+IF debug("checking for recovered participant")
+   AND
+   participant.isRecovered()
+   AND
+   debug("recovered participant " + participant.getId())
+```
+
+注意 ```AND``` 是 Java ```&&``` 运算符的替代标记。
+
+&amp;#160; &amp;#160;规则语言实现自动将类的所有公共实例方法公开 ```Helper``` 为内置操作。因此，当规则类型检查器遇到 ```debug``` 没有提供收件人的调用时，它会验证这 ```debug``` 是一个类 Helper 的方法，并自动键入检查对此方法的调用。在执行时，通过调用 ```debug``` 在注入点触发规则执行时创建的辅助实例上的实现来执行调用。
+
+&amp;#160; &amp;#160;此功能允许通过添加新的帮助程序实现将附加或替代内置函数添加到规则引擎。解析器，类型检查器和编译器不需要进行任何更改，以使其工作。
+
+#### 用户定义的规则助手
+
+&amp;#160; &amp;#160;如果规则要扩展，覆盖或替换可用于其事件，条件或操作的内置调用集，则规则可以指定它自己的帮助程序类。例如，在以下规则中，类 ```FailureTester``` 用作帮助程序类。它的布尔实例方法 ```doWrongState(CoordinatorEngine)``` 是从条件中调用来决定是否抛出一个 ```WrongStateException```。
+
+```python
+# helper example
+RULE help yourself
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+HELPER com.arjuna.wst11.messaging.engines.FailureTester
+AT EXIT
+IF doWrongState($0)
+DO throw new WrongStateException()
+ENDRULE
+```
+
+&amp;#160; &amp;#160;辅助类不需要实现任何特殊接口或从任何预定义类继承。它只需要提供实例方法来解决规则中发生的内置调用。唯一的限制是
+
+ - 你的帮助班不能是最终的
+ 
+  - Byteman 需要能够为您的助手创建子类，以便将其与规则执行引擎相连接
+ 
+ - 你的助手类不能是抽象的
+ 
+  - Byteman 需要能够在触发规则时实例化您的帮助程序
+  
+ - 您必须为您的助手类提供合适的公共构造函数
+ 
+  - 默认情况下 Byteman 将使用空构造函数初始化它（即一个有签名()）
+  
+  - 如果你提供一个接受规则作为参数的构造函数（即签名 ```(org.jboss.byteman.agent.rule.Rule)```）Byteman 将使用它作为首选项
+
+**注意**：需要将 Helper 所在的 jar 包放在程序运行时的 classpath 路径中。
+
+&amp;#160; &amp;#160;通过对默认帮助程序进行子类化，可以扩展或覆盖默认的方法集。例如，以下规则使用了一个帮助程序，它强调了规则打印的调试消息。
+
+```python
+# helper example 2
+RULE help yourself but rely on others
+CLASS com.arjuna.wst11.messaging.engines.CoordinatorEngine
+METHOD commit
+HELPER HelperSub
+AT ENTRY
+IF NOT flagged($this)
+DO debug("throwing wrong state");
+   flag($this);
+   throw new WrongStateException()
+ENDRULE
+```
+
+```java
+class HelperSub extends Helper {
+    public HelperSub(Rule rule) {
+        super(rule);
+    }
+    public boolean debug(String message) {
+        super("!!! IMPORTANT EVENT !!! " + message);
+    }
+}
+```
+
+该规则仍然可以使用默认帮助程序类定义的内置方法标志和标记。
+
+&amp;#160; &amp;#160;上面的示例使用 ```HELPER``` 规则主体中的一行来重置特定规则的帮助程序。还可以通过在规则 ```HELPER``` 范围之外添加一行来为文件中的所有后续规则重置帮助程序。因此，在以下示例中，前两个规则使用类，```HelperSub``` 而第三个规则使用 类 ```YellowSub```。
+
+```python
+HELPER HelperSub
+# helper example 3
+RULE helping hand
+. . .
+RULE I can't help myself
+. . .
+RULE help, I need somebody
+CLASS . . .
+METHOD . . .
+HELPER YellowSub
+. . .
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

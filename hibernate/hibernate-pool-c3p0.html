@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate C3P0 Pool</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<c3p0-config>
+	<default-config>
+		<!-- 数据库驱动名  -->
+		<property name="driverClass" />
+		<!-- 数据库的 url  -->
+		<property name="jdbcUrl" />
+		<!-- 当连接池中的连接耗尽的时候 c3p0 一次同时获取的连接数。Default: 3 -->
+		<property name="acquireIncrement">3</property>
+		<!-- 定义在从数据库获取新连接失败后重复尝试的次数。Default: 30 -->
+		<property name="acquireRetryAttempts">30</property>
+		<!-- 两次连接中间隔时间，单位毫秒。Default: 1000 -->
+		<property name="acquireRetryDelay">1000</property>
+		<!-- 连接关闭时默认将所有未提交的操作回滚。Default: false -->
+		<property name="autoCommitOnClose">false</property>
+		
+		<!-- c3p0 将建一张名为 Test 的空表，并使用其自带的查询语句进行测试。
+		        - 如果定义了这个参数那么 属性 preferredTestQuery 将被忽略。
+		        - 你不能在这张Test表上进行任何操作，它将只供 c3p0 测试 使用。
+		        - Default: null 
+		-->
+		<property name="automaticTestTable"></property>
+		
+		<!-- 获取连接失败将会引起所有等待连接池来获取连接的线程抛出异常。
+		        - 但是数据源仍有效 保留，并在下次调用 getConnection() 的时候继续尝试获取连接。
+		        - 如果设为 true，那么在尝试 获取连接失败后该数据源将申明已断开并永久关闭。
+		        - Default: false 
+		-->
+		<property name="breakAfterAcquireFailure">false</property>
+		
+		<!-- 当连接池用完时客户端调用 getConnection() 后等待获取新连接的时间，
+		        - 超时后将抛出 SQLException,如设为0则无限期等待。单位毫秒。
+		        - Default: 0 
+		-->
+		<property name="checkoutTimeout">0</property>
+		
+		<!-- 通过实现 ConnectionTester 或 QueryConnectionTester 的类来测试连接。
+		        - 类名需制定全路径。 
+		        - Default: com.mchange.v2.c3p0.impl.DefaultConnectionTester 
+		-->
+		<property name="connectionTesterClassName"></property>
+		<!-- 指定 c3p0 libraries 的路径，如果（通常都是这样）在本地即可获得那么无需设置，默认 null 即可 Default: null -->
+		<property name="factoryClassLocation">null</property>
+
+		<!-- Strongly disrecommended. 
+		        - Setting this to true may lead to subtle and bizarre bugs. 
+		        - （文档原文）作者强烈建议不使用的一个属性 -->
+		<property name="forceIgnoreUnresolvedTransactions">false</property>
+
+		<!-- 每 60 秒检查所有连接池中的空闲连接。Default: 0 -->
+		<property name="idleConnectionTestPeriod">0</property>
+		<!-- 初始化时获取三个连接，取值应在 minPoolSize 与 maxPoolSize 之间。Default: 3 -->
+		<property name="initialPoolSize">3</property>
+		<!-- 最大空闲时间,指定的时间内未使用则连接被丢弃。若为 0 则永不丢弃。Default: 0 -->
+		<property name="maxIdleTime">0</property>
+		<!-- 连接池中保留的最大连接数。Default: 15 -->
+		<property name="maxPoolSize">15</property>
+		
+		<!-- JDBC 的标准参数，用以控制数据源内加载的 PreparedStatements 数量。
+		        - 但由于预缓存的 statements 属于单个 connection 而不是整个连接池。
+		        - 所以设置这个参数需要考虑到多方面的因素。 
+		        - 如果 maxStatements 与 maxStatementsPerConnection 均为 0，则缓存被关闭。
+		        - Default: 0 
+		-->
+		<property name="maxStatements">0</property>
+		
+		<!-- maxStatementsPerConnection 定义了连接池内单个连接所拥有的最大缓存 statements 数。Default: 0 -->
+		<property name="maxStatementsPerConnection">0</property>
+		
+		<!-- c3p0 是异步操作的，缓慢的 JDBC 操作通过帮助进程完成。
+		        - 扩展这些操作可以有效的提升性能,通过多线程实现多个操作同时被执行。
+		        - Default:3 
+		-->
+		<property name="numHelperThreads">3</property>
+		
+		<!-- 当用户调用 getConnection() 时使 root 用户成为去获取连接的用户。
+		        - 主要用于连接池连接非 c3p0 的数据源时。
+		        - Default: null 
+		-->
+		<property name="overrideDefaultUser"></property>
+		<!-- 与 overrideDefaultUser 参数对应使用的一个参数。Default: null -->
+		<property name="overrideDefaultPassword"></property>
+		<!-- 用户名。Default: null -->
+		<property name="user"></property>
+		<!-- 密码。Default: null -->
+		<property name="password"></property>
+		
+		<!-- 定义所有连接测试都执行的测试语句。
+		        - 在使用连接测试的情况下这个一显著提高测试速度。
+		        - 注意： 测试的表必须在初始数据源的时候就存在。
+		        - Default: null 
+		-->
+		<property name="preferredTestQuery"></property>
+		
+		<!-- 用户修改系统配置参数执行前最多等待300秒。Default: 300 -->
+		<property name="propertyCycle">300</property>
+		
+		<!-- 因性能消耗大请只在需要的时候使用它。
+		        - 如果设为 true 那么在每个 connection 提交的 时候都将校验其有效性。
+		        - 建议使用 idleConnectionTestPeriod 或 automaticTestTable  等方法来提升连接测试的性能。
+		        - Default: false 
+		-->
+		<property name="testConnectionOnCheckout">false</property>
+		
+		<!-- 如果设为 true 那么在取得连接的同时将校验连接的有效性。Default: false -->
+		<property name="testConnectionOnCheckin">false</property>
+
+		<!-- 连接超时时间, default: 0。如果是0，表示无限等待  -->
+		<property name="checkoutTimeout">0</property>
+		<!-- 测试空闲连接的间隔时间 default: 0  -->
+		<property name="idleConnectionTestPeriod">0</property>
+		<!-- 初始化时连接数，default: 3  -->
+		<property name="initialPoolSize">3</property>
+		<!-- 连接的最大空闲时间，default: 0  -->
+		<property name="maxIdleTime">0</property>
+		<!-- 连接池中最大连接数，default: 15  -->
+		<property name="maxPoolSize">15</property>
+		<!-- 连接池中最小连接数，default: 3  -->
+		<property name="minPoolSize">3</property>
+		<!-- 连接池为数据源缓存的 PreparedStatement 的总数  -->
+		<property name="maxStatements">0</property>
+	</default-config>
+</c3p0-config>
+```
+
+```xml
+<property name="hibernate.c3p0.max_size">50</property>
+<property name="hibernate.c3p0.min_size">5</property>
+<property name="hibernate.c3p0.timeout">100</property>
+<property name="hibernate.c3p0.idle_test_period">100</property>
+<property name="hibernate.c3p0.max_statements">150</property>
+<property name="hibernate.c3p0.acquire_increment">3</property>
+<property name="hibernate.connection.driver_class">org.hibernate.dialect.SQLServerDialect</property>
+<property name="hibernate.dialect">org.hibernate.dialect.SQLServerDialect</property>
+<property name="connection.provider_class">org.hibernate.connection.C3P0ConnectionProvider</property>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

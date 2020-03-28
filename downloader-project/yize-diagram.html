@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>yize-diagram</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### yize-diagram
+
+ - 需求一
+
+ 展示每一台机器每天的收入金额。
+
+ - 需求二
+
+ 展示每个设备某个软件符合提现要求的信息。
+
+ 说明：快手极速版 50 元提现，添加到系统通知。
+
+ 提现后作废一部分数据。
+
+ - 需求三
+
+ 展示每台设备的每个软件的余额。
+
+##### 需求信息更新
+
+1、软件上面有多少钱，今天。 软件提现的时候减去。
+
+2、设备，所有的软件，财务情况。
+
+3、账号，账号会有多个设备，财务情况。
+
+财务 - 财务收入类型，软件收入，记录提现记录，统计提现记录。
+
+软件
+
+设备 - 设备收入记录，
+
+账号 - 账号提现收入记录。
+
+收入盈亏，看提现记录。亏损与盈利。
+
+4、平时的运营支出，手机号话费充值，网费，流量费。计算总成本，对所有的软件进行分摊。
+
+设备的支出，网费，流量，话费。每日支出。
+
+5、直接看到人的账户余额。
+
+ - 做一个刷新功能。
+
+财务记录不能混淆，收入，支出。
+
+软件任务完成，支出金额。软件账单记录减去提现的记录。
+
+设备中的财务记录中，记录为收入
+
+个人账号财务记录中，记录为收入
+
+1、分用户，权限，财务审批。
+
+2、
+
+可以无限登录不同账号，同一个系统。
+
+设备购买记录，每个设备的收支情况。
+
+用户提现记录，每个人的收支情况。
+
+软件提现记录，每个软件的收支情况。
+
+所有账户的余额。
+
+每个设备，每个月有损耗的记录。以年为单位平均到每个月，或是剩余的月？
+
+收入状态种类，邀请收入，任务收入。
+
+邀请收入需要记录是邀请了哪台设备的。
+
+情况分类
+
+ - 邀请自己，提现前将记录记录到设备 A 上，提现后将记录修改到设备 B 上。如何记录设备 B 与 设备 A 的邀请记录关系。
+
+ - 邀请别人，直接记录到设备 A 上。
+
+##### 平台运营
+
+0.5 人工费
+
+设备租赁 1 元，流量，话费。
+
+Admin 运营赚了多少
+
+User 用户赚了多少。
+
+这个月租给了用户1，下个月租给了用户2。查询的时候就需要区分。
+
+设备编号，用户归属。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

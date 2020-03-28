@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Java KeyTools</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+### KeyTools
+
+&amp;#160; &amp;#160; Keytool 是一个 Java 数据证书的管理工具 ,Keytool 将密钥（key）和证书（certificates）存在一个称为 keystore 的文件中在 keystore 里，包含两种数据： 
+
+ - 密钥实体（Key entity）——密钥（secret key）又或者是私钥和配对公钥（采用非对称加密） 
+
+ - 可信任的证书实体（trusted certificate entries）——只包含公钥
+
+&amp;#160; &amp;#160; ailas (别名)每个 keystore 都关联这一个独一无二的 alias，这个 alias 通常不区分大小写
+
+ - <a href="#keytools-001" target="_self">keystore 的生成</a>
+
+ - <a href="#keytools-002" target="_self">keystore 信息的查看</a>
+
+ - <a href="#keytools-003" target="_self">证书的导出</a>
+
+ - <a href="#keytools-004" target="_self">查看导出的证书信息</a>
+
+ - <a href="#keytools-005" target="_self">证书的导入</a>
+
+ - <a href="#keytools-006" target="_self">证书条目的删除</a>
+
+ - <a href="#keytools-007" target="_self">证书条目口令修改</a>
+
+ - <a href="#keytools-008" target="_self">keystore 口令的修改</a>
+
+ - <a href="#keytools-009" target="_self">修改 keystore 中别名为 demo 的信息</a>
+
+JDK 中 keytool 常用命令:
+
+<text zoom="7.2">╔══════════════╤═════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ -genkey      │ 在用户主目录中创建一个默认文件".keystore"                                                       ║
+║              │                                                                                                 ║
+║              │ 还会产生一个 mykey 的别名                                                                       ║
+║              │                                                                                                 ║
+║              │ mykey 中包含用户的公钥、私钥和证书                                                              ║
+║              │                                                                                                 ║
+║              │ (在没有指定生成位置的情况下,keystore 会存在用户系统默认目录，                                   ║
+║              │                                                                                                 ║
+║              │ 如：对于 window xp 系统，会生成在系统的 C:\Documents and Settings\UserName\文件名为“.keystore”) ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -alias       │ 产生别名                                                                                        ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -keystore    │ 指定密钥库的名称(产生的各类信息将不在 .keystore 文件中)                                         ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -keyalg      │ 指定密钥的算法 (如 RSA DSA（如果不指定默认采用 DSA）)                                           ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -validity    │ 指定创建的证书有效期多少天                                                                      ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -keysize     │ 指定密钥长度                                                                                    ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -storepass   │ 指定密钥库的密码(获取 keystore 信息所需的密码)                                                  ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -keypass     │ 指定别名条目的密码(私钥的密码)                                                                  ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -dname       │ 指定证书拥有者信息                                                                              ║
+║              │                                                                                                 ║
+║              │ 例如： "                                                                                        ║
+║              │                                                                                                 ║
+║              │ CN = 名字与姓氏,                                                                                ║
+║              │                                                                                                 ║
+║              │ OU = 组织单位名称,                                                                              ║
+║              │                                                                                                 ║
+║              │ O = 组织名称,                                                                                   ║
+║              │                                                                                                 ║
+║              │ L = 城市或区域名称,                                                                             ║
+║              │                                                                                                 ║
+║              │ ST = 州或省份名称,                                                                              ║
+║              │                                                                                                 ║
+║              │ C = 单位的两字母国家代码"                                                                       ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -list        │ 显示密钥库中的证书信息                                                                          ║
+║              │                                                                                                 ║
+║              │ keytool                                                                                         ║
+║              │                                                                                                 ║
+║              │ -list                                                                                           ║
+║              │                                                                                                 ║
+║              │ -v                                                                                              ║
+║              │                                                                                                 ║
+║              │ -keystore 指定 keystore                                                                         ║
+║              │                                                                                                 ║
+║              │ -storepass 密码                                                                                 ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -v           │ 显示密钥库中的证书详细信息                                                                      ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -export      │ 将别名指定的证书导出到文件                                                                      ║
+║              │                                                                                                 ║
+║              │ keytool                                                                                         ║
+║              │                                                                                                 ║
+║              │ -export                                                                                         ║
+║              │                                                                                                 ║
+║              │ -alias 需要导出的别名                                                                           ║
+║              │                                                                                                 ║
+║              │ -keystore 指定 keystore                                                                         ║
+║              │                                                                                                 ║
+║              │ -file 指定导出的证书位置及证书名称                                                              ║
+║              │                                                                                                 ║
+║              │ -storepass 密码                                                                                 ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -file        │ 参数指定导出到文件的文件名                                                                      ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -delete      │ 删除密钥库中某条目                                                                              ║
+║              │                                                                                                 ║
+║              │ keytool                                                                                         ║
+║              │                                                                                                 ║
+║              │ -delete                                                                                         ║
+║              │                                                                                                 ║
+║              │ -alias 指定需删除的别名                                                                         ║
+║              │                                                                                                 ║
+║              │ -keystore 指定 keystore                                                                         ║
+║              │                                                                                                 ║
+║              │ -storepass 密码                                                                                 ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -printcert   │ 查看导出的证书信息                                                                              ║
+║              │                                                                                                 ║
+║              │ keytool                                                                                         ║
+║              │                                                                                                 ║
+║              │ -printcert                                                                                      ║
+║              │                                                                                                 ║
+║              │ -file yushan.crt                                                                                ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -keypasswd   │ 修改密钥库中指定条目口令                                                                        ║
+║              │                                                                                                 ║
+║              │ keytool                                                                                         ║
+║              │                                                                                                 ║
+║              │ -keypasswd                                                                                      ║
+║              │                                                                                                 ║
+║              │ -alias 需修改的别名                                                                             ║
+║              │                                                                                                 ║
+║              │ -keypass 旧密码                                                                                 ║
+║              │                                                                                                 ║
+║              │ -new 新密码                                                                                     ║
+║              │                                                                                                 ║
+║              │ -storepass keystore 密码                                                                        ║
+║              │                                                                                                 ║
+║              │ -keystore sage                                                                                  ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -storepasswd │ 修改 keystore 口令                                                                              ║
+║              │                                                                                                 ║
+║              │ keytool                                                                                         ║
+║              │                                                                                                 ║
+║              │ -storepasswd                                                                                    ║
+║              │                                                                                                 ║
+║              │ -keystore e:\yushan.keystore(需修改口令的 keystore)                                             ║
+║              │                                                                                                 ║
+║              │ -storepass 123456(原始密码)                                                                     ║
+║              │                                                                                                 ║
+║              │ -new yushan(新密码)                                                                             ║
+╟──────────────┼─────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ -import      │ 将已签名数字证书导入密钥库                                                                      ║
+║              │                                                                                                 ║
+║              │ keytool                                                                                         ║
+║              │                                                                                                 ║
+║              │ -import                                                                                         ║
+║              │                                                                                                 ║
+║              │ -alias 指定导入条目的别名                                                                       ║
+║              │                                                                                                 ║
+║              │ -keystore 指定 keystore                                                                         ║
+║              │                                                                                                 ║
+║              │ -file 需导入的证书                                                                              ║
+╚══════════════╧═════════════════════════════════════════════════════════════════════════════════════════════════╝</text>
+
+下面是各选项的缺省值。 
+
+<text>╔═══════════╤═════════════════════════════════════╗
+║ -alias    │ "mykey"                             ║
+╟───────────┼─────────────────────────────────────╢
+║ -keyalg   │ "DSA"                               ║
+╟───────────┼─────────────────────────────────────╢
+║ -keysize  │ 1024                                ║
+╟───────────┼─────────────────────────────────────╢
+║ -validity │ 90                                  ║
+╟───────────┼─────────────────────────────────────╢
+║ -keystore │ 用户宿主目录中名为 .keystore 的文件 ║
+╟───────────┼─────────────────────────────────────╢
+║ -file     │ 读时为标准输入，写时为标准输出      ║
+╚═══════════╧═════════════════════════════════════╝</text>
+
+#### <span id = "keytools-001">keystore 的生成</span>
+
+分阶段生成：
+
+```python
+keytool 
+  
+  \-genkey 
+  
+  \-alias yushan ## (别名) 
+  
+  \-keypass yushan ## (别名密码) 
+  
+  \-keyalg RSA ## (算法) 
+  
+  \-keysize 1024 ## (密钥长度) 
+  
+  \-validity 365 ## (有效期，天单位) 
+  
+  \-keystore e:\yushan.keystore ## (指定生成证书的位置和证书名称)
+  
+  \-storepass 123456 ## (获取 keystore 信息的密码)
+```
+
+回车输入相关信息即可；
+
+一次性生成：
+
+```python
+keytool 
+  
+  \-genkey 
+  
+  \-alias yushan 
+  
+  \-keypass yushan 
+  
+  \-keyalg RSA 
+  
+  \-keysize 1024 
+  
+  \-validity 365 
+  
+  \-keystore e:\yushan.keystore 
+  
+  \-storepass 123456 
+  
+  \-dname "CN=(名字与姓氏), OU=(组织单位名称), O=(组织名称), L=(城市或区域名称), ST=(州或省份名称), C=(单位的两字母国家代码)" ## (中英文即可)
+```
+
+#### <span id = "keytools-002">keystore 信息的查看</span>
+
+```python
+
+keytool -list -v -keystore client-keystore.jks -storepass changeit
+
+keytool 
+  
+  \-list  
+  
+  \-v 
+  
+  \-keystore e:\keytool\yushan.keystore 
+  
+  \-storepass 123456
+```
+
+显示内容：
+
+```textarea
+密钥库类型: jks
+密钥库提供方: SUN
+
+您的密钥库包含 1 个条目
+
+别名: xws-security-client
+创建日期: 2008-3-12
+条目类型: PrivateKeyEntry
+证书链长度: 1
+证书[1]:
+所有者: CN=xwssecurityclient, OU=SUN, O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
+发布者: CN=SUNCA, OU=JWS, O=SUN, ST=Some-State, C=AU
+序列号: 3
+有效期为 Mon Mar 12 18:24:40 CST 2007 至 Thu Mar 09 18:24:40 CST 2017
+证书指纹:
+         MD5:  D1:45:A1:A9:6D:A9:57:9F:69:35:E3:4C:63:B6:98:C9
+         SHA1: 47:45:53:77:60:84:69:34:C3:DE:A2:7F:94:0A:26:9B:7D:47:01:14
+         SHA256: 63:3E:B5:5D:E1:5B:97:E5:70:9B:03:18:B9:5F:10:CB:A8:07:65:0C:B0:9E:5C:3D:69:2C:F3:28:54:CF:62:67
+签名算法名称: MD5withRSA (弱)
+主体公共密钥算法: 1024 位 RSA 密钥
+版本: 3
+
+扩展:
+
+#1: ObjectId: 2.16.840.1.113730.1.13 Criticality=false
+0000: 16 1D 4F 70 65 6E 53 53   4C 20 47 65 6E 65 72 61  ..OpenSSL Genera
+0010: 74 65 64 20 43 65 72 74   69 66 69 63 61 74 65     ted Certificate
+
+
+#2: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: 67 BA 65 C6 CE 95 C8 E3   8E 4D 21 72 A2 30 D5 D3  g.e......M!r.0..
+0010: F6 18 8C 95                                        ....
+]
+[CN=SUNCA, OU=JWS, O=SUN, ST=Some-State, C=AU]
+SerialNumber: [    db1e425a aba2a28e]
+]
+
+#3: ObjectId: 2.5.29.19 Criticality=false
+BasicConstraints:[
+  CA:false
+  PathLen: undefined
+]
+
+#4: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: FE 62 2D 7E FB 85 75 2E   C0 D0 60 B2 B0 4E F5 4C  .b-...u...`..N.L
+0010: 54 71 3F 67                                        Tq?g
+]
+]
+
+
+
+*******************************************
+*******************************************
+
+
+
+Warning:
+<xws-security-client> 使用的 MD5withRSA 签名算法存在安全风险。
+JKS 密钥库使用专用格式。建议使用 "keytool -importkeystore -srckeystore client-keystore.jks -destkeystore client-keystore.jks -deststoretype pkcs12" 迁移到行业标准格式 PKCS12。
+```
+
+&amp;#160; &amp;#160;缺省情况下，-list 命令打印证书的 MD5 指纹。而如果指定了 -v 选项，将以可读格式打印证书，如果指定了 -rfc 选项，将以可打印的编码格式输出证书。
+
+```python
+
+keytool -list -rfc -keystore client-keystore.jks
+
+keytool
+  
+  \-list 
+  
+  \-rfc 
+  
+  \-keystore client-keystore.jks
+
+```
+
+
+```textarea
+密钥库类型: jks
+密钥库提供方: SUN
+
+您的密钥库包含 1 个条目
+
+别名: xws-security-client
+创建日期: 2008-3-12
+条目类型: PrivateKeyEntry
+证书链长度: 1
+证书[1]:
+-----BEGIN CERTIFICATE-----
+MIIDDzCCAnigAwIBAgIBAzANBgkqhkiG9w0BAQQFADBOMQswCQYDVQQGEwJBVTET
+MBEGA1UECBMKU29tZS1TdGF0ZTEMMAoGA1UEChMDU1VOMQwwCgYDVQQLEwNKV1Mx
+DjAMBgNVBAMTBVNVTkNBMB4XDTA3MDMxMjEwMjQ0MFoXDTE3MDMwOTEwMjQ0MFow
+bzELMAkGA1UEBhMCQVUxEzARBgNVBAgTClNvbWUtU3RhdGUxITAfBgNVBAoTGElu
+dGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEMMAoGA1UECxMDU1VOMRowGAYDVQQDExF4
+d3NzZWN1cml0eWNsaWVudDCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAvYxV
+ZKIzVdGMSBkW4bYnV80MV/RgQKV1bf/DoMTX8laMO45P6rlEarxQiOYrgzuYp+sn
+zz2XM0S6o3JGQtXQuzDwcwPkH55bHFwHgtOMzxG4SQ653a5Dzh04nsmJvxvbncNH
+/XNaWfHaC0JHBEfNCMwRebYocxYM92pq/G5OGyECAwEAAaOB2zCB2DAJBgNVHRME
+AjAAMCwGCWCGSAGG+EIBDQQfFh1PcGVuU1NMIEdlbmVyYXRlZCBDZXJ0aWZpY2F0
+ZTAdBgNVHQ4EFgQU/mItfvuFdS7A0GCysE71TFRxP2cwfgYDVR0jBHcwdYAUZ7pl
+xs6VyOOOTSFyojDV0/YYjJWhUqRQME4xCzAJBgNVBAYTAkFVMRMwEQYDVQQIEwpT
+b21lLVN0YXRlMQwwCgYDVQQKEwNTVU4xDDAKBgNVBAsTA0pXUzEOMAwGA1UEAxMF
+U1VOQ0GCCQDbHkJaq6KijjANBgkqhkiG9w0BAQQFAAOBgQBEnRdcQeMyCYqOHw2j
+bPOPUlvu07bZe7sI3ly/Qz+4mkrFctqMSupghQtLv9dZcqDOUFLCGMse7+l5MG00
+VawzsoVe242iXzJB111ePzhhppIPOHXXtflj/JD2U4Qz75C/dfdd5AAZbqGSFtZh
+7pyE8Ot1vOq7R48/bHuvTsEVUQ==
+-----END CERTIFICATE-----
+
+
+*******************************************
+*******************************************
+
+
+
+Warning:
+<xws-security-client> 使用的 MD5withRSA 签名算法存在安全风险。
+JKS 密钥库使用专用格式。建议使用 "keytool -importkeystore -srckeystore client-keystore.jks -destkeystore client-keystore.jks -deststoretype pkcs12" 迁移到行业标准格式 PKCS12。
+```
+
+#### <span id = "keytools-003">证书的导出</span>
+
+```python
+keytool -export -alias xws-security-client -keystore client-keystore.jks  -file client-keystore.crt -storepass changeit
+
+keytool
+  
+  \-export 
+  
+  \-alias yushan 
+  
+  \-keystore e:\yushan.keystore 
+  
+  \-file e:\yushan.crt ## (指定导出的证书位置及证书名称) 
+  
+  \-storepass 123456
+
+```
+
+#### <span id = "keytools-004">查看导出的证书信息</span>
+
+```python
+keytool -printcert -file client-keystore.crt
+
+keytool
+  
+  \-printcert 
+  
+  \-file client-keystore.crt
+
+```
+
+```textarea
+所有者: CN=xwssecurityclient, OU=SUN, O=Internet Widgits Pty Ltd, ST=Some-State, C=AU
+发布者: CN=SUNCA, OU=JWS, O=SUN, ST=Some-State, C=AU
+序列号: 3
+有效期为 Mon Mar 12 18:24:40 CST 2007 至 Thu Mar 09 18:24:40 CST 2017
+证书指纹:
+         MD5:  D1:45:A1:A9:6D:A9:57:9F:69:35:E3:4C:63:B6:98:C9
+         SHA1: 47:45:53:77:60:84:69:34:C3:DE:A2:7F:94:0A:26:9B:7D:47:01:14
+         SHA256: 63:3E:B5:5D:E1:5B:97:E5:70:9B:03:18:B9:5F:10:CB:A8:07:65:0C:B0:9E:5C:3D:69:2C:F3:28:54:CF:62:67
+签名算法名称: MD5withRSA (弱)
+主体公共密钥算法: 1024 位 RSA 密钥
+版本: 3
+
+扩展:
+
+#1: ObjectId: 2.16.840.1.113730.1.13 Criticality=false
+0000: 16 1D 4F 70 65 6E 53 53   4C 20 47 65 6E 65 72 61  ..OpenSSL Genera
+0010: 74 65 64 20 43 65 72 74   69 66 69 63 61 74 65     ted Certificate
+
+
+#2: ObjectId: 2.5.29.35 Criticality=false
+AuthorityKeyIdentifier [
+KeyIdentifier [
+0000: 67 BA 65 C6 CE 95 C8 E3   8E 4D 21 72 A2 30 D5 D3  g.e......M!r.0..
+0010: F6 18 8C 95                                        ....
+]
+[CN=SUNCA, OU=JWS, O=SUN, ST=Some-State, C=AU]
+SerialNumber: [    db1e425a aba2a28e]
+]
+
+#3: ObjectId: 2.5.29.19 Criticality=false
+BasicConstraints:[
+  CA:false
+  PathLen: undefined
+]
+
+#4: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: FE 62 2D 7E FB 85 75 2E   C0 D0 60 B2 B0 4E F5 4C  .b-...u...`..N.L
+0010: 54 71 3F 67                                        Tq?g
+]
+]
+
+
+Warning:
+证书 使用的 MD5withRSA 签名算法存在安全风险。
+```
+
+#### <span id = "keytools-005">证书的导入</span>
+
+##### 创建证书
+
+```python
+keytool -genkey -alias demo -keypass shuany -keyalg RSA -keysize 1024 -validity 365 -keystore  demo-keystore.jks -storepass changeit -dname "CN=shuany,OU=xx, O=xx, L=xx, ST=xx, C=xx"
+
+keytool
+  
+  \-genkey 
+  
+  \-alias demo 
+  
+  \-keypass shuany 
+  
+  \-keyalg RSA 
+  
+  \-keysize 1024 
+  
+  \-validity 365 
+  
+  \-keystore  demo-keystore.jks
+  
+  \-storepass changeit 
+  
+  \-dname "CN=shuany,OU=xx, O=xx, L=xx, ST=xx, C=xx"
+```
+##### 证书导出
+
+```python
+keytool -export -alias demo -keystore demo-keystore.jks  -file demo.crt -storepass changeit
+
+keytool
+  
+  \-export 
+  
+  \-alias demo 
+  
+  \-keystore demo-keystore.jks  
+  
+  \-file demo.crt 
+  
+  \-storepass changeit
+```
+
+##### 证书导入
+
+```python
+keytool -import -alias demo -file demo.crt -keystore client-keystore.jks -storepass changeit
+
+keytool
+  
+  \-import 
+  
+  \-alias demo ## (指定导入证书的别名，如果不指定默认为 mykey,别名唯一，否则导入出错)
+  
+  \-file demo.crt 
+  
+  \-keystore client-keystore.jks 
+  
+  \-storepass changeit
+```
+
+#### <span id = "keytools-006">证书条目的删除</span>
+
+```python
+keytool -delete -alias demo1 -keystore demo-keystore.jks -storepass changeit
+
+keytool
+  
+  \-delete 
+  
+  \-alias demo1 ## (指定需删除的别名) 
+  
+  \-keystore demo-keystore.jks 
+  
+  \-storepass changeit
+```
+
+#### <span id = "keytools-007">证书条目口令修改</span>
+
+```python
+keytool -keypasswd -alias demo1 -keypass changeit -new newpassword -keystore client-keystore.jks -storepass changeit
+
+keytool
+  
+  \-keypasswd 
+  
+  \-alias demo1 ## (需要修改密码的别名) 
+  
+  \-keypass changeit ## (原始密码) 
+  
+  \-new newpassword ## (新密码) 
+  
+  \-keystore client-keystore.jks 
+  
+  \-storepass changeit
+```
+
+#### <span id = "keytools-008">keystore 口令的修改</span>
+
+```python
+
+keytool -storepasswd -keystore e:\yushan.keystore -storepass 123456 -new yushan
+
+keytool
+  
+  \-storepasswd 
+  
+  \-keystore e:\yushan.keystore ## (需修改口令的keystore) 
+  
+  \-storepass 123456 ## (原始密码) 
+  
+  \-new yushan ## (新密码)
+
+```
+
+#### <span id = "keytools-009">修改 keystore 中别名为 demo 的信息</span>
+
+```python
+keytool -selfcert -alias demo -keypass changeit -keystore demo-keystore.jks -storepass 123456 -dname "cn=yushan,ou=yushan,o=yushan,c=us"
+
+keytool 
+
+  \-selfcert 
+  
+  \-alias demo
+  
+  \-keypass demo
+  
+  \-keystore demo-keystore.jks
+  
+  \-storepass changeit
+  
+  \-dname "cn=demo,ou=demo,o=demo,c=us"
+```
+
+参考链接：
+
+ - <a href="https://wangguorui89.iteye.com/blog/1110723" target="_blank">Java 中 Keytool 的使用总结</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

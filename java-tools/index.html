@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Java KeyTools Index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### der pem cer crt key pfx 等概念及区别
+
+证书主要的文件类型和协议有: 
+
+ - PEM
+ 
+ - DER
+ 
+ - PFX
+ 
+ - JKS
+ 
+ - KDB
+ 
+ - CER
+ 
+ - KEY
+ 
+ - CSR
+ 
+ - CRT
+ 
+ - CRL
+ 
+ - OCSP
+ 
+ - SCEP 等。
+ 
+#### 一、编码格式
+
+&amp;#160; &amp;#160; ```X.509``` - 这是一种证书标准，主要定义了证书中应该包含哪些内容。其详情可以参考 RFC5280，SSL 使用的就是这种证书标准。
+
+目前有以下两种编码格式:
+
+##### PEM
+
+ - ```PEM``` - ```Privacy Enhanced Mail```，打开看文本格式，以 **"-----BEGIN..."** 开头，**"-----END..."** 结尾，内容是 **BASE64** 编码。
+ 
+查看 **PEM** 格式证书的信息: 
+
+```python
+openssl x509 -in certificate.pem -text -noout
+```
+
+ ```Apache``` 和 ```NGINX``` 服务器偏向于使用这种编
+
+&amp;#160; &amp;#160;PEM – Openssl 使用 PEM(Privacy Enhanced Mail) 格式来存放各种信息，它是 openssl 默认采用的信息存放方式。Openssl 中的 PEM 文件一般包含如下信息:
+
+ 1. 内容类型:表明本文件存放的是什么信息内容,它的形式为 **"——-BEGIN XXXX ——"**,与结尾的 **"——END XXXX——"** 对应。
+ 
+ 2. 头信息:表明数据是如果被处理后存放，openssl 中用的最多的是加密信息，比如加密算法以及初始化向量 iv。
+ 
+ 3. 信息体:为 BASE64 编码的数据。可以包括所有私钥（RSA 和 DSA）、公钥（RSA 和 DSA）和 (x509) 证书。它存储用 Base64 编码的 DER 格式数据，用 ascii 报头包围，因此适合系统之间的文本模式传输。
+ 
+```textarea
+使用 PEM 格式存储的证书：
+—–BEGIN CERTIFICATE—–
+MIICJjCCAdCgAwIBAgIBITANBgkqhkiG9w0BAQQFADCBqTELMAkGA1UEBhMCVVMx
+………
+1p8h5vkHVbMu1frD1UgGnPlOO/K7Ig/KrsU=
+—–END CERTIFICATE—–
+
+使用 PEM 格式存储的私钥：
+—–BEGIN RSA PRIVATE KEY—–
+MIICJjCCAdCgAwIBAgIBITANBgkqhkiG9w0BAQQFADCBqTELMAkGA1UEBhMCVVMx
+………
+1p8h5vkHVbMu1frD1UgGnPlOO/K7Ig/KrsU=
+—–END RSA PRIVATE KEY—–
+
+使用PEM格式存储的证书请求文件：
+—–BEGIN CERTIFICATE REQUEST—–
+MIICJjCCAdCgAwIBAgIBITANBgkqhkiG9w0BAQQFADCBqTELMAkGA1UEBhMCVVMx
+………
+1p8h5vkHVbMu1frD1UgGnPlOO/K7Ig/KrsU=
+—–END CERTIFICATE REQUEST—–
+```
+
+##### DER
+
+ - ```DER``` – 辨别编码规则 (DER) 可包含所有私钥、公钥和证书。它是大多数浏览器的缺省格式，并按 ASN1 DER 格式存储。它是无报头的 － PEM 是用文本报头包围的 DER。
+ 
+DER - Distinguished Encoding Rules,打开看是二进制格式,不可读。
+
+查看 DER 格式证书的信息:
+
+```python
+openssl x509 -in certificate.der -inform der -text -noout
+```
+
+Java 和 Windows 服务器偏向于使用这种编码格式。
+
+#### 证书编码的转换
+
+##### PEM 转为 DER
+
+```python
+openssl x509 -in cert.crt -outform der -out cert.der
+```
+
+##### DER 转为 PEM
+
+```python
+openssl x509 -in cert.crt -inform der -outform pem -out cert.pem
+```
+
+(提示:要转换 KEY 文件也类似，只不过把 x509 换成 rsa ,要转 CSR 的话,把 x509 换成 req ...)
+
+#### 二、相关的文件扩展名
+
+&amp;#160; &amp;#160; 这是比较误导人的地方，虽然我们已经知道有 PEM 和 DER 这两种编码格式，但文件扩展名并不一定就叫 "PEM" 或者 "DER",常见的扩展名除了 PEM 和 DER 还有以下这些，它们除了编码格式可能不同之外，内容也有差别，但大多数都能相互转换编码格式。
+
+
+ - ***```CRT```*** - CRT 应该是 certificate 的三个字母，其实还是证书的意思，常见于 LINUX 系统，有可能是 PEM 编码，也有可能是 DER 编码，大多数应该是 PEM 编码，相信你已经知道怎么辨别。
+
+ - ***```CER```*** - 还是 certificate，还是证书，常见于 Windows 系统，同样的，可能是 PEM 编码,也可能是 DER 编码,大多数应该是 DER 编码。证书中没有私钥，DER 编码二进制格式的证书文件。
+
+ - ***```KEY```*** - 通常用来存放一个公钥或者私钥，并非 X.509 证书,编码同样的,可能是 PEM，也可能是 DER。
+
+查看 KEY 的办法:
+
+```python
+openssl rsa -in mykey.key -text -noout
+```
+
+如果是 DER 格式的话,同理应该这样了:
+
+```python
+openssl rsa -in mykey.key -text -noout -inform der
+```
+
+ - ***```CSR```*** - Certificate Signing Request，即证书签名请求,这个并不是证书，而是向权威证书颁发机构获得签名证书的申请，其核心内容是一个公钥(当然还附带了一些别的信息),在生成这个申请的时候，同时也会生成一个私钥，私钥要自己保管好。做过 iOS APP 的朋友都应该知道是怎么向苹果申请开发者证书的吧。
+
+查看的办法:
+
+```python
+openssl req -noout -text -in my.csr 
+
+## (如果是 DER 格式的话照旧加上 -inform der,这里不写了)
+```
+
+ - ***```PFX/P12```*** - predecessor of PKCS#12，包含公钥和私钥的二进制格式证书
+
+&amp;#160; &amp;#160;对 nginx 服务器来说，一般 CRT 和 KEY 是分开存放在不同文件中的，但 Windows 的 IIS 则将它们存在一个 PFX 文件中，(因此这个文件包含了证书及私钥)这样会不会不安全？应该不会,PFX 通常会有一个"提取密码"，你想把里面的东西读取出来的话,它就要求你提供提取密码，PFX 使用的时 DER 编码，如何把 PFX 转换为 PEM 编码？
+
+```python
+openssl pkcs12 -in for-iis.pfx -out for-iis.pem -nodes
+```
+
+这个时候会提示你输入提取代码. ```for-iis.pem``` 就是可读的文本.
+
+生成 pfx 的命令类似这样:
+
+```python
+openssl pkcs12 -export -in certificate.crt -inkey privateKey.key -out certificate.pfx
+```
+
+&amp;#160; &amp;#160;其中 ```CACert.crt``` 是 CA(权威证书颁发机构)的根证书，有的话也通过 -certfile 参数一起带进去。这么看来，PFX 其实是个证书密钥库。
+
+
+ - ***```p7b```*** - 以树状展示证书链 (certificate chain)，同时也支持单个证书，不含私钥。
+
+ - ***```JKS```*** - 即 Java Key Storage，这是 Java 的专利，跟 OpenSSL 关系不大，利用 Java 的一个叫 "keytool" 的工具，可以将 PFX 转为 JKS，当然了，keytool 也能直接生成 JKS，不过在此就不多表了.
+ 
+
+备注实例：
+
+ - 从 pfx 导出 crt 和 key:
+
+操作命令：
+
+```python
+## key
+openssl pkcs12 -in example.cn.ssl.pfx -nocerts -nodes -out example.key
+
+## crt
+openssl pkcs12 -in example.cn.ssl.pfx -clcerts -nokeys -out example.crt
+```
+
+将 crt 和 key 合并出 pfx:
+
+```python
+## pfx
+openssl pkcs12 -export -in certificate.crt -inkey privateKey.key -out certificate.pfx
+```
+
+参考链接：
+
+ - <a href="https://blog.51cto.com/wushank/1915795" target="_blank">der pem cer crt key pfx 等概念及区别</a>
+
+ - <a href="https://support.ssl.com/index.php?/Knowledgebase/Article/View/19/0/der-vs-crt-vs-cer-vs-pem-certificates-and-how-to-convert-them" target="_blank">DER vs. CRT vs. CER vs. PEM Certificates and How To Convert Them</a>
+
+ - <a href=" http://web.chacuo.net/netsslcsr" target="_blank">SSL CSR 在线生成、在线生成证书请求文件CSR</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

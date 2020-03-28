@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hibernate-basic-many-to-one</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### hibernate-basic-many-to-one
+
+#### 配置 多对一 单向关联的作用：
+
+
+**重点** 使用 Emp set 方法 将 Dept 对象添加到 Emp 对象的 dept 字段中
+
+ - 在保存 Emp 对象的时候他会自动，添加对 Dept 对象的引用；
+
+ - 在不不指定 Emp 对象外键值的情况下，Hibernate 会根据传入的 dept 对象自动对外键赋值
+
+##### 配置从 Emp 到 Dept 的单向多对一单向关联
+
+**员工是`多` ， 部门是`一` ，配置的是`单向关联`，所以配置的是 `员工`**
+
+**首先看实体类**
+
+ - **Dept 持久化类**
+
+ 部门（一）：部门 的那一边没有变化
+
+ - **Emp 持久化类**
+
+ 员工（多）：员工 的一边，员工类中本来的 部门 id 现在变成了部门对象（实体）；
+
+**在看实体映射配置文件**
+
+ - **Dept.hbm.xml**
+
+ 部门实体：没有变化；
+
+ - **Emp.hbm.xml**
+
+ 员工实体：
+
+ 原先配置的部门编号的外键去除了
+
+ 多了一个 多对一配置 `<many-to-one>` 的元素；
+
+```python
+name    ： 指的是实体中的字段名 ；
+column  ： 指的是在员工表里面外键字段 ；
+cascade ： 指定两个对象之间的操作联动关系，对一个对象执行了操作之后，
+               对其指定的级联对象也需要执行相同的操作；
+class   ： 指的是 dept 这个字段的类型 ；
+```
+
+配置完成。
+
+
+
+查询结果：
+
+```java
+public void testSave3(){
+    Session session = null;
+    try {
+        session = HibernateUtils.getSession();
+        session.beginTransaction();
+        Dept dept = new Dept();
+        dept .setDeptNo("1");
+        dept.setDeptName("市场部");
+ 
+        Emp emp1 = new Emp();
+        emp1.setEmpNo(1001);
+        emp1.setEmpName("张三");
+        emp1.setDept(dept);
+ 
+        Emp emp2 = new Emp();
+        emp2.setEmpNo(1002);
+        emp2.setEmpName("李四");
+        emp2.setDept(dept);
+ 
+        //普通方法 ：必须先保存 dept，再保存 emp
+        //配置了 many-to-one 则不用再手动save dept了。
+        //session.save(dept);
+        session.save(emp1);
+        session.save(emp2);
+ 
+        session.getTransaction().commit();
+    } catch(Exception e){
+        e.printStackTrace();
+        session.getTransaction().rollback();
+    } finally {
+        HibernateUtils.closeSession(session);
+    }
+}
+```
+
+#### 配置从 Emp 到 Dept 的双向多对一关联
+
+实现双向多对一关联：
+
+ - **在 一 的一方 配置 一对多**
+
+ - **在 多 的一方 配置 多对一**
+
+**首先看实体类**
+
+ - **部门（一）：部门 的那一边没有变化**
+
+ - **员工（多）：员工 的一边，员工类中本来的 部门 id 现在变成了部门对象（实体）；**
+
+**Dept 持久化类**
+
+增加了一个 Set 集合，它可以不用 new
+
+![title](images/hibernate-basic-many-to-one/hibernate-basic-many-to-one-001.png)
+
+**Dept 的实体映射配置文件**
+
+![title](images/hibernate-basic-many-to-one/hibernate-basic-many-to-one-002.png)
+
+```xml
+<set name="emps">
+    <key column="DEPTNO"></key>
+    <one-to-many class="cn.jbit.hibernate.entity.Emp"></one-to-many>
+</set>
+```
+
+ - **`<set>` 元素**
+
+ **name** ： Dept 中的字段值
+
+ **key** : 关联关系的键值
+
+ **column** ： 指的 Dept 实体在 Emp 实体中的外键字段
+
+ **one-to-many** :  配置一对多关联关系的元素
+
+ **class** ： 集合里面的类型（外键字段所在的实体的全称）
+
+**Emp 持久化类**
+
+与单向多对一关联时没有变化
+
+![title](images/hibernate-basic-many-to-one/hibernate-basic-many-to-one-003.png)
+
+**Emp.hbm.xml**
+
+![title](images/hibernate-basic-many-to-one/hibernate-basic-many-to-one-004.png)
+
+配置完成。
+
+```java
+public static void addDept(){
+  Session session = HibernateUtil.currentSession();
+  Dept dept = new Dept();
+  dept.setDname("某天台");
+  dept.setLoc("某楼顶");
+
+  Emp emp = new Emp();
+  emp.setEname("任免");
+
+  Emp emp1 = new Emp();
+  emp1.setEname("我还");
+
+  // 建立双向一对多关联关系
+  // 建立部门与员工的一对多关联关系
+  dept.getEmps().add(emp);
+  dept.getEmps().add(emp1);
+  // 建立员工与部门的多对一关联关系
+  emp.setDept(dept);
+  emp1.setDept(dept);
+
+  Transaction tran = null;
+  try {
+    tran = session.beginTranscation();
+    // 配置 cascade 属性为 all 后
+    // 新增部门的同时会将已经和部门建立关联关系的员工同时添加到数据库中
+    session.save(dept);
+    tran.commit();
+  } catch(HibernateException e){
+    e.printStackTrace();
+  } finally {
+    HibernateUtil.closeSession();
+  }
+}
+```
+
+执行结果：
+
+![title](images/hibernate-basic-many-to-one/hibernate-basic-many-to-one-005.png)
+
+注意事项：
+
+ - 1、如果没有设置 cascade 属性的值，将无法实现级联保存
+
+ - 2、如果 inverse 属性设置为 true，并且 员工没有主动和部门建立关联关系，将无法实现对员工部门编号的维护，也就是说员工虽然被添加到数据库中了，但是员工部门编号为 NULL。
+
+![title](images/hibernate-basic-many-to-one/hibernate-basic-many-to-one-006.png)
+
+#### JPA 关系映射之 one-to-many 和 many-to-one（另 inverse="true" 解析）
+
+##### one-to-many（一对多）和 many-to-one（多对一）双向关联
+
+假设部门与员工是一对多关系，反过来员工与部门就是多对一关系。
+
+Dept.java 类
+
+```java
+public class Dept implements java.io.Serializable {
+
+    private Integer deptId;
+    private String deptName;
+    private Set<Emp> emps = new HashSet<Emp>();
+
+}
+```
+
+Emp.java 类
+
+```java
+public class Emp implements java.io.Serializable {
+
+    private Integer empNo;
+    private String empName;
+    private Date empBrithday;
+    private Dept dept;
+
+}
+```
+
+Dept.hbm.xml
+
+```xml
+<hibernate-mapping>
+    <class name="com.db.entity.Dept" table="dept" catalog="mydb">
+        <id name="deptId" type="java.lang.Integer">
+            <column name="deptId" />
+            <generator class="native" />
+        </id>
+        <property name="deptName" type="java.lang.String">
+            <column name="deptName" length="32" />
+        </property>
+        <set name="emps" inverse="true" cascade="all">
+            <key column="deptId" not-null="true" />
+            <one-to-many class="com.db.entity.Emp" />
+        </set>
+    </class>
+</hibernate-mapping>
+```
+
+Emp.hbm.xml
+
+```java
+<hibernate-mapping>
+    <class name="com.db.entity.Emp" table="emp" catalog="mydb">
+        <id name="empNo" type="java.lang.Integer">
+            <column name="empNo" />
+            <generator class="native" />
+        </id>
+        <property name="empName" type="java.lang.String">
+            <column name="empName" length="20" />
+        </property>
+        <property name="empBrithday" type="java.util.Date">
+            <column name="empBrithday"/>
+        </property>
+        <many-to-one name="dept" column="deptId" class="com.db.entity.Dept" not-null="true"  fetch="select" cascade="save-update,delete"/>
+    </class>
+</hibernate-mapping>
+```
+
+hibernate.cfg.xml
+
+```xml
+<hibernate-configuration>
+
+    <session-factory>
+        <property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+        <property name="connection.url">jdbc:mysql://localhost:3306/mydb</property>
+        <property name="connection.username">root</property>
+        <property name="connection.password">123456</property>
+        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <property name="myeclipse.connection.profile">MyDBAccount</property>
+        <mapping resource="com/db/entity/Dept.hbm.xml" />
+        <mapping resource="com/db/entity/Emp.hbm.xml" />
+    </session-factory>
+
+</hibernate-configuration>
+```
+
+##### 测试用例
+
+```java
+public class TestOneMany {
+
+    public static void main(String[] args) throws ParseException {
+
+        Session session = HibernateSessionFactory.getSession();
+        Dept dept1 = new Dept();
+        dept1.setDeptName("开发部");
+        Emp emp1 = new Emp();
+        emp1.setEmpName("王洋");
+        String brithString = "1999-03-05";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date brithday = sdf.parse(brithString);
+        emp1.setEmpBrithday(brithday);
+        Emp emp2 = new Emp();
+        emp2.setEmpName("李林");
+        brithString = "2005-02-07";
+        brithday = sdf.parse(brithString);
+        emp2.setEmpBrithday(brithday);
+
+        //把 emp 和 dept 分别添加到对方的实力对象中
+        dept1.getEmps().add(emp1);
+        dept1.getEmps().add(emp2);
+        emp1.setDept(dept1);
+        emp2.setDept(dept1);
+        session.beginTransaction();
+        session.save(dept1);
+        session.getTransaction().commit();
+    }
+
+}
+```
+
+**注意：**
+
+在一的 set 配置中声明 inverse="true"，意味着 Dept 不在作为主控方，将关联关系的维护工作交给关联对象 Emp 来完成。
+
+在保存 dept1 对象的时不在关心 Emp 类中 dept 属性对应的 deptId 列，必须由 Emp 自己去维护，即设置 emp.setDept(dept);
+
+上述操作完成的 sql 语句是：
+
+```sql
+Hibernate: insert into mydb.dept (deptName) values (?)
+Hibernate: insert into mydb.emp (empName, empBrithday, deptId) values (?, ?, ?)
+Hibernate: insert into mydb.emp (empName, empBrithday, deptId) values (?, ?, ?)
+```
+
+##### inverse="true" 解析
+
+在一对多关联中，在一的一方设置 inverse="true",有助于性能的改善。
+
+Inverse 是 hibernate 双向关系中的基本概念。
+
+**inverse 的真正作用就是指定由哪一方来维护之间的关联关系。**
+
+当一方中指定了 "inverse=false"（默认），那么那一方就有责任负责之间的关联关系，说白了就是 hibernate 如何生成 SQL 来维护关联的记录。
+
+Inverse：负责控制关系，默认为 false，也就是关系的两端都能控制，但这样会造成一些问题，**更新的时候会因为两端都控制关系，于是重复更新。一般来说有一端要设为 true。**
+
+**Cascade**：负责控制关联对象的级联操作，包括更新、删除等，也就是说对一个对象进行更新、删除时，其它对象也受影响，比如我删除一个对象，那么跟它是多对一关系的对象也全部被删除。
+
+举例说明区别：
+
+删除 “一” 那一端一个对象O的时候，如果 “多” 的那一端的 Inverse 设为 true，则把 “多” 的那一端所有与 O 相关联的对象外键清空；如果“多”的那一端的 Cascade 设为 Delete，则把 “多” 的那一端所有与 O 相关联的对象全部删除。
+
+**还有些需要注意：**
+
+不要在有序集合如 list,array 中使用 inverse, 
+
+```xml
+<!--
+<list name="emps">
+  <key column="depart_id"/>
+  <list-index column="order_col"/>
+  <one-to-many class="Employee"/>
+</list>
+-->
+```
+
+你想，他都不去维护他们的映射关系了，又怎会关心他们添加的顺序
+
+来源于：
+
+ - <a href="https://www.cnblogs.com/SaraMoring/p/5631429.html" target="_blank">https://www.cnblogs.com/SaraMoring/p/5631429.html</a>
+
+ - <a href="https://wenda.so.com/q/1450912342729693" target="_blank">https://wenda.so.com/q/1450912342729693</a>
+
+ - <a href="http://www.cnblogs.com/qingmaple/p/4116641.html" target="_blank">http://www.cnblogs.com/qingmaple/p/4116641.html</a>
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/weixin_41888813/article/details/83013139" target="_blank">JPA 关系映射之 one-to-many 和 many-to-one（另 inverse="true" 解析）</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

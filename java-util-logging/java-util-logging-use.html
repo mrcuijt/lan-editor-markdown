@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Java Util Logging Use</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 通过 LogManager + logging.properties 配置 Logger
+
+**通过命令行参数指定 _```logging.properties```_ 配置文件**
+
+```python
+java -Djava.util.logging.config.file=myfile
+```
+
+**通过覆盖 _```jre/lib/logging.properties```_ 配置文件完成**
+
+```java
+package science.mrcuijt.util.logging;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+/**
+ * @author Administrator
+ *
+ */
+public class LoggingDemo {
+
+	private static final Logger logger = Logger.getLogger(LoggingDemo.class.getName());
+
+	private static LogManager logManager = LogManager.getLogManager();
+
+	public static void main(String[] args) throws SecurityException, IOException {
+
+		InputStream in = LoggingDemo.class.getResourceAsStream("/logging.properties");// 注意配置
+
+		logManager.readConfiguration(in);
+
+		logger.info("info");
+
+		logger.warning("warning");
+
+		logger.fine("fine");
+
+		logger.finest("finest");
+
+	}
+
+}
+```
+
+##### logging.properties 配置文件
+
+***``` ConsoleHandler ```***
+
+```python
+## 定义 ConsoleHandler
+java.util.logging.ConsoleHandler.level = FINE
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+
+## 定义多个 ConsoleHandler
+Console1.java.util.logging.ConsoleHandler.level = FINE
+Console1.java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+
+## 引用 Handler
+handlers = java.util.logging.ConsoleHandler, Console1.java.util.logging.ConsoleHandler
+```
+
+***``` FileHandler ```***
+```python
+# default file output is in user's home directory.
+java.util.logging.FileHandler.pattern = %h/java%u.log
+## 日志输出级别
+java.util.logging.FileHandler.level = INFO
+## limit = 0 no limit.
+java.util.logging.FileHandler.limit = 50000
+## 总共保存1个文件数,超出后覆盖
+java.util.logging.FileHandler.count = 1
+## 日志文件编码
+java.util.logging.FileHandler.encoding = UTF-8
+## XMLFormatter 是以 xml 样式输出，SimpleFormatter 是以普通样式输出
+java.util.logging.FileHandler.formatter = java.util.logging.XMLFormatter
+## 指定是否应该将 FileHandler 追加到任何现有文件上（false会覆盖，但默认为false）。
+java.util.logging.FileHandler.append = true
+
+## 定义多个 FileHandler 
+File1.java.util.logging.FileHandler.pattern = %h/java%u.log
+File1.java.util.logging.FileHandler.level = INFO
+File1.java.util.logging.FileHandler.limit = 50000
+File1.java.util.logging.FileHandler.count = 1
+File1.java.util.logging.FileHandler.encoding = UTF-8
+File1.java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+File1.java.util.logging.FileHandler.append = true
+```
+
+***```Logger Level```***
+```python
+## 全局 Logger Level 设置
+.level = INFO
+## 指定包名下的 Logger Level 设置
+com.xyz.foo.level = SEVERE
+```
+
+```python
+handlers = java.util.logging.FileHandler
+config   =
+
+## 为特定的 logger 添加 handler
+"logger".handlers           =
+## 指定 logger 是否使用父级 logger 的 handler
+"logger".useParentHandlers  =
+## 指定 logger 的日志输出级别
+"logger".level              =
+
+java.util.logging.FileHandler.level     = WARNING
+java.util.logging.FileHandler.filter    =
+java.util.logging.FileHandler.formatter =
+java.util.logging.FileHandler.encoding  =
+java.util.logging.FileHandler.limit     =
+java.util.logging.FileHandler.count     =
+java.util.logging.FileHandler.append    = false
+java.util.logging.FileHandler.pattern   = log.%u.%g.txt
+
+java.util.logging.ConsoleHandler.level     = WARNING
+java.util.logging.ConsoleHandler.filter    =
+java.util.logging.ConsoleHandler.formatter =
+java.util.logging.ConsoleHandler.encoding  =
+                              
+java.util.logging.StreamHandler.level     = WARNING
+java.util.logging.StreamHandler.filter    =
+java.util.logging.StreamHandler.formatter =
+java.util.logging.StreamHandler.encoding  =
+
+java.util.logging.SocketHandler.level     = WARNING
+java.util.logging.SocketHandler.filter    =
+java.util.logging.SocketHandler.formatter =
+java.util.logging.SocketHandler.encoding  =
+java.util.logging.SocketHandler.host      =
+java.util.logging.SocketHandler.port      =
+
+java.util.logging.MemoryHandler.level     = WARNING
+java.util.logging.MemoryHandler.filter    =
+java.util.logging.MemoryHandler.size      =
+java.util.logging.MemoryHandler.push      =
+java.util.logging.MemoryHandler.target    =
+```
+
+```textarea
+╔════════════════════════════════════════════╦═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║                  Property                  ║ Description                                                                                                                                                                                     ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ handlers                                   ║ A white space or comma separated list of handler class names to be added to the root Logger                                                                                                     ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ config                                     ║ A white space or comma separated list of class names which will be instantiated when the LogManager is initialized. The constructors of these classes can execute arbitrary configuration code. ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ "logger".handlers                          ║ Sets the handler classes to use for a given Logger in the hierarchy. Replace the "logger" with a specific name of a Logger in your app (e.g. com.jenkov.web).                                   ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ "logger".useParentHandlers                 ║ Tells a given Logger whether it should log to its parents or not (true or false).                                                                                                               ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ "logger".level                             ║ Tells a given Logger what minimum log level it should log.                                                                                                                                      ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                            ║                                                                                                                                                                                                 ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.FileHandler.level        ║ Sets the default log level for all FileHandler's.                                                                                                                                               ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.FileHandler.filter       ║ A class name of the Filter to use on all FileHandler's.                                                                                                                                         ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.FileHandler.formatter    ║ A class name of the Formatter to use on all FileHandler's.                                                                                                                                      ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.FileHandler.encoding     ║ The encoding to use by all FileHandler's (e.g. UTF-8, UTF-16 etc.).                                                                                                                             ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.FileHandler.limit        ║ The approximate amount of bytes to write to a log file, before rotating to a new file.                                                                                                          ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.FileHandler.count        ║ The number of log files to use in the log file rotation.                                                                                                                                        ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.FileHandler.append       ║ Sets whether or not the FileHandler's should append to an existing file or not (true or false), if an existing log file is found.                                                               ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.FileHandler.pattern      ║ The log file name pattern.                                                                                                                                                                      ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                            ║                                                                                                                                                                                                 ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.ConsoleHandler.level     ║ Sets the default log level of all ConsoleHandler's.                                                                                                                                             ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.ConsoleHandler.filter    ║ Sets the Filter to use by all ConsoleHandler's                                                                                                                                                  ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.ConsoleHandler.formatter ║ Sets the Formatter to use by all ConsoleHandler's.                                                                                                                                              ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.ConsoleHandler.encoding  ║ Sets the encoding to use by all ConsoleHandler's.                                                                                                                                               ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                            ║                                                                                                                                                                                                 ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.StreamHandler.level      ║ Sets the default log level of all StreamHandler's.                                                                                                                                              ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.StreamHandler.filter     ║ Sets the Filter to use by all StreamHandler's                                                                                                                                                   ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.StreamHandler.formatter  ║ Sets the Formatter to use by all StreamHandler's.                                                                                                                                               ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.StreamHandler.encoding   ║ Sets the encoding to use by all StreamHandler's.                                                                                                                                                ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                            ║                                                                                                                                                                                                 ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.SocketHandler.level      ║ Sets the default log level of all SocketHandler's.                                                                                                                                              ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.SocketHandler.filter     ║ Sets the Filter to use by all SocketHandler's.                                                                                                                                                  ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.SocketHandler.formatter  ║ Sets the Formatter to use by all SocketHandler's.                                                                                                                                               ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.SocketHandler.encoding   ║ Sets the encoding to use by all SocketHandler's.                                                                                                                                                ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.SocketHandler.host       ║ Sets the host name of the host to send the log messages to (e.g. jenkov.com).                                                                                                                   ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.SocketHandler.port       ║ Sets the port number of of the host to send the log message to (e.g. 9999).                                                                                                                     ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║                                            ║                                                                                                                                                                                                 ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.MemoryHandler.level      ║ Sets the default log level of all MemoryHandler's.                                                                                                                                              ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.MemoryHandler.filter     ║ Sets the Filter to use by all MemoryHandler's.                                                                                                                                                  ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.MemoryHandler.size       ║ The size of the internal LogRecord buffer.                                                                                                                                                      ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.MemoryHandler.push       ║ The push level of messages causing the buffer to be pushed to the target Handler. Defaults to SEVERE.                                                                                           ║
+╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ java.util.logging.MemoryHandler.target     ║ The class name of the target Handler.                                                                                                                                                           ║
+╚════════════════════════════════════════════╩═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

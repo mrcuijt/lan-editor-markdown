@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-url</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-url
+
+#### URL.createObjectURL()
+
+&amp;#160; &amp;#160;**`URL.createObjectURL()`** 静态方法会创建一个 DOMString，其中包含一个表示参数中给出的对象的URL。这个 URL 的生命周期和创建它的窗口中的 document 绑定。这个新的 URL 对象表示指定的 File 对象或 Blob 对象。
+
+注意：此特性在 Web Worker 中可用。
+
+注意：此特性在 Service Worker 中不可用，因为它有可能导致内存泄漏。
+
+#### 语法
+
+```js
+objectURL = URL.createObjectURL(object);
+```
+
+#### 参数
+
+ **`object`** : 用于创建 URL 的 File 对象、Blob 对象或者 MediaSource 对象。​
+ 
+#### 返回值
+
+&amp;#160; &amp;#160;A DOMString containing an object URL that can be used to reference the contents of the specified source object.
+
+#### 示例
+
+查看使用对象URL显示图片.
+
+ - <a href="https://developer.mozilla.org/en-US/docs/Web/API/File/Using_files_from_web_applications#Example.3A_Using_object_URLs_to_display_images" target="_blank">Using files from web applications</a>
+
+```js
+var blob = new Blob([domString],{type:'text/html'});
+var blobUrl;
+if('msSaveOrOpenBlob' in navigator){
+    // Microsoft Edge and Microsoft Internet Explorer 10-11
+    blobUrl = window.navigator.msSaveOrOpenBlob(blob, "temp");
+}else{
+    // standard code for Google Chrome, Mozilla Firefox etc
+    window.URL = window.URL || window.webkitURL;
+    blobUrl = URL.createObjectURL(blob);
+}
+```
+
+#### 附注
+
+##### 内存管理
+
+&amp;#160; &amp;#160;在每次调用 **`createObjectURL()`** 方法时，都会创建一个新的 URL 对象，即使你已经用相同的对象作为参数创建过。当不再需要这些 URL 对象时，每个对象必须通过调用 **`URL.revokeObjectURL()`** 方法来释放。浏览器会在文档退出的时候自动释放它们，但是为了获得最佳性能和内存使用状况，你应该在安全的时机主动释放掉它们。
+
+#### 兼容性
+
+```js
+if('msSaveOrOpenBlob' in navigator){
+    // Microsoft Edge and Microsoft Internet Explorer 10-11
+    window.navigator.msSaveOrOpenBlob(blob, filename);
+}else{
+    // standard code for Google Chrome, Mozilla Firefox etc
+    // ......
+}
+```
+
+#### URL.revokeObjectURL()
+
+&amp;#160; &amp;#160;**`URL.revokeObjectURL()`** 静态方法用来释放一个之前已经存在的、通过调用 **`URL.createObjectURL()`** 创建的 URL 对象。当你结束使用某个 URL 对象之后，应该通过调用这个方法来让浏览器知道不用在内存中继续保留对这个文件的引用了。
+
+&amp;#160; &amp;#160;你可以在 sourceopen 被处理之后的任何时候调用 **`revokeObjectURL()`**。这是因为 **`createObjectURL()`** 仅仅意味着将一个媒体元素的 src 属性关联到一个 MediaSource 对象上去。调用 **`revokeObjectURL()`** 使这个潜在的对象回到原来的地方，允许平台在合适的时机进行垃圾收集。
+
+注意：此特性在 Web Worker 中可用。
+
+#### 语法
+
+```js
+window.URL.revokeObjectURL(objectURL);
+```
+
+#### 参数
+
+ **`objectURL`** : 一个 DOMString，表示通过调用 **`URL.createObjectURL()`** 方法产生的 URL 对象。
+
+#### Return value
+
+ **`undefined`**
+
+参考链接：
+
+ - <a href="https://developer.mozilla.org/zh-CN/docs/Web/API/URL/createObjectURL" target="_blank">URL.createObjectURL()
+</a>
+ 
+ - <a href="https://www.51-n.com/t-4535-1-1.html" target="_blank">window.URL.createObjectURL Blob URL无法在Microsoft IE和Edge中打开</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hibernate-basic-annotations</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### hibernate-basic-annotations
+
+ - **优点：去掉了 Hibernate 的实体映射配置文件**
+
+ - **缺点：在配置实体类时，比较麻烦，需要比较强的逻辑思维**
+
+在 Hibernate 3.4 版本以后提供了注解的扩展包；
+
+Hibernate 提供了 Hibernate Annotations 扩展包，使用注解完成映射配置
+
+使用 Hibernate 注解配置的步骤如下：
+
+ - 1.添加 jar 包
+
+ - 2.使用注解配置持久化类以及对象关联关系
+
+ - 3.使用 AnnotationsConfiguration 建立 SessionFactory
+
+ - 4.在 Hibernate 配置文件（Hibernate.cfm.xml）中声明持久化类
+
+注解：是一个规范，要按照这个规范去编写代码。起到一个约束的作用。
+
+每一个对象在内存中都有一个OID，来标识这个对象
+
+javax 通用的注解，可以增加可移植性
+
+Hibernate 框架的注解，包含更丰富的 API 操作功能
+
+2 个注解可以同时导入
+
+注解——配置持久化类
+
+注解 含义和作用
+
+ - **@Entity**
+
+ **将一个类声明为一个持久化类**
+
+ - **@Id**
+
+ **声明了持久化类的标识属性**
+
+ - **@GeneratedValue**
+
+ **定义标识属性值的生成策略**
+
+ - **@Table**
+
+ **为持久化类映射指定表**
+
+ - **@Column**
+
+ **将属性映射到列（字段）**
+
+ - **@Transient**
+
+ **将忽略这些属性**
+
+注解 含义和作用
+
+ - **@OneToOne**
+
+ **建立持久化类之间的一对一关联关系**
+
+ - **@OneToMany**
+
+ **建立持久化类之间的一对多关联关系**
+
+ - **@ManyToOne**
+
+ **建立持久化类之间的多对一关联关系**
+
+ - **@ManyToMany**
+
+ **建立持久化类之间的多对多关联关系**
+
+```java
+@Id
+@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequence")
+@SequenceGenerator(name = "sequence", sequenceName = "seq_dept",allocationSize = 1)
+
+@GeneratedValue()；主键生成策略
+strategy：主键生成的策略
+generator：主键生成器的名称
+
+@SequenceGenerator()；
+name：负责生成主键序列的名称
+sequenceName ： 数据库中序列的名称
+allocationSize ：作用：为数据库中留一些插入数据的空间
+内部实现：他会将数据中生成序列的值，与 allocationSize 指定的值相乘，乘积作为插入数据库的值
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

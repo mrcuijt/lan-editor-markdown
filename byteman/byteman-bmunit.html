@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bytemant BMUnit 单元测试</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### BMUnit：使用 Byteman 和 JUnit 或来自 maven 和 ant 的 TestNG
+
+#### 让我们假设你知道 Byteman 是什么。。。
+
+&amp;#160; &amp;#160;如何使用 Byteman 来提高单元，集成和系统测试的简单性，质量和覆盖范围。本教程介绍了 BMUnit，它将 Byteman 与两个最流行的 Java 测试框架 JUnit 和 TestNG 集成在一起。它还向您展示了如何配置 maven 和 ant 来驱动 BMUnit 测试。
+
+&amp;#160; &amp;#160;本文将帮助您完成下一步，使用 BMUnit 扩展简单 JUnit 测试的范围，以提供更好的测试活动跟踪并执行验证和故障注入。这将为您准备第三部分，它将教您如何覆盖非常困难的测试场景，或者在某些情况下，如果不使用像 Byteman 这样的工具就无法实现。
+
+&amp;#160; &amp;#160;与其他文章一样，此处的材料结构为常见问题解答，包含一系列问题的答案。如果您没有将 Byteman 与 JUnit 或 TestNG 一起使用，或者不熟悉它如何集成到 maven 或 ant 中，那么您应该从头到尾仔细阅读示例。如果您已经使用 Byteman 编写过测试并且只想刷新记忆或回答特定问题，那么您可以使用其中一个链接继续前进。但是，在后一种情况下，您可能会发现浏览前面的部分是有帮助的，以便完全掌握所呈现的内容。
+
+ - <a href="#bmunit-001" target="_self">什么是 BMUnit？</a>
+ 
+ - <a href="#bmunit-002" target="_self">有一个如何使用 BMUnit 的简单示例？</a>
+ 
+ - <a href="#bmunit-003" target="_self">如何将跟踪注入 JUnit 测试？</a>
+ 
+ - <a href="#bmunit-004" target="_self">我如何检查我的规则是否正在运行</a>
+ 
+ - <a href="#bmunit-005" target="_self">如何使用 Maven 配置 JUnit 注入？</a>
+ 
+ - <a href="#bmunit-006" target="_self">如何使用 Ant 配置注入 JUnit？</a>
+ 
+ - <a href="#bmunit-007" target="_self">如何将故障注入 JUnit 测试？</a>
+ 
+ - <a href="#bmunit-008" target="_self">如何使用 Maven 配置注入 TestNG？</a>
+ 
+ - <a href="#bmunit-009" target="_self">如何使用 Ant 配置注入 TestNG？</a>
+ 
+ - <a href="#bmunit-010" target="_self">我在哪里可以下载教程资源？</a>
+
+#### <span id = "bmunit-001" target="_self">什么是 BMUnit？</span>
+
+&amp;#160; &amp;#160;BMUnit 是一个软件包，通过将 Byteman 集成到两个最流行的 Java 测试框架 JUnit 和 TestNG 中，可以很容易地将其用作测试工具。像这两个测试框架一样，BMUnit 基于注释的使用。通过向代码添加一些注释和向类路径添加几个 jar，可以确保 Byteman 代理自动加载到运行 JUnit/TestNG 测试的 JVM 中。这些注释还指定了代理在测试运行期间安装的 Byteman 规则，从而改变了应用程序代码或实际上 Java 运行时的运行方式。可以在运行测试之前加载规则，然后在测试完成后卸载。
+
+&amp;#160; &amp;#160;最基本的测试规则会注入跟踪代码，以便您可以查看实际执行的内容。这使您可以确保您的测试正在通过代码执行预期的路径。更复杂的规则通过指定测试错误情况的条件来执行验证。触发规则时，条件应该是错误的。如果结果是真的，那么规则操作可能会抛出异常，从而导致测试失败。
+
+&amp;#160; &amp;#160;最复杂的规则采用称为故障注入的技术。它们修改应用程序或运行时的行为，以模拟仅在异常情况下才会发生的测试场景。例如，它们可能会强制运行时在打开特定文件时抛出 FileNotFoundException，或者更改调用的返回值以模拟错误。基本测试可能只需要使用跟踪规则或简单的验证规则。更复杂的测试通常会使用所有三种类型的规则，并且可以注入多个规则以便创建故障然后通过应用程序代码传播它。本教程提供了所有三种类型规则的简单示例。高级故障注入和传播将在下一个教程中介绍。
+
+&amp;#160; &amp;#160;BMUnit 允许您直接在测试类或测试方法的注释中指定简单规则。类注释用于适用于类中所有测试方法的规则。这些规则在运行所有方法之前加载一次，然后在测试完所有方法后卸载。这特别适用于跟踪规则。无论您运行什么测试，通常都需要在测试执行期间跟踪相同的信息。有时在类注释中指定验证规则也是合适的。在任何测试中都不应出现某些情况。
+
+&amp;#160; &amp;#160;各个测试方法的注释导致规则仅在特定测试的范围内加载，并在测试竞争时卸载。在指定故障注入规则时，方法注释通常是最合适的。在某些测试中抛出异常可能是合适的，例如当他们尝试打开文件时。但是，如果其他测试实际需要测试读写操作，您可能希望将文件流类的行为恢复正常。
+
+#### <span id = "bmunit-002" target="_self">有一个如何使用 BMUnit 的简单示例？</span>
+
+&amp;#160; &amp;#160;是的，下面显示的示例测试简单易懂。但在向您展示它们之前，我们需要介绍本教程中使用的示例应用程序，以便您可以看到正在破坏的代码以及破坏时应该发生的情况。
+
+&amp;#160; &amp;#160;该应用程序是一个名为 WebWriter 的简单类。它会创建一个非常基本的 HTML 页面，其中包含您在标题和正文中的名称。您还可以指定要写入 HTML 的文件。WebWriter 包括主方法，用于管理打开和关闭输出文件流的方法以及构造然后编写 HTML 内容的各种元素的方法。
+
+&amp;#160; &amp;#160;在本文的最后，您将找到有关如何下载和安装应用程序源代码和测试代码以及 ​​Byteman 规则脚本以及使用 Byteman 测试它所需的库的详细信息。源被组织为 maven 项目，包括顶级模块，应用程序源子模块和三个测试子模块。但是，源代码树还包含ant构建脚本，允许您编译和打包源代码并使用 ant 运行测试。本教程的其余部分将指导您完成执行每个操作所需的步骤。
+
+&amp;#160; &amp;#160;注意 示例应用程序向您展示了 BMUnit 如何将 Byteman 与 JUnit4 集成在一起。该应用程序适用于所有 Byteman 2.xx，3.xx 和 4.xx版本以及 JDK6 以上的所有JDK。BMUnit 也已扩展到与 JUnit5 集成。但是，要使其工作，您需要使用Byteman 4.0.6 或更高版本，并且只能运行 JDK8 或更高版本的 Java（JUnit5 依赖于仅存在于 JDK8+ 中的类）。下面提供了有关配置 JUnit5 的说明以及 JUnit4 配置。
+
+&amp;#160; &amp;#160;下载并解压缩应用程序源后，请查看子目录应用程序。它包含应用程序库类和一些运行库的主程序类。如果要构建库，可以运行命令
+
+```python
+> mvn package
+
+. . .
+```
+
+在顶级目录中。或者，如果您使用 ant，则可以运行命令
+
+```python
+> ant build
+
+. . .
+```
+
+&amp;#160; &amp;#160;这应该在子目录 app 中创建一个名为 target 的目录，在其中你应该找到一个名为 bmunit-tutorial-app-1.0.0.jar 的 jar
+
+&amp;#160; &amp;#160;要运行示例应用程序，请更改为 app 目录并运行 WebWriter 主方法，提供文件名和用户名作为参数。例如，
+
+```python
+> cd app
+
+> java -classpath target/bmunit-tutorial-app-1.0.0.jar \
+
+      org.my.app.WebWriter foo.html Andrew
+```
+
+&amp;#160; &amp;#160;您应该在顶级目录中找到文件 foo.html。在 Web 浏览器中打开它，检查标题和正文文本是否包含 Andrew. 你还可以尝试使用不同的文件名和用户名运行程序，以查看它是否发生了变化。
+
+#### <span id = "bmunit-003" target="_self">如何将跟踪注入 JUnit 测试？</span>
+
+&amp;#160; &amp;#160;示例应用程序包含一个名为 junit 的子目录，其中包含一个测试类 WebWriterTest。它包含一个测试方法 testWriteHead，它创建一个 WebWriter，然后调用方法 writeHeader。
+
+```java
+@Test
+ 
+public void testWriteHead()
+ 
+{
+ 
+    System.out.println("-------- testWriteHead ---------");
+ 
+    WebWriter writer = new WebWriter("foo.html", "Andrew");
+ 
+    writer.writeHeader(System.out);
+ 
+    System.out.println("-------- testWriteHead ---------\n");
+ 
+}
+```
+
+&amp;#160; &amp;#160;请注意，调用传入的 PrintStream 是 writeHeader 是 System.out。因此，可以通过观察打印输出来验证该测试已通过。但是，如果这项检查可以自动化会更好。这就是 Byteman 发挥作用的地方。
+
+#### 检查规则
+
+&amp;#160; &amp;#160;此测试中使用的 Byteman 规则包含在目录 junit/src/resources 中的脚本 check.btm 中
+
+```python
+RULE check head
+
+CLASS WebWriter
+
+METHOD makeHeader
+
+AT EXIT
+
+BIND result = $builder.toString()
+
+IF (NOT result.contains("<HEAD>")  || NOT result.contains("</HEAD>"))
+
+DO THROW new RuntimeException("invalid header format");
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;此规则将在该方法即将返回的位置注入方法 WebWriter.makeHeader。这意味着该方法已经将头文本附加到提供的 StringBuilder 中。该规则绑定一个本地规则变量 result，它通过调用 StringBuilder 的 toString 方法初始化。请注意，它使用语法 $builder 来引用仍在返回点范围内的参数变量构建器。规则条件只是一个基本检查，以查看标题文本看起来像正确的 HTML。如果检查失败，则规则操作会引发异常，导致测试失败。
+
+#### 使用 BMUnitRunner 注入规则
+
+通过将一些注释附加到测试类，运行测试时会自动加载脚本 check.btm 中的规则：
+
+```java
+@RunWith(org.jboss.byteman.contrib.bmunit.BMUnitRunner.class)
+
+@BMUnitConfig(loadDirectory="target/test-classes")
+
+@BMScript(value="check.btm")
+
+public class WebWriterTest
+
+{
+
+    . . .
+```
+
+&amp;#160; &amp;#160;该 @RunWith 注释属于加时赛 JUnit 包，它是要告诉 JUnit 来使用 Byteman 类 BMUnitRunner 运行测试。BMUnitRunner 是标准 JUnit4 测试运行器类的子类，它将运行测试的大部分工作委托给 JUnit。但是，它作为包装类运行，在测试开始时将 Byteman 代理安装到测试 JVM 中，并在运行特定测试时需要加载和卸载 Byteman 规则。
+
+&amp;#160; &amp;#160;在这种情况下，运行器检测测试类上是否存在 @BMScript 注释。因此，它请求 Byteman 代理从注释 check.btm 中指定的脚本安装规则。请注意，maven 会在开始运行任何测试之前将 test/resources 目录中找到的任何文件复制到目录 target/test-classes，因此可以使用路径 "target/test-classes" 找到此脚本。
+
+&amp;#160; &amp;#160;该 @BMUnitConfig 注释也被检测到的类 BMUnitRunner。此批注可用于配置 BMUnit 包的操作。它也可以省略，在这种情况下，将使用合理的默认值。在这种情况下，loadDirectory 属性用于告诉 BMUnit 在哪里查看加载文件脚本。因此，此设置意味着 BMUnit 将尝试加载 Byteman 规则文件 target/test-classes/check.btm 。
+
+&amp;#160; &amp;#160;一旦执行了类中的所有测试，BMUnitRunner 就会连接到代理侦听器并卸载脚本中定义的所有规则。如果相反将 @BMScript 注释附加到测试方法，那么将在运行该特定测试之前和之后上载和卸载规则。
+
+&amp;#160; &amp;#160;如果您正在使用 maven，那么您可以通过启用 junit 配置文件从下载树的根目录运行模块 junit 中的测试。顶级pom中的配置文件 junit 的配置文件条目将子目录 junit 添加为模块，确保其测试作为顶级构建过程的一部分运行
+
+```python
+> mvn -P junit test
+
+. . .
+
+-------------------------------------------------------
+
+T E S T S
+
+-------------------------------------------------------
+
+Running org.my.WebWriterTest
+
+byteman jar is /ssd/home/adinn/.m2/repository/org/jboss/byteman/byteman/2.2.1/byteman-2.2.1.jar
+
+Setting org.jboss.byteman.allow.config.update=true
+
+-------- testWriteHead ---------
+
+<HEAD>
+
+  <TITLE>
+
+  Welcome to the web page for Andrew
+
+  </TITLE>
+
+</HEAD>
+
+ 
+
+-------- testWriteHead ---------
+
+ 
+
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.385 sec
+
+. . .
+```
+
+如果您使用的是 ant，则可以使用以下命令从顶级目录运行测试
+
+```python
+> ant junit
+
+. . .
+
+test:
+
+     [copy] Copying 1 file to /ssd/home/adinn/jboss/byteman/git/bmunit-tutorial/junit/target/test-classes
+
+    [junit] Setting org.jboss.byteman.allow.config.update=true
+
+    [junit] -------- testWriteHead ---------
+
+    [junit] <HEAD>
+
+    [junit]   <TITLE>
+
+    [junit]   Welcome to the web page for Andrew
+
+    [junit]   </TITLE>
+
+    [junit] </HEAD>
+
+    [junit]
+
+    [junit] -------- testWriteHead ---------
+
+    [junit]
+
+ 
+
+BUILD SUCCESSFUL
+
+. . .
+```
+
+&amp;#160; &amp;#160;请注意，要使此 ant 命令起作用，必须确保已设置 BYTEMAN_HOME 并标识下载和解压缩 Byteman 二进制版本的目录。此外，请确保首先运行命令 ant build 以确保已在应用程序 jar 中编译和安装应用程序类。另请注意，运行测试的 ant 任务包括一个复制任务，它将规则脚本复制到目录 target/test-classes 中。
+
+#### 配置测试以使用 JUnit5 运行
+
+如果您想使用 JUnit5 运行测试，那么您只需使用不同的注释：
+
+```java
+@WithByteman
+
+@BMUnitConfig(loadDirectory="target/test-classes")
+
+@BMScript(value="check.btm")
+
+public class WebWriterTest
+
+{
+
+    . . .
+```
+
+&amp;#160; &amp;#160;所述  @WithByteman 注释属于打包 org.jboss.byteman.bmunit（同一个所有其他 BMUnit API 类）。但是，为了使它在运行时可用，您需要在类路径中添加 byteman-bmunit5.jar 作为额外依赖项（有关 maven 或 ant 配置的详细信息，请参阅下文）。
+
+#### <span id = "bmunit-004" target="_self">我如何检查我的规则是否正在运行</span>
+
+&amp;#160; &amp;#160;当然上面的测试通过（因为方法 makeHeader 是正确的）但是没有证据表明该规则实际上正在被注入并验证输出。您可以通过破坏测试类来检查它是否正常工作，例如修改 makeHeader 以使其不插入 ```"<HEAD>"``` 标记。但是，现在可能是这样，但如果编辑代码（例如更改目标方法的名称）可能会更改。检查 Byteman 正在运行的更有用的方法是使用其调试功能。示例项目中提供的规则实际上与上面引用的文本略有不同。这是完整版：
+
+```python
+RULE  check head
+
+CLASS WebWriter
+
+METHOD makeHeader
+
+AT EXIT
+
+BIND result = $builder.toString()
+
+IF debug("checking for HEAD and /HEAD tags") &&
+
+   (NOT result.contains("<HEAD>")  || NOT result.contains("</HEAD>"))
+
+DO debug("makeHeader result does not include both <HEAD> and </HEAD>");
+
+   THROW new RuntimeException("invalid header format");
+
+ENDRULE
+```
+
+&amp;#160; &amp;#160;如您所见，条件和操作都包括对方法调试的调用。此方法通常不输出任何文本。如果启用调试输出，那么您将看到从这些调用到调试的跟踪输出。注意 方法 debug 始终返回 true，这意味着您可以通过使用 && 运算符将调度跟踪调用与条件的其余部分组合来添加调度跟踪调用。
+
+如果您正在使用 maven，则可以通过调整 @BMUnitConfig 注释中的设置来启用调试：
+
+```java
+@RunWith(org.jboss.byteman.contrib.bmunit.BMUnitRunner.class)
+
+@BMUnitConfig(loadDirectory="target/test-classes", debug=true)
+
+@BMScript(value="check.btm")
+
+public class WebWriterTest
+
+{
+
+    . . .
+```
+
+&amp;#160; &amp;#160;您可以从输出中看到条件中的调试方法已执行。但是，操作中的调试消息未执行，因为条件结果为假，如预期的那样。其他调试消息显示正在安装和卸载的规则，并向关联的帮助程序类显示通知，以指示使用该帮助程序类的规则处于活动状态或已停用。
+
+&amp;#160; &amp;#160;注意 如果您的测试类不包含 @BMUnitConfig 注释，您仍然可以通过在 Java 命令行上为测试 JVM 配置参数 -Dorg.jboss.byteman.debug 来启用调试  。
+
+&amp;#160; &amp;#160;您可以从输出中看到条件中的调试方法已执行。但是，操作中的调试消息未执行，因为条件结果为假，如预期的那样。其他调试消息显示正在安装和卸载的规则，并向关联的帮助程序类显示通知，以指示使用该帮助程序类的规则处于活动状态或已停用。
+
+&amp;#160; &amp;#160;如果您想了解更多有关 BMUnit 和 Byteman 在幕后工作的信息，可以使用两个更详细的跟踪设置来启用。所述 @BMUnitConfig 属性 bmunitVerbose=true 和 verbose=true 启用 BMUnit 码和 Byteman 代理代码的操作的详细的跟踪。第一个设置允许跟踪 BMUnit 通过代理侦听器套接字安装代理和上载/卸载规则。第二个设置可以跟踪代理本身，显示将规则注入目标方法，然后在控制到达触发点时执行。
+
+#### <span id = "bmunit-005" target="_self">如何使用 Maven 配置 JUnit 注入？</span>
+
+&amp;#160; &amp;#160;那么，如何配置 maven pom 以确保 Byteman 代码可用？好吧，你只需要包含一些 byteman jar 作为测试依赖项，并设置少量的 surefire 插件配置属性。目录 junit 中的文件 pom.xml 包含以下依赖项：
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.my</groupId>
+        <artifactId>tutorial2-app</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.8.2</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman</artifactId>
+        <scope>test</scope>
+        <version>${byteman.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman-submit</artifactId>
+        <scope>test</scope>
+        <version>${byteman.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman-install</artifactId>
+        <scope>test</scope>
+        <version>${byteman.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman-bmunit</artifactId>
+        <scope>test</scope>
+        <version>${byteman.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.sun</groupId>
+        <artifactId>tools</artifactId>
+        <version>1.6</version>
+        <scope>system</scope>
+        <systemPath>${tools.jar}</systemPath>
+    </dependency>
+</dependencies>
+```
+
+&amp;#160; &amp;#160;路径中所需的 byteman jar 是 byteman.jar，byteman-submit.jar，byteman-install.jar 和 byteman-bmunit.jar。您将需要此版本或更高版本才能使测试正常运行。测试还取决于 app jar 和 junit 4 jar。最后，它包含对 JVM 工具 jar 的依赖，这在 Oracle 或 OpenJDK JVM 或 JRockit 上运行时是必需的。工具 jar 提供了动态安装 Byteman 代理所需的类。
+
+&amp;#160; &amp;#160;请注意，属性 byteman.version 在顶级 pom 中定义为 2.2.1。和属性 tools.jar 在顶级 pom 中定义为 ../lib/tools.jar。
+
+&amp;#160; &amp;#160;另请注意，要在 JDK9 上运行，必须省略工具 jar 依赖项。JDK9 删除了工具 jar 并将相关类移动到基本运行时映像中。如果查看项目提供的 pom，您可以看到如何配置 pom，以便它可以在 JDK9 和早期的 JDK 上运行。
+
+#### 配置 maven 以使用 JUnit5
+
+如果您想使用 JUnit5 来运行测试，那么您需要在 byteman-bmunit5 上添加额外的依赖项。
+
+```xml
+<dependency>
+    <groupId>org.jboss.byteman</groupId>
+    <artifactId>byteman-bmunit5</artifactId>
+    <scope>test</scope>
+    <version>${byteman.version}</version>
+</dependency>
+```
+
+&amp;#160; &amp;#160;为了使 JUnit5 支持能够正常工作，您需要使用 Byteman 4.0.6 或更高版本并使用 JDK8 或更高版本。
+
+#### 推荐的 Surefire 设置
+
+&amp;#160; &amp;#160; surefire 插件通常使用默认配置运行 Byteman 测试，但您应该指定一些属性以确保正确操作。这是目录 junit 中 pom 的配置
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.4.3</version>
+    <configuration>
+        <includes>
+            <include>org/my/WebWriterTest.java</include>
+        </includes>
+        <useSystemClassLoader>true</useSystemClassLoader>
+        <useManifestOnlyJar>true</useManifestOnlyJar>
+        <forkMode>once</forkMode>
+        <parallel>false</parallel>
+        <!-- ensure we don't inherit a byteman jar from any env settings -->
+        <environmentVariables>
+            <BYTEMAN_HOME></BYTEMAN_HOME>
+        </environmentVariables>
+        <systemProperties>
+            <property>
+                <name>org.jboss.byteman.home</name>
+                <value></value>
+            </property>
+        </systemProperties>
+        <argline>-Djdk.attach.allowAttachSelf</argline>
+    </configuration>
+</plugin>
+```
+&amp;#160; &amp;#160;useSystemClassloader 和 useManifestOnlyJar 的值都是默认设置，但它们都是必需的，以便代理正常运行。
+
+&amp;#160; &amp;#160;测试必须在分叉的 JVM 中运行，以便可以正确加载 Byteman 代理。因此，forkMode 应设置为一次或始终。
+
+&amp;#160; &amp;#160;测试应该以串行方式运行，以避免出现问题，即一个测试的规则会引入因无关测试而中断代码的副作用。因此，通常应使用值 false 指定 parallel。
+
+&amp;#160; &amp;#160;加载代理程序时，BMUnit 程序包检查环境变量 BYTEMAN_HOME 和系统属性 org.jboss.byteman.home 以查看它们中的任何一个是否设置为非空字符串。如果是这样，则将其用作定位本地下载的 byteman.jar 的路径。否则它会扫描类路径以找到jar。如果您的 maven pom 配置正确，那么您需要的 jar 将位于类路径中。因此，作为预防措施，可以在 surefire 配置中清除这两个变量，以确保测试不会意外地获取错误版本的 byteman.jar。如果您确定未设置这些变量，则可以从配置中省略这些条目。
+
+&amp;#160; &amp;#160;在 JDK9 及更高版本上运行时，必须将 System 属性 jdk.attach.allowAttachSelf 设置为 true，以便 BMUnit 可以将 Byteman 代理加载到测试 JVM 中。由于这是只读属性，因此必须在命令行上进行设置。如果在 systemProperties 配置块中配置它，maven将尝试在运行测试之前重置它，但对 System.setProperty() 的调用将失败，并且 BMUnit 将无法将代理安装到 JVM 中。如果您运行的是早期的 JDK 版本（6,7 或 8），则可以从配置中省略此属性设置。
+
+#### <span id = "bmunit-006" target="_self">如何使用 Ant 配置注入 JUnit？</span>
+
+&amp;#160; &amp;#160;目录 junit 中的 ant build 脚本 build.xml 向您展示如何配置 ant 以使用 Byteman。使用 ant 运行时，您必须通过下载和解压缩 Byteman 版本并设置 BYTEMAN_HOME 来确定下载目录，从而确保可以使用 byteman jar 。该脚本确保已设置 BYTEMAN_HOME，并确定包含预期 jar 文件的目录
+
+```xml
+<property environment="env"/>
+<property name="byteman.home" value="${env.BYTEMAN_HOME}"/>
+<fail message="please set BYTEMAN_HOME">
+    <condition>
+        <not>
+            <isset property="byteman.home"/>
+        </not>
+    </condition>
+</fail>
+<fail message="cannot find byteman lib jars">
+    <condition>
+        <not>
+            <and>
+                <available file="${byteman.home}/lib/byteman.jar"/>
+                <available file="${byteman.home}/lib/byteman-submit.jar"/>
+                <available file="${byteman.home}/lib/byteman-install.jar"/>
+            </and>
+        </not>
+    </condition>
+</fail>
+<fail message="cannot find byteman contrib jars">
+    <condition>
+        <not>
+            <available file="${byteman.home}/contrib/bmunit/byteman-bmunit.jar"/>
+        </not>
+    </condition>
+</fail>
+```
+
+&amp;#160; &amp;#160;编译测试代码时，BMUnit jar 必须位于类路径上，以便可以解析对 byteman 注释和 Byteman 测试运行器类的引用。
+
+```xml
+<property name="junit.jar" value="../lib/junit-4.8.2.jar"/>
+
+<javac srcdir="src/test/java" includes="**/*.java" destdir="target/test-classes" debug="true" target="1.6">
+    <classpath>
+        <pathelement location="target/test-classes"/>
+        <pathelement location="../app/target/tutorial2-app-1.0.0.jar"/>
+        <fileset dir="${byteman.home}/contrib/bmunit" includes="byteman-bmunit.jar"/>
+        <pathelement location="${junit.jar}"/>
+    </classpath>
+</javac>
+```
+
+&amp;#160; &amp;#160;四个 Byteman 罐子中的三个，byteman-bmunit.jar。必须在运行 JUnit 测试时在类路径上配置 byteman-submit.jar 和 byteman-install.jar。代理 jar，byteman.jar 不需要包含在类路径中，因为 BMUnit 使用环境变量 BYTEMAN_HOME 定位并安装它。
+
+运行测试的 junit 任务配置如下
+
+```xml
+<junit fork="true" showoutput="true" dir="." forkmode="once">
+    <classpath>
+        <pathelement location="target/test-classes"/>
+        <pathelement location="../app/target/tutorial2-app-1.0.0.jar"/>
+        <pathelement location="${junit.jar}"/>
+        <fileset dir="${byteman.home}/contrib/bmunit" includes="byteman-bmunit.jar"/>
+        <fileset dir="${byteman.home}/lib" includes="byteman-submit.jar byteman-install.jar"/>
+        <pathelement location="${java.home}/lib/tools.jar"/>
+        <pathelement location="${java.home}/../lib/tools.jar"/>
+    </classpath>
+    <test name="org.my.BytemanJUnitTests2"/>
+    <formatter type="plain"/>
+</junit>
+```
+
+&amp;#160; &amp;#160;请注意，所需的 junit jar 是作为顶级 lib 目录中 zip 下载的一部分提供的。另请注意，junit 测试分为单独的 JVM。这是允许正确加载 Byteman 代理所必需的。
+
+#### 配置 ant 以使用 JUnit5
+
+&amp;#160; &amp;#160;如果您想使用 JUnit5 从 ant 运行测试，那么您需要确保 jar byteman-bmunit5.jar 也在类路径中。您可以通过修改上述配置来执行此操作，如下所示：
+
+```xml
+<fileset dir="${byteman.home}/contrib/bmunit" includes="byteman-bmunit5.jar, byteman-bmunit.jar"/>
+<fileset dir="${byteman.home}/lib" includes="byteman-submit.jar byteman-install.jar/>
+```
+
+#### <span id = "bmunit-007" target="_self">如何将故障注入 JUnit 测试？</span>
+
+&amp;#160; &amp;#160;注入错误的方式与注入跟踪或验证规则的方式完全相同，即使用 BMUnit 包提供的注释。但是，在大多数情况下，您希望在特定测试之前注入故障规则，然后在测试完成后将其删除。这是因为您通常只想以一种高度特定于相关测试的方式中断应用程序或Java 运行时。该 junit2 子目录包含在课堂上另外两个 JUnit 测试 WebWriterTest2 其采用的规则破坏应用程序。这是第一种方法：
+
+```java
+@RunWith(org.jboss.byteman.contrib.bmunit.BMUnitRunner.class)
+
+@BMUnitConfig(loadDirectory="target/test-classes")
+
+@BMScript(value="check.btm")
+
+public class WebWriterTest2
+
+{
+
+    @Test
+
+    @BMRule(name = "handle file not found",
+
+            targetClass = "FileOutputStream",
+
+            targetMethod = "<init>(File)",
+
+            action = "throw new FileNotFoundException( \"Ha ha Byteman fooled you again!\" )"
+
+            )
+
+    public void handleFileNotFound()
+
+    {
+
+        System.out.println("-------- handleFileNotFound ---------");
+
+        WebWriter writer = new WebWriter("foo.html", "Andrew");
+
+        PrintStream ps = writer.openFile();
+
+        Assert.assertTrue(ps == null);
+
+        System.out.println("-------- handleFileNotFound ---------\n");
+
+    }
+
+    . . .
+```
+
+&amp;#160; &amp;#160;这 @BMScript 的类注释仍然存在，以装载在验证规则 check.btm。但是，测试方法有一个新的注释 @BMRule，它指定在测试运行之前上载的规则，并在完成后立即卸载。此注释直接在注释属性中提供规则的详细信息，而不是将它们放在单独的脚本中。规则的目标类是 FileOutputStream 类，目标方法是从给定的 File 实例创建输出流的构造函数（注意 Byteman 遵循 JVM 的内部命名约定，该约定使用 ```<init>``` 作为构造函数方法的名称和 ```<clinit>``` 作为类静态初始化方法的名称）。所以他们默认为注释不指定位置或状态在 "AT ENTRY" 和 "TRUE" ，分别。指定了该操作，它会创建然后抛出 FileNotFoundException。因此，当测试运行时，当 WebWriter.openFile 方法尝试打开输出流时，此规则将引发异常。只有在对 openFile 的调用处理此异常并返回 null 结果时，测试才会成功。
+
+第二个测试还使用 @BMRule 注释来副作用类 FileOutputStream
+
+```java
+@Test
+ 
+@BMRule(name = "test write body",
+ 
+        targetClass = "FileOutputStream",
+ 
+        targetMethod = "write(byte[],int,int)",
+ 
+        condition = "incrementCounter($0) == 2",
+ 
+        action = "throw new java.io.IOException( \"Ha ha Byteman fooled you!\" )"
+ 
+        )
+ 
+public void testWriteBody()
+ 
+{
+ 
+    System.out.println("-------- testWriteBody ---------");
+ 
+    WebWriter writer = new WebWriter("foo.html", "Andrew");
+ 
+    PrintStream ps = writer.openFile();
+ 
+    boolean result = writer.writeHeader(ps);
+ 
+    Assert.assertTrue(result);
+ 
+    result = writer.writeBody(ps);
+ 
+    ps.close();
+ 
+    Assert.assertFalse(result);
+ 
+    System.out.println("-------- testWriteBody ---------\n");
+ 
+}
+```
+
+&amp;#160; &amp;#160;在这种情况下，目标是用于将文本块刷新到输出文件的 write 方法，因此只要应用程序插入文本块，就会触发规则。该操作会抛出 IOException，因此该规则旨在测试应用程序处理写入错误的能力。该条件使用计数器确保仅在第二次触发时触发规则。计数器使用 $0 来标识，$0 是一个参数变量，它引用了触发器方法调用的 FileOutputStream 实例（它也可以将其称为 $this）。
+
+&amp;#160; &amp;#160;在对首次调用方法写在规则被触发时自动创建的计数器和给出的默认数值 0 的通话 incrementCounter 在条件递增此计数器并返回 1 的条件是假的，因此不执行和规则操作方法写入的执行继续。在第二次调用时，识别出相同的计数器，此时 incrementCounter 返回 2，使条件为真。
+
+&amp;#160; &amp;#160;运行测试时，对 writeHeader 的调用应该成功将第一个头文本块刷新到文件中。对 writeBody 的调用应该无法写入正文文本，捕获异常并返回指示它已失败的状态。方法 testWriteBody 中的代码检查这两个结果。
+
+#### 使用 BMUnitRunner 注入故障规则
+
+可以通过执行以下命令来运行目录 junit2 中的测试
+
+```python
+> mvn test -P junit2
+
+. . .
+
+-------------------------------------------------------
+
+T E S T S
+
+-------------------------------------------------------
+
+Running org.my.WebWriterTest2
+
+byteman jar is /ssd/home/adinn/.m2/repository/org/jboss/byteman/byteman/2.2.1/byteman-2.2.1.jar
+
+Setting org.jboss.byteman.allow.config.update=true
+
+-------- testWriteBody ---------
+
+Error writing body
+
+-------- testWriteBody ---------
+
+ 
+
+-------- handleFileNotFound ---------
+
+Unable to open file foo.html
+
+java.io.FileNotFoundException: Ha ha Byteman fooled you again!
+
+-------- handleFileNotFound ---------
+
+ 
+
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.398 sec
+
+. . .
+```
+
+如果您正在使用 ant，则可以使用以下命令从顶级目录执行 JUnit 错误注入测试
+
+```python
+> ant junit2
+
+. . .
+```
+
+您应该看到与运行 maven 版本的测试时基本相同的输出。
+
+#### 如何将规则注入 TestNG 测试？
+
+&amp;#160; &amp;#160;BMUnit 包可以与 TestNG 一起使用，其方式与 JUnit 使用的方式几乎完全相同。唯一的主要区别在于您如何通知 TestNG 测试需要使用 Byteman 规则。我们看到使用 JUnit，您需要在测试类中添加 @RunWith 注释。对于基于 TestNG 的测试，有两种方法可以实现此目的。一种方法是使测试类继承自名为 BMNGRunner 的 BMUnit 类。此父类提供确保在运行测试之前加载规则并在测试完成后卸载所需的所有行为。如果您无法重新显示测试类，则可以使用 TestNG @Listeners 批注告诉 TestNG 您的测试需要由 BMUnit 管理。
+
+&amp;#160; &amp;#160;所述 TestNG 的子目录包含一个测试类 WebWriter3 其基本上相同 WebWriter2：
+
+```java
+@BMUnitConfig(loadDirectory="target/test-classes")
+
+@BMScript(value="check.btm")
+
+public class WebWriterTest3 extends BMNGRunner
+
+{
+
+    @Test
+
+    @BMRule(name = "handle file not found",
+
+            targetClass = "FileOutputStream",
+
+            targetMethod = "<init>(File)",
+
+            action = "throw new FileNotFoundException( \"Ha ha Byteman fooled you again!\" )"
+
+            )
+
+    public void handleFileNotFound()
+
+    {
+
+    . . .
+```
+
+&amp;#160; &amp;#160;TestNG 识别超类 BMNGRunner 并调用其包装器方法来安装 byteman 代理并上传/卸载 @BMScript 和 @BMRule 注释中指定的 Byteman 规则。请注意，在上面的示例中，方法 handleFileNotFound 上的 @Test 注释引用包 org.testng.annotations 中的注释，而不是包 org.junit 中的 JUnit 注释。
+
+&amp;#160; &amp;#160;如果不使用 @Listeners 批注子类化测试类来附加类 BMNGListener 的实例，则可以实现相同的结果。侦听器实例将控制权委托给类 BMNGRunner。
+
+```java
+@BMUnitConfig(loadDirectory="target/test-classes")
+
+@BMScript(value="check.btm")
+
+@Listeners(BMNGListener.class)
+
+public class WebWriterTest
+
+{
+
+     . . .
+```
+
+#### 使用 BMNGRunner 注入故障规则
+
+要使用 maven 运行测试，请在顶级目录中执行以下命令
+
+```python
+> mvn test -P testng
+
+. . .
+
+-------------------------------------------------------
+
+T E S T S
+
+-------------------------------------------------------
+
+Running TestSuite
+
+byteman jar is /ssd/home/adinn/.m2/repository/org/jboss/byteman/byteman/2.2.1/byteman-2.2.1.jar
+
+Setting org.jboss.byteman.allow.config.update=true
+
+-------- handleFileNotFound ---------
+
+Unable to open file foo.html
+
+java.io.FileNotFoundException: Ha ha Byteman fooled you again!
+
+-------- handleFileNotFound ---------
+
+ 
+
+-------- testWriteBody ---------
+
+Error writing body
+
+-------- testWriteBody ---------
+
+ 
+
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.064 sec
+
+. . .
+```
+
+或者，您可以执行以下 ant 命令
+
+```python
+> ant testng
+
+. . .
+```
+
+#### <span id = "bmunit-008" target="_self">如何使用 Maven 配置注入 TestNG？</span>
+
+TestNG 配置与 JUnit 非常相似，只是需要依赖于 TestNG 而不是依赖 JUnit。
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.my</groupId>
+        <artifactId>tutorial2-app</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.8.2</version>
+    </dependency>
+    <dependency>
+        <groupId>org.testng</groupId>
+        <artifactId>testng</artifactId>
+        <version>5.14.6</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman</artifactId>
+        <scope>test</scope>
+        <version>${byteman.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman-submit</artifactId>
+        <scope>test</scope>
+        <version>${byteman.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman-install</artifactId>
+        <scope>test</scope>
+        <version>${byteman.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman-bmunit</artifactId>
+        <scope>test</scope>
+        <version>${byteman.version}</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>com.sun</groupId>
+        <artifactId>tools</artifactId>
+        <version>1.6</version>
+        <scope>system</scope>
+        <systemPath>${tools.jar}</systemPath>
+    </dependency>
+</dependencies>
+```
+
+&amp;#160; &amp;#160;请注意，同样的警告适用于 JUnit 案例。属性 byteman.version 在顶级 pom 中定义为 2.2.1。和属性 tools.jar 在顶级 pom 中定义为 ../lib/tools.jar。
+
+&amp;#160; &amp;#160;还要再次注意，要在 JDK9 上运行，必须省略工具 jar 依赖项。JDK9 删除了工具 jar 并将相关类移动到基本运行时映像中。如果查看项目提供的 pom，您可以看到如何配置 pom，以便它可以在 JDK9 和早期的 JDK 上运行。
+
+请注意，此处指定的 TestNG 版本是最早发现的版本。
+
+surefire 配置与 JUnit 测试基本相同
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.4.3</version>
+    <configuration>
+        <includes>
+            <include>org/my/WebWriter3.java</include>
+        </includes>
+        <useSystemClassloader>true</useSystemClassloader>
+        <useManifestOnlyJar>true</useManifestOnlyJar>
+        <forkMode>once</forkMode>
+        <parallel>false</parallel>
+        <!-- ensure we don't inherit a byteman jar from any env settings -->
+        <environmentVariables>
+            <BYTEMAN_HOME></BYTEMAN_HOME>
+        </environmentVariables>
+        <systemProperties>
+            <property>
+                <name>org.jboss.byteman.home</name>
+                <value></value>
+            </property>
+        </systemProperties>
+    </configuration>
+</plugin>
+```
+
+#### <span id = "bmunit-009" target="_self">如何使用 Ant 配置注入 TestNG？</span>
+
+&amp;#160; &amp;#160;TestNG 提供了一个 ant 任务，允许您运行 TestNG 测试，这需要与运行 JUnit 测试相同的配置选项。因此，TestNG ant 构建脚本中的编译和测试目标看起来与 JUnit 构建脚本中的目标非常相似
+
+```xml
+<property name="junit.jar" value="../lib/junit-4.8.2.jar"/>
+<property name="testng.jar" value="../lib/testng-6.3.1.jar"/>
+
+. . .
+
+<taskdef resource="testngtasks" classpath="${testng.jar}"/>
+
+. . .
+
+<target name="compile">
+    <javac srcdir="src/test/java" includes="**/*.java" destdir="target/test-classes" debug="true" target="1.6">
+        <classpath>
+            <pathelement location="target/test-classes"/>
+            <pathelement location="../app/target/tutorial2-app-1.0.0.jar"/>
+            <fileset dir="${byteman.home}/contrib/bmunit" includes="byteman-bmunit.jar"/>
+            <pathelement location="${testng.jar}"/>
+        </classpath>
+    </javac>
+</target>
+<target name="test" depends="clean, init, compile">
+    <copy file="src/test/resources/trace.btm" todir="target/test-classes"/>
+    <copy file="src/test/resources/trace2.btm" todir="target/test-classes"/>
+    <copy file="src/test/resources/timing.btm" todir="target/test-classes"/>
+    <testng workingdir="." outputdir="target/test-output">
+        <classpath>
+            <pathelement location="target/test-classes"/>
+            <pathelement location="../app/target/tutorial2-app-1.0.0.jar"/>
+            <pathelement location="${junit.jar}"/>
+            <pathelement location="${testng.jar}"/>
+            <fileset dir="${byteman.home}/contrib/bmunit" includes="byteman-bmunit.jar"/>
+            <fileset dir="${byteman.home}/lib" includes="byteman-submit.jar byteman-install.jar"/>
+            <pathelement location="${java.home}/../lib/tools.jar"/>
+        </classpath>
+        <classfileset dir="target/test-classes" includes="org/my/BytemanNGTests.class"/>
+    </testng>
+</target>
+```
+
+该的 taskdef 声明是必要的，使 TestNG 的任务可用。
+
+&amp;#160; &amp;#160;请注意，所需的 junit 和 testng jar 是作为顶级 lib 目录中 zip 下载的一部分提供的。使用版本 5.14.6（在 maven 测试中使用的版本）不能从 ant 运行 TestNG 测试。但是，可以使用版本 6.3.1 从 ant 运行测试。
+
+#### <span id = "bmunit-010" target="_self">我在哪里可以下载教程资源？</span>
+
+&amp;#160; &amp;#160;教程源可以从 JBoss 下载服务器获得，作为 <a href="http://downloads.jboss.org/byteman/tutorial/bmunit-tutorial.zip" target="_blank">zip</a> 文件。您也可以从 <a href="https://github.com/adinn/bmunit-tutorial" target="_blank">GitHub</a> 访问它们。 
+
+&amp;#160; &amp;#160;为了运行作为此下载的一部分提供的示例应用程序主程序和测试，您将需要安装支持动态代理程序加载功能的 JDK6（或更高版本）发行版。这包括 OpenJDK，Oracle 的 JDK 和最近发布的 JRockit JDK（版本 jrmc-4.0.1-已知可行）。您应确保 JDK bin 目录中的 Java 二进制文件在 PATH 中可用。
+
+&amp;#160; &amp;#160;您还需要安装 ant 或 maven。本教程已经使用 ant 7.1 和 maven 3.0.2 进行了测试，但它可能适用于早期版本。您应该再次确保路径中可以使用 ant 或 maven 二进制文件。
+
+&amp;#160; &amp;#160;如果您使用 maven 构建和运行测试程序，则不需要下载并安装 Byteman 版本，因为 maven 将自动从网络中提取相关的jar。Byteman jar 可以在 Maven Central 存储库中使用，因此您无需任何特殊配置即可下载它们。
+
+&amp;#160; &amp;#160;如果您使用 ant 构建并运行测试程序，则需要下载 Byteman 2.2.1 或更高版本。最新版本可从 <a href="http://www.jboss.org/byteman/downloads" target="_blank">Byteman</a> 下载页面获得
+
+&amp;#160; &amp;#160;解压缩发行版并设置环境变量BYTEMAN_HOME以标识生成的目录树的顶级目录。它应该包含几个子目录，包括 lib 和 bin。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-thread-dump-in-action</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-thread-dump-in-action
+
+#### Java 线程死锁查看分析方法
+
+如何查看是否有 Java 线程死锁？下面介绍两种方法。
+
+##### 一.Jconsole
+
+JConsole 是 JDK 自带的图形化界面工具，使用 JDK 给我们的的工具 JConsole，可以通过打开 cmd 然后输入 jconsole 打开。
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-001.png)
+
+连接到需要查看的进程。
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-002.png)
+
+打开线程选项卡，然后点击左下角的“检测死锁” 。
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-003.png)
+
+jconsole 就会给我们检测出该线程中造成死锁的线程，点击选中即可查看详情：
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-004.png)
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-005.png)
+
+从上图中我们可以看出：
+
+ - 在线程 Thread-1 中，从状态可以看出，它想申请 java.lang.Object@35b4e829 这个资源，但是这个资源已经被 Thread-0 拥有了，所以就堵塞了。
+
+ - 在线程 Thread-0 中，从状态可以看出，它想申请 java.lang.Object@2db8dc9 这个资源，但是这个资源已经被 Thread-1 拥有了，所以就堵塞了。
+
+ - Thread-1 一直等待 java.lang.Object@35b4e829 资源，而 Thread–0 一直等待 java.lang.Object@2db8dc9 资源，于是这两个线程就这么僵持了下去，造成了死锁。
+
+##### 二.Jstack
+
+Jstack 是 JDK 自带的命令行工具，主要用于线程 Dump 分析。
+
+**1.我们先用 Jps 来查看 java 进程id(或者 Linux 的 ps 命令)**
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-006.png)
+
+**2.看一下 jstack 的使用**
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-007.png)
+
+**3.jstack 输出线程 dump 信息到文件**
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-008.png)
+
+用比较工程查看带 -l 和不带 -l 的区别如下：
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-009.png)
+
+**4.查看 dump 文件，然后进行分析**
+
+![title](images/java-basic-thread-dump-in-action/java-basic-thread-dump-in-action-010.png)
+
+其中有一行是 at DeadThread.run（DeadThread.java:37），说明 Thread-1 实在 DeadThread 类的 37 行处发生死锁，其中 at DeadThread.run(DeadThread.java:21)，说明 Thread-0 是在 DeadThread 类的 21 行处发生死锁。详细的 jstack dump 文件分析请参看：<a href="https://www.iteye.com/blog/jameswxx-1041173" target="_blank">jstack 和线程 dump 分析 </a>。
+
+从而定位到死锁发生的原因，及具体位置：Thread-0 获得了锁 lock1，接下来期望获得锁 lock2，（第 20 行），但是此时 Thread-1 获得了锁 lock2，接下来期望获得锁 lock2,（第 37 行），因而发生了死锁。
+
+**附实例 DeadThread.java 代码：**
+
+```java
+public class DeadThread implements Runnable {
+
+    public String username;
+    public Object lock1 = new Object();
+    public Object lock2 = new Object();
+
+    @Override
+    public void run() {
+      // TODO Auto-generated method stub
+      if (username.equals("a")) {
+        synchronized (lock1) {
+          try {
+            System.out.println("username = " + username);
+            System.out.println(Thread.currentThread().getName());
+            Thread.sleep(3000);
+          } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+          }
+          synchronized (lock2) {
+            System.out.println("按lock1->lock2的顺序执行代码");
+          }
+        }
+      }
+
+      if (username.equals("b")) {
+        synchronized (lock2) {
+          try {
+            System.out.println("username = " + username);
+            System.out.println(Thread.currentThread().getName());
+            Thread.sleep(3000);
+          
+          } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+          }
+          synchronized (lock1) {
+            System.out.println("按lock2->lock1顺序执行代码");
+          }
+        }
+      }
+    }
+
+    public void setFlag(String username) {
+      this.username = username;
+    }
+
+    public static void main(String[] args) {
+
+      DeadThread dt1 = new DeadThread();
+      dt1.setFlag("a");
+      Thread t1 = new Thread(dt1);
+      t1.start();
+
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+
+      dt1.setFlag("b");
+      Thread t2 = new Thread(dt1);
+
+      t2.start();
+    }
+}
+```
+
+文章来源：
+
+ - <a href="https://blog.csdn.net/abc86319253/article/details/49534225" target="_blank">Java 线程死锁查看分析方法</a>
+
+ - <a href="https://blog.csdn.net/lu__peng/article/details/52822632" target="_blank">通过 Java 自带的工具和 Linux 命令来分析死锁</a>
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/flyingeagle/articles/6853167.html" target="_blank">Java 线程死锁查看分析方法 </a>
+
+#### 通过 Java 自带的工具和 Linux 命令来分析死锁
+
+当我们编写 Java 程序时，由于不合理的设计，可能会出现程序死循环/死锁问题。
+
+下面我就以程序的死锁为例，来进行分析
+
+我编写的测试类是 Run 类
+
+##### 1. 查找 Run 类对应的 PID，使用命令：ps -ef | grep Run
+
+```python
+gl    6765  4121  0 13:52 ?00:00:00 /opt/java/jdk1.8.0_101/bin/java -Dfile.encoding=UTF-8 -classpath /home/lupeng/java_development/MultiThread/bin Run
+gl    6795  2766  0 13:53 pts/0    00:00:00 grep --color=auto Run
+```
+
+##### 2. 利用 Java 自带的工具 jstack 进行分析
+
+```python
+jstack 6765
+```
+
+结果如下
+
+```python
+Java stack information for the threads listed above:
+===================================================
+"Thread-1":
+	at DeadThread.run(DeadThread.java:37)
+	- waiting to lock <0x00000000ec1df068> (a java.lang.Object)
+	- locked <0x00000000ec1df078> (a java.lang.Object)
+	at java.lang.Thread.run(Thread.java:745)
+"Thread-0":
+	at DeadThread.run(DeadThread.java:21)
+	- waiting to lock <0x00000000ec1df078> (a java.lang.Object)
+	- locked <0x00000000ec1df068> (a java.lang.Object)
+	at java.lang.Thread.run(Thread.java:745)
+
+Found 1 deadlock.
+```
+
+deadlock 说明出现死锁问题。
+
+Thread-1 已经获得了锁 `<0x00000000ec1df078>`，同时等待锁 `<0x00000000ec1df078>`
+
+Thread-0 已经获得了锁 `<0x00000000ec1df078>`，同时等待锁 `<0x00000000ec1df078>`
+
+一次发生了死锁问题。
+
+即
+
+```python
+Found one Java-level deadlock:
+=============================
+"Thread-1":
+  waiting to lock monitor 0x00007fefcc003828 (object 0x00000000ec1df068, a java.lang.Object),
+  which is held by "Thread-0"
+"Thread-0":
+  waiting to lock monitor 0x00007fefcc006218 (object 0x00000000ec1df078, a java.lang.Object),
+  which is held by "Thread-1"
+```
+
+那么到底时什么地方出现了死锁问题呢？
+
+我们再来分析下
+
+```python
+Java stack information for the threads listed above:
+===================================================
+"Thread-1":
+	at DeadThread.run(DeadThread.java:37)
+	- waiting to lock <0x00000000ec1df068> (a java.lang.Object)
+	- locked <0x00000000ec1df078> (a java.lang.Object)
+	at java.lang.Thread.run(Thread.java:745)
+"Thread-0":
+	at DeadThread.run(DeadThread.java:21)
+	- waiting to lock <0x00000000ec1df078> (a java.lang.Object)
+	- locked <0x00000000ec1df068> (a java.lang.Object)
+	at java.lang.Thread.run(Thread.java:745)
+
+Found 1 deadlock.
+```
+
+其中有一行是at DeadThread.run（DeadThread.java:37）
+
+说明 Thread-1 实在 DeadThread 类的 37 行处发生死锁
+
+其中 at DeadThread.run(DeadThread.java:21)
+
+说明 Thread-0 实在 DeadThread 类的 21 行处发生死锁
+
+接下来我们定位到具体代码：
+
+```java
+public class DeadThread implements Runnable{
+  public String username;
+  public Object lock1 = new Object();
+  public Object lock2 = new Object();
+  
+  @Override
+  public void run() {
+
+    if(username.equals("a")){
+      synchronized (lock1) {
+        try {
+          System.out.println("username = "+username);
+          System.out.println(Thread.currentThread().getName());
+          Thread.sleep(3000);
+        } catch (Exception e) {
+          // TODO: handle exception
+          e.printStackTrace();
+        }
+          
+        synchronized (lock2) {
+          System.out.println("按lock1->lock2的顺序执行代码");
+        }
+      }
+    }
+
+    if(username.equals("b")){
+      synchronized (lock2) {
+        try {
+          System.out.println("username = "+username);
+          System.out.println(Thread.currentThread().getName());
+          Thread.sleep(3000);
+        } catch (Exception e) {
+          // TODO: handle exception
+          e.printStackTrace();
+        }
+        
+        synchronized (lock1) {
+          System.out.println("按lock2->lock1顺序执行代码");
+        }
+      }
+    }
+
+  }
+
+  public void setFlag(String username){
+    this.username=username;
+  }
+}
+```
+
+从而定位到死锁发生的原因，及具体位置：
+
+Thread-0 获得了锁 lock1，接下来期望获得锁 lock2，（line: 20）
+
+但是此时 Thread-1 获得了锁 lock2，接下来期望获得锁 lock2,（line: 37）
+
+因而发生了死锁。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/lu__peng/article/details/52822632#" target="_blank">通过 Java 自带的工具和 Linux 命令来分析死锁</a>
+
+#### jstack 和线程 dump 分析
+
+##### 一：jstack 
+
+jstack 命令的语法格式： jstack `<pid>`。可以用 jps 查看 java 进程 id。这里要注意的是：
+
+ 1. 不同的 JAVA 虚机的线程 DUMP 的创建方法和文件格式是不一样的，不同的 JVM 版本， dump 信息也有差别。本文中，只以 SUN 的 hotspot JVM 5.0_06 为例。
+
+ 2. 在实际运行中，往往一次 dump 的信息，还不足以确认问题。建议产生三次 dump 信息，如果每次 dump 都指向同一个问题，我们才确定问题的典型性。   
+
+##### 二：线程分析
+
+###### 2.1. JVM 线程
+
+在线程中，有一些 JVM 内部的后台线程，来执行譬如垃圾回收，或者低内存的检测等等任务，这些线程往往在 JVM 初始化的时候就存在，如下所示：
+
+```python
+"Low Memory Detector" daemon prio=10 tid=0x081465f8 nid=0x7 runnable [0x00000000..0x00000000]
+
+"CompilerThread0" daemon prio=10 tid=0x08143c58 nid=0x6 waiting on condition [0x00000000..0xfb5fd798]
+
+"Signal Dispatcher" daemon prio=10 tid=0x08142f08 nid=0x5 waiting on condition [0x00000000..0x00000000]
+
+"Finalizer" daemon prio=10 tid=0x08137ca0 nid=0x4 in Object.wait() [0xfbeed000..0xfbeeddb8]
+
+at java.lang.Object.wait(Native Method)
+
+- waiting on <0xef600848> (a java.lang.ref.ReferenceQueue$Lock)
+
+at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:116)
+
+- locked <0xef600848> (a java.lang.ref.ReferenceQueue$Lock)
+
+at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:132)
+
+at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:159)
+
+"Reference Handler" daemon prio=10 tid=0x081370f0 nid=0x3 in Object.wait() [0xfbf4a000..0xfbf4aa38]
+
+at java.lang.Object.wait(Native Method)
+
+- waiting on <0xef600758> (a java.lang.ref.Reference$Lock)
+
+at java.lang.Object.wait(Object.java:474)
+
+at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:116)
+
+- locked <0xef600758> (a java.lang.ref.Reference$Lock)
+
+"VM Thread" prio=10 tid=0x08134878 nid=0x2 runnable
+
+"VM Periodic Task Thread" prio=10 tid=0x08147768 nid=0x8 waiting on condition
+```
+
+我们更多的是要观察用户级别的线程，如下所示： 
+
+```python
+"Thread-1" prio=10 tid=0x08223860 nid=0xa waiting on condition [0xef47a000..0xef47ac38]
+
+at java.lang.Thread.sleep(Native Method)
+
+at testthread.MySleepingThread.method2(MySleepingThread.java:53)
+
+- locked <0xef63d600> (a testthread.MySleepingThread)
+
+at testthread.MySleepingThread.run(MySleepingThread.java:35)
+
+at java.lang.Thread.run(Thread.java:595)
+```
+
+我们能看到：
+
+ - 线程的状态： waiting on condition
+
+ - 线程的调用栈
+
+ - 线程的当前锁住的资源： `<0xef63d600>`
+
+###### 2.2. 线程的状态分析
+
+  正如我们刚看到的那样，线程的状态是一个重要的指标，它会显示在线程 StackTrace 的头一行结尾的地方。那么线程常见的有哪些状态呢？线程在什么样的情况下会进入这种状态呢？我们能从中发现什么线索？
+
+ - 1.1 Runnable 
+
+该状态表示线程具备所有运行条件，在运行队列中准备操作系统的调度，或者正在运行。
+
+参考链接：
+
+ - <a href="https://www.iteye.com/blog/jameswxx-1041173" target="_blank">jstack 和线程 dump 分析</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

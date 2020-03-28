@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-https-server</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+**`SimpleHttpsServer.java`**
+
+```java
+import java.net.URI;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.KeyManagerFactory;
+
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpPrincipal;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpsServer;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsConfigurator;
+
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import java.security.KeyStore;
+
+public class SimpleHttpsServer {
+
+  public static void main(String[] args){
+    run();
+  }
+
+  public static void run(){
+    HttpsServer httpsServer = getHttpsServer();
+    HttpContext context = httpsServer.createContext("/"); 
+    context.setHandler(SimpleHttpsServer::handleRequest);
+    httpsServer.start();
+    System.out.println("Start HTTPS server on port " + port + " of localhost");
+  }
+
+  private static void handleRequest(HttpExchange exchange) throws IOException {
+    URI requestURI = exchange.getRequestURI();
+    printRequestInfo(exchange);
+    String response = "This is the response at " + requestURI;
+    exchange.sendResponseHeaders(200, response.getBytes().length);
+    OutputStream os = exchange.getResponseBody();
+    os.write(response.getBytes());
+    os.close();
+  }
+
+  private static void printRequestInfo(HttpExchange exchange) {
+    System.out.println("-- Client Info --");
+    InetSocketAddress remoteAddress = exchange.getRemoteAddress();
+    String remoteHost = remoteAddress.getHostName();
+    System.out.println(String.format("RemoteAddress:%s; RemoteHost:%s;", remoteAddress, remoteHost));
+ 
+    System.out.println("-- headers --");
+    Headers requestHeaders = exchange.getRequestHeaders();
+    requestHeaders.entrySet().forEach(System.out::println);
+ 
+    System.out.println("-- principle --");
+    HttpPrincipal principal = exchange.getPrincipal();
+    System.out.println(principal);
+ 
+    System.out.println("-- HTTP method --");
+    String requestMethod = exchange.getRequestMethod();
+    System.out.println(requestMethod);
+ 
+    System.out.println("-- query --");
+    URI requestURI = exchange.getRequestURI();
+    String query = requestURI.getQuery();
+    System.out.println(query);
+    System.out.println("-- request body --");
+    FileOutputStream fos = null;
+    try{
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      InputStream is = exchange.getRequestBody();
+      byte[] buffer = new byte[1024];
+      int length = 0;
+      while((length = is.read(buffer,0,buffer.length)) != -1){
+        baos.write(buffer,0,length);
+      }
+      if(baos.toByteArray().length > 0){
+        fos = new FileOutputStream(new File(String.format("server_%d.dat",System.currentTimeMillis())));
+        fos.write(baos.toByteArray());
+        fos.flush();
+        System.out.println(new String(baos.toByteArray(), "UTF-8"));
+      }
+    } catch(Exception e){
+      e.printStackTrace();
+    } finally{
+      try {
+        if(fos != null) fos.close();
+      } catch(Exception e){
+        e.printStackTrace();
+      }
+    }
+  }
+
+  public static String sslKeyStore = "lig.keystore";
+  public static String sslKeyStorePassword = "simulator";
+  public static int port = 8600;
+  public static HttpsServer getHttpsServer(){
+    try {
+      // Set up the socket address
+      //InetSocketAddress address = new InetSocketAddress(InetAddress.getLocalHost(), port);
+      InetSocketAddress address = new InetSocketAddress(port);
+
+      // Initialise the HTTPS server
+      HttpsServer httpsServer = HttpsServer.create(address, 0);
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+
+      // Initialise the keystore
+      char[] password = sslKeyStorePassword.toCharArray();
+      KeyStore ks = KeyStore.getInstance("JKS");
+      FileInputStream fis = new FileInputStream(sslKeyStore);
+      ks.load(fis, password);
+
+      // Set up the key manager factory
+      KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+      kmf.init(ks, password);
+
+      // Set up the trust manager factory
+      TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+      tmf.init(ks);
+
+      // Set up the HTTPS context and parameters
+      sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+      httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+        public void configure(HttpsParameters params) {
+          try {
+            // Initialise the SSL context
+            SSLContext c = SSLContext.getDefault();
+            SSLEngine engine = c.createSSLEngine();
+            params.setNeedClientAuth(false);
+            params.setCipherSuites(engine.getEnabledCipherSuites());
+            params.setProtocols(engine.getEnabledProtocols());
+
+            // Get the default parameters
+            SSLParameters defaultSSLParameters = c.getDefaultSSLParameters();
+            params.setSSLParameters(defaultSSLParameters);
+          } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("Failed to create HTTPS port");
+          }
+        }
+      });
+      return httpsServer;
+      //httpsServer.start();
+      //LigServer server = new LigServer(httpsServer);
+      //joinableThreadList.add(server.getJoinableThread());
+    } catch (Exception exception) {
+      exception.printStackTrace();
+      System.out.println("Failed to create HTTPS server on port " + port + " of localhost");
+    }
+    return null;
+  }
+}
+```
+
+##### 生成服务器根证书
+
+```python
+keytool -genkeypair -keyalg RSA -alias self_signed -keypass simulator ^
+  -keystore lig.keystore -storepass simulator ^
+  -dname "CN=xx, OU=xx, O=xx, L=xx, ST=xx, C=xx"
+```
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/2308479/simple-java-https-server" target="_blank">Simple Java HTTPS server</a>
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

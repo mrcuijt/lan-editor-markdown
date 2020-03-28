@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-reflect</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-reflect
+
+**反射原理：**
+
+**找到这个类，将它加入到 Java 虚拟中。**
+
+**反射的概念：**
+
+&amp;#160; &amp;#160;**在 Java 中的反射机制是指在 `运行状态` 中，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意一个方法；这种 `动态获取信息` 以及 `动态调用对象方法` 的功能称为 Java 语言的反射机制。**
+
+**`不是在编译状态中。`**
+
+**在编译过程中，对于传入的 Object 类型的参数，他并不知道，传入的参数是什么类型的。**
+
+**所以只能在运行时，得到传入参数的类型。**
+
+&amp;#160; &amp;#160;**能动态获取类中的属性和方法（包括私有的），能够动态的创建对象。有一个对象，但是不知道他的类型，又要调用这个对象中的方法，使用 Java 的反射机制就能够获取。对自身做一个 `探知` 和 `自审`。**
+
+**Java 反射可以实现的功能：**
+
+ - **在运行时判断任意一个对象所属类。**
+ - **在运行时构造任意一个类的对象。**
+ - **在运行时判断任意一个类所具有的属性和方法。**
+ - **在运行时调用任意一个对象的方法。**
+ - **生成动态代理。**
+
+**反射的特点：**
+
+ - **灵活**
+
+ - **通过反射创建对象的时候效率比较低。**
+
+ - **它有一种破坏性，破坏面向对象项中封装的这一特性。使用时要注意。**
+
+**Java 反射机制的应用场合：**
+
+ - **平台研发，框架研发，一些软件**
+
+**Java 程序中许多对象在运行时都会出现两种类型:(`编译时类型`)和（`运行时类型`）**
+
+ - **编译时的类型有声明该对象时使用的类型决定。**
+
+ - **运行时的类型由实际赋给该对象的类型决定。**
+
+**如：**
+
+```java
+Person p = new Sutdent();
+```
+
+&amp;#160; &amp;#160;**在编译时 p 对象为 Person 的构造的对象，运行时发现是由 Student 创建的对象，此时他的类型为 Student 类型。**
+
+&amp;#160; &amp;#160;**该对象的编译时类型是 Object ，但是程序又需要调用该对象运行时类型的方法。**
+
+&amp;#160; &amp;#160;**为了解决这些问题，程序需要在运行时发现对象和类的真实信息。**
+
+&amp;#160; &amp;#160;**然而，如果编译时根本无法预知该对象和类可能属于哪些类型，这就需要通过 Java 反射机制来动态获得。**
+
+**反射类型：**
+
+**在 `Java.lang.reflect` 包下**
+
+ - **`Class 类`： 反射的核心类，可以获取类的属性，方法等内容信息。**
+ 
+ **每一次编译，Java 虚拟机要要加载这个类的 字节码文件 时候，就把当前的 Class 信息加入到虚拟机中。**
+ 
+ - **`Field 类`：表示类的属性，可以获取和设置类中属性的值。**
+ 
+ - **`Method 类`：表示类的方法，它可以用来获取类中方法的信息，或者执行方法。**
+ 
+ - **`Constructor 类`：表示类的构造方法。**
+
+**获得想操作的类的 `java.lang.Class` 对象**
+
+**调用 Class 方法，使用反射 API 来操作这些信息。**
+
+**使用反射的步骤：**
+
+ - **1、首先创建 class 对象**
+ - **2、调用 class 对象中的方法来获取，类中的 方法、属性**
+ - **3、通过反射 API 来操作这些信息**
+
+**获取 Class 对象有以下三种方法。**
+
+ - **1、通过对象获取 getClass() 方法。**
+
+ **对象名.getClass();**
+
+ - **2、通过 Class.forName() 获取**
+
+ **Class.forName("包名.类名");**
+
+ - **3、通过类名.class 获得 Class 对象。**
+
+ **类名.class**
+
+**使用的场合：**
+
+ - **1、调用某个对象的 getClass() 方法 `--- 只有这个对象的时候`**
+
+```java
+Person p = new Person();
+Class cla = p.getClass();
+```
+
+**区别， p 对象是一个真实的对象，cla 是将 人类 这整个特有的特征。**
+
+- **2、调用某个类的 class 属性来获取该类对应的 Class 对象 `---如果预先知道某个类是什么类型 --最常用的。`**
+
+```java
+Class cla = Person.class;
+```
+
+**Hibernate 中使用 get() 和 load() 方法，都需要传入一个 Class 对象**
+
+ - **3、通过 Class 类的 forName() 静态方法  `-- 只知道这个类名`**
+
+```java
+Class cla = Class.forName("全限定类名");
+```
+
+**比如：加载驱动类的时候**
+
+**类名.class**
+
+**程序性能更高，代码更安全。**
+
+```java
+Class.forName(str);
+```
+
+**只有一个字符串**
+
+**获取到了对象类的实例后，如何获得类中的方法和属性？**
+
+```java
+// 方法 1
+Constructor getConstructor(Class[] params)
+```
+
+**返回此 Class 对象所表示的类的指定 public 方法，params 参数**
+
+```java
+Method getMethod(String name,Class[] params)
+```
+
+&amp;#160; &amp;#160;**返回此 Class 对象所表示的类的指定 public 方法，name 参数用于只等方法的名称，params，参数是按声明顺序标识该方法类参数类型的 Class 对象的一个数组**
+
+```java
+c.getMethod();
+```
+
+```java
+Field getField(); 
+```
+
+**通过属性的名称获得该属性，并将该属性封装到 Filed 类中。**
+
+```java
+int getModifiers();
+```
+
+**返回此类或接口 的所有修饰符**
+
+```java
+Class[] getInterface();
+```
+
+**返回该 Class 对象对应类所实现的全部接口**
+
+```java
+Package getPackage();
+```
+
+**获取此类的包**
+
+```java
+String getName();
+```
+
+**以字符串形式返回此 Class 对象所表示的类的名称**
+
+**反射，文件流，多线程。**
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

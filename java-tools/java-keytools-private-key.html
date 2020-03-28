@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Java KeyTools PrivateKey</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+&#160; &#160; KEYTOOL 工具无法提取私钥，我们只能通过 Java 的 KeyStore 类 getEntry() 或者 getKey() 来提取私钥。
+
+#### 使用 keytool 工具制作一个 jks 证书、并导出公钥
+
+进入 D:\jkstest 目录下，使用命令生成 merKey.jks 证书文件
+
+```python
+keytool -genkey -alias yunbo2 -keypass 123456 -keyalg RSA -keysize 1024 -validity 3650 -keystore merKey.jks -storepass abc@2018 -dname "CN=localhost, OU=localhost, O=localhost, L=深圳, ST=广东, C=CN"
+
+keytool ^
+  -genkey ^
+  -alias yunbo2 ^
+  -keypass 123456 ^
+  -keyalg RSA ^
+  -keysize 1024 ^
+  -validity 3650 ^
+  -keystore merKey.jks ^
+  -storepass abc@2018 ^
+  -dname "CN=localhost, OU=localhost, O=localhost, L=深圳, ST=广东, C=CN"
+```
+
+导出公钥 yunbo2.cer 文件
+
+```python
+keytool -export -alias yunbo2 -keystore merKey.jks -file yunbo2.cer
+
+keytool ^
+  -export ^
+  -alias yunbo2 ^
+  -keystore merKey.jks ^
+  -file yunbo2.cer
+```
+
+```java
+/**
+ * desc area
+ * Created by yunBo on 2018/9/25 0025.
+ */
+public class CertificateUtils {
+     
+    public  static final String KEY_STORE = "JKS";
+    public  static final String X509 = "X.509";
+    private static final int CACHE_SIZE = 2048;
+    private static final int MAX_ENCRYPT_BLOCK = 117;
+    private static final int MAX_DECRYPT_BLOCK = 128;
+     
+    private static final String SHA1WithRSA = "SHA1WithRSA";
+    private static final String RSA = "RSA";
+    private static final String ECB = "ECB";
+     
+    public static final Map<String, Object> signData = Maps.newConcurrentMap();
+    public static final String CRRECEPAY_SIGN_KEYSTORE="YUNBO_SIGN_KEYSTORE";
+    public static final String CRRECEPAY_SIGN_X509CERTIFICATE="YUNBO_SIGN_X509CERTIFICATE";
+     
+     
+    public  static final String keyPass   = "123456";
+    public  static final String storePass = "abc@2018";
+    public  static final String alias     = "yunbo2";
+    public  static final String jksFile   = "D:/jkstest/merKey.jks";
+    public  static final String pubFile   = "D:/jkstest/yunbo2.cer";
+     
+     
+    public static void initX509Certificate(String cerFilePath) throws Exception {
+         
+        InputStream inputStream = null;
+        try {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            inputStream = new FileInputStream(cerFilePath);
+            X509Certificate x509Certificate = (X509Certificate) certificateFactory.generateCertificate(inputStream);
+            signData.put(CRRECEPAY_SIGN_X509CERTIFICATE, x509Certificate);
+        } finally {
+            IOUtils.closeQuietly(inputStream);
+        }
+    }
+     
+    /**
+     * 获取私钥信息
+     * @param jksFilePath
+     * @param keyAlias
+     * @param keyPass
+     * @param storePass
+     * @return
+     * @throws Exception
+     */
+    public static PrivateKey getPrivateKey(String jksFilePath, String keyAlias, String keyPass, String storePass) throws Exception {
+         
+        File jksFile = new File(jksFilePath);
+        InputStream in = new FileInputStream(jksFile);
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(in, storePass.toCharArray());
+        PrivateKey privateKey = (PrivateKey) keyStore.getKey(keyAlias, keyPass.toCharArray());
+        if (in != null) {
+            IOUtils.closeQuietly(in);
+        }
+        return privateKey;
+    }
+     
+    /**
+     * 获取公钥信息
+     * @param cerFilePath
+     * @return
+     * @throws KeyStoreException
+     * @throws IOException
+     * @throws CertificateException
+     * @throws NoSuchAlgorithmException
+     */
+    public static PublicKey getPublicKey(String cerFilePath) throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+        PublicKey publicKey = null;
+        try {
+             
+            X509Certificate x509Certificate = (X509Certificate)signData.get(CRRECEPAY_SIGN_X509CERTIFICATE);
+            if (x509Certificate == null) {
+                initX509Certificate(cerFilePath);
+                x509Certificate = (X509Certificate)signData.get(CRRECEPAY_SIGN_X509CERTIFICATE);
+            }
+            publicKey = x509Certificate.getPublicKey();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return publicKey;
+    }
+     
+    /**
+     * 加密
+     * @param requestStr
+     * @return
+     * @throws Exception
+     */
+    public static byte[] encryptContentBytes(String requestStr) throws Exception {
+         
+        try {
+            PublicKey publicKey = getPublicKey(pubFile);
+            String pubKey  = Base64.encodeBase64String(publicKey.getEncoded());
+            byte[] content = encryptByPublicKey(requestStr.getBytes(), pubKey);
+            return content;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+     
+    /**
+     * 公钥加密
+     * @param data
+     * @param publicKey
+     * @return
+     * @throws Exception
+     */
+    public static byte[] encryptByPublicKey(byte[] data, String publicKey) throws Exception {
+         
+        byte[] keyBytes = org.apache.commons.codec.binary.Base64.decodeBase64(publicKey);
+        X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory keyFactory = KeyFactory.getInstance(RSA);
+        Key publicK = keyFactory.generatePublic(x509KeySpec);
+        // 对数据加密
+        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
+        cipher.init(Cipher.ENCRYPT_MODE, publicK);
+        int inputLen = data.length;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int offSet = 0;
+        byte[] cache;
+        int i = 0;
+        // 对数据分段加密
+        while (inputLen - offSet > 0) {
+            if (inputLen - offSet > MAX_ENCRYPT_BLOCK) {
+                cache = cipher.doFinal(data, offSet, MAX_ENCRYPT_BLOCK);
+            } else {
+                cache = cipher.doFinal(data, offSet, inputLen - offSet);
+            }
+            out.write(cache, 0, cache.length);
+            i++;
+            offSet = i * MAX_ENCRYPT_BLOCK;
+        }
+        byte[] encryptedData = out.toByteArray();
+        out.close();
+        return encryptedData;
+    }
+     
+    /**
+     * 私钥解密
+     *
+     * @param encryptedData
+     * @param privateKey
+     * @return
+     * @throws Exception
+     */
+    public static byte[] decryptByPrivateKey(byte[] encryptedData, String privateKey) throws Exception {
+         
+        byte[] keyBytes = Base64.decodeBase64(privateKey);
+        PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(keyBytes);
+        KeyFactory keyFactory = KeyFactory.getInstance(RSA);
+        Key privateK = keyFactory.generatePrivate(pkcs8KeySpec);
+        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
+        cipher.init(Cipher.DECRYPT_MODE, privateK);
+        int inputLen = encryptedData.length;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int offSet = 0;
+        byte[] cache;
+        int i = 0;
+        // 对数据分段解密
+        while (inputLen - offSet > 0) {
+            if (inputLen - offSet > MAX_DECRYPT_BLOCK) {
+                cache = cipher.doFinal(encryptedData, offSet, MAX_DECRYPT_BLOCK);
+            } else {
+                cache = cipher.doFinal(encryptedData, offSet, inputLen - offSet);
+            }
+            out.write(cache, 0, cache.length);
+            i++;
+            offSet = i * MAX_DECRYPT_BLOCK;
+        }
+        byte[] decryptedData = out.toByteArray();
+        out.close();
+        return decryptedData;
+    }
+     
+    /**
+     * 解密
+     * @param responseDataBytes
+     * @return
+     * @throws Exception
+     */
+    public static String decryptContentBytes(byte[] responseDataBytes)
+            throws Exception {
+         
+        try {
+            PrivateKey privateKey = getPrivateKey(jksFile, alias, keyPass, storePass);
+            String priKey = Base64.encodeBase64String(privateKey.getEncoded());
+            byte[] decryptContentBytes = decryptByPrivateKey(responseDataBytes, priKey);
+            return new String(decryptContentBytes, CharEncoding.UTF_8);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+     
+    /**
+     * 加签
+     * @param signData
+     * @return
+     * @throws Exception
+     */
+    public static String sign(String signData) throws Exception {
+         
+        InputStream in = new FileInputStream(new File(jksFile));
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(in, storePass.toCharArray());
+         
+        // 获取jks证书别名
+        Enumeration en = keyStore.aliases();
+        String pName = null;
+        while (en.hasMoreElements()) {
+            String n = (String) en.nextElement();
+            if (keyStore.isKeyEntry(n)) {
+                pName = n;
+            }
+        }
+        PrivateKey key = getPrivateKey(jksFile,pName,keyPass,storePass);
+        Signature signature = Signature.getInstance(SHA1WithRSA);
+        signature.initSign(key);
+        signature.update(signData.getBytes("UTF-8"));
+        byte[] signedData = signature.sign();
+        String signDate = new BASE64Encoder().encode(signedData);
+        signDate = signDate.replaceAll("\r\n", "").replaceAll("\n", "");
+        return signDate;
+    }
+     
+    /**
+     * 验签
+     * @return
+     * @throws Exception
+     */
+    public static boolean verifySign2(String originData,String returnSignData) throws Exception {
+         
+        PublicKey publicKey = getPublicKey(pubFile);
+        Signature sign3 = Signature.getInstance(SHA1WithRSA);
+        sign3.initVerify(publicKey);
+        sign3.update(originData.getBytes("UTF-8"));
+        boolean isVerifySign = sign3.verify(new BASE64Decoder().decodeBuffer(returnSignData));
+        return isVerifySign;
+    }
+     
+    public static void main(String[] args) throws Exception{
+     
+        String originData = "hello波波";
+        System.out.println("========> 加密开始");
+        byte[] enData = encryptContentBytes(originData);
+        String signData = sign(originData);
+        System.out.println("========> 加签 signData:"+signData);
+        String deData = decryptContentBytes(enData);
+        System.out.println("========> 解密 deData:"+deData);
+        boolean verifySign = verifySign2(originData,signData);
+        System.out.println("========> 解密 verifySign:"+verifySign);
+    }
+}
+```
+
+```python
+Connected to the target VM, address: '127.0.0.1:13223', transport: 'socket'
+========> 加密开始
+========> 加签 signData:kR4GMEQGPsgltoQfK+6IboCHsi+JbsjrrUTA6aW...2J0K2UZwqMJfWCarzxsKvUMFThRhwnuqoZ9u1qWlIko=
+========> 解密 deData:hello波波
+========> 解密 verifySign:true
+Disconnected from the target VM, address: '127.0.0.1:13223', transport: 'socket'
+ 
+Process finished with exit code 0
+```
+
+#### 总结
+
+ 1. JKS 文件是一个 Java 中的密钥管理库，里面可以放各种密钥文件,仓库当然会有一把锁，防范别人随便乱拿，这个就是 JKS 文件的密 码.里面存放的密钥也各有不同，每个密钥都有一个名字（在下面叫别名），一类就密钥对，一类叫公钥，一类叫私钥，密钥对就是包含公钥和私钥的。这里的公钥 只要你能进入仓库你就可以随便查看拿走，私钥则是有密码的。只允许有权限的人查看拿走.对于读取公钥只需要 知道 JKS 文件（仓库）的密码就可以了，但是在读取私钥时则必须有私钥的密码。
+ 
+ 2. 在加载证书文件的时候，keyStore.load(in, storePass.toCharArray()); storePass 为获取私钥文件的密码，即仓库密码，我们这里为 abc@2018 。
+ 
+ 3. 证书加解密、加签验签等功能在项目中非常常见，可以把证书获取放在静态对象 Maps.newConcurrentMap() 中，这样效率显著提升。
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/molao-doing/articles/9704278.html" target="_blank">Java 证书(keytool 实例)代码实现加解密、加签、验签</a>
+
+ - <a href="https://blog.csdn.net/qq_37049781/article/details/84837342" target="_blank">证书之间的转换（crt pem key）</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

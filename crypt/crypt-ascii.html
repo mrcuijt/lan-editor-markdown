@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Crypt ASCII</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Crypt ASCII
+
+ 输出字符的 ASCII 编码
+
+```java
+public class AsciiDemo{
+  public static void main(String args[]){
+    char ch = 'A'; // 字符
+    // 获取字符 ASCII 编码
+    int ascill = ch;
+    System.out.println(ascill);
+
+    // 获取字符串 ASCII 编码
+    String input = "Hello";
+    // 字符数组
+    char[] chArray = input.toCharArray();
+    for(char c: chArray){
+      // 获取每个字符的 ASCII 编码
+      int value = c;
+      System.out.println(value);
+    }
+  }
+}
+```
+
+#### 凯撒加密算法
+
+ - 把字母移动一定的位数来实现加密和解密。
+
+```java
+/**
+ * 凯撒加密算法
+ *
+ */
+public class KaiserDemo{
+  public static void main(String args[]){
+
+  }
+
+  /**
+   * 凯撒解密
+   * @Param input
+   * @Param key
+   * @return
+   */
+  public static String decrypt(String input,int key){
+    StringBuilder strb = new StringBuilder();
+
+    for(char c = charArray){
+      // 遍历每一个字符，获取对应的 ASCII 编码
+      int ascii = c;
+      // 偏移
+      ascii -= key;
+      char result = (char)ascii;
+      //System.out.print(result);
+      strb.append(result);
+    }
+    return strb.toString();
+  }
+
+  /**
+   * 凯撒加密
+   * @Param input
+   * @Param key 秘钥
+   * @return
+   */
+  public static String encrypt(String input,int key){
+
+    StringBuilder strb = new StringBuilder();
+
+    for(char c = charArray){
+      // 遍历每一个字符，获取对应的 ASCII 编码
+      int ascii = c;
+      // 偏移
+      ascii += key;
+      char result = (char)ascii;
+      //System.out.print(result);
+      strb.append(result);
+    }
+    return strb.toString();
+  }
+
+  /**
+   * 偏移单个字符
+   */
+  public static void demo1(){
+    // 凯撒机密底层机制：对字符偏移一定的位数， A->1 = B, F->1 = G
+    char ch = 'A'; // 字符
+    // 获取字符 ASCII 编码
+    int ascii = ch;
+    System.out.println(ascii);
+
+    // 偏移
+    ascii += 1;
+
+    // 获取 ASCII 对应的字符
+    char result = (char)ascii;
+    System.out.println("A 偏移 1 位" + result); // B
+  }
+}
+```
+
+#### Byte 和 bit
+
+ - Byte: 字节，数据存储单位
+ 
+ - bit: 比特，有名位，一个位要么 0 ，要么 1，数据传输的单位。
+
+ - 一个字节占 8 位。
+
+##### 示例 1
+
+ - 'A' 对应 ASCII 编码: 65
+ 
+ - 65 转成二进制: 01000001
+ 
+ - A 字符 1 个字节 (Byte) 占 8 位 (bit)
+ 
+```java
+/**
+ * Byte 和 bit
+ *
+ */
+public class ByteAndBit{
+  public static void main(String args[]){
+    String input = "A";
+    // 获取字符串的字节
+    byte[] bytes = input.getBytes();
+    System.out.println("一个英文字母占用 " + bytes.length + " 字节");
+    for(byte b : bytes){
+      System.out.println(b); // 65
+      System.out.print(b + " ");
+      // 获取每个字节占用的位数: 转为二进制
+      String binary = Integer.toBinaryString(b);
+      System.out.println(binary);
+    }
+
+    // 中文 Byte 和 bit : UTF-8 每一个中文占用 3 个字节，GBK 每一个中文占用 2 个字节。
+
+    String input2 = "我";
+    // 获取字符串的字节
+    byte[] bytes2 = input2.getBytes();
+    try{
+      byte[] bytes3 = input2.getBytes("GBK"); // UTF-8
+      System.out.println("一个中文字符占用 " + bytes3.length + " 字节");
+      for(byte b : bytes3){
+        System.out.print(b + " ");
+        // 获取每个字节占用的位数: 转为二进制
+        String binary = Integer.toBinaryString(b);
+        System.out.println(binary);
+      }
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+  }
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

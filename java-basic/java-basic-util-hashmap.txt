@@ -1,0 +1,45 @@
+#### java-basic-util-hashmap
+
+##### 遍历 Map
+
+```java
+// 方式一
+Map<String, String[]> map = new HashMap<String, String[]>();
+Set<Map.Entry<String, String[]>> set = map.entrySet();
+Iterator<Map.Entry<String, String[]>> iter = set.iterator();
+while(iter.hasNext()){
+  Map.Entry<String, String[]> entry = iter.next();
+  String key = entry.getKey();
+  String[] value = entry.getValue();
+}
+
+// 方式二
+for(Map.Entry<String, String[]> entry : map.entrySet()){
+  String key = entry.getKey();
+  String[] value = entry.getValue();
+}
+```
+
+```java
+// 方式一
+Map<String, String> map = new HashMap<String, String>();
+Set<Map.Entry<String, String>> set = map.entrySet();
+Iterator<Map.Entry<String, String>> iter = set.iterator();
+while(iter.hasNext()){
+  Map.Entry<String, String> entry = iter.next();
+  String key = entry.getKey();
+  String value = entry.getValue();
+}
+
+// 方式二
+for(Map.Entry<String, String> entry : map.entrySet()){
+  String key = entry.getKey();
+  String value = entry.getValue();
+}
+```
+
+##### 检测 Key 是否存在
+
+```java
+map.containsKey(); boolean
+```

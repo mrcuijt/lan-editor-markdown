@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hibernate-basic-annoation-inverse</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### hibernate-basic-annoation-inverse
+
+#### hibernate 基于注解的维护权反转：@OneToMany(mappedBy=)
+
+背景说明：首先是 SSH 环境下，对象基于注解的方式映射到数据库；
+
+ - **@OneToMany(mappedBy="xxx")， mappedBy 属性有什么用，然后是写在哪一边？**
+
+ - **@JoinColumn(name="xxxxx")，JoinColumn 有什么用？**
+
+先贴出最初的代码：一些基本的注解，在一对多的关系上没有使用 JoinColumn 和 mappedBy 属性。
+
+部门类：主要是第33、34行
+
+```java
+package com.lizhou.entity.test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+/**
+ * 部门：与员工一对多关系
+ * @author bojiangzhou
+ *
+ */
+@Entity
+@Table(name="department")
+public class Department {
+
+    @Id
+    @GeneratedValue(generator="_native")
+    @GenericGenerator(name="_native", strategy="native")
+    private int id; //ID
+
+    @Column(length=20)
+    private String dname; //部门名称
+
+    @OneToMany
+    private List<Employee> employeeList = new ArrayList<>(); //部门下的员工集合
+
+    // get/set方法59
+}
+```
+
+员工类：主要是第32、33行
+
+```java
+package com.lizhou.entity.test;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+/**
+ * 员工：与部门多对一关系
+ * @author bojiangzhou
+ *
+ */
+@Entity
+@Table(name="employee")
+public class Employee {
+
+    @Id
+    @GeneratedValue(generator="_native")
+    @GenericGenerator(name="_native", strategy="native")
+    private int id; //ID
+
+    @Column(length=20)
+    private String ename; //员工姓名
+
+    @Column(length=20)
+    private String phone; //电话
+
+    @ManyToOne
+    private Department department; //所属部门
+
+    //get/set方法67
+}
+```
+
+最初的注解配置里，在一对多的关系上，即 employeeList 和 department 没有使用 JoinColumn。
+
+看下图，employee 表会自动添加一个外键列 department_id，虽然关系映射上是正确了，但是有一个问题，数据库里多了一张表出来，这不是想要的结果。
+
+![title](images/hibernate-basic-annoation-inverse/hibernate-basic-annoation-inverse-001.jpg)
+
+**解决方法：在 `employeeList` 和 `department` 字段上加上 `@JoinColumn` 注解**
+
+```java
+@OneToMany
+@JoinColumn(name="departmentId")
+private List<Employee> employeeList = new ArrayList<>(); //部门下的员工集合
+```
+
+```java
+@ManyToOne//
+@JoinColumn(name="departmentId")//
+private Department department; //所属部门
+```
+
+这样一来的话就只有两张表了，所以在一对多或者一对一的关系下，需要加上 @JoinColumn 来指定外键列，避免生成一张中间表。
+
+而且经试验，多的一方 (Employee) 里的 department 必须加上 @JoinColumn，Department 里不加不会影响表的结构，不知道会不会有其它影响；
+
+但是如果 Employee 属于多的一方，如果没有指定外键列，还是会自动生成一个 department_id 外键列。
+
+![title](images/hibernate-basic-annoation-inverse/hibernate-basic-annoation-inverse-002.jpg)
+
+接下来讨论 mappedBy 属性：mappedBy 属性主要是针对外键而言。与之相对应的是 xml 中的 inverse 属性。
+
+如下是测试类代码：此时还没有设置 mappedBy 属性，映射时，默认是都由自身维护关联关系。
+
+```java
+package com.lizhou.action.test;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.lizhou.entity.test.Department;
+import com.lizhou.entity.test.Employee;
+
+/**
+ * 测试类
+ * @author bojiangzhou
+ *
+ */
+
+public class TestAction {
+
+    private static SessionFactory sessionFactory = null;
+
+    static {
+        //读取classpath中applicationContext.xml配置文件
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+        //获取session中配置的sessionFactory对象
+        sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+    }
+
+    @Test
+    public void testSave(){
+        //创建一个部门对象
+        Department d1 = new Department();
+        d1.setDname("研发部");
+
+        //创建两个员工对象
+        Employee e1 = new Employee();
+        e1.setEname("张三");
+        e1.setPhone("13111111111");
+        Employee e2 = new Employee();
+        e2.setEname("李四");
+        e2.setPhone("18523222222");
+
+        //设置对象关联
+        d1.getEmployeeList().add(e1);
+        d1.getEmployeeList().add(e2);
+        e1.setDepartment(d1);
+        e2.setDepartment(d1);
+
+        //获取Session
+        Session session = sessionFactory.openSession();
+        //开始事务
+        Transaction t = session.beginTransaction();
+        try {
+            //添加数据
+            session.save(d1);
+            session.save(e1);
+            session.save(e2);
+            //提交事务
+            t.commit();
+        } catch (RuntimeException e) {
+            //有异常则回滚事务
+            t.rollback();
+            e.printStackTrace();
+        } finally {
+            //关闭session
+            session.close();
+        }
+    }
+
+
+}
+```
+
+执行 testSave 后，控制台打印如下语句：
+
+```python
+Hibernate: insert into department (dname) values (?)
+Hibernate: insert into employee (departmentId, ename, phone) values (?, ?, ?)
+Hibernate: insert into employee (departmentId, ename, phone) values (?, ?, ?)
+Hibernate: update employee set departmentId=? where id=?
+Hibernate: update employee set departmentId=? where id=?
+```
+
+可以看到多了两条 update 语句，这是因为两边都维护关系，先插入的部门，再插入员工，插入员工时，已经设置好外键了，但部门方也维护关系，会再执行一次更新操作，为员工设置外键，这样就导致多出了两条 update 语句，这里是有性能损耗的。
+
+一种解决办法是：将第46、47行去掉，即对象上部门不关联员工
+
+```java
+package com.lizhou.action.test;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.lizhou.entity.test.Department;
+import com.lizhou.entity.test.Employee;
+
+/**
+ * 测试类
+ * @author bojiangzhou
+ *
+ */
+
+public class TestAction {
+
+    private static SessionFactory sessionFactory = null;
+
+    static {
+        //读取classpath中applicationContext.xml配置文件
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+        //获取session中配置的sessionFactory对象
+        sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+    }
+
+    @Test
+    public void testSave(){
+        //创建一个部门对象
+        Department d1 = new Department();
+        d1.setDname("研发部");
+
+        //创建两个员工对象
+        Employee e1 = new Employee();
+        e1.setEname("张三");
+        e1.setPhone("13111111111");
+        Employee e2 = new Employee();
+        e2.setEname("李四");
+        e2.setPhone("18523222222");
+
+        //设置对象关联
+//        d1.getEmployeeList().add(e1);
+//        d1.getEmployeeList().add(e2);
+        e1.setDepartment(d1);
+        e2.setDepartment(d1);
+
+        //获取Session
+        Session session = sessionFactory.openSession();
+        //开始事务
+        Transaction t = session.beginTransaction();
+        try {
+            //添加数据
+            session.save(d1);
+            session.save(e1);
+            session.save(e2);
+            //提交事务
+            t.commit();
+        } catch (RuntimeException e) {
+            //有异常则回滚事务
+            t.rollback();
+            e.printStackTrace();
+        } finally {
+            //关闭session
+            session.close();
+        }
+    }
+
+
+}
+```
+
+```python
+Hibernate: insert into department (dname) values (?)
+Hibernate: insert into employee (departmentId, ename, phone) values (?, ?, ?)
+Hibernate: insert into employee (departmentId, ename, phone) values (?, ?, ?)
+```
+
+这样部门方就不会去维护外键关系了。但是有一个问题，对象上就没有关联了，我们要做的是对象上要互相关联，数据库方面只让一方去维护关系即可。
+
+对象上如果不关联，因为部门和员工添加到数据库后，是持久化状态，存在于 session 缓存中，那 session 操作缓存中这几个对象时，部门就没有关联员工了，那么就还得再查询一次数据库，这不是想要的结果。
+
+这时就要用到 mappedBy 属性了。
+
+在一的一方配置 @OneToMany(mappedBy="department")，将维护权交由多的一方来维护；
+
+那为什么不让多的一方交出维护权，让一的一方来维护呢？上面的实验也表明了如果让一的一方来维护，始终都会多出两条 update 语句，因为外键是在多的这一方的，所以维护权应该交由多的一方。
+
+部门类的配置：第 36 行和第 37 行的配置，部门部门交出维护权利，让对方来维护
+
+```java
+package com.lizhou.entity.test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+/**
+ * 部门：与员工一对多关系
+ * @author bojiangzhou
+ *
+ */
+@Entity
+@Table(name="department")
+public class Department {
+
+    @Id
+    @GeneratedValue(generator="_native")
+    @GenericGenerator(name="_native", strategy="native")
+    private int id; //ID
+
+    @Column(length=20)
+    private String dname; //部门名称
+
+    @OneToMany(mappedBy="department")
+    private List<Employee> employeeList = new ArrayList<>(); //部门下的员工集合
+
+    // get/set方法62
+}
+```
+
+员工类的配置不变。
+
+调用 testSave 时，部门和员工再对象上依然是关联的：第46-49行
+
+```java
+package com.lizhou.action.test;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.lizhou.entity.test.Department;
+import com.lizhou.entity.test.Employee;
+
+/**
+ * 测试类
+ * @author bojiangzhou
+ *
+ */
+
+public class TestAction {
+
+    private static SessionFactory sessionFactory = null;
+
+    static {
+        //读取classpath中applicationContext.xml配置文件
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+        //获取session中配置的sessionFactory对象
+        sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+    }
+
+    @Test
+    public void testSave(){
+        //创建一个部门对象
+        Department d1 = new Department();
+        d1.setDname("研发部");
+
+        //创建两个员工对象
+        Employee e1 = new Employee();
+        e1.setEname("张三");
+        e1.setPhone("13111111111");
+        Employee e2 = new Employee();
+        e2.setEname("李四");
+        e2.setPhone("18523222222");
+
+        //设置对象关联
+        d1.getEmployeeList().add(e1);
+        d1.getEmployeeList().add(e2);
+        e1.setDepartment(d1);
+        e2.setDepartment(d1);
+
+        //获取Session
+        Session session = sessionFactory.openSession();
+        //开始事务
+        Transaction t = session.beginTransaction();
+        try {
+            //添加数据
+            session.save(d1);
+            session.save(e1);
+            session.save(e2);
+            //提交事务
+            t.commit();
+        } catch (RuntimeException e) {
+            //有异常则回滚事务
+            t.rollback();
+            e.printStackTrace();
+        } finally {
+            //关闭session
+            session.close();
+        }
+    }
+
+
+}
+```
+
+控制台打印的语句：只有三条插入语句，没有更新语句了
+
+```java
+Hibernate: insert into department (dname) values (?)
+Hibernate: insert into employee (departmentId, ename, phone) values (?, ?, ?)
+Hibernate: insert into employee (departmentId, ename, phone) values (?, ?, ?)
+```
+
+这里遇到一个问题：如果配置 mappedBy 属性的同时加上 @JoinColumn 会抛出异常，所以不能同时使用 @JoinColumn 和 mappedBy；因为 @JoinColumn 本身就是自己来维护外键，和 mappedBy 冲突了。--->>>不知道这样理解正确否！！^_^
+
+```java
+package com.lizhou.entity.test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+/**
+ * 部门：与员工一对多关系
+ * @author bojiangzhou
+ *
+ */
+@Entity
+@Table(name="department")
+public class Department {
+
+    @Id
+    @GeneratedValue(generator="_native")
+    @GenericGenerator(name="_native", strategy="native")
+    private int id; //ID
+
+    @Column(length=20)
+    private String dname; //部门名称
+
+    @OneToMany(mappedBy="department")
+    @JoinColumn(name="departmentId")
+    private List<Employee> employeeList = new ArrayList<>(); //部门下的员工集合
+
+    // set/get 方法63
+}
+```
+
+抛出如下异常：
+
+```python
+java.lang.ExceptionInInitializerError
+    at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+    at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+    at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+    at java.lang.reflect.Constructor.newInstance(Unknown Source)
+    at org.junit.runners.BlockJUnit4ClassRunner.createTest(BlockJUnit4ClassRunner.java:217)
+    at org.junit.runners.BlockJUnit4ClassRunner$1.runReflectiveCall(BlockJUnit4ClassRunner.java:266)
+    at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+    at org.junit.runners.BlockJUnit4ClassRunner.methodBlock(BlockJUnit4ClassRunner.java:263)
+    at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+    at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+    at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+    at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+    at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+    at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+    at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+    at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+    at org.eclipse.jdt.internal.junit4.runner.JUnit4TestReference.run(JUnit4TestReference.java:86)
+    at org.eclipse.jdt.internal.junit.runner.TestExecution.run(TestExecution.java:38)
+    at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:459)
+    at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.runTests(RemoteTestRunner.java:675)
+    at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.run(RemoteTestRunner.java:382)
+    at org.eclipse.jdt.internal.junit.runner.RemoteTestRunner.main(RemoteTestRunner.java:192)
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'sessionFactory' defined in class path resource [applicationContext.xml]: Invocation of init method failed; nested exception is org.hibernate.AnnotationException: Associations marked as mappedBy must not define database mappings like @JoinTable or @JoinColumn: com.lizhou.entity.test.Department.employeeList
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1553)
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:539)
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:475)
+    at org.springframework.beans.factory.support.AbstractBeanFactory$1.getObject(AbstractBeanFactory.java:302)
+    at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:228)
+    at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:298)
+    at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:193)
+    at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:684)
+    at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:760)
+    at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:482)
+    at org.springframework.context.support.ClassPathXmlApplicationContext.<init>(ClassPathXmlApplicationContext.java:139)
+    at org.springframework.context.support.ClassPathXmlApplicationContext.<init>(ClassPathXmlApplicationContext.java:83)
+    at com.lizhou.action.test.TestAction.<clinit>(TestAction.java:26)
+    ... 22 more
+Caused by: org.hibernate.AnnotationException: Associations marked as mappedBy must not define database mappings like @JoinTable or @JoinColumn: com.lizhou.entity.test.Department.employeeList
+    at org.hibernate.cfg.annotations.CollectionBinder.bind(CollectionBinder.java:493)
+    at org.hibernate.cfg.AnnotationBinder.processElementAnnotations(AnnotationBinder.java:2156)
+    at org.hibernate.cfg.AnnotationBinder.processIdPropertiesIfNotAlready(AnnotationBinder.java:963)
+    at org.hibernate.cfg.AnnotationBinder.bindClass(AnnotationBinder.java:796)
+    at org.hibernate.cfg.Configuration$MetadataSourceQueue.processAnnotatedClassesQueue(Configuration.java:3788)
+    at org.hibernate.cfg.Configuration$MetadataSourceQueue.processMetadata(Configuration.java:3742)
+    at org.hibernate.cfg.Configuration.secondPassCompile(Configuration.java:1410)
+    at org.hibernate.cfg.Configuration.buildSessionFactory(Configuration.java:1844)
+    at org.hibernate.cfg.Configuration.buildSessionFactory(Configuration.java:1928)
+    at org.springframework.orm.hibernate4.LocalSessionFactoryBuilder.buildSessionFactory(LocalSessionFactoryBuilder.java:343)
+    at org.springframework.orm.hibernate4.LocalSessionFactoryBean.buildSessionFactory(LocalSessionFactoryBean.java:431)
+    at org.springframework.orm.hibernate4.LocalSessionFactoryBean.afterPropertiesSet(LocalSessionFactoryBean.java:416)
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1612)
+    at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1549)
+    ... 34 more
+```
+
+还有一点说明下：
+
+如果将第 57 行代码移到第 59 行后面，即先保存员工，再保存部门，会多出四条 update 语句
+
+```java
+package com.lizhou.action.test;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
+import org.hibernate.cfg.Configuration;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.lizhou.entity.test.Department;
+import com.lizhou.entity.test.Employee;
+
+/**
+ * 测试类
+ * @author bojiangzhou
+ *
+ */
+
+public class TestAction {
+
+    private static SessionFactory sessionFactory = null;
+
+    static {
+        //读取classpath中applicationContext.xml配置文件
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+        //获取session中配置的sessionFactory对象
+        sessionFactory = (SessionFactory) applicationContext.getBean("sessionFactory");
+    }
+
+    @Test
+    public void testSave(){
+        //创建一个部门对象
+        Department d1 = new Department();
+        d1.setDname("研发部");
+
+        //创建两个员工对象
+        Employee e1 = new Employee();
+        e1.setEname("张三");
+        e1.setPhone("13111111111");
+        Employee e2 = new Employee();
+        e2.setEname("李四");
+        e2.setPhone("18523222222");
+
+        //设置对象关联
+        d1.getEmployeeList().add(e1);
+        d1.getEmployeeList().add(e2);
+        e1.setDepartment(d1);
+        e2.setDepartment(d1);
+
+        //获取Session
+        Session session = sessionFactory.openSession();
+        //开始事务
+        Transaction t = session.beginTransaction();
+        try {
+            //添加数据
+            session.save(e1);
+            session.save(e2);
+            session.save(d1);
+            //提交事务
+            t.commit();
+        } catch (RuntimeException e) {
+            //有异常则回滚事务
+            t.rollback();
+            e.printStackTrace();
+        } finally {
+            //关闭session
+            session.close();
+        }
+    }
+
+
+}
+```
+
+```python
+Hibernate: insert into employee (departmentId, ename, phone) values (?, ?, ?)
+Hibernate: insert into employee (departmentId, ename, phone) values (?, ?, ?)
+Hibernate: insert into department (dname) values (?)
+Hibernate: update employee set departmentId=?, ename=?, phone=? where id=?
+Hibernate: update employee set departmentId=?, ename=?, phone=? where id=?
+Hibernate: update employee set departmentId=? where id=?
+Hibernate: update employee set departmentId=? where id=?
+```
+
+很明显，在插入员工时，还没有部门的信息，等插入部门的时候，员工方会维护外键关系，更新外键；而部门方也会维护一次，所以多了四条语句。所以在添加数据的时候先保存一的一方，再保存多的一方。
+
+总结：mappedBy 属性跟 xml 配置文件里的 inverse 一样。在一对多或一对一的关系映射中，如果不表明 mappedBy 属性，默认是由本方维护外键。但如果两方都由本方来维护的话，会多出一些 update 语句，性能有一定的损耗。
+
+解决的办法就是在一的一方配置上 mappedBy 属性，将维护权交给多的一方来维护，就不会有 update 语句了。
+
+至于为何要将维护权交给多的一方，可以这样考虑：要想一个国家的领导人记住所有人民的名字是不可能的，但可以让所有人民记住领导人的名字！
+
+注意，配了 mappedBy 属性后，不要再有 @JoinColumn，会冲突！
+
+OK!!!
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/chiangchou/p/mappedBy.html" target="_blank">hibernate 基于注解的维护权反转：@OneToMany(mappedBy=)</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

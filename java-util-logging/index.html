@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JAVA Util Logging</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 简介
+
+&#160; &#160;从 ```JDK 1.4``` 开始即引入与日志相关的类 ```java.util.logging.Logger```，但由于 ```Log4J``` 的存在，一直未能广泛使用。综合网上各类说法，大致认为：
+
+ - ```Logger```：适用于小型系统，当日志量过大时性能有待提升。好处在于 ```JDK``` 集成了此类，无需引入新包。且性能也在逐步改善当中，我认为一般而言，使用 ```Logger``` 即可。
+
+ - ```Log4J```：并发性较好，性能较强，适用于大型系统。
+
+<br />
+&#160; &#160;```java.util.logging.Logger``` 不是什么新鲜东西了，```JDK 1.4``` 就有了，可是因为 ```log4j``` 的存在，这个 ```logger``` 一直沉默着，其实在一些测试性的代码中，```jdk``` 自带的 ```logger``` 比 ```log4j``` 更方便。
+
+##### 基本概念
+
+&#160; &#160;```Logger``` 中有 2 个比较重要的概念，分别是 ```记录器(Logger)``` 与 ```处理器(Handler)```，二者分别完成以下功能：
+
+ - _Logger_：记录日志，设置日志级别等。
+ 
+ - _Handler_：确定输出位置等。
+
+##### Logger 相关
+
+ - 一般通过 getLogger 来获取对象，而不能通过构造函数直接构造。
+ 
+ - 关于 _Logger_ 的命名
+ 
+   - _Logger_ 原则上可以任意命名，但实际上一般是与 _Logger_ 所在包或者所有类的名称相同。
+   
+ - _Logger_ 是具有层级关系的，比如 ```org.abc.def``` 会继承 ```org.abc``` 的一些属性。
+
+##### Handler 相关
+
+ - ```Handler``` 对象从 ```Logger``` 中获取日志信息，并将这些信息导出。例如，它可将这些信息写入控制台或文件中，也可以将这些信息发送到网络日志服务中，或将其转发到操作系统日志中。
+ 
+ - 可通过执行 ```setLevel(Level.OFF)``` 来禁用 ```Handler```，并可通过执行适当级别的 ```setLevel``` 来重新启用。
+ 
+ - 默认情况下，使用 ```ConsoleHandler```，即将日志输出至控制台。可通过 ```FileHandler```，```SocketHandler``` 等，将日志导向其它地方。
+
+##### Logger 的级别
+
+比 ```log4j``` 的级别详细，全部定义在 ```java.util.logging.Level``` 里面。
+
+各级别按降序排列如下： 
+
+ - _SEVERE_（最高值） 
+
+ - _WARNING_ 
+
+ - _INFO_ 
+
+ - _CONFIG_ 
+
+ - _FINE_ 
+
+ - _FINER_ 
+
+ - _FINEST_（最低值）
+ 
+<br />
+
+&#160; &#160;此外，还有一个级别 ```OFF```，可用来关闭日志记录，使用级别 ```ALL``` 启用所有消息的日志记录。
+
+&#160; &#160;```logger``` 默认的级别是 ```INFO```，比 ```INFO``` 更低的日志将不显示。
+
+```python
+# Limit the message that are printed on the console to INFO and above.
+ 
+java.util.logging.ConsoleHandler.level = INFO
+```
+
+注：```Logger``` 的默认级别定义是在 ```jre``` 安装目录的 ```lib```下面。
+
+***```logging.properties```***
+
+```python
+############################################################
+#  	Default Logging Configuration File
+#
+# You can use a different file by specifying a filename
+# with the java.util.logging.config.file system property.  
+# For example java -Djava.util.logging.config.file=myfile
+############################################################
+
+############################################################
+#  	Global properties
+############################################################
+
+# "handlers" specifies a comma separated list of log Handler 
+# classes.  These handlers will be installed during VM startup.
+# Note that these classes must be on the system classpath.
+# By default we only configure a ConsoleHandler, which will only
+# show messages at the INFO and above levels.
+handlers= java.util.logging.ConsoleHandler
+
+# To also add the FileHandler, use the following line instead.
+#handlers= java.util.logging.FileHandler, java.util.logging.ConsoleHandler
+
+# Default global logging level.
+# This specifies which kinds of events are logged across
+# all loggers.  For any given facility this global level
+# can be overriden by a facility specific level
+# Note that the ConsoleHandler also has a separate level
+# setting to limit messages printed to the console.
+.level= INFO
+
+############################################################
+# Handler specific properties.
+# Describes specific configuration info for Handlers.
+############################################################
+
+# default file output is in user's home directory.
+java.util.logging.FileHandler.pattern = %h/java%u.log
+java.util.logging.FileHandler.limit = 50000
+java.util.logging.FileHandler.count = 1
+java.util.logging.FileHandler.formatter = java.util.logging.XMLFormatter
+
+# Limit the message that are printed on the console to INFO and above.
+java.util.logging.ConsoleHandler.level = INFO
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+
+
+############################################################
+# Facility specific properties.
+# Provides extra control for each logger.
+############################################################
+
+# For example, set the com.xyz.foo logger to only log SEVERE
+# messages:
+com.xyz.foo.level = SEVERE
+
+```
+
+#### 工作原理
+
+&#160; &#160;首先通过 ```LoggerManager``` 进行日志框架的初始化，生成 ```Logger``` 的根节点 ```RootLogger``` . 这里需要注意的是 ```LoggerManager``` 的初始化工作，并没有将构建配置文件中所有的日志对象，而仅仅是构建了根节点，这种方式就是我们多例模式中经常用到的懒加载，对象只有在真正被时候的时候，再进行构建。 
+
+&#160; &#160;通过 ```Logger.getLogger(String name)``` 获取一个已有的 ```Logger``` 对象或者是新建一个 ```Logger```对象。```Logger```,日志记录器，这就是在应用程序中需要调用的对象了，通过 ```Logger``` 对象的一系列 ```log``` 方法。
+
+##### Logger 的大致处理流程
+
+![Logger 处理流程](./images/index/logger-work-flow.png)
+
+&#160; &#160;收到应用程序的记录请求，将参数中的日志信息和运行时的信息构建出 ```LogRecord``` 对象，而后通过 ```Logger``` 对象本身设置的记录级别和调用者传递进来的日志级别，如果传递进来的日志级别低于 ```Logger``` 对象本身设置的记录级别（从语义上的理解，而实际上语义级别越高的级别其内部用数字表示的标志的数值越小），那么 ```Logger```对象将直接返回，因为他认为这条日志信息，在当前运行环境中，没有必要记录。 
+
+&#160; &#160;而满足以上条件的日志信息，将会通过 ```Logger``` 对象的 ```filter``` 元素的过滤校验，```filter``` 是动态的，在运行时是可以随意设置的，如果有 ```filter``` 对象，那么将调用 ```filter``` 对象，对日志对象 ```LogRecord``` 进行校验，只有校验通过的 ```LogRecord``` 对象，才会继续往下执行。 
+ 
+&#160; &#160;通过 ```filter```校验后，```Logger``` 对象将依次调用其配置的处理器，通过处理器来真正实现日志的记录功能，一个 ```Logger``` 对象可以配置多个处理器 ```handler``` ,所以一条日志记录可以被多个处理器处理，同时 ```Logger``` 对象的实现是树形结构，如果 ```Logger``` 对象设置其可以继承其父节点的处理器（默认），一条日志记录还会被其父节点的 ```Logger``` 对象处理。  而 ```handler``` 的处理方式就会是形形色色了，但是归根节点，会有以下几个大的步骤： 
+ 
+1. 级别的判定和比较，决定某条具体的日志记录是否应该继续处理 
+
+2. 将日志记录做格式化处理，以达到输出的日志在格式上统一，美观，可读性高。 
+
+3. 资源的释放，不管是以何种方式记录日志，总是会消耗一些方面的资源，所以会涉及到资源的释放问题。比如以文件方式记录的日志的，在一定的时候需要做文件关闭操作，以报文方式发送日志的，在和远程通话的过程中，也需要涉及到 ```网络 IO``` 的关闭操作，或者是存储在数据库等等，资源释放在程序开发过程中，是个不变的主题。
+
+##### 话说 Handler
+
+先上一张 ```java.util.logging``` 包中有关 ```Handler``` 的类图
+
+![Handler 的类图](./images/index/handler-class.png)
+
+&#160; &#160;```Handler``` 负责从 ```Logger``` 中取出日志消息并将消息发送出去，比如发送到控制台、文件、网络上的其他日志服务或操作系统日志等。
+
+&#160; &#160;```Handler``` 也具有级别概念，用于判断当前 ```Logger``` 中的消息是否应该被发送出去，可以使用定义好的各种日志级别（如 ```Level.OFF``` 表示关闭等）。
+
+&#160; &#160;除了级别概念，一个 ```Handler``` 还可以具有自己的过滤器（```Filter```）、格式化器（```Formatter```）、错误管理器（```ErrorManager```）以及编码字符集等，这些属性借助 ```LogManager``` 中的配置信息进行设置。
+
+&#160; &#160;```Handler``` 是一个抽象类，需要根据实际情况创建真正使用的具体```Handler```（如```ConsoleHandler```、```FileHandler```等），实现各自的 ```publish、flush``` 以及 ```close``` 等方法。
+
+
+#### java.util.logging.Logger 使用详解
+
+##### 简单的实例代码
+
+```java
+package com.my.utils;
+ 
+import java.io.IOException;
+ 
+import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+ 
+public class LoggerLog {
+ 
+   public static void main(String[] args) {
+ 
+       //create logger
+ 
+       Logger logger = Logger.getLogger("LoggerLog");
+ 
+       logger.setLevel(Level.INFO);
+ 
+       //create console handler
+ 
+       ConsoleHandler handler = new ConsoleHandler();
+ 
+       handler.setLevel(Level.ALL);
+ 
+       //add console handler to logger
+ 
+       logger.addHandler(handler);
+ 
+       try {
+ 
+           //add fileHandler
+ 
+           FileHandler fileHandler = new FileHandler("D:\\java\\test\\test.txt");
+ 
+           fileHandler.setLevel(Level.ALL);
+ 
+           //add fileHandler to logger
+ 
+           logger.addHandler(fileHandler);
+ 
+       } catch (SecurityException | IOException e) {
+ 
+           // TODO Auto-generated catch block
+ 
+           e.printStackTrace();
+ 
+       }
+ 
+       logger.info("Start");
+ 
+       logger.info("Running");
+ 
+       logger.info("End");    
+ 
+   }    
+ 
+}
+```
+
+&#160; &#160;这时候你会发现 ```"Start"``` ```"Running"``` ```"End"``` 各在控制台上打印了两遍，是因为 ```log``` 输出了一次，```ConsoleHandler``` 又输出了一次。
+
+&#160; &#160;```Handler``` 对象从 ```Logger``` 中获取日志信息，并将这些信息导出。例如，它可将这些信息写入控制台或文件中，也可以将这些信息发送到网络日志服务中，或将其转发到操作系统日志中。
+
+&#160; &#160;可通过执行 ```setLevel(Level.OFF)``` 来禁用 ```Handler```，并可通过执行适当级别的 ```setLevel``` 来重新启用。
+
+```xml
+<?xml version="1.0" encoding="GBK" standalone="no"?>
+<!DOCTYPE log SYSTEM "logger.dtd">
+<log>
+    <record>
+        <date>2018-03-25T20:35:42</date>
+        <millis>1521981342189</millis>
+        <sequence>0</sequence>
+        <logger>LoggerLog</logger>
+        <level>INFO</level>
+        <class>com.my.utils.LoggerLog</class>
+        <method>main</method>
+        <thread>1</thread>
+        <message>Start</message>
+    </record>
+    <record>
+        <date>2018-03-25T20:35:42</date>
+        <millis>1521981342292</millis>
+        <sequence>1</sequence>
+        <logger>LoggerLog</logger>
+        <level>INFO</level>
+        <class>com.my.utils.LoggerLog</class>
+        <method>main</method>
+        <thread>1</thread>
+        <message>Running</message>
+    </record>
+    <record>
+        <date>2018-03-25T20:35:42</date>
+        <millis>1521981342298</millis>
+        <sequence>2</sequence>
+        <logger>LoggerLog</logger>
+        <level>INFO</level>
+        <class>com.my.utils.LoggerLog</class>
+        <method>main</method>
+        <thread>1</thread>
+        <message>End</message>
+    </record>
+</log>
+```
+
+&#160; &#160;可见，默认的日志方式是 ```xml```格式，我们使用日志就是为了能够清晰的看到操作的相关信息而这种格式有点多，乱所以我们要自定义 ```logger``` 的格式。需要用 ```Formatter``` 来定义。
+
+##### 定义输出日志的 Formatter
+
+```java
+package com.my.utils;
+ 
+import java.text.SimpleDateFormat;
+
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
+ 
+public class MyFormat extends Formatter {
+ 
+   @Override
+ 
+   public String format(LogRecord log) {
+ 
+       // TODO Auto-generated method stub
+ 
+       SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:MM:ss S");
+ 
+       return log.getLevel() + ": " + format.format(log.getMillis())+" " + log.getMessage() +"\n";
+ 
+   }
+ 
+}
+```
+
+&#160; &#160;然后把 ```Format``` 添加到 ```fileHandler``` 中
+
+```java
+fileHandler.setFormatter(new MyFormat());
+```
+
+&#160; &#160;这时候 输出的日志文件就是比较清晰了，可以根据项目的实际需求定义合适的 ```Format ```
+
+```textarea
+INFO: 2018-03-25 21:03:49 791 Start
+
+INFO: 2018-03-25 21:03:49 909 Running
+
+INFO: 2018-03-25 21:03:49 913 End
+```
+
+ ```Formatter``` 为格式化 ```LogRecords``` 提供支持。 
+
+&#160; &#160;一般来说，每个日志记录 ```Handler``` 都有关联的 ```Formatter```。```Formatter``` 接受 ```LogRecord```，并将它转换为一个字符串。 
+
+&#160; &#160;有些 ```formatter```（如 ```XMLFormatter```）需要围绕一组格式化记录来包装头部和尾部字符串。可以使用 ```getHeader``` 和 ```getTail``` 方法来获得这些字符串。
+
+ ```LogRecord``` 对象用于在日志框架和单个日志 ```Handler``` 之间传递日志请求。
+
+&#160; &#160;```LogRecord(Level level, String msg)``` 用给定级别和消息值构造 ```LogRecord```。
+
+
+#### 通过 LogManager + logging.properties 配置 Logger
+
+**通过命令行参数指定 _```logging.properties```_ 配置文件**
+
+```python
+java -Djava.util.logging.config.file=myfile
+```
+
+**通过覆盖 _```jre/lib/logging.properties 1```_ 配置文件完成**
+
+```java
+package science.mrcuijt.util.logging;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+/**
+ * @author Administrator
+ *
+ */
+public class LoggingDemo {
+
+	private static final Logger logger = Logger.getLogger(LoggingDemo.class.getName());
+
+	public static void main(String[] args) throws SecurityException, IOException {
+
+		LogManager.getLogManager().readConfiguration(new FileInputStream("logging.properties"));
+
+		logManager.readConfiguration(in);
+
+		logger.info("info");
+
+		logger.warning("warning");
+
+		logger.fine("fine");
+
+		logger.finest("finest");
+
+	}
+
+}
+```
+
+**通过覆盖 _```jre/lib/logging.properties 2```_ 配置文件完成**
+
+```java
+package science.mrcuijt.util.logging;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
+/**
+ * @author Administrator
+ *
+ */
+public class LoggingDemo {
+
+	private static final Logger logger = Logger.getLogger(LoggingDemo.class.getName());
+
+	private static LogManager logManager = LogManager.getLogManager();
+
+	public static void main(String[] args) throws SecurityException, IOException {
+
+		InputStream in = LoggingDemo.class.getResourceAsStream("/logging.properties");// 注意配置
+
+		logManager.readConfiguration(in);
+
+		logger.info("info");
+
+		logger.warning("warning");
+
+		logger.fine("fine");
+
+		logger.finest("finest");
+
+	}
+
+}
+```
+
+***```logging.properties```***
+
+```python
+# 输出到文件和控制台
+handlers= java.util.logging.FileHandler,java.util.logging.ConsoleHandler
+ 
+# root日志输出级别 level
+.level= ALL
+ 
+# 控制台输出级别和格式
+java.util.logging.ConsoleHandler.level = FINER
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+        
+ 
+# 文件输出级别和地址
+java.util.logging.FileHandler.level=CONFIG
+java.util.logging.FileHandler.pattern = E:\\Logs\\TestProperties.log
+#限制文件的大小（50000字节）
+java.util.logging.FileHandler.limit = 50000
+#过滤，总共保存1个文件,接着才覆盖
+java.util.logging.FileHandler.count = 1
+## 日志文件编码
+java.util.logging.FileHandler.encoding = UTF-8
+#XMLFormatter是以xml样式输出，SimpleFormatter是以普通样式输出
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+#指定是否应该将 FileHandler 追加到任何现有文件上（false会覆盖，但默认为false）。
+java.util.logging.FileHandler.append=true
+```
+
+参考链接
+
+ - <a href="https://docs.oracle.com/cd/E23549_01/doc.1111/e14568/handler.htm" target="_blank">Handlers</a>
+
+ - <a href="http://tutorials.jenkov.com/java-logging/configuration.html#configuration-file" target="_blank">Java Logging: Configuration</a>
+
+ - <a href="https://www.cnblogs.com/lfalex0831/p/9586205.html" target="_blank">Java 原生日志 java.util.logging</a>
+
+ - <a href="https://www.oschina.net/code/snippet_133198_22810" target="_blank">java.util.logging.Logger 的 properties 配置文件使用</a>
+
+ - <a href="https://blog.csdn.net/jediael_lu/article/details/32098879" target="_blank">java.util.logging.Logger 基础教程</a>
+
+ - <a href="https://blog.csdn.net/dezhi_2008/article/details/6298287" target="_blank">java.util.logging.Logger 以配置文件方式控制日志输出</a>
+ 
+ - <a href="https://blog.csdn.net/rensihui/article/details/77982343" target="_blank">Java.util.logging 日志入门教程（二）properties 配置（输出文件）</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

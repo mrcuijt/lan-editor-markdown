@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>h2-basic-install-exart</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### h2-basic-install-exart
+
+#### 解决：连接数据库时如果提示无法自动创建数据库
+
+##### 使用代码方式创建数据库
+
+```java
+import java.sql.*;
+
+public class Demo {
+
+  public static void main(String[] args){
+    run();
+  }
+
+  public static void run(){
+    connection();
+  }
+
+  public static void connection(){
+    try {
+      Class.forName("org.h2.Driver");
+      Connection conn = DriverManager.getConnection("jdbc:h2:./test", "sa", "");
+      conn.close();
+    } catch(Exception e){
+      e.printStackTrace();
+    }
+  }
+
+}
+```
+
+##### 使用 H2 提供的窗口应用创建数据库
+
+在启动 H2 数据库之后，在电脑右下角托盘中会有 H2 数据库应用程序的显示
+
+![title](./images/h2-basic-install-exart/h2-basic-install-exart-001.png)
+
+可以通过右键创建数据库完成
+
+![title](./images/h2-basic-install-exart/h2-basic-install-exart-002.png)
+
+输入以下信息完成数据库的创建
+
+ - 数据库地址（磁盘物理地址）
+ 
+ - 登录数据库使用的用户名
+ 
+ - 登录数据库使用的密码
+ 
+ - 重复密码
+
+点击 Create 按钮即可完成数据库的创建。
+
+![title](./images/h2-basic-install-exart/h2-basic-install-exart-003.png)
+
+参考链接：
+
+ - <a href="http://www.h2database.com/html/tutorial.html#connecting_using_jdbc" target="_blank">Connecting to a Database using JDBC</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

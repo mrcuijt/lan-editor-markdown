@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>course-info-sql</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### course-info-sql
+
+```sql
+SET DB_CLOSE_DELAY -1;        
+;             
+CREATE USER IF NOT EXISTS SA SALT '21690d980f2a8130' HASH '97e58119ecf05709464cb260b3f48649cc89f138bbda9819c15c8ae7edb3c891' ADMIN;           
+CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_2BC1AB52_4BDF_4DCC_8E5C_0DD9E7180EEA START WITH 1 BELONGS_TO_TABLE;    
+CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_D525B2A4_9AD1_4CB3_9DAC_8DE714A4401A START WITH 1 BELONGS_TO_TABLE;    
+CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_F0BC5374_487F_4CE7_A71C_A686543EEAF4 START WITH 1 BELONGS_TO_TABLE;    
+CREATE SEQUENCE PUBLIC.SYSTEM_SEQUENCE_A695661F_6314_44BC_996E_EAF54AB8C270 START WITH 1 BELONGS_TO_TABLE;    
+CREATE MEMORY TABLE PUBLIC.EXAM(
+    EXAM_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_D525B2A4_9AD1_4CB3_9DAC_8DE714A4401A) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_D525B2A4_9AD1_4CB3_9DAC_8DE714A4401A,
+    ERROR_TOPIC_ANSWER_IDS VARCHAR(255),
+    MISSED_TOPIC_ANSWER_IDS VARCHAR(255),
+    RIGTH_TOPIC_ANSWER_IDS VARCHAR(255),
+    USER_ID BIGINT
+);               
+ALTER TABLE PUBLIC.EXAM ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(EXAM_ID);              
+-- 0 +/- SELECT COUNT(*) FROM PUBLIC.EXAM;    
+CREATE MEMORY TABLE PUBLIC.EXAM_TOPICS(
+    EXAMS_EXAM_ID BIGINT NOT NULL,
+    TOPICS_TOPIC_ID BIGINT NOT NULL
+);          
+ALTER TABLE PUBLIC.EXAM_TOPICS ADD CONSTRAINT PUBLIC.CONSTRAINT_3 PRIMARY KEY(EXAMS_EXAM_ID, TOPICS_TOPIC_ID);
+-- 0 +/- SELECT COUNT(*) FROM PUBLIC.EXAM_TOPICS;             
+CREATE MEMORY TABLE PUBLIC.TOPIC(
+    TOPIC_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_2BC1AB52_4BDF_4DCC_8E5C_0DD9E7180EEA) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_2BC1AB52_4BDF_4DCC_8E5C_0DD9E7180EEA,
+    CHOOSE_TOPIC_ANSWER_IDS VARCHAR(255),
+    ERROR_TOPIC_ANSWER_IDS VARCHAR(255),
+    RIGTH_TOPIC_ANSWER_IDS VARCHAR(255),
+    TOPIC_QUESTION_CONTENT VARCHAR(255),
+    TOPS_CONTENT VARCHAR(255),
+    TOPIC_TYPE_ID BIGINT
+);             
+ALTER TABLE PUBLIC.TOPIC ADD CONSTRAINT PUBLIC.CONSTRAINT_4 PRIMARY KEY(TOPIC_ID);            
+-- 0 +/- SELECT COUNT(*) FROM PUBLIC.TOPIC;   
+CREATE MEMORY TABLE PUBLIC.TOPIC_ANSWER(
+    TOPIC_ANSWER_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_F0BC5374_487F_4CE7_A71C_A686543EEAF4) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_F0BC5374_487F_4CE7_A71C_A686543EEAF4,
+    TOPIC_ANSWER VARCHAR(255)
+);   
+ALTER TABLE PUBLIC.TOPIC_ANSWER ADD CONSTRAINT PUBLIC.CONSTRAINT_5 PRIMARY KEY(TOPIC_ANSWER_ID);              
+-- 0 +/- SELECT COUNT(*) FROM PUBLIC.TOPIC_ANSWER;            
+CREATE MEMORY TABLE PUBLIC.TOPIC_TYPE(
+    TOPIC_TYPE_ID BIGINT DEFAULT (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_A695661F_6314_44BC_996E_EAF54AB8C270) NOT NULL NULL_TO_DEFAULT SEQUENCE PUBLIC.SYSTEM_SEQUENCE_A695661F_6314_44BC_996E_EAF54AB8C270,
+    TOPIC_TYPE_NAME VARCHAR(255)
+);    
+ALTER TABLE PUBLIC.TOPIC_TYPE ADD CONSTRAINT PUBLIC.CONSTRAINT_E PRIMARY KEY(TOPIC_TYPE_ID);  
+-- 0 +/- SELECT COUNT(*) FROM PUBLIC.TOPIC_TYPE;              
+ALTER TABLE PUBLIC.EXAM_TOPICS ADD CONSTRAINT PUBLIC.FK8XWPHB0KM78OIHU80J7BM5ILP FOREIGN KEY(EXAMS_EXAM_ID) REFERENCES PUBLIC.EXAM(EXAM_ID) NOCHECK;          
+ALTER TABLE PUBLIC.TOPIC ADD CONSTRAINT PUBLIC.FKPTE0TBD3BYTRBO3RDWKY3CG39 FOREIGN KEY(TOPIC_TYPE_ID) REFERENCES PUBLIC.TOPIC_TYPE(TOPIC_TYPE_ID) NOCHECK;    
+ALTER TABLE PUBLIC.EXAM_TOPICS ADD CONSTRAINT PUBLIC.FKP9RCM37HX1Q73V83QNYY50KW1 FOREIGN KEY(TOPICS_TOPIC_ID) REFERENCES PUBLIC.TOPIC(TOPIC_ID) NOCHECK;      
+
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

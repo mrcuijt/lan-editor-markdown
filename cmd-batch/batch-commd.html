@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>batch-commd</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### batch-commd
+
+在本章中，我们将介绍一些常用的批处理命令。
+
+ - VER
+ 
+  - 显示使用的 MS-DOS 版本
+ 
+ - ASSOC
+ 
+  - 这是一个批处理命令，它将扩展名与文件类型（FTYPE）相关联，显示现有关联或删除关联。
+ 
+ - CD
+ 
+  - 此批出里命令有助于更改其他目录，或显示当前目录。
+ 
+ - CLS
+ 
+  - 此批处理命令用于清屏。
+ 
+ - COPY
+ 
+  - 此批处理命令用于将文件从一个位置复制到另一个位置。
+ 
+ - DEL
+ 
+  - 此批处理命令删除文件而不删除目录。
+ 
+ - DIR
+ 
+  - 此批处理命令列出目录的内容。
+ 
+ - DATE
+ 
+  - 此批处理命令有助于查找系统日期。
+ 
+ - ECHO 
+ 
+  - 此批处理命令显示消息，或打开或关闭命令回显。
+  
+ - EXIT
+ 
+  - 此批处理命令退出 DOS 控制台。
+ 
+ - MD 
+ 
+  - 此批处理命令在当前目录创建一个新目录。
+ 
+ - MOVE
+ 
+  - 此批处理命令在目录之间移动文件或目录。
+ 
+ - PATH
+ 
+  - 此批处理命令显示或设置路径变量。
+ 
+ - PAUSE
+ 
+  - 此批处理命令提示用户并等待输入一行输入。
+ 
+ - PROMPT
+ 
+  - 此批处理命令用于更改或重置 cmd.exe 提示符。
+ 
+ - RD
+ 
+  - 此批处理命令删除目录，但在删除目录之前，目录必须为空。
+ 
+ - REN
+ 
+  - 重命名文件和目录
+ 
+ - REM
+ 
+  - 此批处理命令用于批处理文件中的备注，防止执行备注的内容。
+ 
+ - START
+ 
+  - 此批处理命令在新窗口中启动程序，或打开文档。
+  
+ - TIME
+ 
+  - 此批处理命令设置或显示时间。
+ 
+ - TYPE
+ 
+  - 此批处理命令将一个或多个文件的内容输出到输出。
+ 
+ - VOL
+ 
+  - 此批处理命令显示卷标。
+ 
+ - ATTRIB
+ 
+  - 显示或设置 current 目录中文件的属性。
+ 
+ - CHKDSK
+ 
+  - 此批处理命令检查磁盘是否存在任何问题。
+  
+ - CHOICE
+ 
+  - 此批处理命令为用户提供选项列表。
+ 
+ - CMD
+ 
+  - 此批处理命令调用另一个命令提示符实例。
+ 
+ - COMP
+ 
+  - 此批处理命令根据文件大小比较两个文件。
+ 
+ - CONVERT
+
+  - 此批处理命将卷从 FAT16 或 FAT32 文件系统转换为 NTFS 文件系统。
+
+ - DRIVEQUERY
+ 
+  - 此批处理命令显示所有已安装的设备驱动程序及其属性。
+ 
+ - EXPAND
+ 
+  - 此批处理命令从压缩的 .cab cabinet 文件中提取文件。
+ 
+ - FIND
+ 
+  - 此批处理命令在文件或输入中搜索字符串，输出匹配的行。
+ 
+ - FORMAT
+ 
+  - 此批处理命令将磁盘格式化为 Windows 支持的文件系统（如 FAT，FAT32 或 NTFS），从而覆盖以前的磁盘内容。
+ 
+ - HELP
+  
+  - 此批处理命令显示 Windows 提供的命令列表。
+  
+ - IPCONFIG
+ 
+  - 此批处理命令显示 Windows IP 配置。连接显示配置以及该连接的名称。
+  
+ - LABEL
+ 
+  - 此批处理命令可添加，设置或删除磁盘标签。
+ 
+ - MORE
+ 
+  - 此批处理命令一次显示一个或多个文件的内容。
+ 
+ - NET
+ 
+  - 根据使用的命令提供各种网络服务。
+ 
+ - PING
+ 
+  - 此批处理命令通过网络将 ICMP/IP "echo" 数据包发送到指定地址
+ 
+ - SHUTDOWN
+ 
+  - 此批处理命令关闭计算机，或注销当前用户。
+ 
+ - SORT
+ 
+  - 此批处理命令从源文件获取输入并安字母顺序对其内容进行排序，从 A 到 Z 或 Z 到 A。它在控制台上打印输出。
+ 
+ - SUBST
+ 
+  - 此批处理命令将驱动器号分配给本地文件夹，显示当前分配或删除分配。
+ 
+ - SYSTEMINFO
+ 
+  - 此批处理命令显示计算机及其操作系统的配置。
+ 
+ - TASKKILL
+ 
+  - 此批处理命令结束一个或多个任务。
+ 
+ - TASKLIST
+ 
+  - 此批处理命令列出任务，包括任务名称和进程 ID（PID）。
+ 
+ - XCOPY
+ 
+  - 此批处理命令以更高级的方式复制文件和目录。
+ 
+ - TREE
+ 
+  - 在批处理命令当前目录的所有子目录的树显递归到任何或深度级别。
+ 
+ - FC
+ 
+  - 此批处理命令列出了两个文件的实际差异。
+ 
+ - DISKPART
+ 
+  - 此批处理命令显示和配置磁盘分区的属性。
+ 
+ - TITLE
+ 
+  - 此批处理命令设置控制台窗口中显示的标题。
+ 
+ - SET
+ 
+  - 显示当前系统上的环境变量列表。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

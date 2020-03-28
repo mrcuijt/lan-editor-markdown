@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>easyui-basic-dialog</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### easyui-basic-dialog
+
+ - <a href="" target="_blank"></a>
+
+
+&amp;#160; &amp;#160;扩展自 `$.fn.window.defaults`。通过 `$.fn.dialog.defaults` 重写默认的 `defaults`。
+
+&amp;#160; &amp;#160;对话框（dialog）是一个特殊类型的窗口，它在顶部有一个工具栏，在底部有一个按钮栏。默认情况下，对话框（dialog）只有一个显示在头部右侧的关闭工具。用户可以配置对话框行为来显示其他工具（比如：可折叠 collapsible、可最小化 minimizable、可最大化 maximizable，等等）。
+
+##### 带有工具栏的 Dialog 对话框
+
+ - <a href="basic-dialog/basic-dialog-with-toolsbar.html" target="_blank">basic-dialog-with-toolsbar</a>
+
+```xml
+<div class="easyui-dialog" style="width:600px;height:300px"
+     data-options="title:'My Dialog',modal:true,
+         toolbar:[{
+             text:'Edit',
+             iconCls:'icon-edit',
+             handler:function(){alert('edit')}
+         },{
+             text:'Help',
+             iconCls:'icon-help',
+             handler:function(){alert('help')}
+         }]">
+    Dialog Content.
+</div>
+```
+
+##### 带有按钮的 Dialog 对话框 - data-options
+
+ - <a href="basic-dialog/basic-dialog-with-button.html" target="_blank">basic-dialog-with-button</a>
+
+```xml
+<div class="easyui-dialog" style="width:600px;height:300px"
+     data-options="title:'My Dialog',buttons:'#bb',modal:true">
+    Dialog Content.
+</div>
+<div id="bb">
+    <a href="#" class="easyui-linkbutton">Save</a>
+    <a href="#" class="easyui-linkbutton">Close</a>
+</div>
+```
+
+##### 带有按钮的 Dialog 对话框 - 1 - JavaScript
+
+ - <a href="basic-dialog/basic-dialog-with-button-1.html" target="_blank">basic-dialog-with-button-1</a>
+
+```xml
+<div class="easyui-dialog" style="width:600px;height:300px"
+        data-options="title:'My Dialog',modal:true,
+            buttons:[{
+                text:'Save',
+                handler:function(){}
+            },{
+                text:'Close',
+                handler:function(){}
+            }]">
+    Dialog Content.
+</div>
+```
+
+##### 通过 JavaScript 创建 Dialog 对话框
+
+ - <a href="basic-dialog/basic-dialog-for-javascript.html" target="_blank">basic-dialog-for-javascript</a>
+
+```xml
+<div id="dd">Dialog Content.</div>
+```
+
+```js
+// 创建 Dialog
+$('#dd').dialog({
+    title: 'My Dialog',
+    width: 400,
+    height: 200,
+    closed: false,
+    cache: false,
+    href: 'get_content.php',
+    modal: true
+});
+
+// 刷新 Dialog
+$('#dd').dialog('refresh', 'new_content.php');
+```
+
+##### 通过单击事件打开 Dialog 弹框
+
+ - <a href="basic-dialog/basic-dialog-with-js-for-dynamc.html" target="_blank">basic-dialog-with-js-for-dynamc</a>
+
+```xml
+<button id="open" type="button">open</button>
+<button id="close" type="button">close</button>
+<button id="destroy" type="button">destroy</button>
+<div id="dialog" class="easyui-dialog" style="width:600px;height:300px"
+     closed="true"
+     data-options="title:'My Dialog',modal:false,
+         toolbar:[{
+             text:'Edit',
+             iconCls:'icon-edit',
+             handler:function(){alert('edit')}
+         },{
+             text:'Help',
+             iconCls:'icon-help',
+             handler:function(){alert('help')}
+         }]">
+    Dialog Content.
+</div>
+```
+
+```js
+// 绑定按钮的 click 事件的事件处理函数
+document.getElementById("open").addEventListener("click",open,false);
+document.getElementById("close").addEventListener("click",close,false);
+document.getElementById("destroy").addEventListener("click",destroy,false);
+
+function open(){
+  // 打开指定的 Dialog 对话框
+  $("#dialog").dialog("open");
+}
+
+function close(){
+  // 关闭指定的 Dialog 对话框
+  $("#dialog").dialog("close");
+}
+
+function destroy(){
+  // 销毁指定的对话框，从 DOM 文档中删除
+  $("#dialog").dialog("destroy");
+}
+```
+
+##### 通过 JavaScript 创建动态内容的 Dialog 对话框
+
+ - <a href="basic-dialog/basic-dialog-with-js-for-dynamc-content.html" target="_blank">basic-dialog-with-js-for-dynamc-content</a>
+
+```xml
+<div id="dd">Dialog Content.</div>
+```
+
+```js
+// 创建 Dialog
+$('#dd').dialog({
+    title: 'My Dialog',
+    width: 400,
+    height: 200,
+    closed: false,
+    cache: false,
+    modal: true,
+    method: "get",
+    href: 'get_content.php',
+    queryParams: {demo:"demo"}
+});
+```
+
+##### 通过 JavaScript 动态创建 Dialog 对话框
+
+```js
+function showAttendance(oBtn) {
+    try {
+        // 获取 url
+        var url = oBtn.attr("href");
+        // 动态的构建对话框的 jQuery 对象
+        var dialogDiv = $("<div />");
+        // 动态构建对话框
+        dialogDiv.dialog({
+            title : "请假单信息",
+            width : 500,
+            height : 280,
+            collapsible : false,
+            close : false,
+            cache : false,
+            modal : true,
+            href : url,
+            onClose : function() {
+                $(this).dialog("destroy");
+            },
+            buttons : [ {
+                text : "关闭",
+                handler : function() {
+                    dialogDiv.dialog("close");
+                }
+            } ]
+        });
+    } catch (e) {
+        alert(e.message);
+    }
+    return false;
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

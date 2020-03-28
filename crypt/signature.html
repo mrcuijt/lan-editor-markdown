@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signature</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Signature
+
+#### 数字签名
+
+```java
+import javax.crypto.*;
+import javax.crypto.spec.*;
+ 
+import java.security.*;
+import java.security.spec.*;
+
+import java.util.*;
+
+import java.io.*;
+
+import java.net.*;
+
+/**
+ * 消息摘要的使用：用户登录密码传输必须是不可逆，md5
+ *
+ */
+public class SignatureDemo{
+
+  private static final String algorithm = "RSA"; // 算法
+
+  // RSA 公钥字符串（Base64）
+  private static final String publicKeyStr = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAikLgva7UNwxn4HBVrgSHabtixBXqhBVEToj9FvYyxbCXPWRlajlzIBK8DeVItsGAkxiunAmKxD8nPJpMZe2nLx4e3wbuzYoriHNT0DDouWrVpmz0ooq4qQpZ0oQ5c+GWRQ+3hb9f2oZtSK8HsxIUmYHuzRgaRhKexVSdNYtyA52KbTd4H2ux+6VifueXn6LIL6HXrQSPGBv36TuYn0ufmrAhfVqI5QikiElKEBBrF0BXt++dKMHN1T0u7D9Vgz7pMV18CvtWc55MZQiDDkqxHfNBn28gX8pmMO4Y4ZGl1OLRxYUriWJAHzOcl2BfOm63o05sLmW2kvfcct7GvgBHDwIDAQAB";
+ 
+  // RSA 私钥字符串（Base64）
+  private static final String privateKeyStr = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCKQuC9rtQ3DGfgcFWuBIdpu2LEFeqEFUROiP0W9jLFsJc9ZGVqOXMgErwN5Ui2wYCTGK6cCYrEPyc8mkxl7acvHh7fBu7NiiuIc1PQMOi5atWmbPSiiripClnShDlz4ZZFD7eFv1/ahm1IrwezEhSZge7NGBpGEp7FVJ01i3IDnYptN3gfa7H7pWJ+55efosgvodetBI8YG/fpO5ifS5+asCF9WojlCKSISUoQEGsXQFe3750owc3VPS7sP1WDPukxXXwK+1ZznkxlCIMOSrEd80GfbyBfymYw7hjhkaXU4tHFhSuJYkAfM5yXYF86brejTmwuZbaS99xy3sa+AEcPAgMBAAECggEAEBpj9JO1McgnHRPYVtE+OElT4oSu8L1NXFxGJfN8zFuZ8dOMoEeaqgSklHW891QoNnmsdI4D9IFqf3t1JHX+f9VhQRacn6HVGipce6YGpPnVcnHEOF4xzbZf6c3upxmCF/8Rn+k/L8NyXQHNwsR7U7m3Z3nELZ8jkNYfDUp1eAgmxdS5uTsiz3hKKp/4LaApSP3ch5083DQEhVTLtjU5+btSxy+uMgkTbhLWIxowDfrt5DdX7XAxU+YbfpTSOlgPxlYPUaolmKg/4cdejtajYFr2gR/dErr6OADTbOMCnRDz5tSrWo3R/+mJ41P7jSmNoRi5+W6OYueQ6TtYvneDQQKBgQD3uQ6MYyuaCeWF1xbjC42EkDVkgoCbj66YH7M0GSKbLa7JFnpUJxIJ34EvxuJL5xUuS2e30hM+tN3V8hVC8pjm7Spuaf7TQo/YwWM0h2929cKC6igRhjGmJmGrWtLtgtq1C/nvskE/y/fiFAT2VWdYihGWKiP0FigItvTK13iKbwKBgQCO4YVVptLsjwIuDnjocVNhbvSZWb7c2JarXxqvwEBJcxlorzyXjmWAKKfDsPifXfMFxH6iZyUxYg9YSIiOnmO7jcFNS1jEsvTgklTWHcX9c878FK64GWs9cU8sCP6G8vbf3Akyz5xFQYHDihpIJ/fiNnAUoLroPI2x96vN5E7dYQKBgEQE6Sy9EjzSmNY+MAeZpXsPyclWWA/ezPbyRVd5y1nGmmaWqHIw5DAX0bYXqw1iXxt+EvWTVjtymDLlrNbcHAXUe0EkE5dYgHzo5N+IjJ+ibY1a1DOzoDBZ+5l8b8xNkNYDetZJIMdurxrBmnc1DhJuntOXsJWV+9ogumhz76I7AoGALBkYsOXLJa3Bq3tV/8+yP1kibw4O5VSHtB6nOuUoMkMu7WtgVRpi41oo5TICmhVCA16xAui4xvQP7lx8oR/rgiBvL674l8Tv5TvkqS0JRX9vu8eaYUGfIpiNKfcgr3/fiBn+UMtY3Nsp9LL0B58mV5AbqZIt/a1qwinBwcscOCECgYEA1M9hwpOFWdBKIU7glCLP2E8o9Sp/N6Xf8J3zOfBAUXFDAIMiUcdDonmIGm8YI56fqK4TQd7XeMaDI1FQ0a9reUuMgg8Npub+gOug0Ja4vOAYOZFxgX4eIt3VApjdyPG05NEI1AZgH5zDMSdUGAMRdskbXoOOxIcVo8ynVi7LXwQ=";
+ 
+
+  public static String bencode(byte[] bytes){
+    return Base64.getEncoder().encodeToString(bytes);
+  }
+ 
+  public static byte[] bdecode(String input){
+    return Base64.getDecoder().decode(input);
+  }
+
+  /**
+   * 获取公钥
+   *
+   */
+  public static PublicKey getPublicKey(){
+    try{
+      // 创建秘钥工厂对象
+      KeyFactory kf = KeyFactory.getInstance(algorithm);
+
+      // 生成公钥
+      return kf.generatePublic(new X509EncodedKeySpec(bdecode(publicKeyStr)));
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * 获取私钥
+   *
+   */
+  public static PrivateKey getPrivateKey(){
+    try{
+      // 创建秘钥工厂对象
+      KeyFactory kf = KeyFactory.getInstance(algorithm);
+
+      // 生成私钥
+      return kf.generatePrivate(new PKCS8EncodedKeySpec(bdecode(privateKeyStr)));
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * 数字签名：SHA256withRSA
+   * @param input 需要签名的数据
+   * @return result 密文（Base64编码）
+   */
+  public static String sign(String input){
+    // 数字签名四部曲
+    // 1.创建数字签名对象
+    // 2.初始化签名
+    // 3.传入原文
+    // 4.开始签名
+
+    try{
+      // 1.创建数字签名对象
+      Signature signature = Signature.getInstance("SHA256withRSA");
+      // 使用私钥进行签名
+      PrivateKey privateKey = getPrivateKey();
+      // 2.初始化签名
+      signature.initSign(privateKey);
+      // 3.传入原文
+      signature.update(input.getBytes());
+      // 4.开始签名
+      byte[] sign = signature.sign();
+      String encode = bencode(sign);
+      return encode;
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * 数字签名验签
+   * @param input 原始数据
+   * @param sign 对原始数据生成的数字签名密文（Base64编码）
+   * @return result 密文（Base64编码）
+   */
+  public static boolean verify(String input,String sign){
+    // 校验签名信息：四部曲
+    // 1.创建数字签名对象
+    // 2.初始化签名
+    // 3.传入原文
+    // 4.开始校验
+
+    try{
+      // 1.创建数字签名对象
+      Signature signature = Signature.getInstance("SHA256withRSA");
+      // 使用公钥进行验签
+      PublicKey publicKey = getPublicKey();
+      // 2.初始化签名
+      signature.initVerify(publicKey);
+      // 3.传入原文
+      signature.update(input.getBytes());
+      // 4.开始校验
+      boolean verify = signature.verify(bdecode(sign));
+      return verify;
+    }catch(Exception e){
+      e.printStackTrace();
+    }
+    return false;
+  }
+
+  public static void main(String[] args){
+
+    String input = "";
+    String error = "2";
+    String sign = sign(input);
+    System.out.println(sign);
+    boolean result = verify(input,sign);
+    System.out.println("校验结果：" + result);
+  }
+}
+```
+
+#### 总结数字签名
+
+ - `RSA 数字签名` = 数字签名
+ 
+ - 消息摘要和非对称加密的组合
+ 
+ - 签名使用私钥
+ 
+ - 校验使用公钥
+ 
+ - 作用：校验数据的完整性
+
+ ![](./images/signature/signature-001.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

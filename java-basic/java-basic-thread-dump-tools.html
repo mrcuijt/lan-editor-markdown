@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-thread-dump-tools</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-thread-dump-tools
+
+#### Windows 下查看进程与线程的相关工具
+
+ - pslist 是用命令行查看进程/线程；
+
+ - ProcessExplorer 是图形化的查看进程/线程。
+
+pslist v1.29 下载地址：<a href="http://technet.microsoft.com/en-us/sysinternals/bb896682.aspx" target="_blank">Download</a> <a href="https://docs.microsoft.com/en-us/sysinternals/downloads/pslist" target="_blank">Download</a>
+
+ProcessExplorer v15.11 下载地址：<a href="http://technet.microsoft.com/en-us/sysinternals/bb896653" target="_blank">Download</a> 内附帮助文档。
+
+##### 1.查看进程
+
+利用 Window 自带的工具（命令） tasklist 或者是 pslist 工具。下面以 pslist 命令为例，
+
+```python
+pslist -t
+
+PsList v1.4 - Process information lister
+Copyright (C) 2000-2016 Mark Russinovich
+Sysinternals - www.sysinternals.com
+
+Process information for DEV_LOCAL:
+
+Name                             Pid Pri Thd  Hnd      VM      WS    Priv
+Idle                               0   0   2    0       0      24       0
+  System                           4   8  77  633    3444      48     112
+    smss                         252  11   2   30    4096      68     452
+csrss                            352  13  12  790   84860    1636    2684
+csrss                            408  13  16  971  199772   10292    9964
+  conhost                       2112   8   2   48   62648     764    2412
+  conhost                       2300   8   2   45   76920    1560   12164
+  conhost                       2388   8   2   43   52152     964    1440
+  conhost                       3100   8   1   29   45716    1228    1124
+  conhost                       3652   8   2   44   64568    1276    4136
+  conhost                       4020   8   2   41   52088     612    1452
+  conhost                       4024   8   2   46   61560    1060    1612
+wininit                          416  13   3   82   58192     100    1532
+  services                       516   9  24  273   51216    5188    6600
+    svchost                      272   8  13  248   52808    3016    5828
+    XAudio64                     504   8   4   47   24132     228    1280
+    svchost                      632   8  10  391   51660    3568    4900
+      explorer                  2216   8  17  641  322972   38036   67820
+        cmd                     2444   8   1   24   44528     140    2108
+          java                  3380   8  26  474 2044808   49276  194756
+```
+
+**`java`                  `3380`   8  `26(线程数)`  474 2044808   49276  194756**
+
+##### 2.查看进程中的线程
+
+<a href="http://technet.microsoft.com/en-us/sysinternals/bb896682.aspx" target="_blank">http://technet.microsoft.com/en-us/sysinternals/bb896682.aspx</a>
+
+```python
+pslist -dmx 3380
+
+PsList v1.4 - Process information lister
+Copyright (C) 2000-2016 Mark Russinovich
+Sysinternals - www.sysinternals.com
+
+Process and thread information for DEV_LOCAL:
+
+Name                Pid      VM      WS    Priv Priv Pk   Faults   NonP Page
+java               3380 2044808   49528  194756  225988   293505     31  231
+ Tid Pri    Cswtch            State     User Time   Kernel Time   Elapsed Time
+2380   9        45     Wait:UserReq  0:00:00.015   0:00:00.000   19:29:40.901
+3688   9      3861     Wait:UserReq  0:00:01.482   0:00:00.405   19:29:40.870
+4100   9      3364     Wait:UserReq  0:00:01.076   0:00:00.046   19:29:40.870
+3864   9      2381     Wait:UserReq  0:00:00.873   0:00:00.046   19:29:40.870
+5456  10     65792     Wait:UserReq  0:00:00.624   0:00:00.187   19:29:40.807
+5112  13       172     Wait:UserReq  0:00:00.000   0:00:00.000   19:29:40.792
+4228  12       203     Wait:UserReq  0:00:00.000   0:00:00.000   19:29:40.792
+2064  11         2     Wait:UserReq  0:00:00.000   0:00:00.000   19:29:40.495
+6048  12        11     Wait:UserReq  0:00:00.000   0:00:00.000   19:29:40.495
+1212  12     57138     Wait:UserReq  0:01:01.979   0:00:01.123   19:29:40.495
+5660  12     18660     Wait:UserReq  0:00:04.711   0:00:00.249   19:29:40.495
+4044   9         2     Wait:UserReq  0:00:00.000   0:00:00.000   19:29:40.480
+3812  10   1095697     Wait:UserReq  0:00:00.078   0:00:00.109   19:29:40.480
+2284  10        17     Wait:UserReq  0:00:00.000   0:00:00.000   19:29:40.027
+3992   9       966     Wait:UserReq  0:00:00.124   0:00:00.078   19:29:39.996
+1900  11        15     Wait:UserReq  0:00:00.015   0:00:00.000   19:29:39.122
+2228  11        45     Wait:UserReq  0:00:00.000   0:00:00.000   19:29:39.106
+3920  11     17855     Wait:UserReq  0:00:00.717   0:00:00.702   19:29:39.106
+1028  11      7791     Wait:UserReq  0:00:00.483   0:00:00.062   19:29:38.544
+1712   8       212     Wait:UserReq  0:00:00.046   0:00:00.000   19:29:36.080
+2696   9        20     Wait:UserReq  0:00:00.000   0:00:00.000   19:29:36.064
+4904   8   1582510     Wait:UserReq  0:00:01.622   0:00:00.499   19:24:49.711
+4064   9       894     Wait:UserReq  0:00:00.187   0:00:00.062   19:24:29.644
+3604   9       820     Wait:UserReq  0:00:00.202   0:00:00.015   18:06:36.846
+3456   9       142     Wait:UserReq  0:00:00.015   0:00:00.000   16:43:26.296
+5032   8        54       Wait:Queue  0:00:00.000   0:00:00.000    0:43:29.328
+```
+
+以下是非 Windows 系统本身附带的外部命令
+
+ - **AUTORAMRESIZER.EXE**
+
+ 自动根据物理内存调整虚拟盘大小（PE）。
+
+ - **CHOICE.EXE**
+
+ DOS 选择命令支持扩展
+
+ - **DEVCON.EXE**
+
+ 设备控制台命令行工具
+
+ - **FINDPASS.EXE**
+
+ 查找系统管理员口令的命令行工具（可能有病毒虚警）
+
+ - **FPORT.EXE**
+
+ TCP/IP与端口检测工具
+
+ - **HWPnp.exe**
+
+ 重新检测即插即用硬件的实用工具，可激活移动存储器等
+
+ - **KEYBOARD.EXE**
+
+ 更改键盘区域属性的命令行工具
+
+ - **KEYDOWN.EXE**
+
+ 检测键盘按键的命令行工具
+
+ - **NC.EXE**
+
+ 大名鼎鼎的网络强力命令行工具！
+
+ - **NETCFG.EXE**
+
+ Windows PE 环境的网络配置命令行工具
+
+ - **PASSWDRENEW.EXE**
+
+ Windows 口令离线修改工具
+
+ - **PENETCFG.EXE**
+
+ 牛人编写的 PE 网络环境配置工具
+
+ - **PSINFO.EXE**
+
+ 本地和远程系统信息检测命令行工具
+
+ - **PSKILL.EXE**
+
+ 结束本地或远程进程的命令行工具
+
+ - **PSLIST.EXE**
+
+ 系统进程查看工具
+
+ - **PSPASSWD.EXE**
+
+ 更改本地或远程系统口令命令行工具
+
+ - **PSSERVICE.EXE**
+
+ 管理系统服务的命令行工具
+
+ - **PULIST.EXE**
+
+ 系统进程列表查看
+
+ - **TCPVCON.EXE**
+
+ 查看活动进程的TCP连接状态
+
+ - **TFTPD32.EXE**
+
+ 简单的 TFTP 工具
+
+ - **WGET.EXE 功能强大的命令行下载工具
+
+ - **XCACLS.EXE**
+
+ 文件及目录访问控制列表的命令行加强工具
+
+ - **XNVIEW.EXE**
+
+ 袖珍图像查看工具（小巧够用，不需升级）
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/haiross/article/details/14450373" target="_blank">Windows 下查看进程与线程的相关工具</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

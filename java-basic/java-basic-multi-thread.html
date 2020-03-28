@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-multi-thread</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-multi-thread
+
+#### 多线程并发知识精要
+
+学习多线程并发，要着重 “外练互斥，内修可见” ，这是掌握多线程、学习多线程并发的重要技术点。
+
+##### 一、基础知识
+
+ - 1、currenThread() 方法可返回代码段正在被哪个线程调用的信息
+
+ - 2、多线程两种方式 继承 Thread OR 实现 Runable
+
+ - 3、isAlive() 的功能是判断当前线程是否处于活动状态（活动状态就是线程以启动且尚未终止）
+
+ - 4、sleep() 的作用是在指定的毫秒数内让 “正在执行的线程” 休眠（暂停执行，释放 CPU 但不释放锁）
+
+ - 5、getId() 的作用是取得线程的唯一标识
+
+ - 6、inerrupt() 用来停止线程，但 interrupt() 方法的使用效果并不像 for + break 一样，马上就停止循环。调用 interrupt() 方法紧紧在当前线程中打了一个停止的标记，并不是停止线程。
+
+ - 7、判断线程是否停止，Thread 提供了两种方法 
+
+ interrupted() : [测试]当前线程是否已经中断（此方法执行后会清除中断状态）。
+
+ isInterruopted() : [测试]线程是否已经中断（执行后不清除状态标志）。
+
+ - 8、可以用异常法来中断线程（先判断 isInterruopted() 然后抛出异常）
+
+ - 9、如果线程处于 sleep() 状态，此时中断线程，将抛出异常，并清除停止状态值。
+
+ - 10、暴力停止线程的方法，stop() 停止线程是非常暴力的，目前已经废弃，因为强制停止线程有可能会导致一些清理性的工作无法完成。另外就是对锁定的对象进行了 “解锁”，导致数据得不到同步处理，出现数据不一致的问题。
+
+ - 11、可以使用 suspend() 方法暂停线程，使用 resume() 方法恢复线程的执行。此方法不释放锁，只释放 CPU。使用不当，极易造成公共的同步对象独占，使得其他线程无法访问公共同步对象。也有可能造成数据不同步的现象（加锁就不会了）
+
+ - 12、yield() 方法的作用是放弃当前 CPU 资源，将它让给其他任务执行。但放弃时间不确定，有可能刚刚放弃，又马上获得 CPU 时间片。
+
+ - 13、可以通过 setPriority() 方法设置线程的优先级，优先级越高就会越先被执行。优先级是可以被继承的，优先级具有随机性（并不保证低优先级一定在高优先级后执行）
+
+ - 14、守护线程是一种特殊的线程，它的特性有“陪伴” 的含义，当前线程中不存在非守护线程了，则守护线程自动销毁。典型的守护线程就是垃圾回收线程。
+
+##### 二、对象及变量的并发访问
+
+ - 1、“非线程安全” 问题存在于 实例变量 中，如果是方法内部的私有变量，则不存在非线程安全问题。
+
+ - 2、synchronized 加在方法上获得的是类锁，不同的对象活动不同的锁。但同类中其他线程可以异步调用非 synchronized 方法
+
+ - 3、synchronized 锁重入，也就是使用 synchronized 时，当一个线程得到一个对象锁后，再次请求此对象锁时是可以再次得到该对象锁。这也证明在一个 synchronized 方法/块的内部调用本类其他 synchronized 方法/块时，是永远可以得到锁。
+
+ - 4、如果不可锁重入，就会造成死锁，可重入锁也支持在父子类继承。
+
+ - 5、当一个线程执行的代码出现异常时，其所持有的锁会自动释放。
+
+ - 6、使用 synchronized 关键字声明方法同步时，从时间上看，弊端很明显，解决这样的问题可以使用 synchronized 同步块。
+
+ - 7、在使用同步 synchronized (this) 代码块时需要注意，当一个线程访问 Object 的一个 synchronized(this) 同步块时，其他线程对同一个 Object 中所有其他 synchronized(this) 代码块访问将被阻塞，这说明 synchronized 使用的 对象监视器 是一个。
+
+ - 8、和 synchronized 方法一样，synchronized(this) 代码块也是锁定当前对象的。
+
+ - 9、多线程调用同一个对象的不同名称 synchronized 同步方法或 synchronized(this) 同步代码块时，调用的效果就是按顺序执行，也就是同步阻塞的。
+
+ - 10、[Java] 还支持 synchronized （非 this 对象），优点就是同类中不与其他 synchronized （非 this 对象）争抢 this 锁。 volatile 关键字的主要作用是使变量在多个线程间可见
+
+ - 11、synchronized(x) 前提下，当多个线程同时执行 synchronized (x){} 同步代码块时呈现同步效果。当其他线程执行 x 对象中 synchronized 同步方法时呈现同步效果。当其他线程执行 x 对象方法里的 synchronized(this) 代码块时也呈现同步效果
+
+ - 12、关键字 synchronized 还可以应用在 static 静态方法上，如果这样写，那是对当前 *.java 文件对应的 Class 类进行持锁，也就说所有产生的对象实例都是同步的。
+
+ - 13、如果有 synchronized public static 和 synchronized public 两种持有的锁是不一样的，一个是 class 锁，一个是对象锁
+
+ - 14、同步 synchronized (class) 代码块的作用其实和 synchronized static 方法的作用一样，都是获得 class 锁
+
+ - 15、将 synchronized(String) 同步块与 String 联合使用时，要注意常量池带来的一些例外。相同字符获得锁有可能是一样的
+
+ - 16、死锁就是程序 bug，在设计时就要避免双方互相持有对方的锁的情况。可以使用 JDK 自带工具检测是否死锁的现象。使用 JPS命令找到线程 ID，jstack -l id 查看结果
+
+ - 17、volatile 关键字的主要作用是使变量在多个线程间可见。线程栈属于每个线程私有的，使用 volatile 将强制性从公共堆栈中获取值。
+
+ - 18、使用 volatile 关键字增加了实例变量在多个线程之间的可见性。但 volatile 关键字最致命的缺点是不支持原子性。不支持 i++ 类似操作。
+
+ - 19、关键字 volatile 是线程同步的轻量级实现，所以其性能肯定比 synchronized 要好，并且 volatile 只能修饰于变量，而 synchronized 可以修饰方法及代码块。随着 JDK 新版本发布，synchronized 在执行效率上得到很大提升。
+
+ - 20、多线程访问 volatile 不会发生阻塞，而 synchronized 会出现阻塞。
+
+ - 21、volatile 能保证数据的可见性，但不能保证原子性；而 synchronized 可以保证原子性也可以间接保证可见性，因为它会将私有内存和公共内存中的数据进行同步。
+
+ - 22、volatile 关键字解决的是变量在多个线程之间的可见性；synchronized 关键字解决的是多个线程之间访问资源的同步性；
+
+ - 23、原子类操作可以使用 AtomicInteger.incrementAndGet()等
+
+##### 三、线程间通信
+
+ - 1、wait() 方法作用是使当前执行代码的线程等待，wait() 方法是 Object 类的方法，该方法用来将当前线程置入 “预执行队列”中，并且在 wait() 所在的代码处停止执行，直到接到通知或者被中断为止。再调用 wait() 前，线程必须获得该对象的对象级别锁，即只能在同步方法或者同步块中调用 wait() 方法。在执行 wait() 方法后，当前线程释放锁。再从 wait() 返回前，线程与其他线程竞争重新获得锁。如果调用 wait()时没有持有适当的锁，则抛出 IllegalMonitorStateException，它是 runtimeException 的一个字类，因此，不需要 try-catch。
+
+ - 2、notify() 方法也要在同步方法或同步块中调用，即在调用前，线程也必须获得该对象的对象级别的锁。如果调用 notify() 没有获得适当的锁，也会抛出 IllegalMonitorStateException 异常。该方法用来通知那些有可能等待该对象的对象锁的其他线程，如果有多个线程等待，则由线程规划器随机挑选其中一个呈 wait 状态的对象（线程级别越高获得几率越大），对其进行 nontify() 通知，并使其获得对象锁。
+
+ - 3、 在执行 notify() 后，当前线程不会马上释放该对象锁，呈 wait 状态的线程也不能马上获得该对象锁，需要等 notify() 方法的线程将程序执行完，也就是退出 synchronized 代码块后，当前线程才会释放锁，而呈 wait 状态所在的线程才可以获取该对象锁。当第一个获得对象锁的 wait 线程运行完毕后，它会释放掉该对象锁，此时如果该对象没有再次使用 notify() 语句，即便该对象已经空闲，其他 wait 状态线程由于没得到通知，还是会继续阻塞在 wait 状态，直到该对象发出一个 notify 或 notifyAll.
+
+ - 4、wait() 方法可以使调用该方法的线程释放共享资源的锁，然后从运行状态退出，进入等待队列，直到被再次唤醒。
+
+ - 5、notify() 方法可以随机唤醒等待队列中等待同一共享资源的“一个”线程并使该线程退出等待队列，进入可运行状态。
+
+ - 6、notifyAll() 方法可以使所有正在等待队列中等待同一共享资源的 全部 线程从等待状态退出，进入可运行状态。此时，优先级最高的那个线程最先执行，但也有可能是随机执行，取决 JVM 实现。
+
+![title](images/java-basic-multi-thread/java-basic-multi-thread-001.jpg)
+
+图解：
+
+
+ - 1）新建一个线程对象后，再调用它的 start() 方法，系统会为此线程分配 CPU 资源，使其处于 Runnable(可运行) 状态，这是一个准备运行的阶段。如果线程抢到 CPU 资源，线程就处于 Running(运行) 状态。
+
+ - 2）Runnable 状态和 Running 状态可相互切换，因为有可能线程运行一段时间后，有其它高优先级的线程抢占 CPU 资源，这时此线程就从 Running 状态变成 Runable 状态。 线程进入 Runnable 状态大体分为如下 5 种情况：（其实就是准备抢占 CPU 的状态） 调用 sleep() 方法后经过的时间超过了指定的休眠时间 线程调用的阻塞 IO 已经返回，阻塞方法执行完毕 线程成功的获得了试图同步的监视器 线程正在等待某个通知，其他线程发出了通知 处于挂起状态的线程调用了 resume 恢复方法。
+
+ - 3）Blocked 是阻塞的意思，例如遇到了一个 IO 操作，此时 CPU 处于空闲状态，可能会转而把 CPU 时间片分配给其他线程，这时也可以称为”暂停”状态。Blocked 状态结束后，进入 Runable 状态，等待系统重新分配资源。 出现阻塞的情况大体分为如下 5 种： 线程调用 sleep() 方法，主动放弃占用的处理器资源 线程调用了阻塞式 IO 方法，在该方法返回前，该线程被阻塞 线程试图获得一个同步监视器，但该同步监视器正在被其他线程持有 线程在等待某个通知 线程调用了 suspend() 方法将该线程挂起。此方法容易导致死锁，尽量避免使用。
+
+ - 4）run() 方法运行结束后进入销毁阶段，整个线程执行完毕。
+
+
+ - 7、每个锁对象都有两个队列，一个是就绪队列，一个是阻塞队列。就绪队列存储了将要获得锁的线程，阻塞队列存储了被阻塞的线程。一个线程被唤醒后，才会进入就绪队列（Runable 状态），等待 CPU 调度；反之，一个线程被 wait() 后，就会进入阻塞队列，等待下一次被唤醒。
+
+ - 8、当线程呈 wait 状态时，调用线程对象的 interrupt() 方法会出现 InterruptedException 异常。
+
+ - 9、带一个参数的 wait(long) 方法的功能是等待某一时间是否有线程对其进行唤醒，如果超过这个时间则自动唤醒。
+
+ - 10、管道流 (pipeStream) 是一种特殊的流，用于在不同线程间直接传送数据。一个线程发送数据到输出管道，另一个线程从输入管道中读取数据。通过使用管道，实现不同线程间的通信，而无需借助临时文件之类的。
+
+ - 11、JDK 提供 4 个类来使线程间通信 
+
+  - 1） PipedInputStream 和 PipedOutputStream 。
+
+  - 2） PipeReader 和 PipedWriter。
+
+ - 12、使用代码 inputStream.connect(outputStream) 或 outputStream.connect(inputStream) 的作用使两个 Stream 之间产生通信链接，这样才可以进行数据传输。
+
+ - 13、方法 join() 的主要作用是等待线程对象销毁。
+
+ - 14、方法 join()的作用是使所属的线程对象 X 正常执行 run() 方法中的任务，而使其当前线程 Z 进行无限期的阻塞，等待线程X销毁后再继续执行线程 Z 后边的代码。
+
+ - 15、方法 join() 具有使线程排队运行的作用，有些类似同步的运行效果。join 和 synchronized 的区别是：join 在内部使用的是 wait() 方法进行等待，而 synchronized 关键字使用的是 对象监视器 原理做同步。
+
+ - 16、join() 与 interrupt() 遇到会出现异常。
+
+ - 17、类 ThreadLocal 主要解决的就是每个线程绑定自己的值，可以将 ThreadLocal 类比喻成全局存放数据的盒子，盒子中可以存储每个线程的私有数据。
+
+ - 18、第一次调用 ThreadLocal 的 get() 方法返回值为 null。如不想默认值返回为 null，可以继承 ThreadLocal 重写 initialValue() 方法。
+
+ - 19、InheritableThreadLocal 可以在子线程中取得父线程继承下来的值。如果在子线程取得值的同时，主线程将值进行更改，那么子线程取到的还是旧值。
+
+参考链接：
+
+ - <a href="https://juejin.im/post/5d0465fff265da1bb47d61ee#heading-0" target="_blank">多线程并发知识精要</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

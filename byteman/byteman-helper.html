@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>byteman-helper</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### byteman-helper
+
+**使用 Helper 实现更多的支持**
+
+```python
+RULE dump list data  
+CLASS org.my.app.MyClass  
+METHOD dumpList(List)  
+HELPER org.my.helper.MyHelper  
+AT ENTRY  
+IF TRUE  
+    DO dumpList($1)
+ENDRULE  
+```
+
+```java
+package org.my.helper;
+ 
+import org.jboss.byteman.rule.helper.Helper;
+import org.jboss.byteman.rule.Rule;
+ 
+class MyHelper extends Helper {
+ 
+    public MyHelper(Rule rule){
+        super(rule);
+    }
+ 
+    public void dumpList(List<?> list) {
+        String prefix = "{";
+        for (int i = 0; i < list.size(); i++) {
+            trace(prefix);
+            trace(list.get(i).toString());
+            prefix = ", "
+        }
+        traceln("}";
+        }
+    }
+}
+```
+_**将编写的 `Helper` 打为 jar 包然后，在运行时将该 jar 添加到 `classpath` 路径下**_
+
+**注意：**
+
+ - _**HELPER 需要填写指定 `类` 的 `全限定名称`。**_
+ 
+ - _**HELPER 使用的类，需要在当前运行程序的 `CLASSPATH` 路径中。**_
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

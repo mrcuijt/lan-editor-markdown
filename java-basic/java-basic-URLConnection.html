@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-URLConnection</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-URLConnection
+
+#### 验证 JDK URLConnection Keep-Alive
+
+**使用 Wireshark 抓包信息**
+
+_**6 次请求，JDK 底层做了优化，默认发送 `Keep-Alive` 请求，使用了同一个 TCP 连接**_
+
+##### 解析说明
+
+URLConnection 只发送了一次 SYN 请求，收到了服务器 SYN，ACK 响应。
+
+之后 URLConnection 通过使用 ACK 在同一个 TCP 连接中发送新的请求。
+
+Keep-Alive
+
+ - 在与服务器建立连接后，保持与服务器之间的连接。
+ 
+ - 后续发送的请求，使用的 TCP 连接是同一个，不用再次进行握手。
+ 
+##### JDK 默认配置信息
+
+_**What does the current JDK do for Keep-Alive?(JDK1.6)**_
+
+_The JDK supports both HTTP/1.1 and HTTP/1.0 persistent connections._
+
+&amp;#160; &amp;#160;_When the application finishes reading the response body or when the application calls close() on the InputStream returned by URLConnection.getInputStream(), the JDK's HTTP protocol handler will try to clean up the connection and if successful, put the connection into a connection cache for reuse by future HTTP requests._
+
+&amp;#160; &amp;#160;_The support for HTTP keep-Alive is done transparently. However, it can be controlled by system properties http.keepAlive, and http.maxConnections, as well as by HTTP/1.1 specified request and response headers._
+
+_The system properties that control the behavior of Keep-Alive are:_
+
+```java
+http.keepAlive=<boolean>
+default: true
+```
+
+_Indicates if keep alive (persistent) connections should be supported._
+
+```java
+http.maxConnections=<int>
+default: 5
+```
+
+_Indicates the maximum number of connections per destination to be kept alive at any given time_
+
+_HTTP header that influences connection persistence is:_
+
+```java
+Connection: close
+```
+
+&amp;#160; &amp;#160;_If the "Connection" header is specified with the value "close" in either the request or the response header fields, it indicates that the connection should not be considered 'persistent' after the current request/response is complete._
+
+&amp;#160; &amp;#160;_The current implementation doesn't buffer the response body. Which means that the application has to finish reading the response body or call close() to abandon the rest of the response body, in order for that connection to be reused. Furthermore, current implementation will not try block-reading when cleaning up the connection, meaning if the whole response body is not available, the connection will not be reused._
+
+
+参考链接：
+
+ - <a href="https://docs.oracle.com/javase/6/docs/technotes/guides/net/http-keepalive.html" target="_blank">Persistent Connections</a>
+
+##### 可以手动进行配置测试
+
+```java
+// set the keep alive in the HttpURLConnection
+httpUC.setRequestProperty("Connection","Keep-Alive");
+
+//set the keep aive in the system properties
+System.getProperties.put("http.keepAlive", true);
+```
+
+```java
+// When the application encounters a HTTP 400 or 500 response
+// Program need catch IOException and call HttpURLConnection.getErrorStream() 
+// read the response body, then close the stream.
+
+// Several new Sun implementation specific properties are introduced 
+// to help clean up the connections after error response from the server.
+
+// The major one is:
+sun.net.http.errorstream.enableBuffering=<boolean>
+default: false
+
+// The following two system properties provide further control to the error stream buffering behavior:
+sun.net.http.errorstream.timeout=<int> in millisecond
+default: 300 millisecond
+
+sun.net.http.errorstream.bufferSize=<int> in bytes
+default: 4096 bytes
+```
+
+##### 抓包信息
+
+<a href="./datas/java-basic-URLConnection/sample%20keep-alive.pcapng" target="_blank">_**Wireshark 抓包信息 `sample keep-alive.pcapng`**_</a>
+
+<a href="./datas/java-basic-URLConnection/sample%20ssl%20keep-alive.pcapng" target="_blank">_**Wireshark 抓包信息 `sample ssl keep-alive.pcapng`**_</a>
+
+```python
+GET /webapp HTTP/1.1
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
+Cache-Control: no-cache
+Pragma: no-cache
+Host: 169.254.244.240:8500
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Date: Tue, 10 Sep 2019 17:59:25 GMT
+Content-length: 31
+
+This is the response at /webappGET /webapp HTTP/1.1
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
+Cache-Control: no-cache
+Pragma: no-cache
+Host: 169.254.244.240:8500
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Date: Tue, 10 Sep 2019 17:59:25 GMT
+Content-length: 31
+
+This is the response at /webappGET /webapp HTTP/1.1
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
+Cache-Control: no-cache
+Pragma: no-cache
+Host: 169.254.244.240:8500
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Date: Tue, 10 Sep 2019 17:59:25 GMT
+Content-length: 31
+
+This is the response at /webappGET /webapp HTTP/1.1
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
+Cache-Control: no-cache
+Pragma: no-cache
+Host: 169.254.244.240:8500
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Date: Tue, 10 Sep 2019 17:59:25 GMT
+Content-length: 31
+
+This is the response at /webappGET /webapp HTTP/1.1
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
+Cache-Control: no-cache
+Pragma: no-cache
+Host: 169.254.244.240:8500
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Date: Tue, 10 Sep 2019 17:59:26 GMT
+Content-length: 31
+
+This is the response at /webappGET /webapp HTTP/1.1
+User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0
+Cache-Control: no-cache
+Pragma: no-cache
+Host: 169.254.244.240:8500
+Accept: text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2
+Connection: keep-alive
+
+HTTP/1.1 200 OK
+Date: Tue, 10 Sep 2019 17:59:26 GMT
+Content-length: 31
+
+This is the response at /webapp
+```
+
+参考链接：
+
+ - <a href="https://docs.oracle.com/javase/6/docs/technotes/guides/net/http-keepalive.html" target="_blank">Persistent Connections</a>
+
+ - <a href="https://community.oracle.com/thread/1693176" target="_blank">keep alive in HttpURLConnection</a>
+
+ - <a href="https://stackoverflow.com/questions/8607700/tomcat-http-keep-alive-and-javas-httpsurlconnection" target="_blank">Tomcat, HTTP Keep-Alive and Java's HttpsUrlConnection</a>
+
+ - <a href="https://stackoverflow.com/questions/9943351/httpsurlconnection-and-keep-alive" target="_blank">HttpsUrlConnection and keep-alive</a>
+
+ - <a href="https://stackoverflow.com/questions/15946228/enabling-ssl-session-for-jetty-to-speed-up-https-requests" target="_blank">Enabling SSL session for Jetty to speed up HTTPS requests</a>
+
+ - <a href="https://stackoverflow.com/questions/5643704/reusing-ssl-sessions-in-android-with-httpclient" target="_blank">Reusing SSL Sessions in Android with HttpClient</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

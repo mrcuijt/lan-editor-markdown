@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>h2-basic-exart-function</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### h2-basic-exart-function
+
+#### 向 H2 数据库注册自定义的数据库函数
+
+&amp;#160; &amp;#160;H2 作为一个数据库，和其他类型的数据库一样，会自带有一些数据库函数给我们使用，但是 H2 数据库提供的数据库函数有限，无法满足我们开发中的需求，幸运的是，H2 数据库支持自定义数据库函数的，因此我们可以根据开发中的实际应用场景编写满足我们需求的数据库函数。
+
+下面就来说一下如何实现 H2 数据库的自定义函数
+
+&amp;#160; &amp;#160;在 MySQL 数据库中有一个 UUID 函数是用来生成 UUID 的，执行 "`SELECT UUID()`" 就可以看到 UUID 函数生成的 UUID，如下图所示：
+
+![title](./images/h2-basic-exart-function/h2-basic-exart-function-001.png)
+
+而默认情况下，H2数据库是没有提供有UUID这个函数给我们使用的，如下图所示：
+
+![title](./images/h2-basic-exart-function/h2-basic-exart-function-002.png)
+
+&amp;#160; &amp;#160;那么我们现在就来实现一个 UUID 函数，然后注册到 H2 数据库当中，这样 H2 数据库就支持 UUID 函数了，具体做法分为两个步骤：
+
+(1) 使用 Java 实现自定义函数的方法。
+
+(2) 将 Java 的自定义函数注册到 H2 数据库中。
+
+&amp;#160; &amp;#160;首先我们来实现这个 UUID 函数，在 Java 中，生成一个 UUID 的方法是使用 java.util.UUID 这个类里面的一个 randomUUID() 方法生成的，封装成一个 uuid 方法，代码如下：
+
+```java
+package h2db.function.ext;
+
+import java.util.UUID;
+
+/**
+* @ClassName: H2DBFunctionExt
+* @Description: 针对 H2 数据库函数的扩展
+* @author: 孤傲苍狼
+* @date: 2014-12-20 下午11:20:34
+*
+*/ 
+public class H2DBFunctionExt {
+
+  /**
+   * 用法：SELECT uuid();
+   * H2数据库注册 uuid 函数：CREATE ALIAS uuid FOR "h2db.function.ext.H2DBFunctionExt.uuid";
+   * @Method: uuid
+   * @Description: 实现 MySQL 数据库的 uuid 函数，用于生成 UUID
+   * @Anthor:孤傲苍狼
+   *
+   * @return
+   */ 
+  public static String uuid(){
+    return UUID.randomUUID().toString();
+  }
+}
+```
+
+&amp;#160; &amp;#160;这样，我们的 uuid 函数就算是编写好了，需要注意的是，类和方法必须是公共(Public)的,且方法需为静态(static)的，如方法中使用了 Connection 对象需将其关闭。
+
+接下来我们要将其注册到 H2 数据库中，须执行 "CREATE ALIAS" 语句，SQL 语法如下：
+
+```sql
+CREATE ALIAS [IF NOT EXISTS] newFunctionAliasName [DETERMINISTIC] FOR classAndMethodName
+```
+
+其中 `[]` 括起来的部分是可选的，本例须执行的语句为：
+
+```sql
+CREATE ALIAS UUID FOR "h2db.function.ext.H2DBFunctionExt.uuid" 
+```
+
+执行结果如下图所示：
+
+![title](./images/h2-basic-exart-function/h2-basic-exart-function-003.png)
+
+&amp;#160; &amp;#160;这样 H2 数据库中就多了一个 UUID 函数可以使用了，我们再次执行 "`SELECT UUID()`" 语句就可以被 H2 数据库正常解析了，执行结果如下图所示：
+
+![title](./images/h2-basic-exart-function/h2-basic-exart-function-004.png)
+
+&amp;#160; &amp;#160;以上就是针对 H2 数据库函数的一个扩展，我们向 H2 数据库新增加了一个 UUID 函数用于生成 uuid。因此当 H2 数据库提供的函数不满足我们开发中的实际需求时，就可以使用这种方式来扩展H2数据库的函数了。接下来演示一下一次性向 H2 数据库扩展多个函数，我们编写一个 H2DBFunctionExt 类，在类中编写针对 H2 数据库的扩展函数，代码如下：
+
+```java
+package h2db.function.ext;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
+
+/**
+ * @ClassName: H2DBFunctionExt
+ * @Description: 针对 H2 数据库函数的扩展
+ * @author: 孤傲苍狼
+ * @date: 2014-12-20 下午11:20:34
+ *
+ */ 
+public class H2DBFunctionExt {
+
+  /**
+   * 用法：SELECT uuid();
+   * H2 数据库注册uuid函数：CREATE ALIAS IF NOT EXISTS uuid FOR "h2db.function.ext.H2DBFunctionExt.uuid";
+   * @Method: uuid
+   * @Description: 实现 MySQL 数据库的 uuid 函数，用于生成 UUID
+   * @Anthor:孤傲苍狼
+   *
+   * @return
+   */ 
+  public static String uuid(){
+    return UUID.randomUUID().toString();
+  }
+
+  /**
+   * H2 数据库注册 currentTime 函数：CREATE ALIAS IF NOT EXISTS currentTime FOR "h2db.function.ext.H2DBFunctionExt.now";
+   * @Method: now
+   * @Description: 实现 MySQL 数据库的 now() 函数，用于生成当前系统时间
+   * @Anthor:孤傲苍狼
+   *
+   * @return
+   */ 
+  public static String now(){
+    return new Date().toLocaleString();
+  }
+
+  /**
+   * H2 数据库注册IP函数：CREATE ALIAS IF NOT EXISTS IP FOR "h2db.function.ext.H2DBFunctionExt.getIp";
+   * @Method: getIp
+   * @Description: 
+   * @Anthor:孤傲苍狼
+   *
+   * @return
+   */ 
+  public static String getIp(){
+    try {
+      InetAddress addr = InetAddress.getLocalHost();
+      // 获得本机 IP
+      return addr.getHostAddress();
+    } catch (UnknownHostException e) {
+      e.printStackTrace();
+      return "未知的IP地址";
+    } 
+  }
+
+  /**
+   * H2 数据库注册 date_format 函数：CREATE ALIAS IF NOT EXISTS date_format FOR "h2db.function.ext.H2DBFunctionExt.date_format";
+   * @Method: date_format
+   * @Description: 实现 MySQL 数据库的 date_format() 函数，用于格式化日期
+   * @Anthor:孤傲苍狼
+   * @param date
+   * @param pattern
+   * @return
+   */ 
+  public static String date_format(String date,String pattern){
+    if (date != null) {
+      SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+      try {
+        Date temp = sdf.parse(date);
+        return sdf.format(temp);
+      } catch (ParseException e) {
+        e.printStackTrace();
+      }
+    }
+    return "";
+  }
+}
+```
+
+为了实现批量注册 H2 数据库的扩展函数，我们可以编写一个 Servlet，专门用于注册扩展函数，代码如下：
+
+```java
+package me.gacl.sys.init;
+
+import java.sql.Connection;
+import java.sql.Statement;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+
+import me.gacl.util.JdbcUtil;
+
+/**
+ * @ClassName: RegisterH2ExtFuncServlet
+ * @Description:注册 H2 数据库的扩展函数
+ * @author: 孤傲苍狼
+ * @date: 2014-12-20 下午11:47:03
+ *
+ */
+public class RegisterH2ExtFuncServlet extends HttpServlet {
+
+  /**
+   * @Field: serialVersionUID
+   */ 
+  private static final long serialVersionUID = 4379248469825545593L;
+ 
+  public void init() throws ServletException {
+
+    // 1、注册 uuid 函数的 SQL 语句
+    String sql1 = "CREATE ALIAS IF NOT EXISTS uuid FOR \"h2db.function.ext.H2DBFunctionExt.uuid\"";
+
+    // 2、注册 currentTime 函数的 SQL 语句
+    String sql2 = "CREATE ALIAS IF NOT EXISTS currentTime FOR \"h2db.function.ext.H2DBFunctionExt.now\"";
+
+    // 3、注册 IP 函数的 SQL 语句
+    String sql3 = "CREATE ALIAS IF NOT EXISTS IP FOR \"h2db.function.ext.H2DBFunctionExt.getIp\"";
+
+    // 4、注册 date_format 函数的 SQL 语句
+    String sql4 = "CREATE ALIAS IF NOT EXISTS date_format FOR \"h2db.function.ext.H2DBFunctionExt.date_format\"";
+
+    Connection conn = null;
+    Statement stmt = null;
+
+    try {
+
+      // 获取数据库连接
+      conn = JdbcUtil.getConnection();
+
+      // 获取Statement对象
+
+      stmt = conn.createStatement();
+
+      // 添加要执行的 SQL
+      stmt.addBatch(sql1);
+      stmt.addBatch(sql2);
+      stmt.addBatch(sql3);
+      stmt.addBatch(sql4);
+
+      // 批量执行上述的 4 条 SQL
+      stmt.executeBatch();
+
+      System.out.println("H2 数据库扩展函数注册成功！");
+
+      // 清除批处理执行语句
+      stmt.clearBatch();
+
+    } catch (Exception e) {
+      System.out.println("H2 数据库扩展函数注册失败！");
+      e.printStackTrace();
+    }finally{
+
+      try {
+        if(stmt != null) stmt.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+      try {
+        if(conn != null) conn.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+
+    }
+  }
+}
+```
+
+在 web.xml 中注册 RegisterH2ExtFuncServlet
+
+```xml
+<servlet>
+  <description>注册 H2 数据库的扩展函数</description>
+  <servlet-name>RegisterH2DBExtFunction</servlet-name>
+  <servlet-class>me.gacl.sys.init.RegisterH2ExtFuncServlet</servlet-class>
+  <!-- 
+    1、load-on-startup 元素标记容器是否在启动的时候就加载这个 servlet(实例化并调用其 init()方法)。
+    2、它的值必须是一个整数，表示 servlet 应该被载入的顺序
+    3、当值为 0 或者大于0时，表示容器在应用启动时就加载并初始化这个 servlet；
+    4、当值小于 0 或者没有指定时，则表示容器在该 servlet 被选择时才会去加载。
+    5、正数的值越小，该 servlet 的优先级越高，应用启动时就越先加载。
+    6、当值相同时，容器就会自己选择顺序来加载。
+    所以，<load-on-startup>x</load-on-startup>，中x的取值1，2，3，4，5代表的是优先级，而非启动延迟时间。
+   -->
+   <load-on-startup>1</load-on-startup>
+</servlet>
+```
+
+&amp;#160; &amp;#160;RegisterH2ExtFuncServlet 要批量执行 SQL 语句，因此需要连接上 H2 数据库才能够执行，工具类 JdbcUtil 提供了获取数据库连接的方法，JdbcUtil 的代码如下：
+
+```java
+package me.gacl.util;
+
+import java.io.InputStream;
+import java.sql.Connection;
+import java.util.Properties;
+import org.h2.jdbcx.JdbcConnectionPool;
+
+public class JdbcUtil {
+
+  /**
+   * H2 数据库自带的连接池
+   */
+  private static JdbcConnectionPool cp = null;
+
+  static{
+    try {
+      // 加载 src 目录下的 h2config.properties
+      InputStream in = JdbcUtil.class.getClassLoader().getResourceAsStream("h2config.properties");
+      Properties prop = new Properties();
+      prop.load(in);
+      // 创建数据库连接池
+      cp = JdbcConnectionPool.create(prop.getProperty("JDBC_URL"), prop.getProperty("USER"), prop.getProperty("PASSWORD"));
+    } catch (Exception e) {
+      System.out.println("连接池初始化异常");
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * @Method: getConnection
+   * @Description:获取数据库连接
+   * @Anthor:孤傲苍狼
+   * @return
+   * @throws Exception
+   */
+  public static Connection getConnection() throws Exception{
+    return cp.getConnection();
+  }
+
+  public static JdbcConnectionPool getCp() {
+    return cp;
+  }
+}
+```
+
+**`h2config.properties`** 的配置信息如下：
+
+```python
+JDBC_URL=jdbc:h2:tcp://localhost/~/h2db
+USER=gacl
+PASSWORD=123
+```
+
+&amp;#160; &amp;#160;当 Web 应用启动时，就会执行 RegisterH2ExtFuncServlet 这个 Servlet 中的 init 方法，init 方法内部的处理就是通过 JdbcUtil 工具类获取一个 H2 的数据库连接，然后创建 Statement 对象，再由 Statement 对象批量执行 SQL 向 H2 数据库注册扩展函数。
+
+&amp;#160; &amp;#160;RegisterH2ExtFuncServlet 执行的过程中如果没有出现任何错误，那就说明所有的针对 H2 数据库的扩展函数都注册成功了，我们可以到 H2 的 Console 去验证一下上述的 4 个扩展函数，如下图所示：
+
+![title](./images/h2-basic-exart-function/h2-basic-exart-function-005.png)
+
+关于在 Web 应用中嵌入使用 H2 数据库，以及针对 H2 数据库函数的扩展的内容就讲解这么多了。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/guicaizhou/article/details/51862423" target="_blank">在 Web 应用中嵌入 H2 数据库</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

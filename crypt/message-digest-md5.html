@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>message-digest-md5</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### message-digest-md5
+
+#### OpenSSL Use MD5 Digest Key Hash Encrypt/Decrypt File
+
+```python
+echo "0000 3132 3334 3536" | xxd -r >1.txt
+
+xxd 1.txt
+## 00000000: 3132 3334 3536                           123456
+
+echo "0000 31" | xxd -r >key
+## 00000000: 31                                       1
+
+openssl enc -aes-128-ecb -in 1.txt -out 1.txt.enc -nosalt -pass pass:1 -p
+## key=C4CA4238A0B923820DCC509A6F75849B
+
+openssl dgst -md5 key
+## MD5(key)= c4ca4238a0b923820dcc509a6f75849b
+
+## Decrypt Use -pass parameter
+openssl enc -aes-128-ecb -d -in 1.txt.enc -out 1.txt.dec -nosalt -pass pass:1 -p
+## key=C4CA4238A0B923820DCC509A6F75849B
+
+## Decrypt Use -K parameter
+openssl enc -aes-128-ecb -d -in 1.txt.enc -out 1.txt.dec -nosalt -K C4CA4238A0B923820DCC509A6F75849B -p
+## key=C4CA4238A0B923820DCC509A6F75849B
+
+xxd 1.txt.dec
+## 00000000: 3132 3334 3536                           123456
+```
+
+#### Java MD5 Example
+
+##### String MD5 MessageDigest
+
+```java
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public static String md5(String msg){
+  String hex = null;
+  try {
+    MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+    messageDigest.update(msg.getBytes());
+    hex = new BigInteger(1, messageDigest.digest()).toString(16);
+    hex = hex.toUpperCase();
+    System.out.println(hex);
+  } catch(NoSuchAlgorithmException e){
+    e.printStackTrace();
+  }
+  return hex;
+}
+```
+
+##### byte array MD5 MessageDigest
+
+```java
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public static String md5(byte[] datas){
+  String hex = null;
+  try {
+    MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+    messageDigest.update(datas);
+    hex = new BigInteger(1, messageDigest.digest()).toString(16);
+    hex = hex.toUpperCase();
+    System.out.println(hex);
+  } catch (NoSuchAlgorithmException e){
+    e.printStackTrace();
+  }
+  return hex;
+}
+```
+
+##### Binary File MD5 MessageDigest
+
+```java
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public static String md5sum(String file){
+  String hex = null;
+  try {
+    MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+    FileInputStream in = new FileInputStream(file);
+    int len = -1;
+    byte[] buffer = new byte[2048];
+    while( (len = in.read(buffer)) != -1){
+      messageDigest.update(buffer, 0, len);
+    }
+    hex = new BigInteger(1, messageDigest.digest()).toString(16);
+    hex = hex.toUpperCase();
+    System.out.println(hex);
+  } catch (NoSuchAlgorithmException e){
+    e.printStackTrace();
+  } catch (IOException e){
+    e.printStackTrace();
+  }
+  return hex;
+}
+```
+
+ - Using nio2 (Java 7+) and no external libraries:
+
+```java
+// For a big file this will use a lot of memory 
+// since the whole file is read and then fed to 
+// the digest instead of reading chunks and "digesting" them as they are read.
+byte[] bytes = Files.readAllBytes(Paths.get("/path/to/file"));
+byte[] hash = MessageDigest.getInstance("MD5").digest(bytes);
+
+// To compare the result with an expected checksum:
+String expected = "2252290BC44BEAD16AA1BF89948472E8";
+String actual = javax.xml.bind.DatatypeConverter.printHexBinary(hash);
+System.out.println(expected.equalsIgnoreCase(actual) ? "MATCH" : "NO MATCH");
+```
+
+ - Apache Commons Codec Library
+
+```java
+try (InputStream is = Files.newInputStream(Paths.get("file.zip"))){
+  String md5 = org.apache.commons.codec.digest.DigestUtils.md5Hex(is);
+}
+```
+
+参考链接：
+
+ - <a href="https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java" target="_blank">Getting a File's MD5 Checksum in Java</a>
+
+ - <a href="http://asjava.com/core-java/java-md5-example/" target="_blank">Java MD5 example</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

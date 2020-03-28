@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)https://diafygi.github.io/gethttpsforfree/ -->
+<html class="translated-ltr"><!--
+Welcome to the source code for gethttpsforfree.com!
+
+This is an open source website that is meant to be auditable. Please read
+through the code to see what's going on!
+
+Original files:
+    /index.html - This page
+    /js/index.js - The interaction behavior for this page
+
+Third-party libraries (all from asn1.js package):
+    /js/asn1js/int10.js - Needed for asn1.js
+    /js/asn1js/hex.js - Convert hex to binary array
+    /js/asn1js/base64.js - Convert base64 to binary array
+    /js/asn1js/asn1.js - Parse ASN.1 format used in x.509 certificates
+    /js/asn1js/LICENSE - The license for the above asn1.js files
+
+Released under MIT License. Enjoy!
+--><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>免费获取HTTPS！</title>
+    
+    <style>
+        *{box-sizing:border-box;}
+        div{margin:15px 0px;}
+        .small{font-size:14px;font-weight:normal;}
+        .error{color:#ff1111;}
+        .field{width:100%;max-width:600px;}
+        body{background-color:#fafafa;}
+        li{margin-bottom:10px;}
+        h1{border-bottom:solid black 1px;padding-bottom:15px;}
+        input[type="text"]{width:100%;}
+        textarea{width:100%;height:120px;white-space:pre;}
+        .help{float:right;font-size:12px;text-decoration:underline;cursor:pointer;}
+        .help-checkbox{display:none;}
+        .help-checkbox:checked + .help-content{display:inline-block;}
+        .help-content{display:none;width:100%;max-width:600px;margin:5px 0px 10px 0px;padding:10px;background-color:#eeeeee;border:2px solid #bbbbbb;}
+        code{display:inline-block;margin:5px 0px;padding:5px;background-color:#ffffff;}
+        pre{margin:5px 0px;padding:5px;overflow:auto;background-color:#ffffff;}
+        .tabs > label{display:inline-block;margin:0px;padding:6px 12px;font-size:13px;text-decoration:underline;cursor:pointer;}
+        .tabs input[type=radio]{display:none;}
+        .tabs input[type=radio]:checked + label{background-color:#eeeeee;}
+        .tabs input[type=radio].challenge_python:checked ~ .tab.challenge_python{display:block;}
+        .tabs input[type=radio].challenge_file:checked ~ .tab.challenge_file{display:block;}
+        .tabs input[type=radio].challenge_dns:checked ~ .tab.challenge_dns{display:block;}
+        .tab{display:none;background-color:#eeeeee;padding:15px 15px 1px 15px;margin:0px 0px 15px 0px;}
+        .tab .help-content{background-color:#ffffff;}
+        .tab .help-content a{display:inline-block;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+        .tab code{background-color:#eeeeee;}
+        .tab pre{background-color:#eeeeee;}
+        .tab textarea{height:105px;}
+        .footer{font-size:12px;}
+    </style>
+    <script src="./免费获取HTTPS！_files/int10.js.download"></script>
+    <script src="./免费获取HTTPS！_files/base64.js.download"></script>
+    <script src="./免费获取HTTPS！_files/hex.js.download"></script>
+    <script src="./免费获取HTTPS！_files/asn1.js.download"></script>
+<link type="text/css" rel="stylesheet" charset="UTF-8" href="./免费获取HTTPS！_files/translateelement.css"></head>
+<body>
+
+    <!--#############-->
+    <!--##  Intro  ##-->
+    <!--#############-->
+    <h1><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        免费获取HTTPS！
+        </font></font><span class="small"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">更新：添加了通配符证书支持！</font></font></span>
+    </h1>
+    <h2 id="digest_error" class="error" style="display:none;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        错误：您的浏览器与此网站不兼容（此网站需要WebCryptoAPI的crypto.subtle.digest（））。</font><font style="vertical-align: inherit;">请升级到现代浏览器（Firefox，Chrome，Safari，Edge，IE 11+）。
+    </font></font></h2>
+    <div><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        您现在可以从非营利性证书颁发机构获取免费的https证书（包含通配符证书）
+         </font></font><a href="https://letsencrypt.org/" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">让我们加密</font></font></a><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">！</font><font style="vertical-align: inherit;">这是一个网站，将引导您完成手动步骤以获取免费的https证书，以便您可以使用https建立自己的网站！</font><font style="vertical-align: inherit;">这个网站是
+         </font></font><a href="https://github.com/diafygi/howtogetfreehttps" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">开源的</font></font></a><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> 
+        ，</font></font><strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">永远不会</font></font></strong><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">要求你的私钥。</font><font style="vertical-align: inherit;">永远不要相信要求您的私钥的网站！
+        </font></font><!--<a href="revoke.html">Click here</a> to revoke certs.-->
+    </div>
+
+    <div>
+        <b><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">注意：本网站适用于知道如何生成证书签名请求（CSR）的人员！</font></font></b><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">如果您不熟悉如何执行此操作，请使用</font><font style="vertical-align: inherit;">
+        可自动为您发布和安装https证书</font><font style="vertical-align: inherit;">的官方Let's Encrypt </font></font><a href="https://github.com/certbot/certbot" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">官方客户端</font></font></a><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">。</font><font style="vertical-align: inherit;">本网站专为知道自己在做什么并且只想获得免费https证书的人而设计。
+    </font></font></div>
+
+    <div><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        如果您需要续订证书，只需再次完成以下步骤即可。
+    </font></font></div>
+
+    <hr>
+
+    <!--############################-->
+    <!--##  Step 1: Account Info  ##-->
+    <!--############################-->
+    <h2><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">第1步：帐户信息</font></font></h2>
+    <div><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        我们的加密要求您在颁发证书之前注册帐户电子邮件和公钥。</font><font style="vertical-align: inherit;">电子邮件是为了让他们可以在需要时与您联系，并且公钥是这样您可以安全地签署您的发出/撤销/续订证书的请求。</font></font><i><b><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">保密您的帐户私钥！</font></font></b><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">拥有它的任何人都可以在向Let's Encrypt发出请求时冒充你！</font></font></i>
+    </div>
+
+    <form id="validate_account">
+        <div class="field">
+            <label for="email"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">帐户的电子邮件：</font></font></label><br>
+            <input id="email" type="text" placeholder="(e.g. webmaster@yourdomain.com)">
+        </div>
+
+        <div class="field">
+            <label for="howto_pubkey" class="help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该如何生成？）</font></font></label>
+            <input id="howto_pubkey" type="checkbox" class="help-checkbox">
+            <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                如何使用openssl生成新的帐户密钥对：</font></font><br>
+                <ol>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        如果您没有帐户私钥，请生成帐户私钥：</font></font><br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        （KEEP ACCOUNT.KEY SECRET！）</font></font><br>
+                        <code>openssl genrsa 4096 &gt; account.key</code>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        打印您的公钥：</font></font><br>
+                        <code>openssl rsa -in account.key -pubout</code>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        将公钥复制并粘贴到下面的框中。</font></font><br>
+                    </li>
+                </ol>
+            </div>
+            <label for="pubkey"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">帐户公钥：</font></font></label><br>
+            <textarea id="pubkey" placeholder="-----BEGIN PUBLIC KEY----- ..."></textarea>
+        </div>
+
+        <div class="field">
+            <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input id="validate_account_submit" type="submit" value="验证帐户信息"></font><span id="validate_account_status" style="display: inline;" class=""><font style="vertical-align: inherit;">看起来不错！</font></span><span id="validate_account_status" style="display: inline;" class=""><font style="vertical-align: inherit;">继续第2步！</font></span></font>
+            <span id="validate_account_status" style="display: inline;" class=""><font style="vertical-align: inherit;"></font></span>
+        </div>
+    </form>
+
+    <hr>
+
+    <!--###########################################-->
+    <!--##  Step 2: Certificate Signing Request  ##-->
+    <!--###########################################-->
+    <h2><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">第2步：证书签名请求</font></font></h2>
+    <div><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        这是您发送给Let's Encrypt的证书签名请求（CSR），以便向您签发签名证书。</font><font style="vertical-align: inherit;">它包含您要为其颁发证书的网站域以及您的TLS私钥的公钥。</font></font><i><b><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">保密您的TLS私钥！</font></font></b><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">拥有它的任何人都可以将你的网站放在中间位置！</font></font></i>
+    </div>
+
+    <form id="validate_csr">
+        <div class="field">
+            <label for="howto_csr" class="help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该如何生成？）</font></font></label>
+            <input id="howto_csr" type="checkbox" class="help-checkbox">
+            <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                如何生成新的证书签名请求（CSR）：</font></font><br>
+                <ol>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        如果您没有TLS私钥，请生成TLS私钥：</font></font><br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        （KEEP DOMAIN.KEY SECRET！）</font></font><br>
+                        <code>openssl genrsa 4096 &gt; domain.key</code>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        为您想要证书的域生成CSR :( </font></font><br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        将“foo.com”替换为您的域）</font></font><br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        Linux：
+                        </font></font><pre><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">    根据需要#change“/etc/ssl/openssl.cnf”：</font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ＃Debian：/etc/ssl/openssl.cnf#RHEL </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    和CentOS：/etc/pki/tls/openssl.cnf#Mac </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    OSX:/ System / Library / OpenSSL / openssl.cnf </font></font>
+<font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    openssl req -new -sha256 -key domain.key -subj“/”\ </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+      -reqexts SAN -config &lt;（cat /etc/ssl/openssl.cnf \ </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+      &lt;（printf“\ n [SAN] \ nsubjectAltName = DNS：foo.com，DNS：www.foo.com“））</font></font>
+    </pre>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        将CSR复制并粘贴到下面的框中。</font></font><br>
+                    </li>
+                </ol>
+            </div>
+            <label for="csr"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">证书签名请求：</font></font></label><br>
+            <textarea id="csr" placeholder="-----BEGIN CERTIFICATE REQUEST----- ..."></textarea>
+        </div>
+
+        <div class="field">
+            <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input id="validate_csr_submit" type="submit" value="验证CSR "></font><span id="validate_csr_status" style="display: inline;" class=""><font style="vertical-align: inherit;">Found域名！</font></span><span id="validate_csr_status" style="display: inline;" class=""><font style="vertical-align: inherit;">继续第3步！</font></span><span id="validate_csr_status" style="display: inline;" class=""><font style="vertical-align: inherit;">（tolearns.cn，www.tolearns.cn）</font></span></font>
+            <span id="validate_csr_status" style="display: inline;" class=""><font style="vertical-align: inherit;"></font></span>
+        </div>
+    </form>
+
+    <hr>
+
+    <!--#############################-->
+    <!--##  Step 3: Sign Requests  ##-->
+    <!--#############################-->
+    <h2><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">第3步：签署API请求</font></font><span id="step3_pending" style="display: none;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> （等候...）</font></font></span></h2>
+    <div id="step3" style="display: block;">
+        <div><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+            我们的加密要求您使用您的帐户私钥对所有请求进行签名。</font><font style="vertical-align: inherit;">以下是您需要签名的请求。</font><font style="vertical-align: inherit;">执行此操作的命令在下面生成，因此您可以将它们复制并粘贴到终端中。</font></font><i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">请务必更改帐户私钥位置，使其指向您的真实私钥。</font></font></i>
+        </div>
+
+        <!-- Account Registration and Accept Terms -->
+        <form id="validate_registration">
+            <div class="field">
+                <label for="howto_registration" class="help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做呢？）</font></font></label>
+                <input id="howto_registration" type="checkbox" class="help-checkbox">
+                <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                    此命令要求注册您的帐户密钥（或者如果您已经注册，则查找它）并接受</font><font style="vertical-align: inherit;">
+                    Let's Encrypt </font><font style="vertical-align: inherit;">的
+                     </font></font><a id="howto_tos" href="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">条款和条件</font></font></a><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">。</font></font><br>
+                    <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                    如何生成此签名：</font></font><br>
+                    <ol>
+                        <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            将下面的命令复制并粘贴到您的终端中（如果您的帐户私钥不在“./account.key”，请将命令中的“./account.key”更改为存在的位置）。
+                        </font></font></li>
+                        <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            将命令的十六进制编码签名输出复制并粘贴到该命令下面的文本字段中。
+                        </font></font></li>
+                    </ol>
+                </div>
+                <label><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                    接受Let的加密
+                     </font></font><a id="tos" href="https://letsencrypt.org/documents/LE-SA-v1.2-November-15-2017.pdf" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">条款和条件</font></font></a><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">：
+                </font></font></label><br>
+                <input id="registration_sig_cmd" type="text" value="echo ..." readonly=""><br>
+                <input id="registration_sig" type="text" placeholder="Paste the hex output here (e.g. &quot;(stdin)= f2cf67e4...&quot;)"><br>
+            </div>
+            <div class="field">
+                <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input id="validate_registration_sig" type="submit" value="接受接受的条款"></font><span id="validate_registration_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">！</font></span><span id="validate_registration_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">继续下面的命令。</font></span></font>
+                <span id="validate_registration_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;"></font></span>
+            </div>
+        </form>
+
+        <!-- Account Update Contact Email -->
+        <form id="validate_update">
+            <div class="field">
+                <label for="howto_update" class="help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做呢？）</font></font></label>
+                <input id="howto_update" type="checkbox" class="help-checkbox">
+                <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                    此命令将您的帐户联系人电子邮件设置为您在步骤1中放置的内容。如果您之前运行这些命令时已经设置了此电子邮件，则此命令将再次设置相同的电子邮件。</font></font><br>
+                    <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                    如何生成此签名：</font></font><br>
+                    <ol>
+                        <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            将下面的命令复制并粘贴到您的终端中（如果您的帐户私钥不在“./account.key”，请将命令中的“./account.key”更改为存在的位置）。
+                        </font></font></li>
+                        <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            将命令的十六进制编码签名输出复制并粘贴到该命令下面的文本字段中。
+                        </font></font></li>
+                    </ol>
+                </div>
+                <label><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">更新您的帐户电子邮件（</font></font><span id="account_email"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">mrcuijt@gmail.com</font></font></span></label><br>
+                <input id="update_sig_cmd" type="text" value="waiting until terms are accepted..." readonly=""><br>
+                <input id="update_sig" type="text" placeholder="Paste the hex output here (e.g. &quot;(stdin)= f2cf67e4...&quot;)"><br>
+            </div>
+            <div class="field">
+                <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input id="validate_update_sig" type="submit" value="更新帐户已"></font><span id="validate_update_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">更新！</font></span><span id="validate_update_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">继续下面的命令。</font></span></font>
+                <span id="validate_update_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;"></font></span>
+            </div>
+        </form>
+
+        <!-- New Order Creation -->
+        <form id="validate_order">
+            <div class="field">
+                <label for="howto_order" class="help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做呢？）</font></font></label>
+                <input id="howto_order" type="checkbox" class="help-checkbox">
+                <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                    此命令为您在步骤2中的证书签名请求（CSR）中包含的域创建订单。</font></font><br>
+                    <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                    如何生成此签名：</font></font><br>
+                    <ol>
+                        <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            将下面的命令复制并粘贴到您的终端中（如果您的帐户私钥不在“./account.key”，请将命令中的“./account.key”更改为存在的位置）。
+                        </font></font></li>
+                        <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                            将命令的十六进制编码签名输出复制并粘贴到该命令下面的文本字段中。
+                        </font></font></li>
+                    </ol>
+                </div>
+                <label><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">创建证书订单：</font></font></label><br>
+                <input id="order_sig_cmd" type="text" value="waiting until account contact is updated..." readonly=""><br>
+                <input id="order_sig" type="text" placeholder="Paste the hex output here (e.g. &quot;(stdin)= f2cf67e4...&quot;)"><br>
+            </div>
+            <div class="field">
+                <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input id="validate_order_sig" type="submit" value="创建订单"></font><span id="validate_order_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">订购！</font></span><span id="validate_order_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">继续第4步！</font></span></font>
+                <span id="validate_order_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;"></font></span>
+            </div>
+        </form>
+
+    </div>
+
+    <hr>
+
+    <!--##########################-->
+    <!--##  Step 4: Challenges  ##-->
+    <!--##########################-->
+    <h2><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">第4步：验证所有权</font></font><span id="step4_pending" style="display: none;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;"> （等候...）</font></font></span></h2>
+    <div id="step4" style="display: block;">
+        <div><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+            让我们加密要求您证明您拥有CSR中的域名。</font><font style="vertical-align: inherit;">您可以通过在域下的特定网址上提供特定文件来执行此操作。</font><font style="vertical-align: inherit;">以下是您需要提供的文件以及可以在您的网站上运行以开始提供文件的一些复制粘贴命令。</font><font style="vertical-align: inherit;">在网站上提供文件后，点击“我正在运行此文件......”。</font><font style="vertical-align: inherit;">之后，您需要告诉Let's Encrypt检查上述文件以验证域名的所有权。</font><font style="vertical-align: inherit;">此请求需要使用您的帐户私钥进行签名。</font><font style="vertical-align: inherit;">以下是您需要签署的验证请求。</font><font style="vertical-align: inherit;">执行此操作的命令在下面生成，因此您可以将它们复制并粘贴到终端中。
+            </font></font><i><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">请务必更改帐户私钥位置，使其指向您的真实私钥。</font></font></i>
+        </div>
+
+        <div id="challenge_domains"><div id="challenge_tolearns_cn" style="display: block;">
+            <h3><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">域名：</font></font><span class="domain"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">tolearns.cn</font></font></span></h3>
+
+            <div class="field tabs">
+                <input id="radio_tolearns_cn_python" name="radio_tolearns_cn" type="radio" class="challenge_python" checked="">
+                <label for="radio_tolearns_cn_python" class="challenge_python" style="display: inline;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">选项1  -  python服务器</font></font></label>
+
+                <font style="vertical-align: inherit;"><label for="radio_tolearns_cn_file" class="challenge_file" style="display: inline;"><font style="vertical-align: inherit;">选项2  - 基于文件的</font></label><label for="radio_tolearns_cn_dns" class="challenge_dns" style="display: inline;"><font style="vertical-align: inherit;">选项3  -  DNS记录</font></label></font><input id="radio_tolearns_cn_file" name="radio_tolearns_cn" type="radio" class="challenge_file">
+                <label for="radio_tolearns_cn_file" class="challenge_file" style="display: inline;"><font style="vertical-align: inherit;"></font></label>
+
+                <input id="radio_tolearns_cn_dns" name="radio_tolearns_cn" type="radio" class="challenge_dns">
+                <label for="radio_tolearns_cn_dns" class="challenge_dns" style="display: inline;"><font style="vertical-align: inherit;"></font></label>
+
+                <br>
+
+                <!-- Option 1: python server method -->
+                <div class="tab challenge_python">
+                    <label for="howto_tolearns_cn_python" class="howto_python_label help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做呢？）</font></font></label>
+                    <input id="howto_tolearns_cn_python" class="howto_python help-checkbox" type="checkbox">
+                    <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        如何在您的域上提供质询响应：</font></font><br>
+                        <ol>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                以具有sudo权限的人身份SSH到您的域中：</font></font><br>
+                                <code class="ssh">ssh ubuntu@foobar.com</code>
+                            </li>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                停止在端口80上运行的任何Web服务器（如果有）。</font><font style="vertical-align: inherit;">如果你以前一直在运行另一个python命令，你可以用Ctrl + C来杀死它：</font></font><br>
+                                <code>sudo service nginx stop</code><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">&lt; -  nginx的</font></font><br>
+                                <code>sudo apachectl -k graceful-stop</code><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">例子&lt; -  apache的例子
+                            </font></font></li>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                将下面的python命令复制并粘贴到终端中。</font><font style="vertical-align: inherit;">此命令启动临时Web服务器，该服务器仅提供质询响应。</font><font style="vertical-align: inherit;">你只需要暂时保持这种运行。
+                            </font></font></li>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                在新窗口中打开链接以确保它正常工作：</font><a class="python_link" href="http://tolearns.cn/.well-known/acme-challenge/hNmP-i4BsbSAPBinmzVbG7EHvdXU4wzbWpngQ-f30BE" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;">http</font></a><font style="vertical-align: inherit;">：</font></font><br>
+                                <a class="python_link" href="http://tolearns.cn/.well-known/acme-challenge/hNmP-i4BsbSAPBinmzVbG7EHvdXU4wzbWpngQ-f30BE" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">//tolearns.cn/.well-known/acme-challenge/hNmP-i4BsbSAPBinmzVbG7EHvdXU4wzbWpngQ-f30BE</font></font></a>
+                            </li>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                在您的域上提供文件时，单击“我现在正在运行此命令...”按钮。
+                            </font></font></li>
+                        </ol>
+                    </div>
+
+                    <label><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">在</font></font><span class="python_domain"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">tolearns.cn</font></font></span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">的服务器</font><font style="vertical-align: inherit;">上运行此命令</font><font style="vertical-align: inherit;">：</font></font></label><br>
+                    <textarea class="python_server" readonly=""></textarea>
+                    <form class="confirm_python" data-option="python" data-section="challenge_tolearns_cn" data-auth="https://acme-v02.api.letsencrypt.org/acme/authz/gE1z-pxMlo74we8Rb5-YH2cplsg7JNWqxCHD37l66dQ" data-challenge="https://acme-v02.api.letsencrypt.org/acme/challenge/gE1z-pxMlo74we8Rb5-YH2cplsg7JNWqxCHD37l66dQ/15634237857">
+                        <div>
+                            <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input type="submit" class="confirm_python_submit" data-option="python" value="我现在在tolearns.cn上运行这个命令"></font><span class="" style="display: inline;"><font style="vertical-align: inherit;">准备下一个命令！</font></span></font>
+                            <span class="" style="display: inline;"><font style="vertical-align: inherit;"></font></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_python_sig" data-option="python" data-section="challenge_tolearns_cn" data-auth="https://acme-v02.api.letsencrypt.org/acme/authz/gE1z-pxMlo74we8Rb5-YH2cplsg7JNWqxCHD37l66dQ" data-challenge="https://acme-v02.api.letsencrypt.org/acme/challenge/gE1z-pxMlo74we8Rb5-YH2cplsg7JNWqxCHD37l66dQ/15634237857">
+                        <div class="field">
+                            <label for="howto_tolearns_cn_python_sig" class="howto_python_sig_label help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做呢？）</font></font></label>
+                            <input id="howto_tolearns_cn_python_sig" type="checkbox" class="howto_python_sig help-checkbox">
+                            <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                此步骤告诉Let's Encrypt您正在服务器上为此挑战提供正确的数据。</font><font style="vertical-align: inherit;">当Let's Encrypt收到此提交时，他们会向您的服务器发出请求，以验证您是否正确提供了数据。</font></font><br>
+                                <br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                如何生成此签名：</font></font><br>
+                                <ol>
+                                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                        将下面的命令复制并粘贴到您的终端中（如果您的帐户私钥不在“./account.key”，请将命令中的“./account.key”更改为存在的位置）。
+                                    </font></font></li>
+                                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                        将命令的十六进制编码签名输出复制并粘贴到该命令下面的文本字段中。
+                                    </font></font></li>
+                                </ol>
+                            </div>
+                            <label><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">签署挑战命令：</font></font></label><br>
+                            <input type="text" class="python_sig_cmd" value="waiting until you confirm the above command is running..." readonly=""><br>
+                            <input type="text" class="python_sig" placeholder="Paste the hex output here (e.g. &quot;(stdin)= f2cf67e4...&quot;)"><br>
+                        </div>
+                        <div class="field">
+                            <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input type="submit" class="validate_python_sig_submit" data-option="python" value="提交tolearns.cn挑战"></font><span class="python_sig_status" style="display: inline;"><font style="vertical-align: inherit;">域名已验证！</font></span><span class="python_sig_status" style="display: inline;"><font style="vertical-align: inherit;">转到下一个命令。</font></span></font>
+                            <span class="python_sig_status" style="display: inline;"><font style="vertical-align: inherit;"></font></span>
+                        </div>
+                    </form>
+
+                </div>
+
+                <!-- Option 2: file-based method -->
+                <div class="tab challenge_file">
+                    <label for="howto_tolearns_cn_file" class="howto_file_label help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做呢？）</font></font></label>
+                    <input id="howto_tolearns_cn_file" class="howto_file help-checkbox" type="checkbox">
+                    <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        如何在您的服务器上托管此文件：</font></font><br>
+                        <ol>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                SSH作为对您的静态Web目录具有写访问权限的人进入您的域：</font></font><br>
+                                <pre class="ssh"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">ssh ubuntu@foobar.com</font></font></pre>
+                            </li>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                在Web服务器的静态文件路径中创建“.well-known / acme-challenge /”目录：</font></font><br>
+                                <pre class="wwwdir"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">mkdir -p /path/to/www/.well-known/acme-challenge/</font></font></pre>
+                            </li>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                将静态文件夹添加到您的网络服务器的配置中（如果您还没有）：</font></font><br>
+                                <pre class="file_config"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">#nginx示例</font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+位置/.well-known/acme-challenge/ { </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    alias / path / to / www /; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    try_files $ uri = 404; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+} </font></font>
+<font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+#apache示例</font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+别名/.well-known/acme-challenge /path/to/www/.well-known/acme-challenge</font></font></pre>
+                            </li>
+                            <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                                使用必要的内容创建文件：</font></font><br>
+                                <pre class="file_echo">echo -n "hNmP-i4BsbSAPBinmzVbG7EHvdXU4wzbWpngQ-f30BE.lMAet-H5-roSj1M5gpT-7bqbNcEgzT95-Md3bmDUKGQ" &gt; /path/to/www/.well-known/acme-challenge/hNmP-i4BsbSAPBinmzVbG7EHvdXU4wzbWpngQ-f30BE</pre>
+                            </li>
+                            <li>
+                                Open the link in a new window to make sure it's working:<br>
+                                <a class="file_link" href="http://tolearns.cn/.well-known/acme-challenge/hNmP-i4BsbSAPBinmzVbG7EHvdXU4wzbWpngQ-f30BE" target="_blank" rel="noopener noreferrer">http://tolearns.cn/.well-known/acme-challenge/hNmP-i4BsbSAPBinmzVbG7EHvdXU4wzbWpngQ-f30BE</a>
+                            </li>
+                            <li>
+                                Click "I'm now serving this file..." button when the file is being
+                                served on your domain.
+                            </li>
+                        </ol>
+                    </div>
+                    <label>Under this url:</label><br>
+                    <input type="text" class="file_url" value="" readonly="">
+                    <div>
+                        <label>Serve this content:</label>
+                        <input type="text" class="file_data" value="" readonly="">
+                    </div>
+                    <form class="confirm_file" data-option="file" data-section="challenge_tolearns_cn" data-auth="https://acme-v02.api.letsencrypt.org/acme/authz/gE1z-pxMlo74we8Rb5-YH2cplsg7JNWqxCHD37l66dQ" data-challenge="https://acme-v02.api.letsencrypt.org/acme/challenge/gE1z-pxMlo74we8Rb5-YH2cplsg7JNWqxCHD37l66dQ/15634237857">
+                        <div>
+                            <input type="submit" class="confirm_file_submit" data-option="file" value="I&#39;m now serving this file on tolearns.cn">
+                            <span class="confirm_file_status"></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_file_sig">
+                        <div class="field">
+                            <label for="howto_tolearns_cn_file_sig" class="howto_file_sig_label help">(how do I do this?)</label>
+                            <input id="howto_tolearns_cn_file_sig" type="checkbox" class="howto_file_sig help-checkbox">
+                            <div class="help-content">
+                                This step tells Let's Encrypt that you're serving
+                                the correct data for this challenge on your server.
+                                When Let's Encrypt receives this submission, they
+                                will make a request to your server to verify you are
+                                serving the data correctly.<br>
+                                <br>
+                                How to generate this signature:<br>
+                                <ol>
+                                    <li>
+                                        Copy and paste the command below into your terminal (if your
+                                        account private key isn't at "./account.key", change "./account.key"
+                                        in the command to wherever it exists).
+                                    </li>
+                                    <li>
+                                        Copy and paste the hex encoded signature output from the command
+                                        into the text field below that command.
+                                    </li>
+                                </ol>
+                            </div>
+                            <label>Sign challenge command:</label><br>
+                            <input type="text" class="file_sig_cmd" value="waiting until you confirm the file is being served..." disabled=""><br>
+                            <input type="text" class="file_sig" placeholder="waiting until you confirm the file is being served..." disabled=""><br>
+                        </div>
+                        <div class="field">
+                            <input type="submit" class="validate_file_sig_submit" data-option="file" value="Submit challenge for tolearns.cn" disabled="">
+                            <span class="file_sig_status"></span>
+                        </div>
+                    </form>
+
+                </div>
+
+                <!-- Option 3: DNS TXT record -->
+                <div class="tab challenge_dns">
+                    <label for="howto_tolearns_cn_dns" class="howto_dns_label help">(how do I do this?)</label>
+                    <input id="howto_tolearns_cn_dns" class="howto_dns help-checkbox" type="checkbox">
+                    <div class="help-content">
+                        How to host this file on your server:<br>
+                        <ol>
+                            <li>
+                                Log into your domain name provider.
+                            </li>
+                            <li>
+                                Create a new DNS record on <span class="dns_domain">tolearns.cn</span>:<br>
+                                Type:<br>
+                                <pre>TXT</pre>
+                                Name/Host/Alias:<br>
+                                <pre>_acme-challenge</pre>
+                                Value/Answer/Destination:<br>
+                                <pre class="dns_value">bIRgJesmUB9kyT_9Urv8yII29PSeREOJWSiTNnrSLiM</pre>
+                                Time to Live (TTL):<br>
+                                <pre>900</pre>
+                            </li>
+                            <li>
+                                Wait until the TXT record is being served (this can take a while).<br>
+                                <pre class="dns_dig">dig +short @ns.yournameserver.com _acme-challenge.tolearns.cn TXT</pre>
+                            </li>
+                            <li>
+                                Click "I can see the TXT record..." button when you can
+                                see that new TXT record has propagated.
+                            </li>
+                        </ol>
+                    </div>
+                    <label>Under this DNS domain:</label><br>
+                    <input type="text" class="dns_subdomain" value="" readonly="">
+                    <div>
+                        <label>Set this TXT record:</label>
+                        <input type="text" class="dns_data" value="" readonly="">
+                    </div>
+                    <form class="confirm_dns" data-option="dns" data-section="challenge_tolearns_cn" data-auth="https://acme-v02.api.letsencrypt.org/acme/authz/gE1z-pxMlo74we8Rb5-YH2cplsg7JNWqxCHD37l66dQ" data-challenge="https://acme-v02.api.letsencrypt.org/acme/challenge/gE1z-pxMlo74we8Rb5-YH2cplsg7JNWqxCHD37l66dQ/15634237859">
+                        <div>
+                            <input type="submit" class="confirm_dns_submit" data-option="dns" value="I can see the TXT record for tolearns.cn">
+                            <span class="confirm_dns_status"></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_dns_sig" data-option="dns" data-section="challenge_examplecom" data-auth="http..." data-challenge="http...">
+                        <div class="field">
+                            <label for="howto_tolearns_cn_dns_sig" class="howto_dns_sig_label help">(how do I do this?)</label>
+                            <input id="howto_tolearns_cn_dns_sig" type="checkbox" class="howto_dns_sig help-checkbox">
+                            <div class="help-content">
+                                This step tells Let's Encrypt that you're serving
+                                the correct data for this challenge on your server.
+                                When Let's Encrypt receives this submission, they
+                                will make a request to your server to verify you are
+                                serving the data correctly.<br>
+                                <br>
+                                How to generate this signature:<br>
+                                <ol>
+                                    <li>
+                                        Copy and paste the command below into your terminal (if your
+                                        account private key isn't at "./account.key", change "./account.key"
+                                        in the command to wherever it exists).
+                                    </li>
+                                    <li>
+                                        Copy and paste the hex encoded signature output from the command
+                                        into the text field below that command.
+                                    </li>
+                                </ol>
+                            </div>
+                            <label>Sign challenge command:</label><br>
+                            <input type="text" class="dns_sig_cmd" value="waiting until you confirm the TXT record is visible..." disabled=""><br>
+                            <input type="text" class="dns_sig" placeholder="waiting until you confirm the TXT record is visible..." disabled=""><br>
+                        </div>
+                        <div class="field">
+                            <input type="submit" class="validate_dns_sig_submit" value="Submit challenge for tolearns.cn" disabled="">
+                            <span class="dns_sig_status"></span>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div><div id="challenge_www_tolearns_cn" style="display: block;">
+            <h3><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">域名：</font></font><span class="domain"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">www.tolearns.cn</font></font></span></h3>
+
+            <div class="field tabs">
+                <input id="radio_www_tolearns_cn_python" name="radio_www_tolearns_cn" type="radio" class="challenge_python" checked="">
+                <label for="radio_www_tolearns_cn_python" class="challenge_python" style="display: inline;"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">选项1  -  python服务器</font></font></label>
+
+                <font style="vertical-align: inherit;"><label for="radio_www_tolearns_cn_file" class="challenge_file" style="display: inline;"><font style="vertical-align: inherit;">选项2  - 基于文件的</font></label><label for="radio_www_tolearns_cn_dns" class="challenge_dns" style="display: inline;"><font style="vertical-align: inherit;">选项3  -  DNS记录</font></label></font><input id="radio_www_tolearns_cn_file" name="radio_www_tolearns_cn" type="radio" class="challenge_file">
+                <label for="radio_www_tolearns_cn_file" class="challenge_file" style="display: inline;"><font style="vertical-align: inherit;"></font></label>
+
+                <input id="radio_www_tolearns_cn_dns" name="radio_www_tolearns_cn" type="radio" class="challenge_dns">
+                <label for="radio_www_tolearns_cn_dns" class="challenge_dns" style="display: inline;"><font style="vertical-align: inherit;"></font></label>
+
+                <br>
+
+                <!-- Option 1: python server method -->
+                <div class="tab challenge_python">
+                    <label for="howto_www_tolearns_cn_python" class="howto_python_label help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做？）</font></font></label>
+                    <font style="vertical-align: inherit;"><label><font style="vertical-align: inherit;">在</font></label><label><span class="python_domain"><font style="vertical-align: inherit;">www.tolearns.cn</font></span></label><label><font style="vertical-align: inherit;">的服务器</font></label><label><font style="vertical-align: inherit;">上运行此命令</font></label><label><font style="vertical-align: inherit;">：</font></label></font><input id="howto_www_tolearns_cn_python" class="howto_python help-checkbox" type="checkbox">
+                    <div class="help-content">
+                        How to serve the challenge response on your domain:<br>
+                        <ol>
+                            <li>
+                                SSH into your domain as someone with sudo permissions:<br>
+                                <code class="ssh">ssh ubuntu@foobar.com</code>
+                            </li>
+                            <li>
+                                Stop any webserver running on port 80, if any. If you had previously
+                                been running another python command, you can kill it with Ctrl+C):<br>
+                                <code>sudo service nginx stop</code> &lt;-- example for nginx<br>
+                                <code>sudo apachectl -k graceful-stop</code> &lt;-- example for apache
+                            </li>
+                            <li>
+                                Copy and paste the python command below into your terminal. This
+                                command starts a temporary webserver that serves nothing but the
+                                challenge response. You only need to keep this running briefly.
+                            </li>
+                            <li>
+                                Open the link in a new window to make sure it's working:<br>
+                                <a class="python_link" href="http://www.tolearns.cn/.well-known/acme-challenge/ZL68sJ3AreA69jiM9EuQUYb0AyuZHJgnHTARfq2peXw" target="_blank" rel="noopener noreferrer">http://www.tolearns.cn/.well-known/acme-challenge/ZL68sJ3AreA69jiM9EuQUYb0AyuZHJgnHTARfq2peXw</a>
+                            </li>
+                            <li>
+                                Click "I'm now running this command..." button when the file is being
+                                served on your domain.
+                            </li>
+                        </ol>
+                    </div>
+
+                    <label><font style="vertical-align: inherit;"></font><span class="python_domain"><font style="vertical-align: inherit;"></font></span><font style="vertical-align: inherit;"></font></label><br>
+                    <textarea class="python_server" readonly=""></textarea>
+                    <form class="confirm_python" data-option="python" data-section="challenge_www_tolearns_cn" data-auth="https://acme-v02.api.letsencrypt.org/acme/authz/_wl8xb_ltpvrSjqA5y48O4-0tYgNNhuAEWxQN-yQOqo" data-challenge="https://acme-v02.api.letsencrypt.org/acme/challenge/_wl8xb_ltpvrSjqA5y48O4-0tYgNNhuAEWxQN-yQOqo/15634237870">
+                        <div>
+                            <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input type="submit" class="confirm_python_submit" data-option="python" value="我现在正在www.tolearns.cn上运行这个命令"></font><span class="" style="display: inline;"><font style="vertical-align: inherit;">准备下一个命令！</font></span></font>
+                            <span class="" style="display: inline;"><font style="vertical-align: inherit;"></font></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_python_sig" data-option="python" data-section="challenge_www_tolearns_cn" data-auth="https://acme-v02.api.letsencrypt.org/acme/authz/_wl8xb_ltpvrSjqA5y48O4-0tYgNNhuAEWxQN-yQOqo" data-challenge="https://acme-v02.api.letsencrypt.org/acme/challenge/_wl8xb_ltpvrSjqA5y48O4-0tYgNNhuAEWxQN-yQOqo/15634237870">
+                        <div class="field">
+                            <label for="howto_www_tolearns_cn_python_sig" class="howto_python_sig_label help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做？）</font></font></label>
+                            <font style="vertical-align: inherit;"><label><font style="vertical-align: inherit;">签署挑战命令：</font></label></font><input id="howto_www_tolearns_cn_python_sig" type="checkbox" class="howto_python_sig help-checkbox">
+                            <div class="help-content">
+                                This step tells Let's Encrypt that you're serving
+                                the correct data for this challenge on your server.
+                                When Let's Encrypt receives this submission, they
+                                will make a request to your server to verify you are
+                                serving the data correctly.<br>
+                                <br>
+                                How to generate this signature:<br>
+                                <ol>
+                                    <li>
+                                        Copy and paste the command below into your terminal (if your
+                                        account private key isn't at "./account.key", change "./account.key"
+                                        in the command to wherever it exists).
+                                    </li>
+                                    <li>
+                                        Copy and paste the hex encoded signature output from the command
+                                        into the text field below that command.
+                                    </li>
+                                </ol>
+                            </div>
+                            <label><font style="vertical-align: inherit;"></font></label><br>
+                            <input type="text" class="python_sig_cmd" value="waiting until you confirm the above command is running..." readonly=""><br>
+                            <input type="text" class="python_sig" placeholder="Paste the hex output here (e.g. &quot;(stdin)= f2cf67e4...&quot;)"><br>
+                        </div>
+                        <div class="field">
+                            <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input type="submit" class="validate_python_sig_submit" data-option="python" value="提交www.tolearns.cn挑战"></font><span class="python_sig_status" style="display: inline;"><font style="vertical-align: inherit;">域名已验证！</font></span><span class="python_sig_status" style="display: inline;"><font style="vertical-align: inherit;">转到下一个命令。</font></span></font>
+                            <span class="python_sig_status" style="display: inline;"><font style="vertical-align: inherit;"></font></span>
+                        </div>
+                    </form>
+
+                </div>
+
+                <!-- Option 2: file-based method -->
+                <div class="tab challenge_file">
+                    <label for="howto_www_tolearns_cn_file" class="howto_file_label help">(how do I do this?)</label>
+                    <input id="howto_www_tolearns_cn_file" class="howto_file help-checkbox" type="checkbox">
+                    <div class="help-content">
+                        How to host this file on your server:<br>
+                        <ol>
+                            <li>
+                                SSH into your domain as someone with write access to
+                                your static web directory:<br>
+                                <pre class="ssh">ssh ubuntu@foobar.com</pre>
+                            </li>
+                            <li>
+                                Create the ".well-known/acme-challenge/" directory
+                                in your webserver's static file path:<br>
+                                <pre class="wwwdir">mkdir -p /path/to/www/.well-known/acme-challenge/</pre>
+                            </li>
+                            <li>
+                                Add the static folder to your webserver's config
+                                (if you haven't already):<br>
+                                <pre class="file_config">#nginx example
+location /.well-known/acme-challenge/ {
+    alias /path/to/www/;
+    try_files $uri =404;
+}
+
+#apache example
+Alias /.well-known/acme-challenge /path/to/www/.well-known/acme-challenge</pre>
+                            </li>
+                            <li>
+                                Create the file with the necessary contents:<br>
+                                <pre class="file_echo">echo -n "ZL68sJ3AreA69jiM9EuQUYb0AyuZHJgnHTARfq2peXw.lMAet-H5-roSj1M5gpT-7bqbNcEgzT95-Md3bmDUKGQ" &gt; /path/to/www/.well-known/acme-challenge/ZL68sJ3AreA69jiM9EuQUYb0AyuZHJgnHTARfq2peXw</pre>
+                            </li>
+                            <li>
+                                Open the link in a new window to make sure it's working:<br>
+                                <a class="file_link" href="http://www.tolearns.cn/.well-known/acme-challenge/ZL68sJ3AreA69jiM9EuQUYb0AyuZHJgnHTARfq2peXw" target="_blank" rel="noopener noreferrer">http://www.tolearns.cn/.well-known/acme-challenge/ZL68sJ3AreA69jiM9EuQUYb0AyuZHJgnHTARfq2peXw</a>
+                            </li>
+                            <li>
+                                Click "I'm now serving this file..." button when the file is being
+                                served on your domain.
+                            </li>
+                        </ol>
+                    </div>
+                    <label>Under this url:</label><br>
+                    <input type="text" class="file_url" value="" readonly="">
+                    <div>
+                        <label>Serve this content:</label>
+                        <input type="text" class="file_data" value="" readonly="">
+                    </div>
+                    <form class="confirm_file" data-option="file" data-section="challenge_www_tolearns_cn" data-auth="https://acme-v02.api.letsencrypt.org/acme/authz/_wl8xb_ltpvrSjqA5y48O4-0tYgNNhuAEWxQN-yQOqo" data-challenge="https://acme-v02.api.letsencrypt.org/acme/challenge/_wl8xb_ltpvrSjqA5y48O4-0tYgNNhuAEWxQN-yQOqo/15634237870">
+                        <div>
+                            <input type="submit" class="confirm_file_submit" data-option="file" value="I&#39;m now serving this file on www.tolearns.cn">
+                            <span class="confirm_file_status"></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_file_sig">
+                        <div class="field">
+                            <label for="howto_www_tolearns_cn_file_sig" class="howto_file_sig_label help">(how do I do this?)</label>
+                            <input id="howto_www_tolearns_cn_file_sig" type="checkbox" class="howto_file_sig help-checkbox">
+                            <div class="help-content">
+                                This step tells Let's Encrypt that you're serving
+                                the correct data for this challenge on your server.
+                                When Let's Encrypt receives this submission, they
+                                will make a request to your server to verify you are
+                                serving the data correctly.<br>
+                                <br>
+                                How to generate this signature:<br>
+                                <ol>
+                                    <li>
+                                        Copy and paste the command below into your terminal (if your
+                                        account private key isn't at "./account.key", change "./account.key"
+                                        in the command to wherever it exists).
+                                    </li>
+                                    <li>
+                                        Copy and paste the hex encoded signature output from the command
+                                        into the text field below that command.
+                                    </li>
+                                </ol>
+                            </div>
+                            <label>Sign challenge command:</label><br>
+                            <input type="text" class="file_sig_cmd" value="waiting until you confirm the file is being served..." disabled=""><br>
+                            <input type="text" class="file_sig" placeholder="waiting until you confirm the file is being served..." disabled=""><br>
+                        </div>
+                        <div class="field">
+                            <input type="submit" class="validate_file_sig_submit" data-option="file" value="Submit challenge for www.tolearns.cn" disabled="">
+                            <span class="file_sig_status"></span>
+                        </div>
+                    </form>
+
+                </div>
+
+                <!-- Option 3: DNS TXT record -->
+                <div class="tab challenge_dns">
+                    <label for="howto_www_tolearns_cn_dns" class="howto_dns_label help">(how do I do this?)</label>
+                    <input id="howto_www_tolearns_cn_dns" class="howto_dns help-checkbox" type="checkbox">
+                    <div class="help-content">
+                        How to host this file on your server:<br>
+                        <ol>
+                            <li>
+                                Log into your domain name provider.
+                            </li>
+                            <li>
+                                Create a new DNS record on <span class="dns_domain">www.tolearns.cn</span>:<br>
+                                Type:<br>
+                                <pre>TXT</pre>
+                                Name/Host/Alias:<br>
+                                <pre>_acme-challenge</pre>
+                                Value/Answer/Destination:<br>
+                                <pre class="dns_value">EgNxy_j7ZolhstbxFAxvnUM1nv295FJDf6_5C49AcTw</pre>
+                                Time to Live (TTL):<br>
+                                <pre>900</pre>
+                            </li>
+                            <li>
+                                Wait until the TXT record is being served (this can take a while).<br>
+                                <pre class="dns_dig">dig +short @ns.yournameserver.com _acme-challenge.www.tolearns.cn TXT</pre>
+                            </li>
+                            <li>
+                                Click "I can see the TXT record..." button when you can
+                                see that new TXT record has propagated.
+                            </li>
+                        </ol>
+                    </div>
+                    <label>Under this DNS domain:</label><br>
+                    <input type="text" class="dns_subdomain" value="" readonly="">
+                    <div>
+                        <label>Set this TXT record:</label>
+                        <input type="text" class="dns_data" value="" readonly="">
+                    </div>
+                    <form class="confirm_dns" data-option="dns" data-section="challenge_www_tolearns_cn" data-auth="https://acme-v02.api.letsencrypt.org/acme/authz/_wl8xb_ltpvrSjqA5y48O4-0tYgNNhuAEWxQN-yQOqo" data-challenge="https://acme-v02.api.letsencrypt.org/acme/challenge/_wl8xb_ltpvrSjqA5y48O4-0tYgNNhuAEWxQN-yQOqo/15634237867">
+                        <div>
+                            <input type="submit" class="confirm_dns_submit" data-option="dns" value="I can see the TXT record for www.tolearns.cn">
+                            <span class="confirm_dns_status"></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_dns_sig" data-option="dns" data-section="challenge_examplecom" data-auth="http..." data-challenge="http...">
+                        <div class="field">
+                            <label for="howto_www_tolearns_cn_dns_sig" class="howto_dns_sig_label help">(how do I do this?)</label>
+                            <input id="howto_www_tolearns_cn_dns_sig" type="checkbox" class="howto_dns_sig help-checkbox">
+                            <div class="help-content">
+                                This step tells Let's Encrypt that you're serving
+                                the correct data for this challenge on your server.
+                                When Let's Encrypt receives this submission, they
+                                will make a request to your server to verify you are
+                                serving the data correctly.<br>
+                                <br>
+                                How to generate this signature:<br>
+                                <ol>
+                                    <li>
+                                        Copy and paste the command below into your terminal (if your
+                                        account private key isn't at "./account.key", change "./account.key"
+                                        in the command to wherever it exists).
+                                    </li>
+                                    <li>
+                                        Copy and paste the hex encoded signature output from the command
+                                        into the text field below that command.
+                                    </li>
+                                </ol>
+                            </div>
+                            <label>Sign challenge command:</label><br>
+                            <input type="text" class="dns_sig_cmd" value="waiting until you confirm the TXT record is visible..." disabled=""><br>
+                            <input type="text" class="dns_sig" placeholder="waiting until you confirm the TXT record is visible..." disabled=""><br>
+                        </div>
+                        <div class="field">
+                            <input type="submit" class="validate_dns_sig_submit" value="Submit challenge for www.tolearns.cn" disabled="">
+                            <span class="dns_sig_status"></span>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div></div>
+
+        <div id="challenge_examplecom_template" style="display:none;">
+            <h3>Domain: <span class="domain">foobar.com</span></h3>
+
+            <div class="field tabs">
+                <input id="radio_examplecom_python" name="radio_examplecom" type="radio" class="challenge_python" checked="">
+                <label for="radio_examplecom_python" class="challenge_python">Option 1 - python server</label>
+
+                <input id="radio_examplecom_file" name="radio_examplecom" type="radio" class="challenge_file">
+                <label for="radio_examplecom_file" class="challenge_file">Option 2 - file-based</label>
+
+                <input id="radio_examplecom_dns" name="radio_examplecom" type="radio" class="challenge_dns">
+                <label for="radio_examplecom_dns" class="challenge_dns">Option 3 - DNS record</label>
+
+                <br>
+
+                <!-- Option 1: python server method -->
+                <div class="tab challenge_python">
+                    <label for="howto_examplecom_python" class="howto_python_label help">(how do I do this?)</label>
+                    <input id="howto_examplecom_python" class="howto_python help-checkbox" type="checkbox">
+                    <div class="help-content">
+                        How to serve the challenge response on your domain:<br>
+                        <ol>
+                            <li>
+                                SSH into your domain as someone with sudo permissions:<br>
+                                <code class="ssh">ssh ubuntu@foobar.com</code>
+                            </li>
+                            <li>
+                                Stop any webserver running on port 80, if any. If you had previously
+                                been running another python command, you can kill it with Ctrl+C):<br>
+                                <code>sudo service nginx stop</code> &lt;-- example for nginx<br>
+                                <code>sudo apachectl -k graceful-stop</code> &lt;-- example for apache
+                            </li>
+                            <li>
+                                Copy and paste the python command below into your terminal. This
+                                command starts a temporary webserver that serves nothing but the
+                                challenge response. You only need to keep this running briefly.
+                            </li>
+                            <li>
+                                Open the link in a new window to make sure it's working:<br>
+                                <a class="python_link" href="https://diafygi.github.io/gethttpsforfree/#" target="_blank" rel="noopener noreferrer">http://foo.com/.well-known/acme-challenge/aaaaaaaaaaa</a>
+                            </li>
+                            <li>
+                                Click "I'm now running this command..." button when the file is being
+                                served on your domain.
+                            </li>
+                        </ol>
+                    </div>
+
+                    <label>Run this command on <span class="python_domain">foobar.com</span>'s server:</label><br>
+                    <textarea class="python_server" readonly=""></textarea>
+                    <form class="confirm_python">
+                        <div>
+                            <input type="submit" class="confirm_python_submit" data-option="python" value="I&#39;m now running this command on foobar.com">
+                            <span class="confirm_python_status"></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_python_sig">
+                        <div class="field">
+                            <label for="howto_examplecom_python_sig" class="howto_python_sig_label help">(how do I do this?)</label>
+                            <input id="howto_examplecom_python_sig" type="checkbox" class="howto_python_sig help-checkbox">
+                            <div class="help-content">
+                                This step tells Let's Encrypt that you're serving
+                                the correct data for this challenge on your server.
+                                When Let's Encrypt receives this submission, they
+                                will make a request to your server to verify you are
+                                serving the data correctly.<br>
+                                <br>
+                                How to generate this signature:<br>
+                                <ol>
+                                    <li>
+                                        Copy and paste the command below into your terminal (if your
+                                        account private key isn't at "./account.key", change "./account.key"
+                                        in the command to wherever it exists).
+                                    </li>
+                                    <li>
+                                        Copy and paste the hex encoded signature output from the command
+                                        into the text field below that command.
+                                    </li>
+                                </ol>
+                            </div>
+                            <label>Sign challenge command:</label><br>
+                            <input type="text" class="python_sig_cmd" value="waiting until you confirm the above command is running..." disabled=""><br>
+                            <input type="text" class="python_sig" placeholder="waiting until you confirm the above command is running..." disabled=""><br>
+                        </div>
+                        <div class="field">
+                            <input type="submit" class="validate_python_sig_submit" data-option="python" value="Submit challenge for foobar.com" disabled="">
+                            <span class="python_sig_status"></span>
+                        </div>
+                    </form>
+
+                </div>
+
+                <!-- Option 2: file-based method -->
+                <div class="tab challenge_file">
+                    <label for="howto_examplecom_file" class="howto_file_label help">(how do I do this?)</label>
+                    <input id="howto_examplecom_file" class="howto_file help-checkbox" type="checkbox">
+                    <div class="help-content">
+                        How to host this file on your server:<br>
+                        <ol>
+                            <li>
+                                SSH into your domain as someone with write access to
+                                your static web directory:<br>
+                                <pre class="ssh">ssh ubuntu@foobar.com</pre>
+                            </li>
+                            <li>
+                                Create the ".well-known/acme-challenge/" directory
+                                in your webserver's static file path:<br>
+                                <pre class="wwwdir">mkdir -p /path/to/www/.well-known/acme-challenge/</pre>
+                            </li>
+                            <li>
+                                Add the static folder to your webserver's config
+                                (if you haven't already):<br>
+                                <pre class="file_config">server {...</pre>
+                            </li>
+                            <li>
+                                Create the file with the necessary contents:<br>
+                                <pre class="file_echo">echo ...</pre>
+                            </li>
+                            <li>
+                                Open the link in a new window to make sure it's working:<br>
+                                <a class="file_link" href="https://diafygi.github.io/gethttpsforfree/#" target="_blank" rel="noopener noreferrer">http://foo.com/.well-known/acme-challenge/aaaaaaaaaaa</a>
+                            </li>
+                            <li>
+                                Click "I'm now serving this file..." button when the file is being
+                                served on your domain.
+                            </li>
+                        </ol>
+                    </div>
+                    <label>Under this url:</label><br>
+                    <input type="text" class="file_url" value="" readonly="">
+                    <div>
+                        <label>Serve this content:</label>
+                        <input type="text" class="file_data" value="" readonly="">
+                    </div>
+                    <form class="confirm_file">
+                        <div>
+                            <input type="submit" class="confirm_file_submit" data-option="file" value="I&#39;m now serving this file on foobar.com">
+                            <span class="confirm_file_status"></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_file_sig">
+                        <div class="field">
+                            <label for="howto_examplecom_file_sig" class="howto_file_sig_label help">(how do I do this?)</label>
+                            <input id="howto_examplecom_file_sig" type="checkbox" class="howto_file_sig help-checkbox">
+                            <div class="help-content">
+                                This step tells Let's Encrypt that you're serving
+                                the correct data for this challenge on your server.
+                                When Let's Encrypt receives this submission, they
+                                will make a request to your server to verify you are
+                                serving the data correctly.<br>
+                                <br>
+                                How to generate this signature:<br>
+                                <ol>
+                                    <li>
+                                        Copy and paste the command below into your terminal (if your
+                                        account private key isn't at "./account.key", change "./account.key"
+                                        in the command to wherever it exists).
+                                    </li>
+                                    <li>
+                                        Copy and paste the hex encoded signature output from the command
+                                        into the text field below that command.
+                                    </li>
+                                </ol>
+                            </div>
+                            <label>Sign challenge command:</label><br>
+                            <input type="text" class="file_sig_cmd" value="waiting until you confirm the file is being served..." disabled=""><br>
+                            <input type="text" class="file_sig" placeholder="waiting until you confirm the file is being served..." disabled=""><br>
+                        </div>
+                        <div class="field">
+                            <input type="submit" class="validate_file_sig_submit" data-option="file" value="Submit challenge for foobar.com" disabled="">
+                            <span class="file_sig_status"></span>
+                        </div>
+                    </form>
+
+                </div>
+
+                <!-- Option 3: DNS TXT record -->
+                <div class="tab challenge_dns">
+                    <label for="howto_examplecom_dns" class="howto_dns_label help">(how do I do this?)</label>
+                    <input id="howto_examplecom_dns" class="howto_dns help-checkbox" type="checkbox">
+                    <div class="help-content">
+                        How to host this file on your server:<br>
+                        <ol>
+                            <li>
+                                Log into your domain name provider.
+                            </li>
+                            <li>
+                                Create a new DNS record on <span class="dns_domain">foo.com</span>:<br>
+                                Type:<br>
+                                <pre>TXT</pre>
+                                Name/Host/Alias:<br>
+                                <pre>_acme-challenge</pre>
+                                Value/Answer/Destination:<br>
+                                <pre class="dns_value">aaaaaaaaaaaaaaaaaaaaaa</pre>
+                                Time to Live (TTL):<br>
+                                <pre>900</pre>
+                            </li>
+                            <li>
+                                Wait until the TXT record is being served (this can take a while).<br>
+                                <pre class="dns_dig">dig +short @ns.yournameserver.com _acme_challenge.foo.com TXT</pre>
+                            </li>
+                            <li>
+                                Click "I can see the TXT record..." button when you can
+                                see that new TXT record has propagated.
+                            </li>
+                        </ol>
+                    </div>
+                    <label>Under this DNS domain:</label><br>
+                    <input type="text" class="dns_subdomain" value="" readonly="">
+                    <div>
+                        <label>Set this TXT record:</label>
+                        <input type="text" class="dns_data" value="" readonly="">
+                    </div>
+                    <form class="confirm_dns">
+                        <div>
+                            <input type="submit" class="confirm_dns_submit" data-option="dns" value="I can see the TXT record for foobar.com">
+                            <span class="confirm_dns_status"></span>
+                        </div>
+                    </form>
+
+                    <form class="validate_dns_sig" data-option="dns" data-section="challenge_examplecom" data-auth="http..." data-challenge="http...">
+                        <div class="field">
+                            <label for="howto_examplecom_dns_sig" class="howto_dns_sig_label help">(how do I do this?)</label>
+                            <input id="howto_examplecom_dns_sig" type="checkbox" class="howto_dns_sig help-checkbox">
+                            <div class="help-content">
+                                This step tells Let's Encrypt that you're serving
+                                the correct data for this challenge on your server.
+                                When Let's Encrypt receives this submission, they
+                                will make a request to your server to verify you are
+                                serving the data correctly.<br>
+                                <br>
+                                How to generate this signature:<br>
+                                <ol>
+                                    <li>
+                                        Copy and paste the command below into your terminal (if your
+                                        account private key isn't at "./account.key", change "./account.key"
+                                        in the command to wherever it exists).
+                                    </li>
+                                    <li>
+                                        Copy and paste the hex encoded signature output from the command
+                                        into the text field below that command.
+                                    </li>
+                                </ol>
+                            </div>
+                            <label>Sign challenge command:</label><br>
+                            <input type="text" class="dns_sig_cmd" value="waiting until you confirm the TXT record is visible..." disabled=""><br>
+                            <input type="text" class="dns_sig" placeholder="waiting until you confirm the TXT record is visible..." disabled=""><br>
+                        </div>
+                        <div class="field">
+                            <input type="submit" class="validate_dns_sig_submit" value="Submit challenge for foobar.com" disabled="">
+                            <span class="dns_sig_status"></span>
+                        </div>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- New Order Creation -->
+        <form id="validate_finalize">
+            <div class="field">
+                <label for="howto_finalize" class="help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该怎么做？）</font></font></label>
+                <font style="vertical-align: inherit;"><label><font style="vertical-align: inherit;">完成订单并生成证书：</font></label></font><input id="howto_finalize" type="checkbox" class="help-checkbox">
+                <div class="help-content">
+                    This command finalizes your order and tells Let's Encrypt to
+                    generate your new certificate.<br>
+                    <br>
+                    How to generate this signature:<br>
+                    <ol>
+                        <li>
+                            Copy and paste the command below into your terminal (if your
+                            account private key isn't at "./account.key", change "./account.key"
+                            in the command to wherever it exists).
+                        </li>
+                        <li>
+                            Copy and paste the hex encoded signature output from the command
+                            into the text field below that command.
+                        </li>
+                    </ol>
+                </div>
+                <label><font style="vertical-align: inherit;"></font></label><br>
+                <input id="finalize_sig_cmd" type="text" value="waiting until challenges are done..." readonly=""><br>
+                <input id="finalize_sig" type="text" placeholder="Paste the hex output here (e.g. &quot;(stdin)= f2cf67e4...&quot;)"><br>
+            </div>
+            <div class="field">
+                <font style="vertical-align: inherit;"><span id="validate_finalize_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">签署</font></span><font style="vertical-align: inherit;"><input id="validate_finalize_sig" type="submit" value="证书"></font><span id="validate_finalize_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">证书！</font></span><span id="validate_finalize_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;">继续下一步。</font></span></font>
+                <span id="validate_finalize_sig_status" class="" style="display: inline;"><font style="vertical-align: inherit;"></font></span>
+            </div>
+        </form>
+
+    </div>
+
+    <hr>
+
+    <!--#################################-->
+    <!--##  Step 5: Issue Certificate  ##-->
+    <!--#################################-->
+    <h2><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">第5步：安装证书（</font></font><span id="step5_pending" style="display: none;">waiting...</span><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">）</font></font></h2>
+    <div id="step5" style="display: block;">
+        <div><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+            恭喜！</font><font style="vertical-align: inherit;">我们的加密已经为您的域名颁发了证书！</font><font style="vertical-align: inherit;">以下是您可以用于您网站的签名证书。
+        </font></font></div>
+
+        <div class="field">
+            <label for="howto_install" class="help"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（我该如何安装？）</font></font></label>
+            <input id="howto_install" type="checkbox" class="help-checkbox">
+            <div class="help-content"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                Nginx安装说明：</font></font><br>
+                <ol>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        将以下证书（文本包含您的域证书和中间证书）复制并粘贴到名为“chained.pem”的文本文件中。
+                    </font></font></li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        如果尚未完成，则生成非默认dhparams。</font></font><br>
+                        <code>openssl dhparam -out dhparam.pem 4096</code>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        将“chained.pem”和“dhparam.pem”复制到/ etc / ssl / certs /。</font></font><br>
+                        <pre><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">scp chained.pem root@foo.com:/etc/ssl/certs/chained.pem </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+scp dhparam.pem root@foo.com:/etc/ssl/certs/dhparam.pem</font></font>
+</pre>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        复制“domain.key”/ etc / ssl / private /。</font></font><br>
+                        <code>scp domain.key root@foo.com:/etc/ssl/private/domain.key</code><br>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        更新您的网络服务器配置以使用https（以下示例）。</font></font><br>
+<pre><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">服务器{ </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    listen 443; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    server_name foo.com; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl on; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl_certificate /etc/ssl/certs/chained.pem; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl_certificate_key /etc/ssl/private/domain.key; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl_session_timeout 5m; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA384：ECDHE-RSA-AES128-GCM-SHA256：DHE-RSA-AES256-GCM-SHA384：ECDHE-RSA-AES256-SHA384：ECDHE-RSA-AES128-SHA256：ECDHE-RSA -AES256-SHA：ECDHE-RSA-AES128-SHA：DHE-RSA-AES256-SHA：DHE-RSA-AES128-SHA; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl_session_cache共享：SSL：50米; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl_dhparam /etc/ssl/certs/dhparam.pem; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    ssl_prefer_server_ciphers on; </font></font>
+<font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    location / { </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        return 200'Hello world！';</font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        add_header Content-Type text / plain; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+    } </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+}</font></font>
+</pre>
+                    </li>
+                </ol><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                Apache安装说明：</font></font><br>
+                <ol>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        将第一个证书部分（例如第一个“----- BEGIN CERTIFICATE -----”部分）复制并粘贴到名为“domain.crt”的文本文件中。
+                    </font></font></li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        将第二个证书部分（例如第二个“----- BEGIN CERTIFICATE -----”部分）复制并粘贴到名为“intermediate.pem”的文本文件中。
+                    </font></font></li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        将“domain.crt”和“intermediate.pem”复制到/ etc / ssl / certs /。</font></font><br>
+                        <pre><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">scp domain.crt root@foo.com:/etc/ssl/certs/domain.crt </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+scp intermediate.pem root@foo.com:/etc/ssl/certs/intermediate.pem</font></font>
+</pre>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        复制“domain.key”/ etc / ssl / private /。</font></font><br>
+                        <code>scp domain.key root@foo.com:/etc/ssl/private/domain.key</code><br>
+                    </li>
+                    <li><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                        更新您的网络服务器配置以使用https（以下示例）。</font></font><br>
+<pre><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">&lt;VirtualHost _default_：443&gt; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        ServerName foo.com:443 </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        ServerAlias www.foo.com </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        DocumentRoot /var/www/foo.com/html </font><font style="vertical-align: inherit;">
+        SSLCertificateFile上的</font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        SSLEngine </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">/etc/ssl/certs/domain.crt </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        SSLCertificateKeyFile / etc / ssl / private / domain.key </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        SSLCertificateChainFile /etc/ssl/certs/intermediate.pem </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        SSLProtocol all -SSLv2 -SSLv3 </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        SSLCipherSuite ECDHE-RSA-AES256-GCM-SHA384：ECDHE-RSA-AES128-GCM-SHA256：DHE-RSA-AES256-GCM-SHA384 ：ECDHE-RSA-AES256-SHA384：ECDHE-RSA-AES128-SHA256：ECDHE-RSA-AES256-SHA：ECDHE-RSA-AES128-SHA：DHE-RSA-AES256-SHA：DHE-RSA-AES128-SHA; </font><font style="vertical-align: inherit;">
+        &lt;Directory /var/www/foo.com/html&gt; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        上的SSLHonorCipherOrder</font></font><font style="vertical-align: inherit;"></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                选项索引FollowSymLinks MultiViews </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                AllowOverride所有</font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                订单允许，拒绝</font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+                所有</font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        &lt;/ Directory&gt; </font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+&lt;/ VirtualHost&gt;</font></font>
+</pre>
+                    </li>
+                </ol>
+            </div>
+            <label for="crt"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">签署证书链：</font></font></label><br>
+            <textarea id="crt" readonly=""></textarea>
+        </div>
+
+        <div class="field">
+            <form action="https://www.ssllabs.com/ssltest/analyze.html" target="_blank" rel="noopener noreferrer">
+                <input id="ssltest_domain" type="hidden" name="d" value="tolearns.cn">
+                <font style="vertical-align: inherit;"><font style="vertical-align: inherit;"><input type="submit" value="测试我的安装"></font></font><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">（在新窗口中打开SSL实验室）
+            </font></font></form>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="footer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        该网站是静态的，因此可以在本地保存和加载。</font><font style="vertical-align: inherit;">只需右键单击并“将页面另存为...”！</font></font><br><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">
+        根据MIT许可证发布| </font><font style="vertical-align: inherit;">源代码：</font><a href="https://github.com/diafygi/gethttpsforfree" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;">https</font></a><font style="vertical-align: inherit;">：</font></font><a href="https://github.com/diafygi/gethttpsforfree" target="_blank" rel="noopener noreferrer"><font style="vertical-align: inherit;"><font style="vertical-align: inherit;">//github.com/diafygi/gethttpsforfree</font></font></a>
+    </div>
+    <script src="./免费获取HTTPS！_files/index.js.download"></script><div id="goog-gt-tt" class="skiptranslate" dir="ltr"><div style="padding: 8px;"><div><div class="logo"><img src="./免费获取HTTPS！_files/translate_24dp.png" width="20" height="20" alt="Google Translate"></div></div></div><div class="top" style="padding: 8px; float: left; width: 100%;"><h1 class="title gray">Original text</h1></div><div class="middle" style="padding: 8px;"><div class="original-text"></div></div><div class="bottom" style="padding: 8px;"><div class="activity-links"><span class="activity-link">Contribute a better translation</span><span class="activity-link"></span></div><div class="started-activity-container"><hr style="color: #CCC; background-color: #CCC; height: 1px; border: none;"><div class="activity-root"></div></div></div><div class="status-message" style="display: none;"></div></div>
+
+
+<div class="goog-te-spinner-pos"><div class="goog-te-spinner-animation"><svg xmlns="http://www.w3.org/2000/svg" class="goog-te-spinner" width="96px" height="96px" viewBox="0 0 66 66"><circle class="goog-te-spinner-path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle></svg></div></div></body></html>

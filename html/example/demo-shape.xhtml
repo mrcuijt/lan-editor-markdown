@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-CN" lang="zh-CN">
+<head>
+    <title>Title</title>
+    <style type="text/css">
+
+        div {
+            height: 0px;
+            width: 0px;
+        }
+
+        div + div {
+            margin-top: 10px;
+        }
+
+        .div1 {
+            height: 50px;
+            width: 50px;
+            border: 20px solid;
+            border-color: #ff667e #00cc66 #00b0e8 #c0a16b;
+        }
+
+        .div2 {
+            height: 0px;
+            width: 0px;
+            border: 20px solid;
+            border-color: #ff667e #00cc66 #00b0e8 #c0a16b;
+        }
+
+        .div3 {
+            height: 50px;
+            width: 0px;
+            border: 20px solid;
+            border-color: #ff667e #00cc66 #00b0e8 #c0a16b;
+        }
+
+        .div4 {
+            border: 50px solid;
+            border-color: #ff667e #00cc66 #00b0e8 #c0a16b;
+            border-style: solid dashed dashed dashed;
+            border-color: #ff667e transparent #00b0e8 transparent;
+        }
+
+        .div5 {
+            border-top: solid 30px #ff667e;
+            border-left: solid 100px rgba(0, 0, 0, 0);
+            border-bottom: 20px solid #00b0e8;
+        }
+
+        .div6 {
+            border-top: 30px solid #ff667e;
+            border-left: 50px solid rgba(0, 0, 0, 0);
+            border-bottom: 15px solid #00b0e8;
+            border-right: 20px solid #00cc66;
+        }
+
+    </style>
+</head>
+<body>
+
+<p>一个盒子包括: margin+border+padding+content</p>
+<ul>
+    <li>– 上下左右边框交界处出呈现平滑的斜线. 利用这个特点, 通过设置不同的上下左右边框宽度或者颜色可以得到小三角, 小梯形等.</li>
+    <li>– 调整宽度大小可以调节三角形形状.</li>
+</ul>
+
+<div class="content">
+    <div class="div1"></div>
+    <div class="div2"></div>
+    <div class="div3"></div>
+    <div class="div4"></div>
+    <div class="div5"></div>
+    <div class="div6"></div>
+    <div class="div7"></div>
+    <div class="div8"></div>
+</div>
+</body>
+</html>

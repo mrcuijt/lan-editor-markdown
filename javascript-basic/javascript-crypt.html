@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript Crypt</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### JavaScript Crypt
+
+##### JS RSA 非对称加密示例
+
+注意
+
+ - 秘钥长度 1024,2048
+ 
+ - 秘钥长度 1024 ，每次最多加密 117 字节，每次解密最多 128 字节。
+ 
+ - 秘钥长度 2048 ，每次最多加密 245 字节，每次解密最多 256 字节。
+
+```javascript
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Crypt Demo</title>
+<link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<!-- 引入 jsencrypt -->
+<script type="text/javascript" src="js/plugin/jsencrypt-3.0.0/jsencrypt.js"></script>
+<!-- 引入 crypto-js -->
+<script type="text/javascript" src="js/plugin/crypto-js-3.1.9-1/crypto-js.js"></script>
+</head>
+<body>
+    <button class="demo btn btn-primary">加密</button>
+    <br/>
+    <span class="encrypt"></span>
+    <br/>
+    <button class="decrypt btn btn-primary">解密</button>
+    <br/>
+    <span class="decrypt-result"></span>
+    <br/>
+    <button class="sign btn btn-primary">消息摘要</button>
+    <br/>
+    <span class="sign-result"></span>
+    <br/>
+    <button class="verify btn btn-primary">验签</button>
+    <br/>
+    <span class="verify-result"></span>
+<script>
+ 
+// 原文
+var input = "你好";
+
+// 私钥
+var privateKey = "-----BEGIN PRIVATE KEY-----\r\n" + 
+"MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCaF0HpvC65Qv/Y\r\n" + 
+"8uSkDPXS8IFyUVBHgyVhq2NmcZSH5DiNbWMNhjbtGgJi503DU/Eocg5dZYNThQXn\r\n" + 
+"H0CYABTS1hHsWyA5GtcrR74BjNHe2onATkLqKfMj1H6nc31kyuxXyF2+QWKuXakr\r\n" + 
+"X1tQhITBMsb7Tk4LAHdMg6Ai6wMTFFv9FRSj4MDjO67jAsexs3LkAEcDvqrnY9uQ\r\n" + 
+"u7fyLiEPvU8o9oq3XEkdx0WP5L+l7RlqQPQGFTSsjLiBvx+BqR90Ab3qZevvvx3r\r\n" + 
+"2tIiKOsaEBcRyKpk3avQo8XbPBtkJbU8yHH++s72ohKVXOS3hiZ9bLwoFcp2qMVc\r\n" + 
+"r8zsZsbVAgMBAAECggEACDZDwwB5FP0nGW7IafMZiWZb37XJq3tScK7A8LgONw0d\r\n" + 
+"88Y9SH6QoCOKC69RYPQw8/uFcctz1kL5ROSmJ/OefdCpdTPeDG0Lw+NiPZQ9qGdz\r\n" + 
+"0+stJxbukvLuKl+98l3bfp96WiYDQPuo2luN8u/ntfbOIp0nt5piFpJ6jvcrW3GI\r\n" + 
+"bRAkMxQDodn9BnzQIEMEWwYZEBxGGf5ac8yK10g7D7erIUuCIivrxwJOo40JgjiT\r\n" + 
+"mOO65092w9NOEokiLJwDCfPuDEG2MP8xN/L7egJQrao/jPsAdALp70mnSD5bfFTj\r\n" + 
+"ky0R6qaC0umrO80BXrgmZZYlXZOMtHvgfOEZoK/VeQKBgQDWSQzqrZVRV0LI9pUg\r\n" + 
+"7LikB2m5HrunEYYeWjdkncNfvQPnjE1DLFH/+k/NiwsVDK3a7BJAqLNYbuftA6z5\r\n" + 
+"M1KAK3Gq8X+Y8bd5bG+eEi00KjLXVCE/59tvd4QIPQbQF2lyv4HwvxFx91Kt31UV\r\n" + 
+"7EnAXaGmHEqU7PQZmPylST7ULwKBgQC4FmcpSUyndRUs1vCck2V7fwdTohFEj51m\r\n" + 
+"qcOCTRtG0v0FB+uhVI1w8ZHuImNWUDBOEiTYYGKJ9OEy2iP7X4ZjbWJizYaddVpO\r\n" + 
+"HqcarZX6Rf4xL9uxgve73oE7ZvgWR8XLjIXNQQ2PtjjOsA0x3Kqzl+kqZNrsPTDD\r\n" + 
+"jgc2jnogOwKBgQCZjQs2d2CSQwdWXmwKhdbho3Y88yrg0wvaYCdlcC96QUW0/LK4\r\n" + 
+"ud+goEvjLAmq8cT7JUMHFlw9uGt1Sbb/c6lgssDnD9qxTDR/TBbHnJrL0JlR97VD\r\n" + 
+"x+9Udr4j8Scaokwrr9N7Ik9r7SBP+8NKzGEk+XNGRuuiwBFC7n/MKSpefQKBgEEZ\r\n" + 
+"axHmofz2Iq7gs+YrGdA6c9TXk1Ozle4gSsthiSvaoS+ORX2f8QTn6LtV3dtAMFTr\r\n" + 
+"hawfKbmvp5PcIK1ccqHmpMxb8ibswSqvHFkK2ebPqbyrN/3mWsVNQlZHa6Q1bXU2\r\n" + 
+"FHspbipMPnqZN5FSf+tS5VngoKq6WOxO5a4dZILRAoGAXuGLCvCs5zHMvhITBr9Z\r\n" + 
+"38ytqW8MP9zqMjJFzEp+bDZVHL4Xk3qYI65OKln66yqJoX+Bp4C2o43gDgwXNdOv\r\n" + 
+"uwPcrxh7Ywt/paZONHecC7LfqFhRovY1IR5mN0Kaz2L3U26TyAB/07f4twWiywv2\r\n" + 
+"KjBkfvpxec5EuNm70khoxa0=\r\n" + 
+"-----END PRIVATE KEY-----";
+ 
+// 公钥，可由私钥生成
+var publicKey = "";
+ 
+// 非对称加密 RSA：公钥加密
+$(".demo").click(function() {
+ 
+    // Create the encryption object.
+    var crypt = new JSEncrypt();
+    // Set the private.
+    crypt.setPrivateKey(privateKey);
+    // If no public key is set then set it here...
+    if (!publicKey) {
+        publicKey = crypt.getPublicKey();
+    }
+    // 公钥加密
+    var encrypt = crypt.encrypt(input);
+    $(".encrypt").html(encrypt);
+});
+ 
+// 非对称加密 RSA：私钥解密
+$(".decrypt").click(function(){
+    // Create the encryption object.
+    var crypt = new JSEncrypt();
+    // Set the private.
+    crypt.setPrivateKey(privateKey);
+    // If no public key is set then set it here...
+    if (!publicKey) {
+        publicKey = crypt.getPublicKey();
+    }
+    var encrypt = $(".encrypt").html();
+    // 私钥解密
+    var decrypt = crypt.decrypt(encrypt);
+    $(".decrypt-result").html(decrypt);
+});
+ 
+// 消息摘要 MD5withRSA
+$(".sign").click(function(){
+ 
+    // Create the encryption object.
+    var sign = new JSEncrypt();
+    // Set the private.
+    sign.setPrivateKey(privateKey);
+    var signature = sign.sign(input, CryptoJS.MD5, "md5");
+    $(".sign-result").html(signature);
+ 
+});
+ 
+// 验签
+$(".verify").click(function(){
+    // Create the encryption object.
+    var verify = new JSEncrypt();
+    // Set the private.
+    verify.setPrivateKey(privateKey);
+    // If no public key is set then set it here...
+    if (!publicKey) {
+        publicKey = verify.getPublicKey();
+    }
+    var signature = $(".sign-result").html();
+    var verified = verify.verify(input, signature, CryptoJS.MD5);
+    $(".verify-result").html(verified);
+});
+ 
+</script>
+</body>
+</html>
+```
+
+##### Java RSA 私钥解密示例
+
+```java
+import javax.crypto.*;
+import javax.crypto.spec.*;
+ 
+import org.apache.commons.codec.binary.Base64;
+ 
+import java.security.*;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.*;
+ 
+import java.util.*;
+ 
+import java.io.*;
+import java.math.BigInteger;
+ 
+/**
+ * 非对称加密：RSA 加密解密
+ *
+ */
+public class RSACrypt {
+ 
+    private static final String algorithm = "RSA"; // 算法
+ 
+    // RSA 私钥密文 (Base64)
+    private static final String privateKeyStr = "MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCaF0HpvC65Qv/Y8uSkDPXS8IFyUVBHgyVhq2NmcZSH5DiNbWMNhjbtGgJi503DU/Eocg5dZYNThQXnH0CYABTS1hHsWyA5GtcrR74BjNHe2onATkLqKfMj1H6nc31kyuxXyF2+QWKuXakrX1tQhITBMsb7Tk4LAHdMg6Ai6wMTFFv9FRSj4MDjO67jAsexs3LkAEcDvqrnY9uQu7fyLiEPvU8o9oq3XEkdx0WP5L+l7RlqQPQGFTSsjLiBvx+BqR90Ab3qZevvvx3r2tIiKOsaEBcRyKpk3avQo8XbPBtkJbU8yHH++s72ohKVXOS3hiZ9bLwoFcp2qMVcr8zsZsbVAgMBAAECggEACDZDwwB5FP0nGW7IafMZiWZb37XJq3tScK7A8LgONw0d88Y9SH6QoCOKC69RYPQw8/uFcctz1kL5ROSmJ/OefdCpdTPeDG0Lw+NiPZQ9qGdz0+stJxbukvLuKl+98l3bfp96WiYDQPuo2luN8u/ntfbOIp0nt5piFpJ6jvcrW3GIbRAkMxQDodn9BnzQIEMEWwYZEBxGGf5ac8yK10g7D7erIUuCIivrxwJOo40JgjiTmOO65092w9NOEokiLJwDCfPuDEG2MP8xN/L7egJQrao/jPsAdALp70mnSD5bfFTjky0R6qaC0umrO80BXrgmZZYlXZOMtHvgfOEZoK/VeQKBgQDWSQzqrZVRV0LI9pUg7LikB2m5HrunEYYeWjdkncNfvQPnjE1DLFH/+k/NiwsVDK3a7BJAqLNYbuftA6z5M1KAK3Gq8X+Y8bd5bG+eEi00KjLXVCE/59tvd4QIPQbQF2lyv4HwvxFx91Kt31UV7EnAXaGmHEqU7PQZmPylST7ULwKBgQC4FmcpSUyndRUs1vCck2V7fwdTohFEj51mqcOCTRtG0v0FB+uhVI1w8ZHuImNWUDBOEiTYYGKJ9OEy2iP7X4ZjbWJizYaddVpOHqcarZX6Rf4xL9uxgve73oE7ZvgWR8XLjIXNQQ2PtjjOsA0x3Kqzl+kqZNrsPTDDjgc2jnogOwKBgQCZjQs2d2CSQwdWXmwKhdbho3Y88yrg0wvaYCdlcC96QUW0/LK4ud+goEvjLAmq8cT7JUMHFlw9uGt1Sbb/c6lgssDnD9qxTDR/TBbHnJrL0JlR97VDx+9Udr4j8Scaokwrr9N7Ik9r7SBP+8NKzGEk+XNGRuuiwBFC7n/MKSpefQKBgEEZaxHmofz2Iq7gs+YrGdA6c9TXk1Ozle4gSsthiSvaoS+ORX2f8QTn6LtV3dtAMFTrhawfKbmvp5PcIK1ccqHmpMxb8ibswSqvHFkK2ebPqbyrN/3mWsVNQlZHa6Q1bXU2FHspbipMPnqZN5FSf+tS5VngoKq6WOxO5a4dZILRAoGAXuGLCvCs5zHMvhITBr9Z38ytqW8MP9zqMjJFzEp+bDZVHL4Xk3qYI65OKln66yqJoX+Bp4C2o43gDgwXNdOvuwPcrxh7Ywt/paZONHecC7LfqFhRovY1IR5mN0Kaz2L3U26TyAB/07f4twWiywv2KjBkfvpxec5EuNm70khoxa0=";
+    // RSA 公钥密文 (Base64)
+    private static final String publicKeyStr = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmhdB6bwuuUL/2PLkpAz10vCBclFQR4MlYatjZnGUh+Q4jW1jDYY27RoCYudNw1PxKHIOXWWDU4UF5x9AmAAU0tYR7FsgORrXK0e+AYzR3tqJwE5C6inzI9R+p3N9ZMrsV8hdvkFirl2pK19bUISEwTLG+05OCwB3TIOgIusDExRb/RUUo+DA4zuu4wLHsbNy5ABHA76q52PbkLu38i4hD71PKPaKt1xJHcdFj+S/pe0ZakD0BhU0rIy4gb8fgakfdAG96mXr778d69rSIijrGhAXEciqZN2r0KPF2zwbZCW1PMhx/vrO9qISlVzkt4YmfWy8KBXKdqjFXK/M7GbG1QIDAQAB";
+ 
+    // 分段加密，每次最大加密的长度 117 字节 RSA-Key Size(1024) 117
+    private static final int encrypt_max_size = 117; // RSA-Key Size(2048) 245
+    // 分段解密，每次最大解密的长度 128 字节 RSA-Key Size(1024) 128
+    private static final int decrypt_max_size = 128; // RSA-Key Size(2048) 256
+ 
+    public static String bencode(byte[] bytes) {
+//        return Base64.getEncoder().encodeToString(bytes);
+        return Base64.encodeBase64String(bytes);
+    }
+ 
+    public static byte[] bdecode(String input) {
+//        return Base64.getDecoder().decode(input);
+        return Base64.decodeBase64(input);
+    }
+ 
+    /**
+     * 私钥解密示例
+     */
+    public static void main(String[] args) {
+        try{
+            // 创建秘钥工厂对象
+            KeyFactory kf = KeyFactory.getInstance(algorithm);
+ 
+            // 生成公钥
+            PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(bdecode(privateKeyStr)));
+            // 生成私钥
+            PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(bdecode(publicKeyStr)));
+ 
+            // RSA 公钥加密密文 (Base64)
+            String encrypt = "io2i76LHEZoYZ+zEI3r4KbpaRfY8JB1aB5zv092L4R9KzXulF/O+Kvsv0Tx9cOUVhh2XT8LG5bOhtOlLi9NbtkAX3x1aqlzpGLRYid09JrcH6UbzCzwbQhIlWxAToP8UOPtO1npVS+AcUVYVUjoIncufvlzraXIpVor2dDZvI3l/NnoSWrM08s4l83+40/tuHJWFsCHt0vXHpUzULSbBWICKCIXkMUvqaU5KmGD0UknTQ5+G2mB/m4jRBbpkbSRdvJK+mLs/HTj1SgB10sFCQT46Q9DiR49aXzlvPvpMsqwo8mfNeNuAJKXMEXgBh57Yc+cCeq4SLfxcyCFNYJx8tQ==";
+ 
+            // 私钥解密
+            String decrypt = decryptByPrivateKey(privateKey, encrypt);
+ 
+            System.out.println("私钥解密：" + decrypt);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+ 
+    /**
+     * 公钥解密：分段解密，每次最大解密的长度 128 字节。 
+     *
+     * RSA 秘钥长度 1024 ，每次最多加密 117 字节，每次解密最多 128 字节。
+     * RSA 秘钥长度 2048 ，每次最多加密 245 字节，每次解密最多 256 字节。
+     * @param input 密文（Base64编码）
+     */
+    public static String decryptByPublicKey(PublicKey publicKey, String input) {
+        try {
+            // 创建 Cipher 对象
+            Cipher cipher = Cipher.getInstance(algorithm);
+            // 初始化模式：加密/解密
+            cipher.init(Cipher.DECRYPT_MODE, publicKey);
+            byte[] inputDecode = bdecode(input);
+            // 加密/解密
+            // 偏移量
+            int offset = 0;
+            byte[] buffer = new byte[1024];
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            while ((inputDecode.length - offset) > 0) {
+                // 数据总长度 - 偏移量 > 128
+                if ((inputDecode.length - offset) >= decrypt_max_size) {
+                    // 每块最大加密 128 字节
+                    buffer = cipher.doFinal(inputDecode, offset, decrypt_max_size);
+                    // 写入字节数组缓存输出流
+                    baos.write(buffer);
+                    // 设置偏移量
+                    offset += decrypt_max_size;
+                } else {
+                    // 计算最后一块数据剩余字节长度
+                    int length = inputDecode.length - offset;
+                    buffer = cipher.doFinal(inputDecode, offset, length);
+                    // 写入字节数组缓存输出流
+                    baos.write(buffer);
+                    // 设置偏移量
+                    offset = inputDecode.length;
+                }
+            }
+            // byte[] encrypt = cipher.doFinal(inputDecode);
+            String result = new String(baos.toByteArray());
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+ 
+    /**
+     * 私钥解密：分段解密，每次最大解密的长度 128 字节。 
+     *
+     * RSA 秘钥长度 1024 ，每次最多加密 117 字节，每次解密最多 128 字节。
+     * RSA 秘钥长度 2048 ，每次最多加密 245 字节，每次解密最多 256 字节。
+     * @param input 密文（Base64编码）
+     */
+    public static String decryptByPrivateKey(PrivateKey privateKey, String input) {
+        try {
+            // 创建 Cipher 对象
+            Cipher cipher = Cipher.getInstance(algorithm);
+            // 初始化模式：加密/解密
+            cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            byte[] inputDecode = bdecode(input);
+            // 加密/解密
+            // 偏移量
+            int offset = 0;
+            byte[] buffer = new byte[1024];
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            while ((inputDecode.length - offset) > 0) {
+                // 数据总长度 - 偏移量 > 128
+                if ((inputDecode.length - offset) >= decrypt_max_size) {
+                    // 每块最大加密 128 字节
+                    buffer = cipher.doFinal(inputDecode, offset, decrypt_max_size);
+                    // 写入字节数组缓存输出流
+                    baos.write(buffer);
+                    // 设置偏移量
+                    offset += decrypt_max_size;
+                } else {
+                    // 计算最后一块数据剩余字节长度
+                    int length = inputDecode.length - offset;
+                    buffer = cipher.doFinal(inputDecode, offset, length);
+                    // 写入字节数组缓存输出流
+                    baos.write(buffer);
+                    // 设置偏移量
+                    offset = inputDecode.length;
+                }
+            }
+            // byte[] encrypt = cipher.doFinal(inputDecode);
+            String result = new String(baos.toByteArray());
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+ 
+    /**
+     * 私钥加密
+     *
+     * RSA 秘钥长度 1024 ，每次最多加密 117 字节，每次解密最多 128 字节。
+     * RSA 秘钥长度 2048 ，每次最多加密 245 字节，每次解密最多 256 字节。
+     */
+    public static String encryptByPrivateKey(PrivateKey privateKey, String input) {
+        try {
+            // 创建 Cipher 对象
+            Cipher cipher = Cipher.getInstance(algorithm);
+            // 初始化模式：加密/解密
+            cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+            // 加密/解密
+            // 偏移量
+            int offset = 0;
+            byte[] buffer = new byte[1024];
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            while ((input.getBytes().length - offset) > 0) {
+                // 数据总长度 - 偏移量 > 117
+                if ((input.getBytes().length - offset) >= encrypt_max_size) {
+                    // 每块最大加密 117 字节
+                    buffer = cipher.doFinal(input.getBytes(), offset, encrypt_max_size);
+                    // 写入字节数组缓存输出流
+                    baos.write(buffer);
+                    // 设置偏移量
+                    offset += encrypt_max_size;
+                } else {
+                    // 计算最后一块数据剩余字节长度
+                    int length = input.getBytes().length - offset;
+                    buffer = cipher.doFinal(input.getBytes(), offset, length);
+                    // 写入字节数组缓存输出流
+                    baos.write(buffer);
+                    // 设置偏移量
+                    offset = input.getBytes().length;
+                }
+            }
+            // byte[] encrypt = cipher.doFinal(input.getBytes());
+            String result = bencode(baos.toByteArray());
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+ 
+    /**
+     * 公钥加密：分段加密
+     *
+     * RSA 秘钥长度 1024 ，每次最多加密 117 字节，每次解密最多 128 字节。
+     * RSA 秘钥长度 2048 ，每次最多加密 245 字节，每次解密最多 256 字节。
+     */
+    public static String encryptByPublicKey(PublicKey publicKey, String input) {
+        try {
+            // 创建 Cipher 对象
+            Cipher cipher = Cipher.getInstance(algorithm);
+            System.out.println(cipher.getAlgorithm());
+            // 初始化模式：加密/解密
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+            // 加密/解密
+            // 偏移量
+            int offset = 0;
+            byte[] buffer = new byte[1024];
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            while ((input.getBytes().length - offset) > 0) {
+                // 数据总长度 - 偏移量 > 117
+                if ((input.getBytes().length - offset) >= encrypt_max_size) {
+                    // 每块最大加密 117 字节
+                    buffer = cipher.doFinal(input.getBytes(), offset, encrypt_max_size);
+                    // 写入字节数组缓存输出流
+                    baos.write(buffer);
+                    // 设置偏移量
+                    offset += encrypt_max_size;
+                } else {
+                    // 计算最后一块数据剩余字节长度
+                    int length = input.getBytes().length - offset;
+                    buffer = cipher.doFinal(input.getBytes(), offset, length);
+                    // 写入字节数组缓存输出流
+                    baos.write(buffer);
+                    // 设置偏移量
+                    offset = input.getBytes().length;
+                }
+            }
+            // byte[] encrypt = cipher.doFinal(input.getBytes());
+            String result = bencode(baos.toByteArray());
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
+```
+
+参考资料：
+
+ - <a href="https://github.com/travist/jsencrypt" target="_blank">jsencrypt</a>
+
+ - <a href="http://www-cs-students.stanford.edu/~tjw/jsbn/" target="_blank">Tom Wu jsbn</a>
+
+ - <a href="https://github.com/brix/crypto-js" target="_blank">crypto-js</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

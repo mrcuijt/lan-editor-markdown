@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>git-basic-help</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### git-basic-help
+
+##### 如何去解决 `fatal: refusing to merge unrelated histories`
+
+**我在 Github 新建一个仓库，写了 License，然后把本地一个写了很久仓库上传。**
+
+**先 pull，因为两个仓库不同，发现 refusing to merge unrelated histories，无法 pull。**
+
+&amp;#160; &amp;#160;**因为他们是两个不同的项目，要把两个不同的项目合并，git 需要添加一句代码，再 `git pull`，这句代码是在 `git 2.9.2` 版本发生的，最新的版本需要添加 `--allow-unrelated-histories`**
+
+```bash
+## 将本地项目与远程 master 分支合并，更新到本地
+git pull origin master --allow-unrelated-histories
+
+## 将本地项目与远程项目合并，更新远程 Git 仓库到本地
+git pull --allow-unrelated-histories
+
+## 同步远程 Git 仓库到本地
+git pull
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

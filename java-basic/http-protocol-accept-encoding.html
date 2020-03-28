@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LanEditorPluginTemplate</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### http-protocol-accept-encoding
+
+HTTP Header 中 Accept-Encoding 是浏览器发给服务器,声明浏览器支持的编码类型的。
+
+常见的有
+
+<text zoom="8.2">╔═════════════════════════════════════════════════════╤════════════════════════════╗
+║ Accept-Encoding: compress, gzip                     │ 支持 compress 和 gzip 类型 ║
+╟─────────────────────────────────────────────────────┼────────────────────────────╢
+║ Accept-Encoding:                                    │ 默认是 identity            ║
+╟─────────────────────────────────────────────────────┼────────────────────────────╢
+║ Accept-Encoding: *                                  │ 支持所有类型               ║
+╟─────────────────────────────────────────────────────┼────────────────────────────╢
+║ Accept-Encoding: compress;q=0.5, gzip;q=1.0         │ 按顺序支持 gzip , compress ║
+╟─────────────────────────────────────────────────────┼────────────────────────────╢
+║ Accept-Encoding: gzip;q=1.0, identity; q=0.5, *;q=0 │ 按顺序支持 gzip , identity ║
+╚═════════════════════════════════════════════════════╧════════════════════════════╝</text>
+
+服务器返回的对应的类型编码 header 是 content-encoding
+
+服务器处理 accept-encoding 的规则如下所示
+
+　　1. 如果服务器可以返回定义在 Accept-Encoding 中的任何一种 Encoding 类型, 那么处理成功(除非 q 的值等于 0, 等于 0 代表不可接受)
+
+　　2. * 代表任意一种 Encoding 类型 (除了在 Accept-Encoding 中显示定义的类型)
+
+　　3.如果有多个 Encoding 同时匹配, 按照 q 值顺序排列
+
+　　4. identity 总是可被接受的 encoding 类型(除非显示的标记这个类型 q=0 ) ,   如果 Accept-Encoding 的值是空  那么只有 identity 是会被接受的类型
+
+如果 Accept-Encoding 中的所有类型服务器都没发返回, 那么应该返回 406 错误给客户端
+
+如果 request 中没有 Accept-Encoding  那么服务器会假设所有的 Encoding 都是可以被接受的,
+
+如果 Accept-Encoding 中有 identity  那么应该优先返回 identity (除非有 q 值的定义,或者你认为另外一种类型是更有意义的)
+
+注意:
+
+如果服务器不支持 identity 并且浏览器没有发送 Accept-Encoding,那么服务器应该倾向于使用 HTTP1.0 中的 "gzip" and "compress" ,  服务器可能按照客户端类型 发送更适合的 encoding 类型
+
+大部分 HTTP1.0 的客户端无法处理 q 值.并且有的服务器无论是否传递了 Accept-Encoding，都会返回压缩数据，所以还是要对 response 的 Content-Encoding 进行监测。  
+
+#### 内容编码类型
+
+HTTP 定义了一些标准的内容编码类型，并允许用扩展的形式添加更多的编码。
+
+Content-Encoding header 就用这些标准化的代号来说明编码时使用的算法
+
+Content-Encoding 值
+
+ - **`gzip`** : 表明实体采用 GNU zip 编码
+
+ - **`compress`** : 表明实体采用 Unix 的文件压缩程序
+
+ - **`deflate`** : 表明实体是用 zlib 的格式压缩的
+
+ - **`identity`** : 表明没有对实体进行编码。当没有 Content-Encoding header 时， 就默认为这种情况
+
+gzip, compress, 以及 deflate 编码都是无损压缩算法，用于减少传输报文的大小，不会导致信息损失。 其中 gzip 通常效率最高， 使用最为广泛。
+
+
+##### 压缩的好处
+
+ http 压缩对纯文本可以压缩至原内容的 40%, 从而节省了 60% 的数据传输。
+
+ 实例： 博客园首页压缩前是：46124 bytes. 压缩后是：16368 bytes.  只有原先的35%。节省了 65% 的数据传输，从而大大提高了性能。
+
+##### Gzip 的缺点
+
+JPEG 这类文件用 gzip 压缩的不够好。
+
+##### Gzip 是如何压缩的
+
+简单来说， Gzip 压缩是在一个文本文件中找出类似的字符串， 并临时替换他们，使整个文件变小。这种形式的压缩对 Web 来说非常适合， 因为 HTML 和 CSS 文件通常包含大量的重复的字符串，例如空格，标签。
+
+HTTP Response 能压缩，HTTP Request 也是可以压缩的。浏览器是不会对 Request 压缩的。 但是一些 HTTP 程序在发送 Request 时，会对其进行编码。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/free0006/article/details/84518481" target="_blank">Accept-Encoding</a>
+
+ - <a href="https://blog.csdn.net/zhangzeguang88/article/details/51554097" target="_blank">http accept-encoding 详解 HTTP 协议-压缩</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

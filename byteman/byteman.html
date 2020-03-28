@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Byteman</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Byteman 简介
+
+&amp;#160; &amp;#160;Byteman 是一个字节码操作工具，可以在加载时或应用程序运行时更改 Java 应用程序的操作。它无需重写或重新编译原始程序即可运行。事实上，Byteman 甚至可以用来修改构成 Java 虚拟机一部分的 Java 代码，如 String，Thread 等类。Byteman 采用了一种清晰，简单易用的事件条件操作（ECA）规则语言，基于 Java。ECA 规则用于指定原始 Java 代码应转换的位置，时间和方式以修改其操作。
+
+&amp;#160; &amp;#160;Byteman 的发明主要是为了支持使用称为故障注入的技术实现多线程和多 JVM Java 应用程序的测试自动化。它包含的功能旨在解决此类测试中出现的问题。Byteman 在四个主要领域为测试自动化提供明确的支持：
+
+ - 跟踪特定代码路径的执行并显示应用程序或 JVM 状态
+
+ - 通过更改状态，进行未调度的方法调用或强制意外返回或抛出来破坏正常执行
+
+ - 编排由独立应用程序线程执行的活动的时间
+
+ - 监视和收集统计信息，总结应用程序和 JVM 操作
+
+&amp;#160; &amp;#160;Byteman 实际上比作为测试工具更常用。Byteman 的核心引擎是一个通用代码注入程序，能够将内联 Java 代码注入几乎任何在 Java 方法执行期间可到达的位置。Byteman 规则条件和操作可以使用所有正常的 Java 内置操作来测试和修改程序状态。它们还可以调用应用程序或 JVM 实例的方法，这些方法位于注入点的范围内。
+
+&amp;#160; &amp;#160;Byteman 规则语言提供一组标准的内置操作，支持上述类别中的特定任务。例如，规则条件可以强制执行线程会合等待，或者动作可以更新统计计数器。使用 POJO 插件配置可用的内置调用集。对于一组规则或单个规则的零散基础，这可以很容易地替换为替代实现。这使得修改和/或扩展规则语言以支持特定于应用程序域的特别程序修改变得微不足道。
+
+#### 使用 Byteman 代理运行应用程序
+
+&amp;#160; &amp;#160;为了使用 Byteman 测试 Java 应用程序，必须将 JVM 配置为加载并运行 Byteman 规则引擎。在最基本的级别，这可以使用-javaagent命令行参数来实现 。附加到此参数的尾随文本将 JVM 指向包含 Byteman 规则引擎的 jar。它还可以标识一个或多个 Byteman 规则脚本的位置，指定要注入被测应用程序的副作用。启动应用程序时，引擎会读取这些脚本，并将脚本中包含的规则应用于任何匹配的类和方法。提供 Shell 命令脚本以简化加载代理和将规则安装到程序中的任务。
+
+&amp;#160; &amp;#160;为了简化测试自动化，Byteman 已经与两个流行的测试框架 JUnit 和 TestNG 集成在一起，允许 Byteman 测试从 ant 或 Maven 驱动。使用集成模块进行故障注入测试只需使用合适的规则注释程序并确保 Byteman jar 位于类路径中。
+
+&amp;#160; &amp;#160;如果您的 Java 应用程序是一个长期运行的程序，那么您可能希望在程序开始运行后加载规则脚本，甚至可能加载规则引擎。例如，您可能决定在遇到性能问题时将 Byteman 安装到应用程序服务器中，然后才上传跟踪您怀疑行为错误的代码执行的规则。加载规则引擎后，无法卸载。但是，可以随意添加和删除规则，允许您使用越来越多的特定跟踪或监视规则专注于手头的问题。请注意，删除规则后，它们影响的方法将保证返回其原始行为。
+
+&amp;#160; &amp;#160;有关如何安装 Byteman 代理以及如何在引导时或运行时上载规则的详细信息，请参阅使用 Byteman 小节。有关如何从命令行使用 Byteman 的完整示例，以及如何从 ant 或 Maven 项目配置基于注释的故​​障注入测试的示例，可以在 Byteman 站点的文档页面链接的在线教程中获得 <a href="http://www.jboss.org/byteman" target="_blank"></a>
+
+#### 事件条件行动规则
+
+&amp;#160; &amp;#160;Byteman 规则引擎通过在执行期间在指定点引入副作用来运行。Byteman 脚本包含一系列事件条件操作（ECA）规则，这些规则准确指定应在运行时如何转换应用程序行为。这些规则的三个组成部分，即事件，条件和行动，分别用于定义：
+
+ - 如果在应用程序执行过程中出现副作用
+
+ - 副作用是否发生
+
+ - 副作用应该是什么
+
+&amp;#160; &amp;#160;例如，在下面的示例中治事件由定义 ```CLASS```，```METHOD```和 ```AT INVOKE``` 条款。它指定了 ```get()``` 类方法中 的触发点 ```BoundedBuffer```。该示例假定方法的定义 ```get()``` 包括对调用 ```Object.wait()```。如果缓冲区为空，这将是合适的。位置说明符 ```AT INVOKE``` 在调用此方法之前放置触发点。
+
+```python
+RULE throw on Nth empty get
+CLASS org.my.BoundedBuffer
+METHOD get()
+AT INVOKE Object.wait()
+BIND buffer = $this
+IF countDown(buffer)
+DO throw new org.my.ClosedException(buffer)
+ENDRULE
+```
+
+&amp;#160; &amp;#160;该事件还包括一个 ```BIND``` 子句，它为局部变量缓冲区建立一个绑定，并为其赋值 ```$this```（这是一个相当人为的事情，但这只是一个例子）。```$this``` 是一种自动绑定，它指的是 ```get()``` 触发规则的调用的目标。缓冲区可以在后面的规则中引用; 在这种情况下，它作为参数传递给 ```DO``` 子句中的异常构造函数。
+
+&amp;#160; &amp;#160;条件由该IF条款定义。它调用内置的标准 Byteman ```countDown(Object)```，减少 ```CountDown``` 与缓冲区关联的内容──该示例假设某些其他规则已调用 ```createCountDown(buffer, N)``` 以创建此 CountDown 并使用值 N 初始化它。 countDown 当 CountDown 的值减少为零时，内置返回 true 。
+
+&amp;#160; &amp;#160;该操作由该 ```DO``` 子句定义。它会导致 ```ClosedException``` 从 ```get()``` 触发规则的调用中创建和抛出实例。
+
+&amp;#160; &amp;#160;因此，在此示例中，条件将评估为 ```false``` getter 尝试等待的前 N-1 次。在 Nth 触发条件将评估为 ```true```，并且规则将触发，运行内置动作抛出。这将导致触发线程向 ```ClosedException``` 方法的调用者抛出一个 ```get()```。
+
+#### 规则绑定和参数化
+
+设置 countDown 的相应规则可以定义如下
+
+```python
+RULE set up buffer countDown
+CLASS org.my.BoundedBuffer
+METHOD <init>(int)
+AT EXIT
+BIND buffer = $0;
+size = $1
+IF $1 < 100
+DO createCountDown(buffer, size - 1)
+ENDRULE
+```
+
+此规则附加到类的构造函数，该类 ```BoundedBuffer``` 采用单个 ```int``` 参数。该 ```AT EXIT``` 位置意味着它在构造函数返回之前触发。该 ```BIND``` 子句使用索引表示法来引用方法target ```$0```，和第一个参数 ```$1``` 。为了示例，假设后者是缓冲区大小。如果缓冲区大小小于 100，则规则使用缓冲区作为标识来创建一个 ```countDown``` with count ```size``` ```–1```。
+
+&amp;#160; &amp;#160;注意的参数化如何 ```createCountDown``` 与 ```countDown``` 调用与绑定变量缓冲区限制这些规则的具体案件的范围。如果有两个缓冲区，```buffer1``` 和 ```buffer2```，但只 ```buffer1``` 具有粒径小于 100 则在为建立规则的条件将返回 false ```buffer2``` 创建。这意味着操作将不会运行并且 countDown 将不会与之关联。```buffer2.```当 ```buffer2.get()``` 触发对 throw 规则的后续调用时，条件将始终返回 false 并且规则将不会触发。
+
+&amp;#160; &amp;#160;如果两个缓冲区的大小都小于 100，那么将创建两个 countDowns。当调用或调用时，将触发 throw 规则 ```buffer1.get()```，```buffer2.get()```并且在两种情况下最终都会触发并抛出异常。但是，每个 countDown 仍将独立递减。
+
+#### 内置条件和操作
+
+&amp;#160; &amp;#160;Byteman 提供了一套内置条件和动作，用于协调独立线程的活动，例如延迟，等待和信号，倒计时，标记操作等。这些对于测试受任意调度顺序影响的多线程程序特别有用。明智地插入 byteman 动作可以保证给定测试运行中的线程交错将以期望的顺序发生，使得测试代码能够可靠地执行通常不会出现在合成工作负载中的并行执行路径。
+
+&amp;#160; &amp;#160;还提供了跟踪操作，以便测试脚本可以跟踪测试运行的进度并识别成功或不成功的测试完成。跟踪输出也可用于调试规则执行。通过提供测试局部或参数变量绑定状态的条件，可以非常精细地调整跟踪输出。跟踪操作可以将这些绑定值插入到消息字符串中，从而可以对测试执行路径进行详细审查。
+
+&amp;#160; &amp;#160;可以使用一些特殊的内置操作通过修改执行路径来破坏应用程序代码的行为。这在测试环境中尤为重要，在测试环境中，通常需要强制应用程序方法生成虚拟结果或模拟错误。
+
+&amp;#160; &amp;#160;一回行动部队从该规则的目标代码位置的早日回归。如果方法是非 void，则返回操作提供一个值以用作方法结果。
+
+&amp;#160; &amp;#160;甲掷操作使异常被从触发方法帧抛出。始终允许规则抛出运行时异常（即实例 ```RuntimeException``` 或其子类）。如果没有来电方法了从触发方法堆栈包括 AA 捕获 ```RuntimeException``` 或 ```Throwable``` 再有效这个中止当前线程。只要触发器方法在其 throws 列表中声明异常，也可能抛出其他异常。这种限制对于确保注入的代码不会破坏触发器方法与其调用者之间的方法契约是必要的。
+
+最后，对 ```killJVM()``` 内置函数的调用允许通过配置从 JVM 立即退出来模拟机器崩溃。
+
+&amp;#160; &amp;#160;值得注意的是，规则不仅限于使用内置操作。还可以通过在规则事件，条件或操作中编写对象字段或调用 Java 方法来引入特定于应用程序的副作用。此类字段写入或方法调用操作的明显目标是通过本地或参数变量绑定从触发方法提供的对象。但是，也可以更新静态数据并调用可从触发方法的类加载器访问的任何类的静态方法。因此，使用 Byteman 规则对原始程序应用任意修改是完全可行的。Byteman 规则具有特殊的访问权限，这意味着可以读取和写入受保护或私有字段并调用受保护或私有数据。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

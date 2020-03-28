@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu</title>
+<style>
+
+body{
+  margin:0;
+  padding:0;
+  font-size:14px;
+  font-family:"宋体";
+}
+
+ul,li{
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+
+.main{
+  margin:0 auto;
+  width:1004px;
+  background-color:#F8F2DA;
+  border-left:1px solid #000;
+  border-right:1px solid #000;
+}
+
+.h-nav{
+  width:1005px;
+  height:37px;
+  background:url(flowers/menu.jpg) repeat-x;
+}
+
+.h-nav>ul>li:nth-child(1),.h-nav>ul>li:nth-child(2),.h-nav>ul>li:nth-child(6){
+  padding:0px 16px;
+}
+
+.h-nav>ul{
+  margin-left:50px;
+}
+
+.h-nav>ul>li{
+  float:left;
+  height:37px;
+  line-height:37px;
+  text-align:center;
+}
+
+.h-nav ul li a{
+  color:#757575;
+  text-decoration:none;
+}
+
+.h-nav ul li a:hover{
+  color:#000;
+}
+
+.h-nav ul li:hover ul{
+  visibility:visible;
+}
+
+.h-nav ul ul{
+  position:relative;
+  padding-top:6px;
+  width:100%;
+  background-color:#EFE8CC;
+  visibility: hidden;
+}
+
+.h-nav ul ul li{
+  padding:0px 16px;
+}
+
+.h-nav ul ul li a{
+  color:#FF6633;
+}
+
+.h-nav ul ul li:hover{
+  background-color:#A5CD5B;
+}
+
+.h-nav ul ul li:hover a{
+  color:#FFF;
+  text-decoration:underline;
+}
+
+</style>
+</head>
+<body>
+  <div class="main">
+	<div class="h-nav">
+	  <ul>
+	    <li><a href="javascript:void(0);">首页</a></li>
+		<li><a href="javascript:void(0);">最新供应</a></li>
+		<li><a href="javascript:void(0);">最新求购</a>
+		  <ul>
+		    <li><a href="javascript:void(0);">求购热线</a></li>
+			<li><a href="javascript:void(0);">联系地址</a></li>
+		  </ul>
+		</li>
+		<li><a href="javascript:void(0);">行业市场</a>
+		  <ul>
+		    <li><a href="javascript:void(0);">市场调查</a></li>
+			<li><a href="javascript:void(0);">市场动态</a></li>
+		  </ul>
+		</li>
+		<li><a href="javascript:void(0);">花卉咨询</a>
+		  <ul>
+		    <li><a href="javascript:void(0);">花卉浏览</a></li>
+			<li><a href="javascript:void(0);">花卉知识</a></li>
+		  </ul>
+		</li>
+		<li><a href="javascript:void(0);">联系我们</a></li>
+	  </ul>
+	  <div class="h-nav-pic"></div>
+	</div>
+  </div>
+<script>
+    
+</script>
+</body>
+</html>

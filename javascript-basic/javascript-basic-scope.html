@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-scope</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-scope
+
+作用域：
+
+ - 域：空间、范围、区域...
+
+ 作用：读、写
+
+ **`域的特征，先预解析函数中的内容，在执行。`**
+
+函数：函数也是一个域；
+
+script 全局变量、全局函数 自上而下、
+
+script 局部变量、局部函数
+
+{}：对象
+
+##### Demo1
+
+```js
+alert(a); underfind
+var a = 1;
+```
+
+##### Demo2
+
+```js
+alert(a); error a is not defind
+a = 1;
+```
+
+#### 浏览器：
+
+##### JS 解析器
+
+```text
+作用：
+1)"找一些东西"：var function 参数(将需要用到的工具找齐后，再去工作)
+    1)所有的变量，在正式运行代码之前，都提前赋了一个值：未定义。
+        1)在寻找工具的时候，只会读取声明定义的部分，不会去读取。
+    2)所有的函数，它的值就是自己函数的本身。
+    3)所有找到的，变量，函数 都会被存储起来，称为："数据仓库"。
+    4)预解析过程中：
+        如果 变量名 与 函数名 ，重名了？
+        只留一个：无论函数定义在变量上面，还是定义在变量下面，只留函数。
+        因为：变量在预解析过程中值为 "未定义"
+             函数在预解析过程中值为 函数本身(的字符串)
+2)逐行解读代码(工作)
+    1)在逐行解读代码的时候，会去访问数据仓库，获取数据仓库中变量的值
+    2)通过表达式更新数据仓库：= + - * / ++ -- ! 参数 ...
+    3)表达式可以修改数据仓库中预定义参数的值
+```
+
+如：
+
+**步骤1：寻找定义**
+
+```js
+/** example code */
+alert(a);  // 首先：寻找定义的变量 与 函数(根据，JavaScript 关键字寻找)
+var a = 1; // 找到变量 a ,记录到数据仓库，赋初始值 "未定义"
+function fn1(){alert(2);} // 找到 函数 fn1 ,将函数本身存储在数据仓库中
+
+// end;  读取变量、函数、参数 完毕
+```
+
+**步骤2：逐行解读代码**
+
+```js
+/** example code */
+alert(a);  // 解读代码，同时去访问数据仓库，找到变量 a ，默认值为 "未定义"
+var a = 1; // 解读代码，为变量 a 赋值，并更新到数据仓库
+function fn1(){alert(2);} // 只存在方法的定义，不需执行
+
+//  end;  解读代码执行 完毕
+```
+
+-----------------------/------------------------
+
+##### 全局与局部作用域解析、作用域链
+
+**预解析：找关键字的定义：变量、函数、参数**
+
+```js
+/** example code */
+alert(a);  // 非关键字，跳过
+var a = 1; //  a = "未定义"
+function a(){alert(2);} // a = "function a(){alert(2);}";
+alert(a);  // 非关键字，跳过
+var a = 2; //  a = "function a(){alert(2);}";
+function a(){alert(4);} // a = "function a(){alert(4);}";
+alert(a);  // 非关键字，跳过
+var a = 3; //  a = "function a(){alert(4);}";
+function a(){alert(6);} // a = "function a(){alert(6);}";
+alert(a);  // 非关键字，跳过
+```
+
+最后数据仓库中的值为：
+
+```js
+a = "function a(){alert(6);}";
+```
+
+------------------/------------------
+
+**逐行解析代码，执行**
+
+```js
+/** example code */
+alert(a);  // 弹出 a 的值(数据仓库中的)：function a(){alert(6);}
+var a = 1; // 表达式，会覆盖数据仓库中的值 a = 1;
+function a(){alert(2);} // 函数的定义不会执行，跳过
+alert(a);  // 弹出 a 的值 1 ;
+var a = 2; // 表达式，再次覆盖之前的值 a = 2;
+function a(){alert(4);} // 跳过
+alert(a);  // 弹出 a 的值 2 ;
+var a = 3; // 表达式，再次覆盖之前的值 a = 3;
+function a(){alert(6);} // 跳过
+alert(a);  // 弹出 a 的值 3 ;
+```
+
+**奇葩测试，尝试调用 函数 a**
+
+```js
+a() // 报错: a is not a function
+    // 注：此时 a 已经不再是一个函数了， a 的类型为 Number
+3() // 如此调用，JavaScript 进行报错。
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

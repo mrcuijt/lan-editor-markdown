@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-scope-exart</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-scope-exart
+
+从 JavaScript 作用域说去
+
+目录
+
+ - 1.静态作用域与动态作用域
+
+ - 2.变量的作用域
+
+ - 3.JavaScript 中变量的作用域
+
+ - 4.JavaScript 欺骗作用域
+
+ - 5.JavaScript 执行上下文
+
+ - 6.JavaScript 中的作用域链
+
+ - 7.JavaScript 中的闭包
+
+ - 8.JavaScript 中的模块
+
+##### 一、静态作用域与动态作用域
+
+在电脑程序设计中，作用域(scope，或译作有效范围)是名字(name)与实体(entity)的绑定(binding)保持有效的那部分计算机程序。不同的编程语言坑能有不同的作用域和名字解析。不同的编程语言可能有不同的作用域和名字解析。而同一语言内也可能存在多种作用域，随实体的类型变化而不同。作用域类别影响变量的绑定方式，根据语言使用静态作用域还是动态作用域变量的取值可能会有不同的结果。
+
+包含标识符的宣告或定义；
+
+包含语句和/或表达式，定义或部分关于可运行的算法；
+
+嵌套嵌套或被嵌套嵌套
+
+名字空间是一种作用域，使用作用域的封装性质去逻辑上组群起关相的众识别子于单一识别子之下。因此，作用域可以影响这些内容的名字解析。
+
+程序员常会缩进他们的源代码中的作用域，改善可读性。
+
+静态作用域又叫做词法作用域，采用词法作用域的变量叫词法变量。词法变量有一个在编译时静态确定的作用域。词法变量的作用域可以是一个函数或一段代码，该变量在这段代码区域内可见(visibility)；在这段区域以外的变量不可见(或无法访问)。词法作用域里，取变量的值时，会检查函数定义时的文本环境，捕捉函数定义时对该变量的绑定。
+
+```js
+function f(){
+    function g(){
+    }
+}
+```
+
+静态(词法)作用域，就是可以无须执行程序而只从程序源代码的角度，就可以看出程序是如何工作的。从上面的例子中可以肯定，函数 g 是被函数 f 包围在内部。
+
+大多数现在程序设计语言都是采用静态作用域规则，如 C/C++、C#、Python、Java、 JavaScript ......
+
+相反，采用动态作用域的变量叫做动态变量。只要程序正在执行定义了动态的代码段，那么在这段时间内，该变量一直存在；代码段执行结束，该变量便消失。这意味着如果有个函数 f ，里面调用了函数 g ，那么在执行 g  的时候，f 里的所有的局部变量都会被 g 访问到。而在静态作用域情况下，g 不能访问到 f 的变量。**`动态作用域里，取变量的值时，会由内向外逐层检查函数的调用链，并打印第一次遇到的那个绑定的值。显然，最外层的绑定即是全局状态下的那个值。`**
+
+```js
+function g(){
+
+}
+
+function f(){
+    g();
+}
+```
+
+当我们调用 f()，它会调用 g()。在执行期间， g 被 f 调用代表了一种动态的关系。
+
+采用动态作用域的语言有 Pascal、EmacsLisp、Common Lisp (兼有静态作用域)、Perl(兼有静态作用域)。C/C++ 是静态作用域语言，但是在宏中用到的名字，也是动态作用域。
+
+##### 二、变量的作用域
+
+ - 1.变量的作用域
+
+变量的作用域是指变量在何处可以被访问到。比如：
+
+```js
+function foo(){
+    var bar;
+}
+```
+
+这里的 bar 的直接作用域是函数作用域 foo()；
+
+ - 2.词法作用域
+
+JavaScript 中的变量都是有静态(词法)作用域的，因此一个程序的静态结构就决定了一个变量的作用域，这个作用域不会被函数的位置改变而改变。
+
+ - 3.嵌套作用域
+
+如果一个变量的直接作用域中嵌套了多少作用域，那么这个变量在所有的这些作用域中都可以被访问：
+
+```js
+function foo (arg){
+function bar(){
+console.log( 'arg' + arg );
+}
+bar();
+}
+
+console.log(foo('hello')); // arg:hello
+```
+
+arg 的直接作用域是 foo()，但是它同样可以在嵌套的作用域 bar() 中访问，foo() 是外部的作用域，bar() 是内部作用域。
+
+ - 4.覆盖作用域
+
+如果在一个作用域中声明了一个与外层作用域同名的变量，那么这个内部作用域以及内部的左右作用域将会访问不到外面的变量。并且内部的变量的变化也不会影响到外面的变量，当变量离开内部的作用域以后，外部变量又可以被访问了。
+
+```js
+var x = 'global';
+
+function f(){
+    var x = 'local'; // local
+    console.log(x); // local
+}
+
+f();
+console.log(x); // global 
+```
+
+这就是覆盖作用域。
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

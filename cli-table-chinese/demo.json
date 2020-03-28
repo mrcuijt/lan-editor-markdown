@@ -1,0 +1,20 @@
+[
+  ["Goals", "Description"],
+  ["cargo:start", "Start a container. \nThat goal will:If the plugin configuration requires so, installs the container.\nIf the plugin configuration defines a container with a?standalone local configuration, it will create the configuration.\nIf the plugin configuration contains one or more?deployables, it will deploy these to the container automatically. \nIf the plugin configuration contains no?deployables?but the project's packaging is Java EE (WAR, EAR, etc.), it will deploy the project's deployable to to the container automatically. \nAnd, of course, start the container. \nNote: A container that's started with?cargo:start?will automatically shut down as soon as the parent Maven instance quits (i.e., you see a?BUILD SUCCESSFUL?or?BUILD FAILED?message). If you want to start a container and perform manual testing, see our next goal?cargo:run."],
+  ["cargo:run", "Start a container and wait for the user to press?CTRL + C?to stop. That goal will: \nIf the plugin configuration requires so, installs the container. \nIf the plugin configuration defines a container with a?standalone local configuration, it will create the configuration. \nIf the plugin configuration contains one or more?deployables, it will deploy these to the container automatically. \nIf the plugin configuration contains no?deployables?but the project's packaging is Java EE (WAR, EAR, etc.), it will deploy the project's deployable to to the container automatically. \nAnd, of course, start the container and wait for the user to press?CTRL + C?to stop."],
+  ["cargo:stop", "Stop a container."],
+  ["cargo:restart", "Stop and start again a container. If the container was not running before calling?cargo:restart, it will simply be started."],
+  ["cargo:configure", "Create the configuration for a?local container, without starting it. Note that the?cargo:start?and?cargo:run?goals will also install the container automatically (but will not call?cargo:install)."],
+  ["cargo:package", "Package the?local container."],
+  ["cargo:daemon-start", "Start a container via the daemon. Read more on:?Cargo Daemon \nNote: The?daemon:start?goal is actually equivalent to a?restart?in CARGO's terms; in the case a container with the same?cargo.daemon.handleid?already exists then it will be stopped first before your container is started. This also implies that in the case the new container fails to start, the old one will?not?be restarted."],
+  ["cargo:daemon-stop", "Stop a container via the daemon. Read more on:?Cargo Daemon"],
+  ["cargo:deployer-deploy (aliased to?cargo:deploy)", "Deploy a deployable to a running container. \nNote: The?cargo:start?and?cargo:run?do already deploy the deployables specified in the configuration to the container; as a result calling?cargo:deploy?for a container which has been started by CARGO in the same Maven2/Maven3 project will most likely cause a second deployment of the same deployables (and might even fail)."],
+  ["cargo:deployer-undeploy(aliased to?cargo:undeploy)", "Undeploy a deployable from a running container."],
+  ["cargo:deployer-start", "Start a deployable already installed in a running container."],
+  ["cargo:deployer-stop", "Stop a deployed deployable without undeploying it."],
+  ["cargo:deployer-redeploy(aliased to?cargo:redeploy)", "Undeploy and deploy again a deployable. If the deployable was not deployed before calling?cargo:deployer-redeploy?(or its alias?cargo:redeploy) it will simply be deployed."],
+  ["cargo:uberwar", "Merge several WAR files into one."],
+  ["cargo:install", "Installs a container distribution on the file system. Note that the?cargo:start?goal will also install the container automatically (but will not call?cargo:install)."],
+  ["cargo:help", "Get help (list of available goals, available options, etc.)."]
+],
+

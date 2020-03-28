@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CXF WS RESTful</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+***```pom.xml```***
+```xml
+<dependencies>
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.1.0</version>
+        <scope>provided</scope>
+    </dependency>
+    <!-- cxf-frontend 运行时 -->
+    <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+        <version>3.0.1</version>
+    </dependency>
+    <!-- 引入 SLF4J 日志门面 -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.5</version>
+    </dependency>
+    <!-- 整合 Log4j -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.8.0-alpha2</version>
+    </dependency>
+    <!-- CXF REST 风格客户端 -->
+    <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-rs-client</artifactId>
+        <version>3.0.1</version>
+    </dependency>
+    <!-- 添加对 REST 风格 JSON 格式传输数据的支持 -->
+    <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-rs-extension-providers</artifactId>
+        <version>3.0.1</version>
+    </dependency>
+    <!-- WADL Auto Generation at Runtime -->
+    <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-rs-service-description</artifactId>
+        <version>3.0.0-milestone1</version>
+    </dependency>
+	<dependency>
+        <groupId>org.codehaus.jettison</groupId>
+        <artifactId>jettison</artifactId>
+        <version>1.3.7</version>
+    </dependency>
+    <!-- JUNIT -->
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.10</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>4.2.4.RELEASE</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-web</artifactId>
+        <version>4.2.4.RELEASE</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <version>4.2.4.RELEASE</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>4.2.4.RELEASE</version>
+    </dependency>
+</dependencies>
+```
+***```CXF RESTful WS Interface```***
+```java
+package spring.jaxrs.server.ws;
+
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+
+import spring.jaxrs.server.entity.User;
+
+/**
+ * @author Administrator
+ *
+ */
+// 访问当前服务接口对应的路径
+@Path("/userService")
+// 服务器支持的返回的数据内容类型格式
+@Produces("*/*")
+public interface IUserService {
+
+	// 表示处理的请求的类型，post 对应的是新增操作
+	@POST
+	// 访问当前服务接口方法对应的路径。【../userService/user】
+	@Path("/user")
+	// 服务器支持的请求的数据内容类型格式
+	@Consumes({ "application/xml", "application/json" })
+	public void saveUser(User user);
+
+	// 表示处理的请求的类型，put 对应的是修改操作
+	@PUT
+	@Path("/user")
+	@Consumes({ "application/xml", "application/json" })
+	public void updateUser(User user);
+
+	// 表示处理的请求的类型，get 对应的是查询操作
+	@GET
+	@Path("/user")
+	@Consumes({ "application/xml", "application/json" })
+	public List<User> findAllUsers();
+
+	// 表示处理的请求的类型，get 对应的是查询操作
+	@GET
+	@Path("/user/{id}")
+	@Consumes({ "application/xml" })
+	// 服务器支持的返回的数据格式的类型
+	@Produces({ "application/xml", "application/json" })
+	public User findUserById(@PathParam("id") Integer id);
+
+	// 表示处理的请求的类型，delete 对应的是删除操作
+	@DELETE
+	@Path("/user/{id}")
+	@Consumes({ "application/xml", "application/json" })
+	public void deleteUser(@PathParam("id") Integer id);
+
+}
+```
+
+***```CXF RESTful WS Interface Impl```***
+```java
+package spring.jaxrs.server.ws;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import spring.jaxrs.server.entity.Car;
+import spring.jaxrs.server.entity.User;
+
+/**
+ * @author Administrator
+ *
+ */
+public class UserServiceImpl implements IUserService {
+
+	@Override
+	public void saveUser(User user) {
+		System.out.println("save user:" + user);
+	}
+
+	@Override
+	public void updateUser(User user) {
+		System.out.println("update user:" + user);
+	}
+
+	@Override
+	public List<User> findAllUsers() {
+		List<User> users = new ArrayList<User>();
+		User user1 = new User();
+		user1.setId(1);
+		user1.setUsername("小明");
+		user1.setCity("北京");
+		users.add(user1);
+
+		List<Car> cars = new ArrayList<Car>();
+		Car car1 = new Car();
+		car1.setId(101);
+		car1.setCarName("保时捷");
+		car1.setPrice(1000000d);
+		cars.add(car1);
+
+		Car car2 = new Car();
+		car2.setId(102);
+		car2.setCarName("宝马");
+		car2.setPrice(400000d);
+		cars.add(car2);
+
+		user1.setCars(cars);
+
+		User user2 = new User();
+		user2.setId(2);
+		user2.setUsername("小丽");
+		user2.setCity("上海");
+		users.add(user2);
+
+		return users;
+	}
+
+	@Override
+	public User findUserById(Integer id) {
+		if (id == 1) {
+			User user1 = new User();
+			user1.setId(1);
+			user1.setUsername("小明");
+			user1.setCity("北京");
+			return user1;
+		}
+		return null;
+	}
+
+	@Override
+	public void deleteUser(Integer id) {
+		System.out.println("delete user id:" + id);
+	}
+
+}
+```
+
+***```RESTful WS User Entity```***
+```java
+package spring.jaxrs.server.entity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * 基于 restful 风格的 WebService，客户端与服务器之间通讯可以传递xml数据、json数据
+ * 
+ * @XmlRootElement 指定对象序列化为 xml 或 json 数据时根节点的名称
+ * xml :
+ *  <User>
+ *    <id></id>
+ *    <username></username>
+ *    <city></city>
+ *  </User>
+ *  json ：
+ *  {"User":{"id":100,"username":"jack","city":"广州"}}
+ * @author Administrator
+ */
+@XmlRootElement(name = "User")
+public class User {
+	private Integer id;
+	private String username;
+	private String city;
+	private List<Car> cars = new ArrayList<Car>();
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getCity() {
+		return city;
+	}
+
+	public void setCity(String city) {
+		this.city = city;
+	}
+
+	public List<Car> getCars() {
+		return cars;
+	}
+
+	public void setCars(List<Car> cars) {
+		this.cars = cars;
+	}
+
+	@Override
+	public String toString() {
+		return "User [id=" + id + ", username=" + username + ", city=" + city + "]";
+	}
+
+}
+```
+
+***```RESTful WS Car Entity```***
+```java
+package spring.jaxrs.server.entity;
+
+import javax.xml.bind.annotation.XmlRootElement;
+
+/**
+ * @author Administrator
+ *
+ */
+@XmlRootElement(name = "Car")
+public class Car {
+
+	private Integer id;
+	private String carName;
+	private Double price;
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getCarName() {
+		return carName;
+	}
+
+	public void setCarName(String carName) {
+		this.carName = carName;
+	}
+
+	public Double getPrice() {
+		return price;
+	}
+
+	public void setPrice(Double price) {
+		this.price = price;
+	}
+
+	@Override
+	public String toString() {
+		return "Car [id=" + id + ", carName=" + carName + ", price=" + price + "]";
+	}
+
+}
+```
+
+***```web.xml```***
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+	<!-- 1. CXFServlet 配置 -->
+	<servlet>
+		<servlet-name>cxfServlet</servlet-name>
+		<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>cxfServlet</servlet-name>
+		<url-pattern>/ws/*</url-pattern>
+	</servlet-mapping>
+	<!-- 2. Spring 容器配置 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:applicationContext.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+</web-app>
+```
+
+***```applicationContext.xml```***
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:cxf="http://cxf.apache.org/core"
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-3.2.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd
+	http://cxf.apache.org/core
+	http://cxf.apache.org/schemas/core.xsd
+	http://cxf.apache.org/jaxws
+    http://cxf.apache.org/schemas/jaxws.xsd
+	http://cxf.apache.org/jaxrs
+    http://cxf.apache.org/schemas/jaxrs.xsd
+    http://cxf.apache.org/bindings/soap 
+    http://cxf.apache.org/schemas/configuration/soap.xsd">
+
+	<!-- 
+		Spring 整合 cxf 发布基于 REST 风格的服务关键点
+		1.服务地址
+		2.服务类
+		服务完整访问地址：/ws/userService/{RESTful WS Interface @Path}
+	 -->
+	<jaxrs:server address="/userService">
+		<jaxrs:serviceBeans>
+			<bean class="spring.jaxrs.server.ws.UserServiceImpl"></bean>
+		</jaxrs:serviceBeans>
+	</jaxrs:server>
+</beans>
+```
+
+***```CXF RESTful WS Client```***
+```java
+package client;
+
+import javax.ws.rs.core.MediaType;
+
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.junit.Test;
+
+import spring.jaxrs.server.entity.User;
+
+/**
+ * @author Administrator
+ *
+ */
+public class Client {
+	@Test
+	public void testSave() {
+
+		User user = new User();
+		user.setId(10);
+		user.setUsername("小黄");
+		user.setCity("广州");
+
+		// 通过 WebClient 对象调用服务端
+		WebClient.create("http://localhost:5639/ws/userService/userService/user")
+			.type(MediaType.APPLICATION_JSON) // 指定的请求的数据格式为
+			.post(user);
+
+	}
+
+	@Test
+	public void testGet() {
+		// 通过 WebClient 对象调用服务端
+		// 查询一个用户
+		User user = WebClient.create("http://localhost:8080/ws/userService/userService/user/1")
+				.type(MediaType.APPLICATION_JSON) // 指定的请求的数据格式为
+				.accept(MediaType.APPLICATION_JSON)// 指定响应的数格式为 JSON
+				.get(User.class);
+		System.out.println(user);
+	}
+
+}
+```
+
+***```CXF RESTful WS WADL Resource```***
+```xml
+<application
+    xmlns="http://wadl.dev.java.net/2009/02"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <grammars>
+        <xs:schema
+            xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+            attributeFormDefault="unqualified" 
+            elementFormDefault="unqualified">
+            <xs:element name="Car" type="car"/>
+            <xs:element name="User" type="user"/>
+            <xs:complexType name="user">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="cars" nillable="true" type="car"/>
+                    <xs:element minOccurs="0" name="city" type="xs:string"/>
+                    <xs:element minOccurs="0" name="id" type="xs:int"/>
+                    <xs:element minOccurs="0" name="username" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="car">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="carName" type="xs:string"/>
+                    <xs:element minOccurs="0" name="id" type="xs:int"/>
+                    <xs:element minOccurs="0" name="price" type="xs:double"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </grammars>
+    <resources base="http://localhost:8080/ws/userService">
+        <resource path="/userService">
+            <resource path="/user">
+                <method name="GET">
+                    <response>
+                        <representation mediaType="application/octet-stream"/>
+                    </response>
+                </method>
+                <method name="POST">
+                    <request>
+                        <representation mediaType="application/xml"/>
+                        <representation mediaType="application/json"/>
+                    </request>
+                    <response status="204"></response>
+                </method>
+                <method name="PUT">
+                    <request>
+                        <representation mediaType="application/xml"/>
+                        <representation mediaType="application/json"/>
+                    </request>
+                    <response status="204"></response>
+                </method>
+            </resource>
+            <resource path="/user/{id}">
+                <param name="id" style="template" type="xs:int"/>
+                <method name="DELETE">
+                    <request></request>
+                    <response status="204"></response>
+                </method>
+                <method name="GET">
+                    <request></request>
+                    <response>
+                        <representation mediaType="application/xml"/>
+                        <representation mediaType="application/json"/>
+                    </response>
+                </method>
+            </resource>
+        </resource>
+    </resources>
+</application>
+```
+
+***```RESTful Get Request RAW Data```***
+```python
+GET /ws/userService/userService/user/1 HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+User-Agent: Apache CXF 3.0.1
+Cache-Control: no-cache
+Pragma: no-cache
+Host: localhost:8080
+Connection: keep-alive
+
+```
+
+***```RESTful Get Response RAW Data```***
+```python
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Date: Fri, 05 Apr 2019 03:53:39 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"User":{"city":"北京","id":1,"username":"小明"}}
+```
+
+***```RESTful Get Request RAW Data 2```***
+```python
+GET /ws/userService/userService/user/1 HTTP/1.1
+Content-Type: application/json
+Accept: application/xml
+User-Agent: Apache CXF 3.0.1
+Cache-Control: no-cache
+Pragma: no-cache
+Host: localhost:8080
+Connection: keep-alive
+
+```
+
+***```RESTful Get Response RAW Data 2```***
+```python
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Date: Fri, 05 Apr 2019 03:58:57 GMT
+Content-Type: application/xml
+Content-Length: 124
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<User>
+    <city>北京</city>
+    <id>1</id>
+    <username>小明</username>
+</User>
+```
+
+***```RESTful POST Request RAW Data```***
+```python
+POST /ws/userService/userService/user HTTP/1.1
+Content-Type: application/xml
+Accept: */*
+User-Agent: Apache CXF 3.0.1
+Cache-Control: no-cache
+Pragma: no-cache
+Host: localhost:8080
+Connection: keep-alive
+Content-Length: 125
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<User>
+    <city>广州</city>
+    <id>10</id>
+    <username>小黄</username>
+</User>
+```
+
+***```RESTful POST Response RAW Data```***
+```python
+HTTP/1.1 204 No Content
+Server: Apache-Coyote/1.1
+Date: Fri, 05 Apr 2019 04:41:36 GMT
+
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

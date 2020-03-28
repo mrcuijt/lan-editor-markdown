@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-compile</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+### 编译相关问题
+
+#### Jar 包依赖
+
+```python
+javac [lib folder or file] [src file]
+
+## example
+javac ./ StudentDetails.java
+
+## example 2
+javac -classpath ".;./lib/*" StudentDetails.java
+
+## example 3
+javac -cp antlr-2.7.6.jar;commons-io-2.4.jar;dcm4che-core-2.0.29.jar; StudentDetails.java
+```
+
+#### 乱码问题
+
+**Environment（环境）**
+
+ - **File Encoding UTF8**
+ - **System OS Encoding GBK**
+ - **.java File Encoding UTF8**
+ - **.class File Encoding UTF8**
+
+**Tips:**
+
+ - **.class 文件是以 Unicode 编码存储的**
+ - **Java 根据 System OS Encoding 读取 .java 文件的**
+ - **Win7(Encoding GBK)**
+
+**`Use GBK Encoding Read .java File , File Encoding UTF8`**
+
+**`使用 GBK 编码读取一个文件编码为 UTF8 .java 文件，`**
+
+```java
+Get String bytes
+  if String str1 = "你好";
+    == Unicode Hex = [E4 BD A0 E5 A5 BD]
+    new String(byte[]{(byte) 0xE4, (byte) 0xBD, (byte) 0xA0,
+         (byte) 0xE5, (byte) 0xA5, (byte) 0xBD},"GBK"); // 浣犲ソ
+```
+
+**`你好` 以 `UTF8 字符集` 存储在文件中时的十六进制为 `[E4 BD A0 E5 A5 BD]`**
+
+**`你好` 以 `GBK 字符集` 存储在文件中时的十六进制为 `[C4 E3 BA C3]`**
+
+**Tips:**
+
+ - **`"GBK"` is Win7 OS Simple Chinese Default Charset Encoding**
+ - **javac use default OS Charset Encoding(GBK)**
+ - **Can use javac -encoding utf8 , change default OS Charset Encoding**
+
+**Get Final String**
+
+```java
+"浣犲ソ"
+
+// "浣犲ソ" = new String([E4 BD A0 E5 A5 BD],GBK)
+// "你好" = new String([E4 BD A0 E5 A5 BD],UTF8)
+```
+
+**Save .class file(Unicode) Save String to Unicode**
+
+```java
+"浣犲ソ".getBytes("UTF8"); 
+// byte[]{(byte) 0xE6, (byte) 0xB5, (byte) 0xA3, (byte) 0xE7, 
+//      (byte) 0x8A, (byte) 0xB2, (byte) 0xE3, (byte) 0x82, (byte) 0xBD}
+// Hex Value [E6 B5 A3 E7 8A B2 E3 82 BD]
+```
+
+**Load .class file(Unicode) Only Read Unicode to Use**
+
+```java
+// Hex Value [E6 B5 A3 E7 8A B2 E3 82 BD]
+new String(byte[]{(byte) 0xE6, (byte) 0xB5, (byte) 0xA3, (byte) 0xE7, 
+      (byte) 0x8A, (byte) 0xB2, (byte) 0xE3, (byte) 0x82, (byte) 0xBD},"UTF8");
+// "浣犲ソ"
+```
+
+**How Convert "`浣犲ソ`" to "`你好`"**
+
+```java
+str1 = "浣犲ソ";
+String temp = new String(str1.getBytes("GBK","UTF8"));
+```
+
+#### Win7 简体中文系统问题解决
+
+**How Process that**
+
+ - **`save .java file encoding UTF8`**
+ - **`javac -encoding UTF8`**
+
+**OR**
+
+ - **`save .java file encoding GBK`**
+ - **`javac -encoding GBK`**
+
+##### 警告：[unchecked] 未经检查的转换
+
+```java
+@SuppressWarnings("unchecked")
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

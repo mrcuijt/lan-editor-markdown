@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate Base API</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+##### 使用 load() & get() 方法获取 Person 对象
+
+```java
+/**
+ * 根据 主键 获取 对象的方法
+ * 
+ * 使用 get(),如果此对象不存在,则返回 null
+ * 
+ * 使用 load(),如果此对象不存在,则抛出异常
+ * 
+ */
+public static void getPersonByLoadPerson() {
+    // 获取session会话
+    Session session = HibernateUtil.currentSession();
+    // 使用load方法加载数据
+    try {
+        // load()方法没有拿到数据时会发生异常
+        Person person = (Person) session.load(Person.class, new Integer(1)); 
+        // get() 方法没有拿到数据时会返回空值
+        // Person person = (Person) session.get(Person.class, new Integer(1)); 
+        System.out.println(person.getName());
+ 
+    } catch (HibernateException e) {
+        e.printStackTrace();
+    } finally {
+        HibernateUtil.closeSession();
+    }
+}
+```
+
+##### 使用 saveOrUpdate() 方法保存 || 修改 Person 对象
+
+```java
+/**
+ * 调用 saveOrUpdate() 方法
+ * 
+ * 如果 OID 不为 null 就一定执行修改
+ * 
+ * 如果 OID 为 null 就一定执行添加
+ * 
+ */
+public static void saveOrUpdatePerson() {
+    Session session = HibernateUtil.currentSession();
+    Person person = new Person(new Integer(7), "小李", "男", "12345", new Date());
+    Transaction tran = null;
+    try {
+        tran = session.beginTransaction();
+        session.saveOrUpdate(person);
+        tran.commit();
+    } catch (Exception e) {
+        tran.rollback();
+        e.printStackTrace();
+    } finally {
+        HibernateUtil.closeSession();
+    }
+}
+```
+
+##### 使用 merge() 方法，保存 || 修改 Person 对象
+
+```java
+/**
+ * merge() 方法调用 
+ * 
+ * 先调用对象的 OID 去数据查询记录，如果存在就执行修改，不存在就执行添加
+ * 
+ * 如果 OID 值为 null 就执行添加
+ * 
+ */
+public static void mergePerson() {
+    Session session = HibernateUtil.currentSession();
+    Person person = new Person(new Integer(8), "兰兰", "男", "12345",
+            new Date());
+    Transaction tran = null;
+    try {
+        tran = session.beginTransaction();//开始事务
+        session.merge(person);  // 验证
+        tran.commit();
+    } catch (Exception e) {
+        tran.rollback();
+        e.printStackTrace();
+    } finally {
+        HibernateUtil.closeSession();
+    }
+}
+```
+
+##### 使用 delete() 方法，删除 Person 对象
+
+```java
+/**
+ * 删除 Person
+ * 
+ * 使用 get() 方法加载 Person 对象
+ * 
+ * 使用 delete() 方法删除 Person 对象
+ * 
+ * delete() 方法删除的时候是通过主键进行删除的，
+ * 
+ *    - 可以通过创建一个新的 Person 对象并设置主键值后进行删除
+ * 
+ *    - 如果数据库没有存在对应的主键值，会出现下面的异常
+ * 
+ *    - Batch update returned unexpected row count from update [0]; actual row count: 0; expected: 1
+ * 
+ * 如果持久太对象 Person，在调用 delete() 方法删除后会变为瞬时状态对象
+ * 
+ * 
+ */
+public void deletePreson() {
+ 
+    Session session = HibernateUtil.currentSession();
+ 
+    Transaction tran = null;
+ 
+    try {
+ 
+        // 开启事务
+        tran = session.beginTransaction();
+        // 查询 Person
+        Person person = (Person) session.get(Person.class, 1);
+        // 删除 Person
+        session.delete(person);
+        // 提交事务
+        tran.commit();
+ 
+    } catch (Exception e) {
+        // 回滚事务
+        tran.rollback();
+        e.printStackTrace();
+    } finally {
+        // 关闭 Session 会话
+        HibernateUtil.closeSession();
+    }
+}
+```
+
+##### 使用 save() 方法，添加 Person 对象
+
+```java
+/**
+ * 添加 Person
+ * 
+ * save() 方法
+ * 
+ * (1) 根据持久化类对应映射文件指定的标识符生成方式为临时对象，
+ * 
+ *    - 分配一个唯一的 OID 并赋值给持久化类的 ID 属性。
+ * 
+ *    - 通过 <generator class="identity"/> 指定 ID 为数据库自动增长列时，
+ * 
+ *    - 手动为 Person 设置 id 值无效。
+ * 
+ * (2) 将临时对象加载到缓存中，使之转变成持久化对象。
+ * 
+ * (3) 当提交事务时清理缓存，利用持久化对象包含的信息生成 INSERT 语句，
+ * 
+ *    - 真正将持久化对象包换的信息保存到数据库中。
+ * 
+ */
+public void savePerson(){
+ 
+    Session session = HibernateUtil.currentSession();
+ 
+    Transaction tran = null;
+ 
+    try {
+ 
+        // 开启事务
+        tran = session.beginTransaction();
+        // 创建 Person 对象
+        Person person = new Person(new Integer(5), "小李", "男", "12345", new Date());
+        // 添加 Person
+        session.save(person);
+        // 提交事务
+        tran.commit();
+ 
+    } catch (Exception e) {
+        // 回滚事务
+        tran.rollback();
+        e.printStackTrace();
+    } finally {
+        // 关闭 Session 会话
+        HibernateUtil.closeSession();
+    }
+}
+```
+
+##### 使用 update() 方法，更新 Person 对象
+
+```java
+/**
+ * 更新 Person
+ * 
+ * 使用 get() 方法加载 Person 对象
+ * 
+ * 使用 update() 方法更新 Person 对象
+ * 
+ * 提交的时候会自动检查和数据库中的数据一样不一样，如果有就会自动进行更新。
+ * 
+ * update 的对象的 ID 在数据库中不存在，或者更改该对象的 ID，
+ * 
+ *    - 这些都是都会抛出异常，更新操作执行失败。
+ * 
+ */
+public void updatePersons(){
+ 
+    Session session = HibernateUtil.currentSession();
+ 
+    Transaction tran = null;
+ 
+    try {
+ 
+        // 开启事务
+        tran = session.beginTransaction();
+        // 查询 Person
+        Person person = (Person) session.get(Person.class, 1);
+        // 更新 Person
+        session.update(person);
+        // 提交事务
+        tran.commit();
+ 
+    } catch (Exception e) {
+        // 回滚事务
+        tran.rollback();
+        e.printStackTrace();
+    } finally {
+        // 关闭 Session 会话
+        HibernateUtil.closeSession();
+    }
+}
+```
+
+ - 通过新创建的 Person 对象手动设置 Person 对象的主键值也可以使用 update() 方法直接进行更新
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

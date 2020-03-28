@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate.cfg.xml</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Hibernate 配置文件详解
+
+##### Hibernate 配置文件有两种形式：XML 与 properties 
+
+&#160; &#160;个人建议使用 XML,因为 properties 中不能配置关联的映射文件，在后续的实现中会带来一些没必要的编码；
+
+***```hibernate.cfg.xml```***
+
+```xml
+<?xml version="1.0" encoding="GBK"?>
+<!-- 指定Hibernate配置文件的DTD信息 -->
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<!-- hibernate- configuration是连接配置文件的根元素 -->
+<hibernate-configuration>
+    <session-factory>
+        <!-- 指定连接数据库所用的驱动 -->
+        <property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+        <!-- 指定连接数据库的url，hibernate连接的数据库名 -->
+        <property name="connection.url">jdbc:mysql://localhost/数据库名</property>
+        <!-- 指定连接数据库的用户名 -->
+        <property name="connection.username">root</property>
+        <!-- 指定连接数据库的密码 -->
+        <property name="connection.password">32147</property>
+        <!-- 指定连接池里最大连接数 -->
+        <property name="hibernate.c3p0.max_size">20</property>
+        <!-- 指定连接池里最小连接数 -->
+        <property name="hibernate.c3p0.min_size">1</property>
+        <!-- 指定连接池里连接的超时时长 -->
+        <property name="hibernate.c3p0.timeout">5000</property>
+        <!-- 指定连接池里最大缓存多少个Statement对象 -->
+        <property name="hibernate.c3p0.max_statements">100</property>
+        <property name="hibernate.c3p0.idle_test_period">3000</property>
+        <property name="hibernate.c3p0.acquire_increment">2</property>
+        <property name="hibernate.c3p0.validate">true</property>
+        <!-- 指定数据库方言 -->
+        <property name="dialect">org.hibernate.dialect.MySQLInnoDBDialect</property>
+
+        <!-- 根据需要自动创建数据表 -->
+        <property name="hbm2ddl.auto">update</property>
+
+        <!-- 配合Hibernate二级缓存 -->
+
+        <!-- 打开二级缓存 -->
+        <property name="hibernate.cache.use_second_level_cache">true</property>
+        <!-- 指定缓存的提供商 （找到相应的驱动） -->
+        <property name="hibernate.cache.provider_class">net.sf.ehcache.hibernate.EhCacheProvider</property>
+        <!-- 开启查询缓存 -->
+        <property name="hibernate.cache.use_query_cache">true</property>
+
+        <!-- 显示Hibernate持久化操作所生成的SQL -->
+        <property name="show_sql">true</property>
+        <!-- 将SQL脚本进行格式化后再输出 -->
+        <property name="hibernate.format_sql">true</property>
+        <!-- 罗列所有的映射文件 -->
+        <mapping resource="映射文件路径/News.hbm.xml"/>
+    </session-factory>
+</hibernate-configuration>
+```
+
+***```hibernate.properties```***
+
+```python
+## MySQL
+#方言
+hibernate.dialect org.hibernate.dialect.MySQLDialect
+hibernate.dialect org.hibernate.dialect.MySQLInnoDBDialect
+hibernate.dialect org.hibernate.dialect.MySQLMyISAMDialect
+#驱动
+hibernate.connection.driver_class com.mysql.jdbc.Driver
+#数据库地址
+hibernate.connection.url jdbc:mysql://127.0.0.1/datdabseName
+#用户名
+hibernate.connection.username root
+#密码
+hibernate.connection.password 12345
+#是否在控制台输出sql语句
+hibernate.show_sql true/false
+#设置当创建sessionfactory时，是否根据映射文件自动建立数据库表。 create-drop:表示关闭sessionFactory时，将drop刚建的数据库表。该属性可以是update/create-drop/create
+hibernate.hbm2ddl.auto update/create-drop/create
+
+###########################
+### C3P0 Connection Pool C3P0连接池###
+###########################
+#连接池最大链接数
+hibernate.c3p0.max_size 2
+#连接池最小连接数
+hibernate.c3p0.min_size 2
+#连接池连接的超时时长
+hibernate.c3p0.timeout 5000
+#缓存statements 的数量
+hibernate.c3p0.max_statements 100
+hibernate.c3p0.idle_test_period 3000
+hibernate.c3p0.acquire_increment 2
+hibernate.c3p0.validate true/false
+
+
+############
+### JNDI (java naming directory interface)Java命名目录接口###
+###当无需hibernate自己管理数据源而是直接访问容器管理数据源 使用JNDI
+############
+#指定数据源JNDI名字
+hibernate.connection.datasource dddd
+#文件系统下
+hibernate.jndi.class com.sun.jndi.fscontext.RefFSContextFactory
+hibernate.jndi.url file:/
+
+#网络
+#指定JND InitialContextFactory 的实现类，该属性也是可选的。如果JNDI与Hibernate持久化访问的代码处于同一个应用，无需指定该属性
+hibernate.jndi.class com.ibm.websphere.naming.WsnInitialContextFactory
+#指定JNDI提供者的URL，该属性可选 如果JNDI与Hibernate持久化访问的代码处于同一个应用，无需指定该属性
+hibernate.jndi.url iiop://localhost:900/
+
+#指定链接数据库用户名
+hibernate.connection.username  root
+#指定密码
+hibernate.connection.password  1111
+#指定方言
+hibernate.dialect org.hibernate.dialect.MySQLDialect
+
+#######################
+### Transaction API   事务属性说明###
+#######################
+
+#指定是否在事务结束后自动关闭session 
+hibernate.transaction.auto_close_session true/false
+#指定session是否在事务完成后自动将数据刷新到底层数据库
+hibernate.transaction.flush_before_completion true/false
+
+## 指定hibernate所有的事务工厂的类型，该属性必须是TransactionFactory的直接或间接子类
+
+hibernate.transaction.factory_class org.hibernate.transaction.JTATransactionFactory
+hibernate.transaction.factory_class org.hibernate.transaction.JDBCTransactionFactory
+
+## 该属性值是一个JNDI名，hibernate将使用JTATTransactionFactory从应用服务器中取出JTAYserTransaction
+
+jta.UserTransaction jta/usertransaction
+jta.UserTransaction javax.transaction.UserTransaction
+jta.UserTransaction UserTransaction
+
+## 该属性值为一个transactionManagerLookup类名，当使用JVM级别的缓存时，或在JTA环境中使用hilo生成器策略时，需要该类
+
+hibernate.transaction.manager_lookup_class org.hibernate.transaction.JBossTransactionManagerLookup
+hibernate.transaction.manager_lookup_class org.hibernate.transaction.WeblogicTransactionManagerLookup
+hibernate.transaction.manager_lookup_class org.hibernate.transaction.WebSphereTransactionManagerLookup
+hibernate.transaction.manager_lookup_class org.hibernate.transaction.OrionTransactionManagerLookup
+hibernate.transaction.manager_lookup_class org.hibernate.transaction.ResinTransactionManagerLookup
+```
+
+***```Configuration```***
+```java
+//实例化configuration对象 
+Configuration cfg = new Configuration() 
+//多次调用addResource()方法，添加映射文件 
+cfg.addResource("Item.hbm.xml");
+cfg.addResource("Bid.hbm.xml");
+//多次调用addClass()方法，直接添加持久化类  
+cfg.addClass(ppp.Item.class) 
+cfg.addClass(ppp.BId.class); 
+```
+
+##### 映射配置文件
+
+```xml
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">    
+<!-- 
+    <hibernate-mapping>一般不去配置，采用默认即可。
+    schema:指定映射数据库的schema(模式/数据库)，如果指定该属性，则表名会自动添加该schema前缀
+    package:指定包前缀 指定持久化类所在的包名 这样之后calss子元素中就不必使用全限定性的类名
+    default-cascade="none"：默认的级联风格，表与表联动。
+    default-lazy="true"：默认延迟加载
+ -->
+<hibernate-mapping>
+    <!-- 
+        <class>：使用class元素定义一个持久化类。
+        name="cn.javass.user.vo.UserModel"：持久化类的java全限定名；
+        table="tbl_user"：对应数据库表名，默认持久化类名作为表名；
+        proxy:指定一个接口，在延迟装载时作为代理使用，也可在这里指定该类自己的名字。
+        mutable="true"：默认为true，设置为false时则不可以被应用程序更新或删除，等价于所有<property>元素的update属性为false，表示整个实例不能被更新。
+        dynamic-insert="false"：默认为false，动态修改那些有改变过的字段，而不用修改所有字段；
+        dynamic-update="false"：默认为false，动态插入非空值字段；
+        select-before-update="false"：默认为false，在修改之前先做一次查询，与用户的值进行对比，有变化都会真正更新；
+        optimistic-lock="version"：默认为version(检查version/timestamp字段)，取值：all(检查全部字段)、dirty(只检查修改过的字段)；
+                                   none(不使用乐观锁定)，此参数主要用来处理并发，每条值都有固定且唯一的版本，版本为最新时才能执行操作；
+        如果需要采用继承映射，则class元素下还会增加<subclass.../>元素等用于定义子类。
+     -->
+    <class name="cn.javass.user.vo.UserModel" table="tbl_user" >
+        
+        <!-- 
+            <id>：定义了该属性到数据库表主键字段的映射。
+            type  指定该标识属性的数据类型，该类型可以是Hibernate的内建类型，也可以是java类型，如果是java类型则需要使用全限定类名（带包名）。该属性可选，如果没有指定类型， 则hibernate自行判断该标识属性数据类型。通常建议设定。
+            name="userId"：标识属性的名字；
+            column="userId"：表主键字段的名字，如果不填写与name一样；
+            
+         -->
+        <id name="userId">
+            <!-- <generator>：指定主键由什么生成，推荐使用uuid，assigned指用户手工填入。设定标识符生成器
+            适应代理主键的有：
+                increment：有Hibernat自动以递增的方式生成标识符，每次增量1；
+                identity：由底层数据库生成标识符，前提条件是底层数据库支持自动增长字段类型。（DB2,MYSQL）
+                uuid:用128位的UUID算法生成字符串类型标识符。
+            适应自然主键：
+                assigned:由java程序负责生成标识符，为了能让java应用程序设置OID,不能把setId（）方法设置成private类型。
+                让应用程序在save()之前为对象分配一个标识符。相当于不指定<generator.../>元素时所采用的默认策略。
+                应当尽量避免自然主键
+            
+                sequence:采用数据库提供的 sequence 机制生成主键，
+                
+                  - 用于用序列方式产生主键的数据库(如:Oracle、DB2等的Sequence),用于为long/short/int型列生成唯一标识,
+                  
+                  - 如:<generator class="sequence"><param name="sequence">序列名</param></generator>如Oracle sequence。
+            
+            -->
+            <generator class="uuid"/>
+        </id>
+        
+        <!-- 
+            <version/>：使用版本控制来处理并发，要开启optimistic-lock="version"和dynamic-update="true"。
+            name="version"：持久化类的属性名，column="version"：指定持有版本号的字段名；
+         -->
+        <version name="version" column="version"/>
+        
+        <!-- 
+            <property>：为类定义一个持久化的javaBean风格的属性。
+            name="name"：标识属性的名字，以小写字母开头；
+            column="name"：表主键字段的名字，如果不填写与name一样；
+            update="true"/insert="true"：默认为true，表示可以被更新或插入；
+            access="property/field"：指定Hibernate访问持久化类属性的方式。默认property。property表示使用setter/getter方式。field表示运用java反射机制直接访问类的属性。
+            formula="{select。。。。。}"：该属性指定一个SLQ表达式，指定该属性的值将根据表达式类计算，计算属性没有和它对应的数据列。
+            formula属性允许包含表达式：sum,average,max函数求值的结果。
+            例如：formula="(select avg(p.price) from Product P)"
+         -->
+        <property name="name" column="name" />
+        <property name="sex" column="sex"/>
+        <property name="age" column="age"/>
+        
+        <!-- 
+            组件映射：把多个属性打包在一起当一个属性使用，用来把类的粒度变小。
+            <component name="属性，这里指对象">
+                 <property name="name1"></property>
+                 <property name="name2"></property>
+             </component>
+         -->
+         
+         <!-- 
+             <join>:一个对象映射多个表，该元素必须放在所有<property>之后。
+             <join table="tbl_test：子表名">
+                 <key column="uuid：子表主键"></key>
+             <property name="name1：对象属性" column="name：子表字段"></property>
+         </join>
+          -->
+         
+    </class>    
+</hibernate-mapping>
+```
+
+> 参考链接：
+
+> <a href="https://www.cnblogs.com/lcycn/p/8126783.html" target="_blank">Hibernate 配置文件和映射文件详解</a>
+
+> <a href="https://blog.csdn.net/qq_41731166/article/details/82349859" target="_blank">Hibernate 常用配置文件详解</a>
+
+> <a href="https://www.cnblogs.com/sharpest/p/6030410.html" target="_blank">hibernate.hbm.xml 配置文件解析</a>
+
+##### Demo
+
+***```hibernate.cfg.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+	"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<!-- hibernate 配置文件:数据库连接信息,映射信息 -->
+<hibernate-configuration>
+	<session-factory>
+		<!-- 数据库 URL -->
+		<property name="connection.url">jdbc:oracle:thin:@localhost:1521:orcl</property>
+		<property name="connection.driver_class">oracle.jdbc.driver.OracleDriver</property>
+		<property name="connection.username">y2</property>
+		<property name="connection.password">y2</property>
+		<property name="show_sql">true</property>
+		<property name="format_sql">true</property>
+		<!-- <property name="dialect">org.hibernate.dialect.Oracle10gDialect</property> -->
+		<!-- 加载映射配置文件 -->
+		<mapping resource="com/accp/hibernate/entity/Person.hbm.xml"/>
+	</session-factory>
+</hibernate-configuration>
+```
+
+***```Person.hbm.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<!-- dynamic-update="true" 动态更新,修改了那些部分,就修改那些部分 -->
+	<!-- -->
+	<class name="com.accp.hibernate.entity.Person" table="PRESON"
+		dynamic-update="true">
+		<id name="id" column="ID" type="java.lang.Integer">
+			<generator class="sequence">
+				<param name="sequence">SEQ_PERSON_ID</param>
+			</generator>
+		</id>
+		<property name="name" column="NAME" type="java.lang.String"></property>
+		<property name="sex" column="SEX" type="java.lang.String"></property>
+		<property name="password" column="PASSWORD" type="java.lang.String"></property>
+		<property name="regDate" column="REGDATE" type="java.util.Date"></property>
+	</class>
+</hibernate-mapping>
+```
+
+***```Person.java```***
+
+```java
+public class Person implements Serializable {
+
+	// 序列化id
+	private static final long serialVersionUID = 8151005240146489666L;
+
+	// id
+	private Integer id = null;
+
+	// 姓名
+	private String name = null;
+
+	// 性别
+	private String sex = null;
+
+	// 密码
+	private String password = null;
+
+	// 注册日期
+	private Date regDate = null;
+}
+```
+
+***```HibernateUtil.java```***
+
+```java
+/**
+ * 
+ */
+package com.accp.hibernate.util;
+
+import java.io.Serializable;
+
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+/**
+ * Hibernate 的工具类
+ * 
+ * @author Administrator
+ * 
+ */
+public class HibernateUtil implements Serializable {
+
+	// 保证每个线程都有自己独立的session对象 //ThreadLocal本地线程类
+	private static final ThreadLocal<Session> sessionThreadLocal = new ThreadLocal<Session>();
+	// 创建配置对象
+	private static Configuration conf = null;
+	// 创建会话工厂
+	private static SessionFactory sessionFactory = null;
+
+	/**
+	 * 静态代码块 负责初始化
+	 */
+	static {
+		try {
+			// 加载Hibernate系统配置文件
+			conf = new Configuration().configure();
+			// 构建会话工厂
+			sessionFactory = conf.buildSessionFactory();
+		} catch (HibernateException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 获取session会话
+	 * 
+	 * @return
+	 */
+	public static Session currentSession() {
+		Session session = null;
+		session = sessionThreadLocal.get();
+		if (session == null) {
+			session = sessionFactory.openSession();
+			sessionThreadLocal.set(session);
+		}
+		return session;
+	}
+
+	/**
+	 * 关闭session
+	 */
+	public static void closeSession() {
+
+		Session session = sessionThreadLocal.get();
+		if (session != null) {
+			sessionThreadLocal.set(null); // 把获得到的session在本地线程中移除
+			session.close();
+		}
+	}
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

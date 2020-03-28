@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jquery-basic-plugin-tag-library</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### jquery-basic-plugin-tag-library
+
+#### 标签库插件
+
+```js
+/*
+ * 疾病标签库
+ */
+
+if (typeof tagLibrary === 'undefined') {
+
+    var tagLibrary = {
+
+        testBtn: null,
+        tagItems: [],
+        tagLibraryItem: []
+
+    };
+
+}
+
+// 声明全局变量保存，选择的标签
+
+(function ($, tagLibrary) {
+
+    /**
+     * 初始化疾病标签库
+     *
+     */
+    function initTagLibraryPanel() {
+        try {
+
+            var deferred = getTagLibrary();
+
+            deferred.done(function(tagLibraries){
+
+                console.info(tagLibraries);
+
+                // 获取显示标签内容的面板
+                var oPanel = $("#tag-library .modal-body .list-group");
+
+                // 循环添加每一项标签组
+                for (var i = 0; i < tagLibraries.length; i++) {
+
+                    // 统计标签组的数量
+                    var oCount = $("<span/>").html(tagLibraries[i].imageTags.length).addClass("pull-right");
+
+                    // 标签组
+                    var caseLi = $("<li/>").addClass("list-group-item");
+
+                    // 标题
+                    var caseTitle = $("<a/>").addClass("dropdown-toggle")
+                        .attr("data-toggle", "collapse")
+                        .attr("id", "dropdownMenu" + getRound())
+                        .attr("data-target", ".head" + getRound())
+                        .attr("href", "javascript:void(0)");
+
+                    // 填充标签组内容
+                    caseTitle.html(tagLibraries[i].alias + oCount[0].outerHTML);
+
+                    // 标识标签组下的标签是否已经加载完毕
+                    caseTitle.attr("isLoad", false);
+
+                    // 存储标签组的编号
+                    caseTitle.data("id", tagLibraries[i].id);
+
+                    // 添加标签组的标题
+                    caseLi.append(caseTitle);
+
+                    // 获取标签组标题的 data-target 属性(用于指定下拉菜单操作对应的内容)
+                    var oCls = caseTitle.attr("data-target").substr(1);
+
+                    // 创建标签组下标签内容的容器 , 并且绑定(下拉菜单按钮的事件) .addClass(oCls)
+                    var oList = $("<ul/>").addClass("nav collapse").addClass(oCls).attr("role", "menu");
+
+                    var oLi = $("<li/>").attr("tagGroup", tagLibraries[i].id);
+
+                    for(var j = 0; j<tagLibraries[i].imageTags.length; j++){
+
+                        var item = tagLibraries[i].imageTags[j];
+
+                        if(item.alias === "正常"){
+
+                            var btn = $("<button/>").addClass(" btn  btn-default ").attr("type", "button").attr("dataTag", item.id).attr("id", "tag" + item.id).html(item.alias);
+
+                            $(btn).bind("click",tagLibrary.clearOther);
+
+                            oLi.append(btn);
+
+                        }else{
+                            oLi.append($("<button/>").addClass(" btn  btn-default ").attr("type", "button").attr("dataTag", item.id).attr("id", "tag" + item.id).html(item.alias));
+                        }
+                    }
+
+                    oList.append(oLi);
+
+                    // 添加到标签组集合中
+                    caseLi.append(oList);
+
+                    // 添加到标签内容的面板
+                    oPanel.append(caseLi);
+
+                    oList = null;
+                    caseTitle = null;
+                    caseLi = null;
+
+                }
+
+                console.info("疾病标签面板初始化完成！");
+                console.info("开始进行按钮事件的绑定！");
+                $("#tag-library .modal-body .list-group .list-group-item").on("click","button",tagLibrary.selectBtn);
+                console.info("绑定完成！");
+
+            }).fail(function(){
+
+                alert("标签库加载失败，请刷新后重试.");
+            });
+
+
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+    }
+
+
+    /**
+     * 请求指定标签组中的标签(被 forEachTagGroup() 调用)
+     *
+     * @param elm
+     * @param size
+     */
+    function getTagLibrary() {
+
+        try {
+
+            var deferred = $.Deferred();
+
+            $.ajax({
+                /*url: path+"/html/doctor/data/tagLibrary.json",*/
+                url: path+"/doctor/queryTagLibrary.action",
+                dataType: "json",
+                method: "Get",
+                success: function (data) {
+                    deferred.resolve(data);
+                },
+                error: function (e) {
+                    deferred.reject();
+                    console.error(e.message);
+                }
+            });
+
+            return deferred.promise();
+
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+    }
+
+    /**
+     * 返回每一个标签组
+     *
+     * @param callBack
+     */
+    function forEachTagGroup(callBack) {
+        try {
+             var tagGroup = $("#tag-library .modal-body .list-group").children("li");
+
+                $.each(tagGroup, function (index, val) {
+
+                    try {
+                        callBack(val, index + 1);
+                    } catch (e) {
+                        console.info(e);
+                    }
+
+                });
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+    }
+
+
+    /**
+     * 添加按钮选中样式
+     *
+     * @param event
+     */
+    function selectBtn(event) {
+        try {
+             var oBtn = $(event.target);
+                if (oBtn) {
+                    if (oBtn.hasClass("tag-selected")) {
+                        oBtn.removeClass("tag-selected");
+                    } else {
+                        oBtn.addClass("tag-selected");
+                    }
+                }
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+    }
+
+
+    /**
+     * 标签模板
+     *
+     * @returns {*|jQuery}
+     */
+    function tagTemplate() {
+        try {
+            // 创建标签对象
+            var oTag = $("<div/>").addClass(" alert alert-warning alert-dismissible ").attr("role", "alert");
+
+            // 创建删除标签的按钮
+            var oBtn = $("<button><span aria-hidden='true'>&times;</span><span class='sr-only'>Close</span></button>").addClass("close").attr("type", "button").attr("data-dismiss", "alert");
+
+            // 创建标签显示的内容
+            var oSpan = $("<span></span>").attr("id", "tag" + getRound());
+
+            // 添加到标签对象中
+            oTag.append(oBtn).append(oSpan);
+
+            // 返回函数值
+            return oTag;
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+
+    }
+
+
+    /**
+     * 删除已选择标签时，取消标签库中模板的选择状态
+     *
+     */
+    function bindRemoveTag() {
+        try {
+             // 获取标签库中所有选中的标签
+            tagLibrary.getTag().then(function (obj) {
+
+                var btns = obj.find("button");
+
+                $.each(btns, function (index, val) {
+
+                    // 绑定控件事件，完成数据移除(div - Tag -> btn.close)
+                    $(val).bind("click", {"btn": $(val)}, removeTag);
+
+                });
+
+            });
+
+            $('#tag-library').modal("hide");
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+    }
+
+    /**
+     * 获取所有的选中的标签 & 存放标签的容器 调用 addTag 将标签添加到页面中
+     *
+     * @returns {*}
+     */
+    function getTag() {
+        try {
+            // 使用异步任务
+            var deferred = $.Deferred();
+
+            // 获取所有选中的标签
+            var oBtns = $("#resure").closest(".modal-body").find(".panel").find("button.tag-selected");
+
+            // 获取添加标签的标签组
+            var oLi = $("div.tag .tag-library-content");
+
+            // 过滤正常函数
+            oBtns = tagLibrary.filterNormarlBtn(oBtns);
+
+            if (!tagLibrary.testBtn) { // 第一次使用未选择按钮
+
+                tagLibrary.testBtn = oBtns;
+
+            } else if (tagLibrary.testBtn.length > 0) {
+
+                $.each(tagLibrary.testBtn, function (index, val) {
+
+                    var verifyResult = true;
+
+                    for (var i = 0; i < oBtns.length; i++) {
+
+                        // 一个标签循环 100 次有一次存在就不删除
+                        // 有一次为真就退出循环
+                        if ($(val).is($(oBtns[i]))) { // 如果标签已存在
+
+                            verifyResult = false; // 不执行删除
+                            break;
+                        }
+
+                    }
+
+                    if (verifyResult) {
+                        $("#TagID" + $(val).attr("datatag")).find("button").trigger("click");
+                    }
+
+                });
+
+            }
+
+            // 存储本次选择的标签
+            tagLibrary.testBtn = oBtns;
+
+            // 将本次选择的标签添加到页面中
+            $.each(oBtns, function (index, val) {
+
+                val = $(val);
+
+                // 1、获取标签标识
+                var dataTag = val.attr("dataTag");
+
+                // 验证标签是否已存在
+                var verifyResult = verifyTagLibrary(val);
+
+                if (verifyResult) { // 如果选择的标签不存在
+
+                    // 存储选择标签的标识
+                    tagLibrary.tagLibraryItem.push(dataTag);
+
+                    if(!tagLibrary.verifyTagExitsInHtml("TagID"+dataTag)){
+                        // 将标签保存到页面
+                        tagLibrary.addTag(oLi, val, tagTemplate());
+                    }
+                }
+
+            });
+
+            // 保存当前的标签的标签组
+            deferred.resolve(oLi);
+
+            // 返回函数值
+            return deferred.promise();
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+
+    }
+
+    /**
+     * 保存标签到页面
+     *
+     * @param oContent 容器
+     * @param oBtn 选择的标签内容
+     * @param oTag 标签
+     * @returns {string}
+     */
+    function addTag(oContent, oBtn, oTag) {
+        try {
+            if (oBtn === undefined || oTag === undefined) {
+                return "请重新选择标签。";
+            }
+
+
+            var dataId = oBtn.attr("id");       // 标签按钮的 ID
+            var id = oBtn.attr("dataTag");      // 标签编号
+            var content = oBtn.attr("content"); // 标签内容
+            var alias = oBtn.html();            // 标签名
+
+            // name:diseaseLabel
+            var oInput = $("#standardInput").clone().removeAttr("id").attr("name","tagLibrary").attr("type","text").val(id);
+            oInput.hide();
+
+            // 设置标签内容
+            oTag.attr("id", "TagID" + id);      // 设置标签的 ID
+            oTag.attr("dataId", dataId);        // 保存标签按钮的 ID
+            oTag.attr("title", content);        // 保存标签的内容
+            oTag.children("span").html(alias);  // 保存标签的标题
+            oTag.append(oInput);                // input 输入框
+            oTag.attr("dataTag", id);           // 保存标签的编号
+
+            // 添加到页面中
+            oContent.append(oTag);
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+    }
+
+
+    /**
+     * 验证标签
+     *
+     * @param oBtn 选择的标签项
+     * @returns {boolean}
+     */
+    function verifyTagLibrary(oBtn) {
+        try {
+            var verify = true;
+
+            console.info(tagLibrary.tagLibraryItem);
+
+            // 循环标签项数组
+            $.each(tagLibrary.tagLibraryItem, function (index, val) {
+
+                // 判断选中标签是否已被选择
+                if (val === $(oBtn).attr("dataTag") && tagLibrary.verifyTagExitsInHtml("TagID"+$(oBtn).attr("dataTag"))) {
+                    verify = false; // 标签已被选择返回 false
+                }
+            });
+
+            // 返回函数值
+            return verify;
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+    }
+
+    /**
+     * 验证页面上是否已经存在该标签
+     *
+     * @param oId
+     * @returns {boolean} true 已存在， false 不存在
+     */
+    function verifyTagExitsInHtml(oId){
+
+        if(oId.split("")[0] === "#"){
+            console.info(($(oId).length > 0));
+            return ($(oId).length > 0);
+        }else{
+            return ($("#"+oId).length > 0);
+            console.info(($("#"+oId).length > 0));
+        }
+
+    }
+
+
+    function filterNormarlBtn(btns){
+
+        if(btns){
+
+            if(btns.length > 1){
+
+                $.each(btns,function(index,val){
+
+                    if($(val).html() === "正常"){
+                        btns.splice(index,1);
+                        $(val).removeClass("tag-selected");
+                    }
+
+                });
+
+            }else if(btns.length == 1){
+
+                if($(btns[0]).html() === "正常"){
+
+                    var oTags = $("div.tag .tag-library-content").children("div.alert");
+
+                    if(oTags.length > 0){
+
+                        $.each(oTags,function(index,val){
+                            $(val).children("button").trigger("click");
+                        });
+                    }
+                }
+            }
+
+            var oTags = $("div.tag .tag-library-content").children("div.alert");
+
+            if(oTags.length > 0){
+
+                $.each(oTags,function(index,val){
+
+                    if($(val).children("span").prop("innerHTML") === "正常"){
+                        $(val).empty().remove();
+                    }
+                });
+            }
+        }
+
+        return btns;
+    }
+
+    /**
+     * 删除指定的标签
+     *
+     * @param event
+     */
+    function removeTag(event) {
+        try {
+            // 标签
+            var oAlert = $(event.data.btn).parent();
+
+            // 获得标签的编号
+            var dataTag = oAlert.attr("dataTag");
+
+            // 获得标签标题
+            var oSpan = oAlert.children("span");
+
+            // 移除标签在标签组中选中的状态
+            removeTagState(oAlert.attr("dataId"));
+
+            console.info("正在准备删除的标签为：" + oSpan.html());
+
+            if (dataTag === null || dataTag === undefined) {// 为空退出操作
+                console.error("提示框标签未知。");
+                return;
+            }
+
+            // 在已选择的标签列表中循环移除指定的标签项
+            for (var i = 0; i < tagLibrary.tagLibraryItem.length; i++) {
+
+                // 根据标签的编号进行判断
+                if (dataTag === tagLibrary.tagLibraryItem[i]) {
+
+                    // 移除指定的标签项
+                    tagLibrary.tagLibraryItem.splice(i, 1);
+
+                    break;
+                }
+            }
+
+        } catch(err) {
+            console.info("Error name: " + err.name + "");
+            console.info("Error message: " + err.message);
+        }
+
+
+    }
+
+    /**
+     * 移除标签的选中状态
+     *
+     * @param dataId 标签编号
+     */
+    function removeTagState(dataId) {
+
+        // 根据标签的 ID , 找到标签的jQuery对象 , 移除标签选中样式
+        $("#" + dataId).removeClass("tag-selected");
+    }
+
+    /**
+     * 清除所有选择的标签
+     *
+     * @returns
+     */
+    function clearAll(){
+
+        // 2 部分操作
+        //   1) 去除所有标签库中已选择的标签(btn)的样式
+        //   2) 去除所有在页面中已有的标签元素
+
+        // 1)
+        $("#tag-library .modal-body .list-group button").removeClass("tag-selected");
+        tagLibrary.tagLibraryItem = []; // 置空已选择的标签
+
+        // 2)
+        $(".tag .tag-library-content").html("");
+
+    }
+
+    function clearOther(event){
+
+        var btn = event.target;
+
+        var cls = $(btn).attr("class");
+
+        var btns = $("#tag-library .modal-body .list-group button.tag-selected");
+
+        if(!$(btn).hasClass("tag-selected")){
+            $(btns).removeClass("tag-selected");
+        }
+
+        $(btn).attr("class",cls);
+    }
+
+    tagLibrary.initTagLibraryPanel = initTagLibraryPanel;
+    tagLibrary.forEachTagGroup = forEachTagGroup;
+    tagLibrary.getTagLibrary = getTagLibrary;
+    tagLibrary.getTag = getTag;
+    tagLibrary.addTag = addTag;
+    tagLibrary.tagTemplate = tagTemplate;
+    tagLibrary.selectBtn = selectBtn;
+    tagLibrary.bindRemoveTag = bindRemoveTag;
+    tagLibrary.verifyTagLibrary = verifyTagLibrary;
+    tagLibrary.verifyTagExitsInHtml = verifyTagExitsInHtml;
+    tagLibrary.filterNormarlBtn = filterNormarlBtn;
+    tagLibrary.removeTag = removeTag;
+    tagLibrary.clearAll = clearAll;
+    tagLibrary.clearOther = clearOther;
+    tagLibrary.removeTagState = removeTagState;
+
+
+})($, tagLibrary);
+```
+
+```js
+$(function () {
+
+    try{
+
+        tagLibrary.initTagLibraryPanel();
+
+        // 绑定保存标签
+        $("#resure").bind("click", tagLibrary.bindRemoveTag);
+
+        // 绑定清除按钮
+        $("#sure").bind("click", tagLibrary.clearAll);
+
+        tagLibrary.forEachTagGroup(tagLibrary.getTagLibrary);
+
+        $("#tag-library .modal-body .list-group .list-group-item").on("click","button",tagLibrary.selectBtn);
+
+
+    }catch(e){
+        console.log(e.message);
+    }
+
+});
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

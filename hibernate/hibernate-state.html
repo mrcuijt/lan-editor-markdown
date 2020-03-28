@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate State</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Hibernate中对象的三种状态
+
+##### 瞬时状态（transient）
+
+&#160; &#160;当我们通过 Java 的 new 关键字来生成一个实体对象时，这时这个实体对象就处于自由状态，此时该对象只是通过 JVM 获得了一块内存空间，还并没有通过 Session 对象的 save() 方法保存进数据库，因此也就还没有纳入 Hibernate 的缓存管理中，也就是说该对象现在还自由的游荡于 Hibernate 缓存管理之外。所以我们可以看出自由对象最大的特点就是，在数据库中不存在一条与它对应的记录。
+
+瞬时状态特点：
+
+ - 不和 Session 实例关联;
+
+ - 在数据库中没有和瞬时对象关联的记录
+ 
+
+##### 持久状态（persistent）
+
+&#160; &#160;持久化对象就是已经被保存进数据库的实体对象，并且这个实体对象现在还处于 Hibernate 的缓存管理之中。这是对该实体对象的任何修改，都会在清理缓存时同步到数据库中。
+
+持久状态特点：
+
+ - Session 实例关联
+
+ - 在数据库中有和持久对象关联的记录
+
+&amp;#160; &amp;#160;修改持久态对象主键后再更新数据库记录将会抛出异常，异常信息为: ***```identifier of an instance of science.mrcuijt.domain.Person was altered from 1 to 5```***
+
+##### 游离状态（detached）
+
+&amp;#160; &amp;#160;当一个持久化对象，脱离开 Hibernate 的缓存管理后，它就处于游离状态，游离对象和自由对象的最大区别在于，游离对象在数据库中可能还存在一条与它对应的记录，只是现在这个游离对象脱离了 Hibernate 的缓存管理，而自由对象不会在数据库中出现与它对应的数据记录。
+
+脱管对象特点：
+
+ - 本质上和瞬时对象相同
+
+ - 只是比瞬时对象多了一个数据库记录标识值 id.
+ 
+![](./images/hibernate-state/state-001.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

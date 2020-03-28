@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hibernate Use</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+***```pom.xml```***
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>5.2.6.Final</version>
+    </dependency>
+    <!-- 引入 MySQL数据库链接插件 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.30</version>
+    </dependency>
+</dependencies>
+```
+
+***```hibernate.cfg.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+	"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+	"http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<!-- hibernate 配置文件:数据库连接信息,映射信息 -->
+<hibernate-configuration>
+	<session-factory>
+		<!-- 数据库 URL -->
+		<property name="connection.url">jdbc:oracle:thin:@localhost:1521:orcl</property>
+		<property name="connection.driver_class">oracle.jdbc.driver.OracleDriver</property>
+		<property name="connection.username">y2</property>
+		<property name="connection.password">y2</property>
+		<property name="show_sql">true</property>
+		<property name="format_sql">true</property>
+		<!-- <property name="dialect">org.hibernate.dialect.Oracle10gDialect</property> -->
+		<!-- 加载映射配置文件 -->
+		<mapping resource="com/accp/hibernate/entity/Person.hbm.xml"/>
+	</session-factory>
+</hibernate-configuration>
+```
+
+***```Person.hbm.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<!-- dynamic-update="true" 动态更新,修改了那些部分,就修改那些部分 -->
+	<!-- -->
+	<class name="com.accp.hibernate.entity.Person" table="PRESON"
+		dynamic-update="true">
+		<id name="id" column="id" type="java.lang.Integer">
+			<generator class="sequence">
+				<param name="sequence">SEQ_PERSON_ID</param>
+			</generator>
+		</id>
+		<property name="name" column="name" type="java.lang.String"></property>
+		<property name="sex" column="sex" type="java.lang.String"></property>
+		<property name="password" column="password" type="java.lang.String"></property>
+		<property name="regDate" column="reg_date" type="java.util.Date"></property>
+	</class>
+</hibernate-mapping>
+```
+
+***```Person.java```***
+
+```java
+public class Person implements Serializable {
+
+	// 序列化id
+	private static final long serialVersionUID = 8151005240146489666L;
+
+	// id
+	private Integer id = null;
+
+	// 姓名
+	private String name = null;
+
+	// 性别
+	private String sex = null;
+
+	// 密码
+	private String password = null;
+
+	// 注册日期
+	private Date regDate = null;
+}
+```
+
+***```HibernateUtil.java```***
+
+```java
+/**
+ * 
+ */
+package com.accp.hibernate.util;
+
+import java.io.Serializable;
+
+import org.hibernate.HibernateException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+/**
+ * Hibernate 的工具类
+ * 
+ * @author Administrator
+ * 
+ */
+public class HibernateUtil implements Serializable {
+
+	// 保证每个线程都有自己独立的session对象 //ThreadLocal本地线程类
+	private static final ThreadLocal<Session> sessionThreadLocal = new ThreadLocal<Session>();
+	// 创建配置对象
+	private static Configuration conf = null;
+	// 创建会话工厂
+	private static SessionFactory sessionFactory = null;
+
+	/**
+	 * 静态代码块 负责初始化
+	 */
+	static {
+		try {
+			// 加载Hibernate系统配置文件
+			conf = new Configuration().configure();
+			// 构建会话工厂
+			sessionFactory = conf.buildSessionFactory();
+		} catch (HibernateException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 获取session会话
+	 * 
+	 * @return
+	 */
+	public static Session currentSession() {
+		Session session = null;
+		session = sessionThreadLocal.get();
+		if (session == null) {
+			session = sessionFactory.openSession();
+			sessionThreadLocal.set(session);
+		}
+		return session;
+	}
+
+	/**
+	 * 关闭session
+	 */
+	public static void closeSession() {
+
+		Session session = sessionThreadLocal.get();
+		if (session != null) {
+			sessionThreadLocal.set(null); // 把获得到的session在本地线程中移除
+			session.close();
+		}
+	}
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fiddler HTTPS</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+&amp;#160; &amp;#160;很多使用 fiddler 抓包，对于 http 来说不需太多纠结，随便设置下就能用，但是抓取 https 就死活抓不了，
+
+出现诸如以下问题：
+
+```textarea
+creation of the root certificate was not successful;
+
+Failed to find the root certificate in User Root List;
+
+The Root certificate could not be found;
+
+The root certificate could not be located;
+
+Fiddler 抓取https 显示 Tunnel to ... 443;
+```
+
+ - 清除 C:\Users\Administrator\AppData\Roaming\Microsoft\Crypto\RSA 目录下所有文件（首次安装 fiddler 请忽略）
+ 
+ - 清除电脑上的根证书，WIN+R 快捷键，输入：certmgr.msc， 然后回车，查找所有 fiddler 证书，然后删除。（首次安装 fiddler 请忽略）
+
+![fiddler-https](./images/fiddler-https/fiddler-https-001.png)
+
+ - 清除浏览器上的证书文件 ,此处需要仔细查找带有 FiddlerRoot 的字样，并删除，以谷歌浏览器为例说明，在浏览器上输入: chrome://settings/，（首次安装 fiddler 请忽略）
+
+![fiddler-https](./images/fiddler-https/fiddler-https-002.png)
+
+ - 打开 fiddler，点击工具栏中的 Tools—>Options，点击 Actions,选择最后一项，Reset All certificates,然后关闭
+
+![fiddler-https](./images/fiddler-https/fiddler-https-003.png)
+
+&amp;#160; &amp;#160;注意：以上步骤假设是已经安装 fiddler 的情况下需要做的处理 ，若已安装，建议执行上述步骤，然后进行重新安装；
+
+ - 下载并安装 Fiddler <a href="http://www.telerik.com/docs/default-source/fiddler/addons/fiddlercertmaker.exe?sfvrsn=2" target="_blank">证书生成器</a>
+ 
+ - 打开 Fiddler，点击工具栏中的 Tools—>Options
+
+![fiddler-https](./images/fiddler-https/fiddler-https-004.png)
+
+ - 点击 https 设置选项，勾选选择项
+
+![fiddler-https](./images/fiddler-https/fiddler-https-005.png)
+
+ - 点击 Actions,点击第二项：Export Root Certificate to Desktop，这时候桌面上会出现证书 FiddlerRoot.cer 文件，点击 OK 设置成功，关闭 fiddler
+
+![fiddler-https](./images/fiddler-https/fiddler-https-006.png)
+
+ - PC端，在浏览器中导入证书 FiddlerRoot.cer，以谷歌浏览器为例说明，在浏览器上输入: chrome://settings/
+ 
+ 然后进入高级设置，点击管理证书
+
+![fiddler-https](./images/fiddler-https/fiddler-https-007.png)
+
+ - 在受信任的根证书颁发机构，对证书进行导入
+
+![fiddler-https](./images/fiddler-https/fiddler-https-008.png)
+
+ - 重新打开 fiddler，就可以在电脑上进行 https 抓包了。
+
+![fiddler-https](./images/fiddler-https/fiddler-https-009.png)
+
+这里是为了可以抓客户端使用 httpURLConnection 的包。 
+
+Ruler –>CustomizeRules 
+
+在函数 OnBeforeResponse 里面添加下面代码：
+
+```java
+if (oSession.oRequest["User-Agent"].indexOf("Android") > -1 && oSession.HTTPMethodIs("CONNECT")) {
+    oSession.oResponse.headers["Connection"] = "Keep-Alive";
+}
+```
+
+```java
+static function OnBeforeResponse(oSession: Session) {
+    if (m_Hide304s && oSession.responseCode == 304) {
+        oSession["ui-hide"] = "true";
+    }
+    if (oSession.oRequest["User-Agent"].indexOf("Android") > -1 && oSession.HTTPMethodIs("CONNECT")) {
+        oSession.oResponse.headers["Connection"] = "Keep-Alive";
+    }
+}
+```
+
+不要忘记重启fiddler！！！
+
+#### 配置手机
+
+保证手机跟 PC 是在同一个网段下。 
+
+&amp;#160; &amp;#160;配置手机连接的 wifi，可能每个手机打开 wifi 配置的方式都不太一样，仔细研究下，选择已经连接的网络，打开修改网络窗口。显示高级属性，配置网络代理–>手动 代理服务器主机名：填写 PC 机的 IP 地址即可例如：192.168.0.4，代理服务器端口号：fiddler 的代理端口号，如果没有修改就是 8888。 
+
+关键步骤： 
+
+下载安装 fiddler 的证书 
+
+#### 让我们想想
+
+&amp;#160; &amp;#160;通过 fiddler 可以抓包，是不是说 https 就是不安全的了呢，毕竟所有的请求对我们来说都是透明的呢。其实刚才的过程很重要的一点就是我们下载并且安装了 fiddler 的根证书，对于 PC 端来说就是配置 fiddler https 选项时弹出的对话框，对于手机来说就是我们去 PC IP 地址: fiddler 代理端口这个地址下载证书的过程。 
+
+&amp;#160; &amp;#160;而对 Https 的安全来说，Https 安全的前提就是可信的根证书！！！！ 
+
+&amp;#160; &amp;#160;而，之前的操作无疑是在我们系统里面安装了不可信的根证书。使得 fiddler 对我们的通信造成了中间人攻击！。 
+
+&amp;#160; &amp;#160;简单的说就是我们与服务器进行通信，会先获取服务器的证书，进行校验校验过程是用本地的可信根证书进行校验，而装入 fiddler 的根证书后，fiddler 可以伪造证书，获取我们与服务器通信的秘钥，进行破解我们的通信。所以对我们我们系统来说安装证书是一个多么危险的操作！ 
+
+参考链接
+
+<a href="https://blog.csdn.net/lyd135364/article/details/78384285" target="_blank">fiddler 网络抓包神器的使用介绍</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

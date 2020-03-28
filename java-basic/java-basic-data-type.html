@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-data-type</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-data-type
+
+#### 基本类型和包装类型的区别
+
+##### 01、包装类型可以为 null，而基本类型不可以
+
+它使得包装类型可以应用于 POJO 中，而基本类型则不行。
+
+&amp;#160; &amp;#160;**`POJO` 的英文全称是 `Plain Ordinary Java Object`，翻译一下就是，`简单无规则的 Java 对象，只有属性字段以及 setter 和 getter 方法`，示例如下。**
+
+**`Writer.java`**
+
+```java
+class Writer {
+    private Integer age;
+    private String name;
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+
+那为什么 POJO 的属性必须要用包装类型呢？
+
+&amp;#160; &amp;#160;数据库的查询结果可能是 null，如果使用基本类型的话，因为要自动拆箱（将包装类型转为基本类型，比如说把 Integer 对象转换成 int 值），就会抛出 NullPointerException 的异常。
+
+##### 02、包装类型可用于泛型，而基本类型不可以
+
+泛型不能使用基本类型，因为使用基本类型时会编译出错。
+
+```java
+// 提示 Syntax error, insert "Dimensions" to complete ReferenceType
+List<int> list = new ArrayList<>(); 
+List<Integer> list = new ArrayList<>();
+```
+
+&amp;#160; &amp;#160;**因为 `泛型` 在编译时会进行 `类型擦除`，最后只保留原始类型，而 `原始类型` 只能是  `Object` 类及其 `子类` —— `基本类型` 是个特例。**
+
+##### 03、基本类型比包装类型更高效
+
+**基本类型在栈中直接存储的具体数值，而包装类型则存储的是堆中的引用。**
+
+![title](./images/java-basic-data-type/java-basic-data-type-001.png)
+
+&amp;#160; &amp;#160;很显然，相比较于基本类型而言，包装类型需要占用更多的内存空间。假如没有基本类型的话，对于数值这类经常使用到的数据来说，每次都要通过 new 一个包装类型就显得非常笨重。
+
+##### 04、两个包装类型的值可以相同，但却不相等
+
+两个包装类型的值可以相同，但却不相等——这句话怎么理解呢？来看一段代码就明明白白了。
+
+```java
+Integer chenmo = new Integer(10);
+Integer wanger = new Integer(10);
+
+System.out.println(chenmo == wanger); // false
+System.out.println(chenmo.equals(wanger )); // true
+```
+
+&amp;#160; &amp;#160;两个包装类型在使用“==”进行判断的时候，判断的是其指向的地址是否相等。chenmo 和 wanger 两个变量使用了 new 关键字，导致它们在“==”的时候输出了 false。
+
+&amp;#160; &amp;#160;而 chenmo.equals(wanger) 的输出结果为 true，是因为 equals 方法内部比较的是两个 int 值是否相等。源码如下。
+
+```java
+private final int value;
+
+public int intValue() {
+    return value;
+}
+public boolean equals(Object obj) {
+    if (obj instanceof Integer) {
+        return value == ((Integer)obj).intValue();
+    }
+    return false;
+}
+```
+
+&amp;#160; &amp;#160;瞧，虽然 chenmo 和 wanger 的值都是 10，但他们并不相等。换句话说就是：**将“==”操作符应用于包装类型比较的时候，其结果很可能会和预期的不符。**
+
+##### 05、自动装箱和自动拆箱
+
+&amp;#160; &amp;#160;既然有了 **`基本类型` 和 `包装类型`**，肯定有些时候要在它们之间进行转换。把 **`基本类型` 转换成 `包装类型` 的过程叫做 `装箱（boxing）`**。反之，**把 `包装类型` 转换成 `基本类型` 的过程叫做 `拆箱（unboxing）`**。
+
+在 Java SE5 之前，开发人员要手动进行装拆箱，比如说：
+
+```java
+Integer chenmo = new Integer(10);  // 手动装箱
+int wanger = chenmo.intValue();  // 手动拆箱
+```
+
+Java SE5 为了减少开发人员的工作，提供了自动装箱与自动拆箱的功能。
+
+```java
+Integer chenmo  = 10;  // 自动装箱
+int wanger = chenmo;     // 自动拆箱
+```
+
+上面这段代码使用 JAD 反编译后的结果如下所示：
+
+```java
+Integer chenmo = Integer.valueOf(10);
+int wanger = chenmo.intValue();
+```
+
+&amp;#160; &amp;#160;也就是说，**自动装箱是通过 `Integer.valueOf()` 完成的**；**自动拆箱是通过 `Integer.intValue()` 完成的**。理解了原理之后，我们再来看一道老马当年给我出的面试题。
+
+```java
+// 1）基本类型和包装类型
+int a = 100;
+Integer b = 100;
+System.out.println(a == b); // true
+
+// 2）两个包装类型
+Integer c = 100;
+Integer d = 100;
+System.out.println(c == d); // true
+
+// 3）
+c = 200;
+d = 200;
+System.out.println(c == d); // false
+
+// 4）
+c = new Integer(100);
+d = new Integer(100);
+System.out.println(c == d); // false
+```
+
+ - 1) 基本类型和包装类型进行 == 比较，直接和 a 比较值，结果为 true。
+ 
+ - 2) 两个包装类型都被赋值为了 100，这时候会进行自动装箱，结果为 true。
+ 
+  - 将 == 操作符应用于包装类型比较的时候，其结果很可能会和预期的不符。
+  
+ - 3) 两个包装类型都被赋值为了 200，这时候会进行自动装箱，结果为 false。
+
+**自动装箱是通过 `Integer.valueOf()` 完成的**
+
+```java
+public static Integer valueOf(int i) {
+    if (i >= IntegerCache.low && i <= IntegerCache.high)
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+    return new Integer(i);
+}
+```
+
+```java
+private static class IntegerCache {
+    static final int low = -128;
+    static final int high;
+    static final Integer cache[];
+
+    static {
+        // high value may be configured by property
+        int h = 127;
+        int i = parseInt(integerCacheHighPropValue);
+        i = Math.max(i, 127);
+        h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
+        high = h;
+
+        cache = new Integer[(high - low) + 1];
+        int j = low;
+        for(int k = 0; k < cache.length; k++)
+            cache[k] = new Integer(j++);
+
+        // range [-128, 127] must be interned (JLS7 5.1.7)
+        assert IntegerCache.high >= 127;
+    }
+}
+```
+
+&amp;#160; &amp;#160;-128 到 127 之间的数会从 IntegerCache 中取，然后比较，所以第二段代码（100 在这个范围之内）的结果是 true，而第三段代码（200 不在这个范围之内，所以 new 出来了两个 Integer 对象）的结果是 false。
+
+&amp;#160; &amp;#160;**当需要进行自动装箱时，如果数字在 -128 至 127 之间时，会直接使用缓存中的对象，而不是重新创建一个对象。**
+
+&amp;#160; &amp;#160;自动装拆箱是一个很好的功能，大大节省了我们开发人员的精力，但也会引发一些麻烦，比如下面这段代码，性能就很差。
+
+```java
+long t1 = System.currentTimeMillis();
+Long sum = 0L;
+for (int i = 0; i < Integer.MAX_VALUE;i++) {
+    sum += i;
+}
+long t2 = System.currentTimeMillis();        
+System.out.println(t2-t1);
+```
+
+&amp;#160; &amp;#160;sum 由于被声明成了包装类型 Long 而不是基本类型 long，所以 sum += i 进行了大量的拆装箱操作（sum 先拆箱和 i 相加，然后再装箱赋值给 sum），导致这段代码运行完花费的时间足足有 2986 毫秒；如果把 sum 换成基本类型 long，时间就仅有 554 毫秒，完全不一个等量级啊。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
