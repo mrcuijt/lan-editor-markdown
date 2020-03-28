@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SLF4J JDK14 Use</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### SLF4J-JDK14
+
+ ***```pom.xml```***
+
+```xml
+<dependencies>
+    <!-- 引入 SLF4J Jar -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.5</version>
+    </dependency>
+    <!-- 引入 SLF4J-JDK14 Jar -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-jdk14</artifactId>
+        <version>1.7.25</version>
+    </dependency>
+</dependencies>
+```
+
+##### 配置 logging.properties
+
+   在 ```classpath``` 根路径放置名为 ```simplelogger.properties``` 的文件，内容为：
+
+ ***```logging.properties```***
+
+```python
+############################################################
+#  	SLF4J JDK14 Properties
+############################################################
+
+# 输出到文件和控制台
+handlers= java.util.logging.FileHandler,java.util.logging.ConsoleHandler
+
+# root日志输出级别 level
+.level= ALL
+
+# 控制台输出级别和格式
+java.util.logging.ConsoleHandler.level = FINER
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+
+# 文件输出级别和地址
+java.util.logging.FileHandler.level = CONFIG
+java.util.logging.FileHandler.pattern = E:\\Logs\\TestProperties.log
+#限制文件的大小（50000字节）
+java.util.logging.FileHandler.limit = 50000
+#过滤，总共保存1个文件,接着猜覆盖
+java.util.logging.FileHandler.count = 3
+## 日志文件编码
+java.util.logging.FileHandler.encoding = UTF-8
+#XMLFormatter是以xml样式输出，SimpleFormatter是以普通样式输出
+java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+#指定是否应该将 FileHandler 追加到任何现有文件上（false会覆盖，但默认为false）。
+java.util.logging.FileHandler.append = true
+```
+
+***```Slf4jJdk14Demo.java```***
+
+```java
+package science.mrcuijt.slf4j.demo;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.logging.LogManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author Administrator
+ *
+ */
+public class Slf4jJdk14Demo {
+
+	private static final Logger logger = LoggerFactory.getLogger(Slf4jJdk14Demo.class);
+
+	public static void main(String[] args) throws SecurityException, FileNotFoundException, IOException {
+
+		InputStream in = Slf4jJdk14Demo.class.getResourceAsStream("/logging.properties");// 注意配置
+
+		LogManager.getLogManager().readConfiguration(in);
+
+		logger.trace("trace");
+		logger.debug("debug");
+		logger.info("info");
+		logger.warn("warn");
+		logger.error("error");
+
+	}
+
+}
+```
+
+***```Console```***
+
+```textarea
+四月 04, 2019 8:52:14 下午 science.mrcuijt.slf4j.demo.Slf4jJdk14Demo main
+详细: debug
+四月 04, 2019 8:52:14 下午 science.mrcuijt.slf4j.demo.Slf4jJdk14Demo main
+信息: info
+四月 04, 2019 8:52:14 下午 science.mrcuijt.slf4j.demo.Slf4jJdk14Demo main
+警告: warn
+四月 04, 2019 8:52:14 下午 science.mrcuijt.slf4j.demo.Slf4jJdk14Demo main
+严重: error
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

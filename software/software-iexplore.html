@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>software-iexplore</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### software-iexplore
+
+#### IE 浏览器默认主页被篡改，无法改回
+
+##### 方法一：
+
+ **开始 -> 运行 -> 输入 `regedit`**
+
+出现 **“注册表编辑器”** 界面，找到下面的路径：
+
+```python
+# XP:
+HKEY_CLASSES_ROOT\CLSID\{871C5380-42A0-1069-A2EA-08002B30309D}\shell\OpenHomePage\Command
+# Windows7：
+HKEY_CLASSES_ROOT\CLSID\{871C5380-42A0-1069-A2EA-08002B30301D}\shell\OpenHomePage\Command
+```
+
+右键点击右边的 **“默认”**，出现菜单，选择 **“修改”**
+
+弹出 **“修改字符串”** 界面，在 **“数值数据”** 中的后面加上你想要设置的主页的地址，如：
+
+```python
+"%ProgramFiles%\Internet Explorer\iexplore.exe" www.baidu.com
+```
+
+然后点击确定
+
+有的人的电脑中的数值数据是：**"C:\ProgramFiles\Internet Explorer\iexplore.exe"**,一样在后面加上网页的地址
+
+退出 **“注册表编辑器”**。打开网页就会显示刚才设置的主页了
+
+##### 方法二：使用组策略设置 IE 主页
+
+在 **“注册表编辑器”** 中找到下面的路径：
+
+```python
+# regedit
+HKEY_CURRENT_USER\Software\Policies\Microsoft\Internet Explorer\Main
+```
+
+ - 注意：如果没有 Internet Explorer\Main，就新建项 **“Internet Explorer\Main”**
+
+ - 右键点击右边的 **“Start Page”**，出现菜单，选择 **“修改”**
+
+ - 注意：如果没有 **“Start Page”**，就新建 **“字符串值”**，命名为 Start Page
+
+ - 出现 **“编辑字符串”** 界面，在 **“数值数据”** 输入你想设置的网页，点击确定我这里设置 www.baidu.com，和方法1中设置的主页一样。
+
+##### 方法三
+
+```python
+# regedit
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Internet Explorer\MAIN
+```
+
+ - 右键点击右边的 **“First Home Page”**，出现菜单，选择 **“修改”**
+
+ - 出现 **“编辑字符串”** 界面，在 **“数值数据”** 输入你想设置的网页
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/wuyingzhiyi/article/details/44920599" target="_blank">IE 浏览器默认主页被篡改，无法改回</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shiro Spring Demo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+***```pom.xml```***
+
+```xml
+ <properties>
+    <spring.version>3.1.0.RELEASE</spring.version>
+    <shiro.osgi.importRange>[1.2, 2)</shiro.osgi.importRange>
+    <commons.cli.version>1.2</commons.cli.version>
+    <guice.version>3.0</guice.version>
+    <commons.codec.version>1.4</commons.codec.version>
+    <easymock.version>3.1</easymock.version>
+    <crowd.version>1.5.2</crowd.version>
+    <junit.version>4.8.2</junit.version>
+    <hsqldb.version>1.8.0.7</hsqldb.version>
+    <groovy.version>1.8.5</groovy.version>
+    <hazelcast.version>2.4.1</hazelcast.version>
+    <slf4j.version>1.6.4</slf4j.version>
+    <powermock.version>1.5</powermock.version>
+    <jetty.version>6.1.26</jetty.version>
+    <gmaven.version>1.3</gmaven.version>
+    <buildNumber>Administrator-2019-05-05T06:31:34Z</buildNumber>
+    <ehcache.version>2.5.3</ehcache.version>
+    <quartz.version>1.6.1</quartz.version>
+    <aspectj.version>1.8.6</aspectj.version>
+    <jdk.version>1.6</jdk.version>
+</properties>
+```
+
+***```pom.xml```***
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-core</artifactId>
+        <version>1.3.2</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-ehcache</artifactId>
+        <version>1.3.2</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-spring</artifactId>
+        <version>1.3.2</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>javax.servlet.jsp</groupId>
+        <artifactId>jsp-api</artifactId>
+        <version>2.1</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>jstl</artifactId>
+        <version>1.1.2</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>taglibs</groupId>
+        <artifactId>standard</artifactId>
+        <version>1.1.2</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+        <version>2.5</version>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>1.8.5</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>net.sf.ehcache</groupId>
+        <artifactId>ehcache-core</artifactId>
+        <version>2.5.3</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>commons-logging</artifactId>
+                <groupId>commons-logging</groupId>
+            </exclusion>
+        </exclusions>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+        <groupId>com.hazelcast</groupId>
+        <artifactId>hazelcast</artifactId>
+        <version>2.4.1</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.6.4</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>1.6.4</version>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>1.6.4</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>1.6.4</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.16</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>mail</artifactId>
+                <groupId>javax.mail</groupId>
+            </exclusion>
+            <exclusion>
+                <artifactId>jms</artifactId>
+                <groupId>javax.jms</groupId>
+            </exclusion>
+            <exclusion>
+                <artifactId>jmxtools</artifactId>
+                <groupId>com.sun.jdmk</groupId>
+            </exclusion>
+            <exclusion>
+                <artifactId>jmxri</artifactId>
+                <groupId>com.sun.jmx</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>3.1.0.RELEASE</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>commons-logging</artifactId>
+                <groupId>commons-logging</groupId>
+            </exclusion>
+        </exclusions>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+        <version>3.1.0.RELEASE</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>commons-logging</artifactId>
+                <groupId>commons-logging</groupId>
+            </exclusion>
+        </exclusions>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-orm</artifactId>
+        <version>3.1.0.RELEASE</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-webmvc</artifactId>
+        <version>3.1.0.RELEASE</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>commons-logging</artifactId>
+                <groupId>commons-logging</groupId>
+            </exclusion>
+        </exclusions>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <version>3.1.0.RELEASE</version>
+        <scope>test</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>commons-logging</artifactId>
+                <groupId>commons-logging</groupId>
+            </exclusion>
+        </exclusions>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-aspects</artifactId>
+        <version>3.1.0.RELEASE</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-aop</artifactId>
+        <version>3.1.0.RELEASE</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>3.0</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.google.inject.extensions</groupId>
+        <artifactId>guice-multibindings</artifactId>
+        <version>3.0</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>com.google.inject.extensions</groupId>
+        <artifactId>guice-servlet</artifactId>
+        <version>3.0</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.opensymphony.quartz</groupId>
+        <artifactId>quartz</artifactId>
+        <version>1.6.1</version>
+        <scope>compile</scope>
+        <exclusions>
+            <exclusion>
+                <artifactId>commons-logging</artifactId>
+                <groupId>commons-logging</groupId>
+            </exclusion>
+        </exclusions>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis-spring</artifactId>
+        <version>1.3.1</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.44</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis</artifactId>
+        <version>3.4.5</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjweaver</artifactId>
+        <version>1.8.4</version>
+        <scope>compile</scope>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.8.2</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>
+```
+
+***```shiro-spring.sql```***
+
+```sql
+/*
+Navicat MySQL Data Transfer
+
+Source Server         : root@localhost
+Source Server Version : 50089
+Source Host           : localhost:3306
+Source Database       : shiro-spring
+
+Target Server Type    : MYSQL
+Target Server Version : 50089
+File Encoding         : 65001
+
+Date: 2019-04-30 20:10:56
+*/
+
+SET FOREIGN_KEY_CHECKS=0;
+
+-- ----------------------------
+-- Table structure for `roles`
+-- ----------------------------
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE `roles` (
+  `role_name` varchar(255) NOT NULL,
+  PRIMARY KEY  (`role_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of roles
+-- ----------------------------
+INSERT INTO `roles` VALUES ('role1');
+INSERT INTO `roles` VALUES ('role2');
+
+-- ----------------------------
+-- Table structure for `roles_permissions`
+-- ----------------------------
+DROP TABLE IF EXISTS `roles_permissions`;
+CREATE TABLE `roles_permissions` (
+  `role_name` varchar(255) NOT NULL,
+  `permission` varchar(255) NOT NULL,
+  PRIMARY KEY  (`role_name`,`permission`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of roles_permissions
+-- ----------------------------
+INSERT INTO `roles_permissions` VALUES ('role1', 'permission1');
+INSERT INTO `roles_permissions` VALUES ('role1', 'permission2');
+INSERT INTO `roles_permissions` VALUES ('role2', 'permission1');
+
+-- ----------------------------
+-- Table structure for `users`
+-- ----------------------------
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY  (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of users
+-- ----------------------------
+INSERT INTO `users` VALUES ('user1', '+XdzYjFKiLoNffcB7Wvr0KNXe+M77+crq8QMOd5lqx8=');
+INSERT INTO `users` VALUES ('user2', 'KmOs0a5jkpeDq5F5tNEjVish+AkcBdLvTw+thmq1x8k=');
+
+-- ----------------------------
+-- Table structure for `user_roles`
+-- ----------------------------
+DROP TABLE IF EXISTS `user_roles`;
+CREATE TABLE `user_roles` (
+  `username` varchar(255) NOT NULL,
+  `role_name` varchar(255) NOT NULL,
+  UNIQUE KEY `user_roles_uq` (`username`,`role_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of user_roles
+-- ----------------------------
+INSERT INTO `user_roles` VALUES ('user1', 'role1');
+INSERT INTO `user_roles` VALUES ('user1', 'role2');
+INSERT INTO `user_roles` VALUES ('user2', 'role2');
+```
+
+***```Password Generate```***
+
+```java
+// password is 'user1' SHA hashed and base64 encoded:
+query = "insert into users values ('user1', '" + new Sha256Hash("user1", "user1").toBase64() + "' )";
+ 
+// password is 'user2' SHA hashed and base64 encoded:
+query = "insert into users values ( 'user2', '"  + new Sha256Hash("user2", "user2").toBase64() + "' )";
+```
+
+***```LoginController.java```***
+
+```java
+package science.mrcuijt.controller;
+
+import javax.inject.Inject;
+
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.IncorrectCredentialsException;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.ModelAndView;
+
+import science.mrcuijt.service.ShiroService;
+
+/**
+ * @author Administrator
+ *
+ */
+@Controller("loginController")
+public class LoginController {
+
+	@RequestMapping(value = "/login", method = { RequestMethod.GET })
+	public ModelAndView execute() {
+
+		ModelAndView mav = new ModelAndView();
+		mav.setViewName("login");
+		return mav;
+	}
+
+	@RequestMapping(value = "/login", method = { RequestMethod.POST })
+	public ModelAndView login(String username, String password) {
+
+		UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+		token.setRememberMe(true);
+		Subject subject = SecurityUtils.getSubject();
+
+		try {
+
+			subject.login(token);
+
+		} catch (IncorrectCredentialsException ice) {
+
+			// 捕获密码错误异常
+			ModelAndView mv = new ModelAndView("login");
+			mv.addObject("message", "password error!");
+			return mv;
+		}
+
+		ModelAndView mav = new ModelAndView();
+		mav.setViewName("index");
+		mav.addObject("message", "Login Success");
+		return mav;
+	}
+}
+```
+
+***```MyRealm.java```***
+
+ - 自定义登录验证
+ 
+ - 自定义用户权限获取
+
+```java
+package science.mrcuijt.shiro.realm;
+
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.authc.UnknownAccountException;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.realm.SimpleAccountRealm;
+import org.apache.shiro.realm.jdbc.JdbcRealm;
+import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.util.ByteSource;
+
+import science.mrcuijt.domain.Users;
+import science.mrcuijt.service.ShiroService;
+
+/**
+ * @author Administrator
+ *
+ */
+public class MyRealm extends JdbcRealm {
+
+	private ShiroService shiroService;
+
+	/**
+	 * @return the shiroService
+	 */
+	public ShiroService getShiroService() {
+		return shiroService;
+	}
+
+	/**
+	 * @param shiroService the shiroService to set
+	 */
+	public void setShiroService(ShiroService shiroService) {
+		this.shiroService = shiroService;
+	}
+
+	/**
+	 * 验证当前登录的用户
+	 */
+	@Override
+	protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+
+		UsernamePasswordToken upToken = (UsernamePasswordToken) token;
+		String userName = upToken.getUsername();
+
+		Users users = shiroService.selectByPrimaryKey(userName);
+
+		if (users == null) {
+
+			// 用户名不存在抛出异常
+			throw new UnknownAccountException();
+
+		}
+
+		AuthenticationInfo info = null;
+
+		SimpleAuthenticationInfo saInfo = new SimpleAuthenticationInfo(userName, users.getPassword(), getName());
+
+		saInfo.setCredentialsSalt(ByteSource.Util.bytes(userName));
+
+		info = saInfo;
+
+		return info;
+	}
+
+	/**
+	 * 为当前的登录的用户角色和权限
+	 */
+	@Override
+	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+		return super.doGetAuthorizationInfo(principals);
+	}
+
+}
+
+```
+
+***```applicationContext.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd 
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+    http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+	
+    <!-- 配置数据库连接数据源 -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost/shiro-spring?characterEncoding=utf8"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="root12"></property>
+	</bean>
+	
+    <!-- spring 和 MyBatis 完美整合，不需要 Mybatis 的配置映射文件 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动扫描 mapping.xml 文件 -->
+		<property name="mapperLocations" value="classpath:science/mrcuijt/mapping/mysql/*.xml"></property>
+	</bean>
+	
+	<!-- DAO 接口所在包名，Spring 会自动查找其下的类 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="science.mrcuijt.mapper" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+	</bean>
+
+	<!-- (事务管理)transaction manager, use JtaTransactionManager for global tx -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<tx:advice id="txAdvice"
+		transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="find*" read-only="true"></tx:method>
+			<tx:method name="get*" read-only="true"></tx:method>
+			<tx:method name="query*" read-only="true"></tx:method>
+			<tx:method name="list*" read-only="true"></tx:method>
+			<tx:method name="add*" propagation="REQUIRED"></tx:method>
+			<tx:method name="save*" propagation="REQUIRED"></tx:method>
+			<tx:method name="insert*" propagation="REQUIRED"></tx:method>
+			<tx:method name="edit*" propagation="REQUIRED"></tx:method>
+			<tx:method name="update*" propagation="REQUIRED"></tx:method>
+			<tx:method name="del*" propagation="REQUIRED"></tx:method>
+			<tx:method name="remove*" propagation="REQUIRED"></tx:method>
+			<tx:method name="execute*" propagation="REQUIRED"></tx:method>
+			<tx:method name="*" propagation="REQUIRED"></tx:method>
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 配置 AOP 切面 -->
+	<aop:config>
+		<!-- 定义切入点 -->
+		<!-- 切面表示针对的是类中的方法 -->
+		<aop:pointcut id="serviceMethod" expression="execution(* science.mrcuijt.service.*.*(..))" />
+		<!-- 将事务通知织入给切面 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod"/>
+	</aop:config>
+
+	<!-- Service -->
+	<bean id="shiroServiceImpl" class="science.mrcuijt.service.ShiroServiceImpl"></bean>
+</beans>
+```
+
+***```spring-shiro.xml```***
+
+ - 配置 DefaultWebSecurityManager
+ 
+  - 配置注入 Realm 属性
+ 
+  - 
+ 
+ - 配置 EhCacheManager
+
+ - 配置 自定义的 Realm extends AuthorizingRealm
+ 
+  - 配置注入证书管理 credentialsMatcher 属性
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd 
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+    http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+    <!-- =========================================================
+         Shiro Core Components - Not Spring Specific
+         ========================================================= -->
+    <!-- Shiro's main business-tier object for web-enabled applications
+         (use DefaultSecurityManager instead when there is no web environment)-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="cacheManager" ref="cacheManager"/>
+        <!-- Single realm app.  If you have multiple realms, use the 'realms' property instead. -->
+        <property name="sessionMode" value="native"/>
+        <property name="realm" ref="myRealm"/>
+    </bean>
+
+    <!-- Let's use some enterprise caching support for better performance.  You can replace this with any enterprise
+         caching framework implementation that you like (Terracotta+Ehcache, Coherence, GigaSpaces, etc -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <!-- Set a net.sf.ehcache.CacheManager instance here if you already have one.  If not, a new one
+             will be creaed with a default config:
+             <property name="cacheManager" ref="ehCacheManager"/> -->
+        <!-- If you don't have a pre-built net.sf.ehcache.CacheManager instance to inject, but you want
+             a specific Ehcache configuration to be used, specify that here.  If you don't, a default
+             will be used.:
+        <property name="cacheManagerConfigFile" value="classpath:some/path/to/ehcache.xml"/> -->
+    </bean>
+
+    <!-- Used by the SecurityManager to access security data (users, roles, etc).
+         Many other realm implementations can be used too (PropertiesRealm,
+         LdapRealm, etc. -->
+    <bean id="myRealm" class="science.mrcuijt.shiro.realm.MyRealm">
+        <property name="name" value="myRealm"/>
+        <property name="shiroService" ref="shiroServiceImpl"></property>
+		<property name="credentialsMatcher">
+            <!-- The 'bootstrapDataPopulator' Sha256 hashes the password
+                 (using the username as the salt) then base64 encodes it: -->
+            <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                <property name="hashAlgorithmName" value="SHA-256"/>
+                <!-- true means hex encoded, false means base64 encoded -->
+                <property name="storedCredentialsHexEncoded" value="false"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+    <bean id="secureRemoteInvocationExecutor" class="org.apache.shiro.spring.remoting.SecureRemoteInvocationExecutor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="/s/login"/>
+        <property name="successUrl" value="/s/index"/>
+        <property name="unauthorizedUrl" value="/s/unauthorized"/>
+        <property name="filterChainDefinitions">
+            <value>
+                /favicon.ico = anon
+                /logo.png = anon
+                /shiro.css = anon
+                /s/login = anon
+                # allow WebStart to pull the jars for the swing app:
+                /*.jar = anon
+                # everything else requires authentication:
+                /** = authc
+            </value>
+        </property>
+    </bean>
+
+</beans>
+```
+
+***```ehcache.xml```***
+
+```xml
+<!-- EhCache XML configuration file used for Shiro spring sample application -->
+<ehcache>
+
+    <!-- Sets the path to the directory where cache .data files are created.
+
+If the path is a Java System Property it is replaced by
+its value in the running VM.
+
+The following properties are translated:
+user.home - User's home directory
+user.dir - User's current working directory
+java.io.tmpdir - Default temp file path -->
+    <diskStore path="java.io.tmpdir/shiro-spring-sample"/>
+
+
+    <!--Default Cache configuration. These will applied to caches programmatically created through
+    the CacheManager.
+
+    The following attributes are required:
+
+    maxElementsInMemory            - Sets the maximum number of objects that will be created in memory
+    eternal                        - Sets whether elements are eternal. If eternal,  timeouts are ignored and the
+                                     element is never expired.
+    overflowToDisk                 - Sets whether elements can overflow to disk when the in-memory cache
+                                     has reached the maxInMemory limit.
+
+    The following attributes are optional:
+    timeToIdleSeconds              - Sets the time to idle for an element before it expires.
+                                     i.e. The maximum amount of time between accesses before an element expires
+                                     Is only used if the element is not eternal.
+                                     Optional attribute. A value of 0 means that an Element can idle for infinity.
+                                     The default value is 0.
+    timeToLiveSeconds              - Sets the time to live for an element before it expires.
+                                     i.e. The maximum time between creation time and when an element expires.
+                                     Is only used if the element is not eternal.
+                                     Optional attribute. A value of 0 means that and Element can live for infinity.
+                                     The default value is 0.
+    diskPersistent                 - Whether the disk store persists between restarts of the Virtual Machine.
+                                     The default value is false.
+    diskExpiryThreadIntervalSeconds- The number of seconds between runs of the disk expiry thread. The default value
+                                     is 120 seconds.
+    memoryStoreEvictionPolicy      - Policy would be enforced upon reaching the maxElementsInMemory limit. Default
+                                     policy is Least Recently Used (specified as LRU). Other policies available -
+                                     First In First Out (specified as FIFO) and Less Frequently Used
+                                     (specified as LFU)
+    -->
+
+    <defaultCache
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="120"
+            timeToLiveSeconds="120"
+            overflowToDisk="false"
+            diskPersistent="false"
+            diskExpiryThreadIntervalSeconds="120"
+            />
+
+    <!-- We want eternal="true" (with no timeToIdle or timeToLive settings) because Shiro manages session
+expirations explicitly.  If we set it to false and then set corresponding timeToIdle and timeToLive properties,
+ehcache would evict sessions without Shiro's knowledge, which would cause many problems
+(e.g. "My Shiro session timeout is 30 minutes - why isn't a session available after 2 minutes?"
+Answer - ehcache expired it due to the timeToIdle property set to 120 seconds.)
+
+diskPersistent=true since we want an enterprise session management feature - ability to use sessions after
+even after a JVM restart.  -->
+    <cache name="shiro-activeSessionCache"
+           maxElementsInMemory="10000"
+           eternal="true"
+           overflowToDisk="true"
+           diskPersistent="true"
+           diskExpiryThreadIntervalSeconds="600"/>
+
+    <cache name="org.apache.shiro.realm.SimpleAccountRealm.authorization"
+           maxElementsInMemory="100"
+           eternal="false"
+           timeToLiveSeconds="600"
+           overflowToDisk="false"/>
+
+</ehcache>
+```
+
+***```web.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+
+    <!-- ==================================================================
+         Context parameters
+         ================================================================== -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:applicationContext.xml</param-value>
+    </context-param>
+
+    <!--
+    - Key of the system property that should specify the root directory of this
+    - web app. Applied by WebAppRootListener or Log4jConfigListener.
+    -->
+    <context-param>
+        <param-name>webAppRootKey</param-name>
+        <param-value>spring-sample.webapp.root</param-value>
+    </context-param>
+
+    <!-- ==================================================================
+         Servlet listeners
+         ================================================================== -->
+    <listener>
+        <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+    </listener>
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!-- ==================================================================
+         Filters
+         ================================================================== -->
+    <!-- Shiro Filter is defined in the spring application context: -->
+    <filter>
+        <filter-name>shiroFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <init-param>
+            <param-name>targetFilterLifecycle</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>shiroFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <!-- ==================================================================
+         Servlets
+         ================================================================== -->
+    <servlet>
+        <servlet-name>springmvc</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>springmvc</servlet-name>
+        <url-pattern>/s/*</url-pattern>
+    </servlet-mapping>
+    
+    <!-- ==================================================================
+         Welcome file list
+         ================================================================== -->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+</web-app>
+```
+
+***```springmvc-servlet.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-3.0.xsd
+			http://www.springframework.org/schema/mvc
+			http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+
+	<!-- 开启注解驱动 -->
+	<mvc:annotation-driven />
+	<!-- 自动扫描该包，使 SpringMVC 认为包下用了 @Controller 注解的类是控制器 -->
+	<context:component-scan base-package="science.mrcuijt.controller">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<mvc:default-servlet-handler />
+
+	<!-- 视图解析 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/html/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+
+</beans>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

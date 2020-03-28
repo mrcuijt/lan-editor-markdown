@@ -1,0 +1,535 @@
+Spring 那些高级特性及应用
+
+22 种代码中的坏味道
+
+ - 重复代码
+
+  - 一段代码反复的复制，在一个项目里面复制一份，在另一个项目中复制一份。
+
+ - 过长函数
+
+  - 几千行的函数。
+
+ - 过大的类
+
+  - 几千行的类。
+
+ - 过长参数列
+
+ - 发散式变化
+
+ - 散弹式修改
+
+  - 改动一处，处处牵连。
+
+  - 低内聚，高耦合的标签。
+
+ - 依恋清洁
+
+ - 数据泥团
+
+ - 基本类型偏执
+
+ - switch 惊悚现身
+
+ - 平行继承体系
+
+ - 冗赘类
+ 
+ - 夸夸其谈未来性
+
+ - 令人迷惑的暂时字段
+
+ - 过度耦合的消息链
+
+ - 中间人
+
+ - 被拒绝的馈赠
+
+ - 狎昵关系
+
+ - 异曲同工的类
+
+ - 不完美的类库
+
+ - 纯稚的数据类
+
+ - 过多的注释
+
+需求（一）
+
+选择产品类型：
+
+ - A 类产品
+
+ - B 类产品
+
+ - C 类产品
+
+ - D 类产品
+
+详细说明：
+
+ 1. 项目启动时，查询数据库。
+
+ 2. 查询出产品类型编号与对应的类型名称。
+
+ 3.缓存到一个 Map 里面。
+
+ 4.程序中要用到的时候就直接从这个 Map 里面拿。
+
+#### Spring 框架内部拓展
+
+Spring 启动后，会执行内部一系列的操作。我们也经常会定义 Spring 在启动后，执行一些特定业务代码。
+
+入门级的设计模式
+
+```java
+@Service
+public class StartupListener implements ApplicationListener<ContextRefreshedEvent> {
+  @Override
+  public void onApplicationEvent(ContextRefreshedEvent event){
+    // 防止启动两次
+    if(event.getApplicationContext().getParent() != null){
+      // 启动 Spring 容器后，执行一些代码
+    }
+  }
+}
+```
+
+```java
+// Spring 容器上下文，事件通知机制
+|-- ApplicationEvent
+|  \-- ApplicationContextEvent  父类，Spring 容器相关的事件
+|    \-- ContextClosedEvent     close() 方法关闭时
+|    |-- ContextRefreshedEvent  初始化或刷新时
+|    |-- ContextStartedEvent    start() 方法启动时
+|    |-- ContextStoppedEvent    stop() 方法停止时
+```
+
+用 Spring -- 框架 -- 早期：万能胶 现在：全家桶。
+
+不是简单复用它的功能
+
+dubbo、携程配置中心、activity 工作流....基于 Spring 实现一套
+
+ - 让你的系统具有 Spring 相同的拓展性。（基于 Spring 特性去实现）
+
+ - 业务与 Spring 特性相结合
+
+ - 设计模式技巧：别名
+
+1、基于观察者模式拓展机制。
+
+ - 事件
+
+ - 发布事件
+
+ - 监听事件
+
+2、
+
+
+需求（二）
+
+ 用户 -> 下订单 -> 短信通知
+
+ 需求变更
+
+ 用户 -> 下订单 -> 短信通知 -> 微信通知
+
+ 需求设计
+
+ 请求下单 -> 保存订单信息 -> 发生订单事件 -> 流程结束
+
+ 订单事件 -> Spring 事件机制（监听事件短信功能、监听事件微信功能）
+
+```java
+/** 订单操作，业务伪代码 */
+public class OrderService {
+  /** 新订单订单 */
+  public void saveOrder(){
+    // 伪代码的意思：忽略很多逻辑，参数封装、数据查询等等逻辑
+    // 1---创建订单---
+    System.out.println("1、创建订单成功");
+    // 2---短信通知
+    System.out.println("2、调用短信发送的接口 -> 恭喜喜提羽绒被子");
+  }
+}
+```
+
+新功能扩展，需要不断修改这个类，这样写好不好？
+
+不好，不断修改这个类修改函数，就会导致出现一些没有考虑到的问题。
+
+##### 观察者模式
+
+观察者模式：定义对象间的一种一对多的依赖关系，当一个对象的状态发生改变时，所有依赖于它的对象都得到通知并被自动更新。
+
+又称：发布/订阅、消息通知机制、事件监听、事件驱动编程
+
+利用观察者模式设计高拓展性的代码，利用 Spring 事件机制改造订单功能。
+
+在 Spring 中要实现事件通知，你首先要有一个事件。
+
+我们可以参考 Spring 中事件的实现，继承 ApplicationEvent 类。
+
+```java
+import org.springframework.context.ApplicationEvent;
+
+public class OrderEvent extends ApplicationEvent {
+  public OrderEvent(Object source){
+    super(source);
+  }
+}
+```
+
+```java
+// 订单事件之后 -- 发送短信
+@Component // 交给 Spring 托管，由 Spring 创建对象，并且保留到 IOC 容器。
+public class SmsListener implements ApplicationListener<OrderEvent> {
+  @Override
+  public void onApplicationEvent(OrderEvent event){
+    // 2---短信通知
+    System.out.println("2、调用短信发送的接口 -> 恭喜喜提羽绒被子");
+  }
+}
+```
+
+```java
+// 订单事件之后 -- 发送微信通知
+@Component // 交给 Spring 托管，由 Spring 创建对象，并且保留到 IOC 容器。
+public class WxListener implements ApplicationListener<OrderEvent> {
+  @Override
+  public void onApplicationEvent(OrderEvent event){
+    // 2---微信通知
+    System.out.println("3、调用微信通知接口 -> 恭喜喜提羽绒被子");
+  }
+}
+```
+
+```java
+/** 订单操作，业务伪代码 */
+@Service
+public class OrderService {
+
+  @Autowired
+  ApplicationContext applicationContext; // Spring 上下文（IOC 容器）
+
+  /** 新订单订单 */
+  public void saveOrder(){
+    // 伪代码的意思：忽略很多逻辑，参数封装、数据查询等等逻辑
+    // 1---创建订单---
+    System.out.println("1、创建订单成功");
+
+    OrderEvent orderEvent = new OrderEvent("参数");
+    // 发布事件（事件的执行可以是多线程，默认是当前线程直接触发执行）
+    applicationContext.publishEvent(orderEvent); // 触发其他监听器的执行
+
+    // 2---短信通知
+    //System.out.println("2、调用短信发送的接口 -> 恭喜喜提羽绒被子");
+  }
+}
+```
+
+在我们调用 applicationContext.publishEvent() 方法触发事件之后，Spring 会去查找当前整个 Spring 容器中有哪些监听器，根据事件类型 Spring 查找出所有监听器对象。找到之后遍历调用所有的事件监听器。还支持配置多线程去执行每个监听器（默认不是多线程）。
+
+事件监听实现二
+
+```java
+public class SmsListener implements SmartApplicationListener {
+
+  /** 根据事件类型去控制是否要去调用监听器 */
+  @Override
+  public boolean supportsEventType(Class<? extends ApplicationEvent> eventType){
+    return eventType instanceof OrderEvent.class;
+  }
+
+  @Override
+  public boolean supportsSourceType(Class<?> sourceType){
+    return false;
+  }
+
+  @Override
+  public void onApplicationEvent(ContextRefreshedEvent event){
+    // 2---短信通知
+    System.out.println("2、调用短信发送的接口 -> 恭喜喜提羽绒被子");
+  } 
+
+  @Override
+  public int getOrder(){ // 顺序控制 order 大小
+    return 0;
+  }
+}
+```
+
+##### 设计模式学习方式
+
+设计模式，是前人根据自己的经验总结出来的，代表了代码设计中的最佳实践。
+
+我们单纯的靠死记硬背是没有效果的。
+
+真正去理解，需要不断丰富自己的编码经验。
+
+同时，我们也可以从一些优秀的开源项目中，学习如何去使用。
+
+实战学习技巧：优秀开源框架，根据命名规则去分析用到的设计模式。
+
+#### 模板方法模式
+
+**定义一个`算法骨架`，将骨架中的`特定步骤延迟到子类`中（`注：`特定步骤由子类实现）。**
+
+模板方法模式使得子类可以不改变算法的结构即可重新定义该算法的某些特定步骤。
+
+将通用的代码块封装成一个不完整的方法，真正的实现是通过传入的参数来实现的。
+
+```java
+// 回调方法、钩子、模板方法模式。下面是 Spring 中的典型范例
+redisTemplate.execute(new RedisCallback<Boolean>(){
+  @Override
+  public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+    // TODO 拿到 redis connection，执行各种操作
+    return connection.set(null, null);
+  }
+});
+
+// Spring 中类似的实现：jdbcTemplate kafkaTemplate rabbitTemplate ...等等。
+```
+
+算法 = 逻辑 / 顺序
+
+```java
+public void test2(){
+  // JDBC 数据库操作/redis操作/
+  // 1.获取连接
+  // 2.检查连接是否可用
+  // 3.TODO 拿到连接进行业务操作
+  // 4.释放连接
+  // Spring 封装之后的工具 JdbcTemplate、RedisTemplate、KafkaTemplate、RabbitTemplate
+  RedisTemplate redisTemplate = null;
+  redisTemplate.execute(new RedisCallback(){
+    @Override
+    public Object doInRedis(RedisConnection connection) throws DataAccessException {
+      // TODO 业务开发人员，只关注拿到 connection 之后做什么事情。
+      return null;
+  });
+}
+```
+
+```java
+// 卖东西，计算价格
+@Service
+public class SaleService {
+  /**
+   * 计费
+   *
+   * @param userType 用户类型
+   * @param fee      商品价格
+   */
+   public double sale(String userType, double fee){
+     if("vip".equals(userType)){
+       return fee * 0.8;
+     } else if("normal".equals(userType)){
+       return fee * 0.9;
+     } else if("svip".equals(userType)){
+       return fee * svip;
+     }
+     return fee;
+   }
+}
+```
+
+```java
+@Autowired
+SaleService saleService;
+
+public void test3(){
+  double vip = saleService.sale("vip", 100);
+  System.out.println("vip 价格：" + vip);
+}
+```
+
+#### 六大设计原则
+
+ - 单一职责原则（Single Reponsiblity Principle SRP）
+
+ 一个类只负责一个功能领域中的相应职责。高内聚、低耦合。
+
+ - 开闭原则（Open Closed Principle，OCP）
+
+ 对扩展开放，对修改关闭。不修改原有代码的情况下扩展。
+
+ - 里式替换原则（Liskov Substitution Principle，LSP）
+
+ 所有引用基类（父类）的地方必须能够透明的使用其子类的对象。
+
+ - 依赖倒转原则（Dependency Inversion Principle，DIP）
+
+ 抽象不应该依赖于细节，细节应当依赖于抽象。
+
+ - 接口分离原则（Interface Segregation Principle，ISP）
+
+ 接口拆分。当一个接口太大时，我们需要将它分割成一些更细小的接口。
+
+ - 迪米特发着（Principle of Least Konwledge，PLK）
+
+ 减少依赖。一个软件实体应当尽肯能少地与其他实体发生相互作用。
+
+利用设计原则，作为衡量代码好坏的尺子。
+
+再选择合适的设计模式对代码进行设计。
+
+根据设计原则去设计优化代码
+
+```java
+// service serviceImpl
+/** 计费打折接口 */
+public interface CaculateService {
+
+  public String userType(); // 返回该打折策略针对的哪一种用户
+
+  public double caculate(double fee);
+
+}
+```
+
+```java
+@Service
+public class VIPCaculateService implements CaculateService {
+
+  @Override
+  public String userType(){ return "vip"; }
+
+  public double caculate(double fee){
+    return fee * 0.8;
+  }
+
+}
+
+@Service
+public class NormalCaculateService implements CaculateService {
+
+  @Override
+  public String userType(){ return "normal"; }
+
+  public double caculate(double fee){
+    return fee * 0.9;
+  }
+
+}
+
+@Service
+public class SVIPCaculateService implements CaculateService {
+
+  @Override
+  public String userType(){ return "svip"; }
+
+  public double caculate(double fee){
+    return fee * 0.7;
+  }
+
+}
+```
+
+```java
+// 卖东西，计算价格
+// 单一职责优化实现
+@Service
+public class SaleService {
+
+  @Autowired
+  VIPCaculateService vipCaculateService;
+  @Autowired
+  NormalCaculateService normalCaculateService;
+  @Autowired
+  SVIPCaculateService svipCaculateService;
+
+  /**
+   * 计费
+   *
+   * @param userType 用户类型
+   * @param fee      商品价格
+   */
+   public double sale(String userType, double fee){
+     if("vip".equals(userType)){
+       return vipCaculateService.caculate(fee);
+     } else if("normal".equals(userType)){
+       return normalCaculateService.caculate(fee);
+     } else if("svip".equals(userType)){
+       return svipCaculateService.caculate(fee);
+     }
+     return fee;
+   }
+}
+```
+
+完成了单一职责优化实现，我们还会感觉对这部分代码感觉有些别扭。
+
+我们在来看下面一个设计模式，开闭原则。对扩展开放，对修改关闭。不修改原有代码的情况下扩展。
+
+这时我们在来看我们的代码，如果我们需要再新增一种计费模式的话，就会设计到修改当前计费业务类。
+
+我们再来看如何进行，开闭原则的优化。首先从上往下查看业务层编写代码。
+
+首先我们是通过注入的方式，将不同的业务计费模型注入到当前销售业务中的。这就意味着：每增加一个类型，就需要添加一段注入代码。不符合开闭原则。
+
+利用 Spring 的高级注入功能
+
+```java
+public class SaleService {
+  @Autowired // 利用 Spring 的注入功能，Spring 可以将所有 CaculateService 的实现注入到一个 List 中。
+  List<CaculateService> caculateServices;
+
+  @Autowired // 利用 Spring 的注入功能，注入 Map ，类名小写作为 key 实现作为 value
+  Map<String, CaculateService> caculateServices;
+
+
+  HashMap<String, CaculateService> serviceHashMap = new HashMap<String, CaculateService>();
+  @Autowired // 利用 Spring 的注入功能，构造注入
+  public SaleService(List<CaculateService> caculateServices){
+    for(CaculateService caculateService : caculateServices){
+      // key -- 用户类型，value -- 打折计算器对象
+      serviceHashMap.put(caculateService.userType(), caculateService);
+    }
+  }
+
+  /**
+   * 计费
+   *
+   * @param userType 用户类型
+   * @param fee      商品价格
+   */
+   public double sale(String userType, double fee){
+     CaculateService caculateService = serviceHashMap.get(userType);
+     if(caculateService == null){
+       return fee; // 不打折
+     }
+     return caculateService.caculate(fee);
+   }
+```
+
+测试
+
+```java
+@Autowired
+SaleService saleService;
+
+public void test3(){
+  double vip = saleService.sale("vip", 100);
+  System.out.println("vip 价格：" + vip);
+  double svip = saleService.sale("svip", 100);
+  System.out.println("svip 价格：" + svip);
+}
+```
+
+ 1. 基于观察者模式拓展机制
+
+ 事件、发布事件、监听事件
+
+ 2.从优秀框架中汲取设计模式的精髓（Spring）
+
+ 3.需求（计算价格---银牌会员，非会员价格）
+
+ 基于 Spring
+
+ 4.还是要结合 Spring 应用

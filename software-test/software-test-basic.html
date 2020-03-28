@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>software-test-basic</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 软件测试基础 1.2 PIE 模型
+
+关于 BUG 的三个概念
+
+ - **Fault**
+
+ - **Error**
+
+ - **Failure**
+
+这三个概念在软件运行的时期有不同的概念。
+
+ - **Fault**
+
+ **Software Fault: A static defect in the software(i.e.,defect)**
+
+ 静态存在于软件当中的缺陷。由于在 Codeding 中犯的错误导致的。通常我们称之为缺陷。
+
+ - **Error**
+
+ **Software Error : An incorrect internal state that is the manifestation of some faults**
+
+ 软件运行过程中，执行到了 Fault 触发了一个中间状态。我们称之为 Error。
+
+ - **Failure**
+
+ **Software Failure : External,incorrect behavior with respect to the requirements or other description of the expected behavior.**
+
+ 软件运行中发生的 Error 一直传播到外面，使得我们测试人员或用户能观测到这个失效的行为。
+
+##### Fault、Error、Failure 举例
+
+输入一个数组，计算一个数组的平均值。
+
+```java
+public static void CSta(int[] numbers){
+  int length = numbers.length;
+  double mean,sum;
+
+  sum = 0.0;
+  for(int i = 1; i < length; i++){
+    sum += numbers[i];
+  }
+  mean = sum / (double) length; // sum
+
+  System.out.println("mean:" + mean); // Failure
+}
+```
+
+在写循环部分的时候，把数组循环的初始条件 i = 0, 误写为 i = 1 。使得我们在计算数组的时候会漏掉一个数据。
+
+这一行代码是静态存在于程序当中，我们称之为缺陷 Fault。
+
+当我们写完上面的代码去运行时，我们测试输入的数据为 Test Input: [3,4,5]
+
+当我们执行到这个循环体的时候本来应该将 3,4,5 累加，由于初始条件的错误我们只累加了 4 和  5 本来这个变量 sum 应该等于 12 ，现在等于 9 及错误的中间状态。我们称之为 Error。
+
+最终这个 Error 传播出去，我们观测到的结果就是 Failure。
+
+以上三部分就是通过 PIE 模型来刻画的，即观测到一个 Failure 需要三个必要的条件。
+
+PIE Model
+
+ - Execution/Reachability : The location or locations in the program that contain the fault must be reached.
+
+ 执行必须要通过这个错误的代码部分。
+
+ - Infection : The state of the program must be incorrect.
+
+ 在执行这个错误代码的时候，必须触发出一个中间的状态。
+
+ - Propagation : The infected state must propagate to cause some output of the program to be incorrect.
+
+ 这个错误的中间状态必须要传播到最后输出，使得我们能观测到他和预期的结果不一致，即失效。
+
+##### 讨论 - 执行 Execution/Reachability 
+
+在很多时候我们的测试未必能运行到 fault 的位置。尤其是在我们的程序它的控制流和调用比较复杂的时候。我们的一些测试往往执行不到 fault 的位置，致使的 fault 藏在程序中的某个地方。我们并不能发现这样一个错误。
+
+##### 讨论 - 感染 Infection
+
+**即使我们的程序执行到的错误的代码，那也不一定触发 Error。**
+
+```java
+public static void CSta(int[] numbers){
+  int length = numbers.length;
+  double mean,sum;
+
+  sum = 0.0;
+  for(int i = 1; i < length; i++){// fault // i = 0
+    sum += numbers[i];
+  }
+  mean = sum / (double) length;
+
+  System.out.println("mean:" + mean);
+}
+```
+
+Test Input : [0,4,5]
+
+sum = 0 + 4 + 5;
+sum = 4 + 5;
+
+mean = 3
+mean = 3
+
+但很凑巧错误的计算和正确的计算结果是一样的 sum 都是等于 9。使得我们在最终的输出它的平均值为 3 ，跟本没有影响。
+
+所以我们虽然执行到了 Fault 的位置，但是对于 sum 来讲它没有触发 Error。最终的结果也是正确的。
+
+##### 讨论 - Propagation
+
+我们在来讨论一下一个 **测试执行到了 Fault 触发了 Error 那最终可能也没有 Failure。**
+
+以下代码我们修改了一下 Fault 位置
+
+```java
+public static void CSta(int[] numbers){
+  int length = numbers.length - 1;// fault
+  double mean,sum;
+
+  sum = 0.0;
+  for(int i = 0; i < length; i++){
+    sum += numbers[i];
+  }
+  mean = sum / (double) length;
+
+  System.out.println("mean:" + mean);
+}
+```
+
+Test Input:[3,5,4]
+
+sum = 3 + 5 + 4
+sum = 3 + 5
+
+mean = 12 / 3 = 4
+mean = 8 / 2 = 4
+
+Error 的结果被正确的结果掩盖了，所以最终这个程序没有 Failure。对于测试人员来讲我们没有观察到一个出错的行为。会误判为这个是对的。
+
+通过以上的例子我们可以明白 Fault 产生 Error 并且传播出去发现 Failure 是一个比较复杂的过程。这样是为什么在很多时候我们的 Fault 隐藏在系统当中很久很久，只有在某些特定的情况才触发造成我们的损失。
+
+##### 提问
+
+有没有这样一个 Fault，其实是没有任务测试可以发现它？
+
+ - 及运行 Fault 触发了 Error 但是没有 Failure。
+
+这样的 Fault 我们还称为 Fault 吗？
+
+#### 课后练习
+
+请构造这样一个程序和三个测试
+
+ - 使第一个测试能够触发 Fault 但是没有 Error。
+
+ - 使第二个测试能够触发 Fault 产生 Error 但是没有 Failure。
+
+ - 使第三个测试出现 Failure。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

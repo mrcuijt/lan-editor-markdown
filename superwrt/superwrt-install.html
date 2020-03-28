@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>superwrt-install</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### superwrt-install
+
+#### 新版本TP-Link更新系统
+
+该方式需要的工具：有网口的电脑、USB转TTL、排针（还可能需要电烙铁及焊锡）
+
+&amp;#160; &amp;#160;由于TP-LINK的新设备版本增加数字签名验证，所以目前仅可通过串口升级（不可使用网页升级）。（如果您希望直接烧写Flash，请参考这里）
+
+&amp;#160; &amp;#160;TP-LINK 自身的 uboot 启动时会校验固件，所以，必须首先将 uboot 换为我们提供的 uboot。
+
+&amp;#160; &amp;#160;拆开设备外壳，连接串口（如不以后做开发，可以按图片的方式临时连接即可。如后续需要开发，可焊接排针到串口）。
+
+![title](./images/superwrt-install/superwrt-install-001.png)
+
+&amp;#160; &amp;#160;**注意：**TP-Link 有一些设备串口的排针与芯片之间的电阻可能没焊，需要先焊上，具体请参考相应设备的资料。
+
+&amp;#160; &amp;#160;**注意：**如果使用 USB 转 TTTL，TTL 上的 VCC 为供电的，千万不要与设备连接。
+
+![title](./images/superwrt-install/superwrt-install-002.png)
+
+在电脑上使用串口工具（示例图片中使用putty），设置串口速率为115200。
+
+![title](./images/superwrt-install/superwrt-install-003.png)
+
+注意：使用CH340串口用户可能会遇到问题，请参考这里。
+
+##### 使用 CH340 芯片串口的问题
+
+&amp;#160; &amp;#160;使用 CH340 的 USB 转串口芯片连接 Atheros 芯片的板子，使用 115200bps 的速率，可能会遇到乱码问题。
+
+&amp;#160; &amp;#160;这是由于 Atheros 芯片设置为 115200bps 时，其实波特率并不准确，而 CH340 不能处理 115200bps 向上偏离太多的情况。
+
+这里需要将串口速率设置为117500bps(推荐使用Putty)。
+
+&amp;#160; &amp;#160;对于部分设备的串口高电平为2.5V的情况，修改完上述配置后，仍然会出现乱码。可以看USB转TTL的板子上是否有指示TXD/RXD的LED，因为CH340判断高电平的标准最低为2V，有连接的LED可能会影响接收数据，如果有，可以尝试将其去掉，看是否还存在乱码现象。
+
+&amp;#160; &amp;#160;接好串口后给设备上电，出现 Autobooting in 1 seconds 时，输入tpl（部分新设备可能要输入slp），可进入uboot命令行（成功时会停留在这里，如果继续打印大量信息，说明进入了系统），输入时需要快速，如一次不成功，可重启再试（也可先复制好，然后右建粘贴）。
+
+![title](./images/superwrt-install/superwrt-install-004.png)
+
+电脑与设备的网线连接好，断开其它网线。将电脑IP修改为192.168.1.10。
+
+![title](./images/superwrt-install/superwrt-install-005.png)
+
+打开tftpd32，修改目录到固件所在位置。（TFTPD32可在这里下载：TFTPD32官网下载）
+
+![title](./images/superwrt-install/superwrt-install-006.png)
+
+在串口中输入以下命令：
+
+```python
+setenv ipaddr 192.168.1.1
+setenv serverip 192.168.1.10
+cp.b 0x9f000000 0x80060000 0x20000
+## tftp 命令
+tftp 0x80060000 uboot_superwrt_tl_wr886n_v5.img
+## 切记不可断电
+erase 0x9f000000 +0x20000
+cp.b 0x80060000 0x9f000000 0x20000
+reset 
+```
+
+&amp;#160; &amp;#160;注意：tftp命令成功后，才可输入后续命令。erase后，cp.b成功前切不可断电！！！
+
+&amp;#160; &amp;#160;提醒：如果上面tftp命令失败，可能是你的系统防火墙拦截了请求，或者PC地址配置不对，请检查。
+
+&amp;#160; &amp;#160;提醒：如果你使用uboot文件名与上面不同，请换成相应的文件名。Atheros的uboot对命令行编辑支持的不好，最好将准备好的命令直接粘贴。
+
+![title](./images/superwrt-install/superwrt-install-007.png)
+
+&amp;#160; &amp;#160;将电脑改为自动获取IP地址。将设备断电，电脑的网线连接设备LAN口，断开其它网线。按住Reset，插入电源，当LED由闪烁变为长亮，松开Reset键。
+
+&amp;#160; &amp;#160;用浏览器访问Http://oplogin.com(或者http://192.168.17.1)，进入管理网页。
+
+&amp;#160; &amp;#160;提示：这时可以通过http://oplogin.com/file/flash地址来备份整个Flash。
+
+在网页上传固件，设备重启后即完成。
+
+![title](./images/superwrt-install/superwrt-install-008.png)
+
+参考链接：
+
+ - <a href="http://www.superwrt.com/wiki/using/install" target="_blank">安装SuperWRT系统</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

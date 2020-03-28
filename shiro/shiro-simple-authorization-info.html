@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shiro SimpleAuthorizationInfo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Shiro SimpleAuthorizationInfo
+
+```java
+public class SimpleAuthorizationInfo implements AuthorizationInfo {
+
+    /**
+     * The internal roles collection.
+     */
+    protected Set<String> roles;
+
+    /**
+     * Collection of all string-based permissions associated with the account.
+     */
+    protected Set<String> stringPermissions;
+
+    /**
+     * Collection of all object-based permissions associaed with the account.
+     */
+    protected Set<Permission> objectPermissions;
+```
+
+#### Shiro AuthorizationInfo
+
+&amp;#160; &amp;#160;AuthorizationInfo 表示仅在授权（访问控制）检查期间使用的单个主题存储的授权数据（角色、权限等）。
+
+&amp;#160; &amp;#160;Roles 表示为 Collection 字符串集合（Collection< String>），通常每个元素都是角色名称。
+
+Permissions 以两种方式提供：
+
+ - A Collection of Strings
+ 
+  - 其中每个 String 通常可以转换成 Permission 由一个对象 Realm 的 PermissionResolver
+ 
+ - A Collection of Permission objects
+ 
+两个权限集合一起表示权限的总聚合集合。您可以根据自己的喜好和需求使用其中一种或两种。
+
+&amp;#160; &amp;#160;由于授权（访问控制）行为与身份验证（登录）是正交的，因此该界面仅用于表示 Shiro 在访问控制检查（角色，权限等）期间所需的帐户数据。Shiro 还有一个并行 **```AuthenticationInfo``` 接口，可在身份验证过程中使用，表示身份数据和凭证等身份数据。**
+
+&amp;#160; &amp;#160;因为很多如果不是大多数 Realms 都存储一个 Set 集合主题的数据，它可能是方便了 Realm 实施利用的实现 Account 接口代替，这是一个方便的界面，结合了 AuthenticationInfo 和 AuthorizationInfo。您是选择单独实现这两个接口还是 Account 为给定实现一个接口 Realm 完全基于您的应用程序的需求或您的偏好。
+
+#### Interface Permission
+
+&amp;#160; &amp;#160;权限表示执行操作或访问资源的能力。权限是系统安全策略中最精细或最原始的单元，是构建细粒度安全模型的基石。
+
+&amp;#160; &amp;#160;了解 Permission 实例仅表示功能或访问权限非常重要 - 因为它不授予权限。**```授予对应用程序功能或特定资源的访问权限是由应用程序的安全配置完成的```**，通常是通过为用户，角色和/或组分配权限。
+
+&amp;#160; &amp;#160;大多数典型的系统都是 Shiro 团队在本质上称之为基于角色的系统，其中角色代表某些用户类型的共同行为。例如，系统可能具有 Aministrator 角色， User 或 Guest 角色等。
+
+&amp;#160; &amp;#160;但是，如果您有**```动态安全模型```，可以在运行时创建和删除角色**，则不能在代码中对角色名称进行硬编码。在这种环境中，角色本身并不是非常有用。重要的是为这些角色分配了哪些 权限。
+
+&amp;#160; &amp;#160;在这种范例下，```权限是不可变的```，反映了应用程序的原始功能（打开文件，访问 Web URL，创建用户等）。**这允许系统的安全策略是动态的**：因为权限代表原始功能，只有在应用程序源代码更改时才会更改，它们在运行时是不可变的 - 它们代表系统可以执行的操作。角色，用户和组是应用程序的 '谁'。确定 '谁' 可以做 '什么' 然后变成一种简单的练习，以某种方式将权限与角色，用户和组相关联。
+
+&amp;#160; &amp;#160;大多数应用程序通过将命名角色与权限相关联（即角色'具有'权限集合）然后将用户与角色相关联（即用户'具有'角色集合）来实现此目的，以便通过传递关联，用户'拥有'角色权限'。此主题有许多变体（直接分配给用户的权限，或分配给组的权限，添加到组的用户以及这些组依次具有角色等）。当使用基于权限的安全模型而不是基于角色的安全模型时，可以在运行时创建，配置和/或删除用户，角色和组。这可以实现极其强大的安全模型。
+
+&amp;#160; &amp;#160;Shiro 的一个好处是，虽然它假设大多数系统都基于这些类型的静态角色或动态角色 w/ 权限方案，但它不需要系统以这种方式对其安全数据建模 - 所有权限检查都降级为 Realm 实现，并且只有这些实现才真正决定用户 “拥有” 权限的方式。Realm 可以使用这里描述的语义，或者它可以完全利用其他一些机制 - 它总是取决于应用程序开发人员。
+
+&amp;#160; &amp;#160;Shiro 以 WildcardPermission。的形式提供了一个非常强大的默认实现 。我们强烈建议您在尝试实现自己 Permission 的类之前先调查此类。
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

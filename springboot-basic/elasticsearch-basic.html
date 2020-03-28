@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>elasticsearch-basic</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### elasticsearch-basic
+
+##### 课程目标
+
+ - 全文搜索
+
+ - ElasticSearch 简介
+
+ - ElasticSearch 核心概念
+
+ - ElasticSearch 与 Spring Boot 集成
+
+ - ElasticSearch 实战
+
+#### 全文搜索
+
+数据结构
+
+ - 结构化：指具有固定格式或有限长度的数据，如数据库，元数据等。
+
+ - 非结构化：指不定长或无固定格式的数据，如邮件，work 文档等。
+
+非结构化数据的检索
+
+ - 顺序扫描法（Serial Scanning）
+
+ - 全文搜索（Full-text Search）
+
+##### 全文搜索
+
+概念
+
+全文搜索是一种将文件中所有文本与搜索项匹配的文字资料检索方法。
+
+##### 全文搜索实现原理
+
+ - 建立文本库
+
+ 建立所搜的数据源，所有搜索的内容存储在文本库中。
+
+ - 建立索引
+
+ 根据文本库中的内容建立索引，在不同搜索引擎中的搜索策略是不同的所以索引也是有不同的。
+
+ - 执行搜索
+
+ 由用户来发起请求，将结果返回给用户。
+
+ - 过滤结果
+
+ 在将搜索结果返回给用户之前我们还是需要一道过滤。
+
+##### 全文搜索实现技术
+
+基于 Java 的开源实现
+
+ - Lucene
+
+ - ElasticSearch
+
+ - Solr
+
+#### ElasticSearch 简介
+
+##### ElasticSearch 是什么？
+
+ - 高度可扩展的开源全文搜索和分析引擎。
+
+ - 快速的、近实时地对大数据进行存储、搜索和分析。
+
+ - 用来支撑有复杂的数据搜索需求的企业级应用。
+
+##### ElasticSearch 特点
+
+ - 分布式
+
+ - 高可用
+
+ - 多类型
+
+ - 多 API
+
+ - 面向文档
+
+ - 异步写入
+
+ - 近实时
+
+ - 基于 Lucene
+
+ - Apache 协议
+
+##### ElasticSearch 核心概念
+
+ - 近实时
+
+ ElasticSearch 会在每个 N 秒后会自动去刷新索引。所以在 N 秒完成索引刷新后，就可以获取的一个实时的数据。
+
+ - 集群
+
+ 一个或多个节点的集合它是用来保存应用的全部数据，并提供基于全部节点的集成式的索引和搜索功能。每一个集群都需要有一个唯一的名称，默认为 ElasticSearch 。这个集群的名称是非常重要的，因为每一个节点要加入到这个集群是需要这个集群的名称的。
+
+ 在部署多个集群的时候，每一个集群要有自己唯一的名称。
+
+ - 节点
+
+ 每个集群中的一个单台的服务器，这个服务器它用来保存数据并参与整个集群的索引和搜索的操作。每个节点也是有一个唯一的名称来进行标识的。这个名称一般是用一个 UUID 来标识的，这个名称一般是在这个节点启动的时候分配给这个节点的。
+
+ 可以在节点中设置默认加入的集群的名称，默认加入的集群名称为 ElasticSearch。
+
+ - 索引
+
+ 加快搜索速度，在 ElasticSearch 中索引是一个类似文档的一个集合，索引中的内容与应用本身的业务是相关的。比如说在一个电子商务应用中，可以用索引来保存产品数据、订单的数据或是客户的数据。每个索引都有一个名称，通过这个名称可以对这个索引中包含的文档进行添加更新删除和搜索等等。
+
+ 在单个集群中可以根据需要来定义任意数量的索引。
+
+ - 类型
+
+ 类型是对于一个索引中包含的文档的进一步的细分，一般根据文档的一个公共属性来划分的。比如说在一个电子商务应用产品数据索引中，可以根据产品的特征来划分成不同的类型。比如说我们可以把产品分为一般产品、虚拟产品或数字产品等等，这是一个类型。
+
+ - 文档
+
+ 文档是进行索引的一个基本单位，与索引中的类型是相对应的。比如说在一个产品数据索引中一个一般产品类型可以有一个文档与之对应。那么文档使用 JSON 格式来表示。在非结构化数据中文档对应的是结构化数据中的一个实体。文档的一个实例对应的是实体关系数据库中的一个实例，也就是说具体的某个数据。这就是一个文档的概念。
+
+ - 分片
+
+ 在企业应用中我们存储的数据一般会比较大，它肯定是会超出单个节点所能处理的一个范围。ElasticSearch 允许将索引分成多个分片来存储一个索引的部分数据。ElasticSearch 自己会负责分片的一个分配和聚合。
+
+ 从可靠性这个角度来说对于一个分片中的数据，它还需要建立一个副本，那么 ElasticSearch 中的每一个索引它都可以有多个分片并且会有多个副本，ElasticSearch 自己会管理这些节点中的分片和副本，对开发人员来说他是透明的。
+
+ 为什么需要这个分片？一方面它需要水平的去分割缩放内容，其次通过分片可能是会分配到多个节点上一方面可以进行一个并行查询多个节点提高应用的性能和吞吐量。
+
+ - 副本
+
+ 分片可以设是多个副本，设置副本的原因是故障时不可避免的，既然故障不可避免为了使我们的系统来提高高可用，所以我们要设置副本将副本分配到不同的节点上去。
+
+ 增加副本可以增加吞吐量，将搜索负荷分摊到了不同的副本上去。提高它的搜索量和吞吐量。
+
+默认情况下 ElasticSearch 会为每个索引分配 5 个分片以及 1 个副本。那么也就意味着这个集群至少会拥有两个节点，会拥有 5 个分片以及 5 个副本，这样子就会有 10 个分片。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

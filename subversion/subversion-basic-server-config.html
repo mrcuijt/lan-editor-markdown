@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>subversion-basic-server-config</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### subversion-basic-server-config
+
+#### SVN 服务器端配置
+
+如何搭建出它的项目。
+
+可使用的具体步骤。
+
+首先当我们接到一个项目，由项目经理对项目进行需求分析，然后分配相关工作给相关的工作。
+
+然后在服务器（SVN 服务器）搭建出相应的项目
+
+#### 一、创建一个项目
+
+ - ① 首先在 SVN 服务端创建一个公有目录 WebApp 做为项目目录
+
+ - ② 在 WebApp 目录下创建 Shop 文件夹，做为 Shop 版本仓库 
+
+![title](./images/subversion-basic-server-config/subversion-basic-server-config-001.png)
+
+&amp;#160; &amp;#160;在 SVN 中是没有 项目 的概念的，所有的文件夹都作为一个数据版本仓库。现在我们创建的这个文件夹并不是一个数据仓库，因为它并没有和 SVN 服务器建立任何的联系。
+
+ - ③  创建版本仓库，DOS环境基本语法：
+ 
+ svnadmin create Shop 文件夹路径（Shop仓库）
+ 
+打开 DOS 窗口进行以下操作
+
+![title](./images/subversion-basic-server-config/subversion-basic-server-config-002.png)
+
+如果输入命令后出错，那么将我们新安装完 SVN 服务器的电脑重启一下就可以了。
+
+如果 Shop 仓库配置成功，那么 Shop 文件夹会显示以下目录结构：
+
+![title](./images/subversion-basic-server-config/subversion-basic-server-config-003.png)
+
+ - **`conf`：整个项目的配置文件**
+
+ - **`db`：数据最终是存放在这个文件夹下**
+
+ - **`hooks`：称为钩指文件，比如我们在开发项目时使用，同步复制，同步更新**
+
+ - **`locks`：用于追踪用户**
+
+ - **`format`：存储一个整数类型数据，代表版本仓库的层次文件**
+
+ - **`REMAD`：称之为说明文件。**
+
+#### 二、进行服务监管
+
+SVN 通过，svn://localhost 或(IP地址)访问相关数据仓库（如Shop 仓库）；
+
+基本语法：
+
+```bash
+svnserve -d -r D:/svn/WebApp/Shop
+```
+
+如下图所示：
+
+![title](./images/subversion-basic-server-config/subversion-basic-server-config-004.png)
+
+**`通过一上指令，我们的 svn://localhost 或 ip 地址就可以直接执向 Shop 版本仓库。`**
+
+敲入命令之后，光标会一直等待，代表我们的命令输入正确，我们的 SVN 服务器已将开始监管。
+
+我们的 Shop 版本仓库了。如果中断当前等待，或将 DOS 窗口关闭。
+
+那就是将我们的SVN服务监管强制的关闭了。
+
+#### 三、权限控制
+
+默认情况下，SVN 服务器是不允许 匿名用户上传到服务器端的，所以必须更改项目的相关配置文件。
+
+![title](./images/subversion-basic-server-config/subversion-basic-server-config-005.png)
+
+在 conf 目录下的文件，就是我们这个 Shop 版本仓库的相关配置文件。
+
+ - **`authz` 授权文件**
+
+ - **`hooks-env.tmpl` 模板文件（钩子的模板文件）**
+
+ - **`passwd` 存储相关的登录用户名登录密码**
+
+ - **`svnserve.conf` 最重要的一个文件**
+
+![title](./images/subversion-basic-server-config/subversion-basic-server-config-006.png)
+
+如果想进行权限的更改，都可以通过 SVN 进行操作
+
+ - 1）打开 svnserve.conf 文件
+
+ 文件中 anon-access = read 代表可读权限
+ 
+可读权限代表，我们可以在 SVN 中进行浏览，可以将这个文件从 SVN 服务器中下载到本地。但是我们不可以将文件进行上传。
+
+![title](./images/subversion-basic-server-config/subversion-basic-server-config-007.png)
+
+配置为 write（可读可写）这样我们的 SVN 服务器，就认为我们的项目仓库是谁都可以进行修改的。
+
+```python
+### 这个文件控制程序的安装配置，如果你
+### 用它来允许访问该库。（如果你只允许
+### 通过HTTP访问### ：和/或文件的URL，然后这个文件
+### 无关。）
+### 访问http://subversion.apache.org/更多信息。
+[general]
+### 的匿名访问和验证控制访问的访问选项
+### 库（又名匿名用户和未经身份验证）
+### 认证用户，分别。
+### 有效值是“写”，“读”和“无”。
+### 将值设置为“无”，禁止阅读和写作；
+### “读”允许只读访问，而“写”可以完成
+### 读/写访问版本库。
+### 样本设置以下默认值并指定匿名
+### 用户有只读访问的库，而认证
+### 用户有读写访问版本库。
+
+
+### 匿名用户无需身份验证即可使用
+anon-access = read
+
+### 权限验证时才可使用
+auth-access = write
+
+
+### 密码数据库选项控制密码的位置
+### 数据库文件。除非您指定了一个启动/，
+### 文件的位置是相对于目录包含
+### 配置文件。
+### 如果SASL启用（见下文），该文件将不会被使用。
+### 采用线下使用默认密码文件。
+# password-db = passwd
+### 的authz DB选项控制授权的位置
+### 规则为基础的存取控制路径。除非你指定一个路径
+### 从一个/，文件的位置是相对的
+### 目录包含该文件。指定的路径可能是一个
+### 库相对URL（^ /）或一个绝对的文件：/ / URL文本
+### 文件，Subversion版本库。如果你不指定一个authz分贝，
+### 没有基于路径的访问控制了。
+### 采用线下使用默认的授权文件。
+# authz-db = authz
+### 组数据库选项控制文件的位置与
+### 组定义和允许维护组分别从
+### 授权规则。组的数据库文件是相同的格式的
+###  authz文件应该包含一个单一的[组]部分与
+### 组定义。如果启用了此选项，在authz文件不能
+### 包含[组]部分。除非您指定了一个启动路径
+###  /，文件的位置是相对于包含此目录
+### 文件。指定的路径可能是一个存储库相关的URL（/）或
+### 绝对文件：/ /在Subversion版本库URL文本文件。
+### 这个选项不是默认使用。
+# groups-db = groups
+### 此选项指定的库的认证领域。
+### 如果两库有相同的认证领域，他们应该
+### 有相同的密码数据库，反之亦然。默认的境界
+### 是库的UUID。
+# realm = My First Repository
+### 力用户名选项使案件规范安装案例
+### 用户名前相比他们对授权规则
+###  authz文件配置。有效值是“上”（上—
+### 案例用户名）、“低”（小写的用户名），和
+### “无”（比较用户名不情况下转换，这
+### 是默认行为）。
+# force-username-case = none
+### 钩ENV选项指定的路径钩子脚本环境
+### 配置文件。此选项覆盖默认每库
+### 可用来配置钩子脚本环境的多
+### 存放在一个文件中，如果一个绝对路径指定。
+### 除非你指定绝对路径，该文件的位置是相对的
+### 到包含该文件的目录。
+# hooks-env = hooks-env
+
+
+[sasl]
+### 此选项指定是否要使用赛勒斯SASL
+### 库认证。默认是错误的。
+### 将本节如果安装不建赛勒斯忽视
+###  SASL支持；检查，运行svnserve，版本和寻找一条线
+### 阅读赛勒斯SASL认证是可行的。”
+# use-sasl = true
+### 这些选项指定的安全层所需的强度
+###  SASL提供你想要的。0意味着没有加密，1意味着
+### 完整性检查，大于1的值是相关的
+### 的有效密钥长度的加密（例如128表示128位
+### 加密）。下面的值是默认值。
+# min-encryption = 0
+# max-encryption = 256
+```
+
+```python
+### This file controls the configuration of the svnserve daemon, if you
+### use it to allow access to this repository.  (If you only allow
+### access through http: and/or file: URLs, then this file is
+### irrelevant.)
+
+### Visit http://subversion.apache.org/ for more information.
+
+[general]
+### The anon-access and auth-access options control access to the
+### repository for unauthenticated (a.k.a. anonymous) users and
+### authenticated users, respectively.
+### Valid values are "write", "read", and "none".
+### Setting the value to "none" prohibits both reading and writing;
+### "read" allows read-only access, and "write" allows complete 
+### read/write access to the repository.
+### The sample settings below are the defaults and specify that anonymous
+### users have read-only access to the repository, while authenticated
+### users have read and write access to the repository.
+anon-access = read    ### 匿名用户无需身份验证即可使用
+### auth-access = write ### 权限验证时才可使用
+### The password-db option controls the location of the password
+### database file.  Unless you specify a path starting with a /,
+### the file's location is relative to the directory containing
+### this configuration file.
+### If SASL is enabled (see below), this file will NOT be used.
+### Uncomment the line below to use the default password file.
+# password-db = passwd
+### The authz-db option controls the location of the authorization
+### rules for path-based access control.  Unless you specify a path
+### starting with a /, the file's location is relative to the
+### directory containing this file.  The specified path may be a
+### repository relative URL (^/) or an absolute file:// URL to a text
+### file in a Subversion repository.  If you don't specify an authz-db,
+### no path-based access control is done.
+### Uncomment the line below to use the default authorization file.
+# authz-db = authz
+### The groups-db option controls the location of the file with the
+### group definitions and allows maintaining groups separately from the
+### authorization rules.  The groups-db file is of the same format as the
+### authz-db file and should contain a single [groups] section with the
+### group definitions.  If the option is enabled, the authz-db file cannot
+### contain a [groups] section.  Unless you specify a path starting with
+### a /, the file's location is relative to the directory containing this
+### file.  The specified path may be a repository relative URL (^/) or an
+### absolute file:// URL to a text file in a Subversion repository.
+### This option is not being used by default.
+# groups-db = groups
+### This option specifies the authentication realm of the repository.
+### If two repositories have the same authentication realm, they should
+### have the same password database, and vice versa.  The default realm
+### is repository's uuid.
+# realm = My First Repository
+### The force-username-case option causes svnserve to case-normalize
+### usernames before comparing them against the authorization rules in the
+### authz-db file configured above.  Valid values are "upper" (to upper-
+### case the usernames), "lower" (to lowercase the usernames), and
+### "none" (to compare usernames as-is without case conversion, which
+### is the default behavior).
+# force-username-case = none
+### The hooks-env options specifies a path to the hook script environment 
+### configuration file. This option overrides the per-repository default
+### and can be used to configure the hook script environment for multiple 
+### repositories in a single file, if an absolute path is specified.
+### Unless you specify an absolute path, the file's location is relative
+### to the directory containing this file.
+# hooks-env = hooks-env
+
+[sasl]
+### This option specifies whether you want to use the Cyrus SASL
+### library for authentication. Default is false.
+### This section will be ignored if svnserve is not built with Cyrus
+### SASL support; to check, run 'svnserve --version' and look for a line
+### reading 'Cyrus SASL authentication is available.'
+# use-sasl = true
+### These options specify the desired strength of the security layer
+### that you want SASL to provide. 0 means no encryption, 1 means
+### integrity-checking only, values larger than 1 are correlated
+### to the effective key length for encryption (e.g. 128 means 128-bit
+### encryption). The values below are the defaults.
+# min-encryption = 0
+# max-encryption = 256
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

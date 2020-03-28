@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring DataSource</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Spring DataSource 配置
+
+ - <a href="#datasource-001" target="_self">Spring DataSource</a>
+
+ - <a href="#datasource-002" target="_self">Spring JNDI DataSource</a>
+
+ - <a href="#datasource-003" target="_self">Spring DBCP DataSource</a>
+
+ - <a href="#datasource-004" target="_self">Spring C3P0 DataSource</a>
+
+ - <a href="#datasource-005" target="_self">Spring Proxool DataSource</a>
+
+ - <a href="#datasource-006" target="_self">Spring Druid DataSource</a>
+
+##### <span id = "datasource-001">Spring DataSource</span>
+
+简介
+
+DriverManagerDataSource 只是新建连接，根本```没有连接池的作用，不推荐使用```。
+
+ - 引入 spring-jdbc.jar
+
+ - 使用 org.springframework.jdbc.datasource.DriverManagerDataSource
+
+***```pom.xml```***
+
+```xml
+<properties>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <spring-version>3.2.18.RELEASE</spring-version>
+</properties>
+ 
+<dependencies>
+ 
+    <!-- 引入 MySQL数据库链接插件 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.30</version>
+    </dependency>
+ 
+    <!-- Spring JDBC -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+ 
+    <!-- Spring Core -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+ 
+    <!-- Spring Context -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+ 
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context-support</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+ 
+</dependencies>
+```
+
+***```applicationContext.xml```***
+
+```xml
+<!-- 配置数据库连接数据源 -->
+<bean id="dataSource"
+    class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+    <property name="url" value="jdbc:mysql://localhost/hibernate_demo?characterEncoding=utf8"></property>
+    <property name="username" value="hibernate_demo"></property>
+    <property name="password" value="hibernate_demo"></property>
+</bean>
+```
+
+##### <span id = "datasource-002">Spring JNDI DataSource</span>
+
+简介
+
+使用 ```在 web server 中配置的数据源，不方便于部署```，如果使用高性能服务器 ```WebLogic``` 或 ```Websphere```，可以配置
+
+ - 使用 org.springframework.jndi.JndiObjectFactoryBean 
+
+```xml
+<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"> 
+    <property name="jndiName" value="java:comp/env/jdbc/bbt"/>      
+</bean>
+```
+
+##### <span id = "datasource-003">Spring DBCP DataSource</span>
+
+简介
+
+没有自动回收空闲连接的功能，没有连接池监控，高并发的压力下稳定性有所下降，hibernate 已经放弃了 DBCP。
+
+ - 使用 org.apache.commons.dbcp.BasicDataSource 
+
+***```applicationContext.xml```***
+
+```xml
+<!-- 配置数据库连接数据源 -->
+<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"  destroy-method="close">
+    <property name="driverClassName" value="${jdbc.driverClassName}"/>
+    <property name="url" value="${jdbc.url}"/>
+    <property name="username" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+
+    <property name="initialSize" value="${jdbc.initialSize}"/>
+    <property name="maxActive" value="${jdbc.maxActive}"/>
+    <property name="maxIdle" value="${jdbc.maxIdle}"/>
+    <property name="minIdle" value="${jdbc.minIdle}"/>
+    <property name="maxWait" value="${jdbc.maxWait}"></property>
+    <property name="maxOpenPreparedStatements" value="${jdbc.maxOpenPreparedStatements}" />
+</bean>
+```
+
+##### <span id = "datasource-004">Spring C3P0 DataSource</span>
+
+简介
+
+- 引入 c3p0-0.9.5.2.jar
+
+- 使用 com.mchange.v2.c3p0.ComboPooledDataSource
+
+***```pom.xml```***
+
+```xml
+<dependency>
+    <groupId>com.mchange</groupId>
+    <artifactId>c3p0</artifactId>
+    <version>0.9.5.2</version>
+</dependency>
+```
+
+***```jdbc.properties```***
+
+```python
+driver=com.mysql.jdbc.Driver
+url=jdbc:mysql://127.0.0.1:3306/steamedbun?useUnicode=true&characterEncoding=UTF-8
+username=root
+password=root
+  
+#连接池初始化时创建的连接数
+c3p0.initialPoolSize=3
+#连接池中保留的最小连接数
+c3p0.minPoolSize=5
+#连接池中保留的最大连接数
+c3p0.maxPoolSize=100
+#连接池无空闲连接可用时,一次性创建的新连接数
+c3p0.acquireIncrement=3
+#最大空闲时间
+c3p0.maxIdleTime=60
+#每60秒检查所有连接池中的空闲连接
+c3p0.idleConnectionTestPeriod=60
+#连接池在获得新连接失败时重试的次数
+c3p0.acquireRetryAttempts=30
+#用以控制数据源内加载的PreparedStatements数量
+c3p0.maxStatements=100
+#c3p0是异步的,可以提升性能,通过多线程实现多个操作同时被执行
+c3p0.numHelperThreads=10
+```
+
+***```applicationContext.xml```***
+
+```xml
+<!-- 配置数据库连接数据源 -->
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" destroy-method="close">
+    <property name="driverClassName" value="${driver}" />
+    <property name="url" value="${url}" />
+    <property name="username" value="${username}" />
+    <property name="password" value="${password}" />
+
+    <property name="password" value="${c3p0.initialPoolSize}" />
+    <property name="password" value="${c3p0.minPoolSize}" />
+    <property name="password" value="${c3p0.maxPoolSize}" />
+    <property name="password" value="${c3p0.acquireIncrement}" />
+    <property name="password" value="${c3p0.maxIdleTime}" />
+    <property name="password" value="${c3p0.idleConnectionTestPeriod}" />
+    <property name="password" value="${c3p0.acquireRetryAttempts}" />
+    <property name="password" value="${c3p0.maxStatements}" />
+    <property name="password" value="${c3p0.numHelperThreads}" />
+</bean>
+```
+
+##### <span id = "datasource-005">Spring Proxool DataSource</span>
+
+简介
+
+proxool 使用的人比较少，有明显的性能问题，但由于它具备监控功能，因此建议在开发测试时使用
+
+***```pom.xml```***
+
+```xml
+<dependency>
+    <groupId>com.cloudhopper.proxool</groupId>
+    <artifactId>proxool</artifactId>
+    <version>0.9.1</version>
+    <exclusions>
+        <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
+
+##### Example 1
+
+***```applicationContext.xml```***
+
+```xml
+<bean id="dataSource"
+    class="org.logicalcobwebs.proxool.ProxoolDataSource">
+    <property name="driver">
+        <value>com.mysql.jdbc.Driver</value>
+    </property>
+    <property name="driverUrl">
+        <value>jdbc:mysql://localhost:3306/dbname?user=yourname&amp;password=yourpass</value>
+    </property>
+    <property name="user" value="yourname" />
+    <property name="password" value="yourpass" />
+    <property name="alias" value="Pool_dbname" />
+    <property name="houseKeepingSleepTime" value="90000" />
+    <property name="prototypeCount" value="0" />
+    <property name="maximumConnectionCount" value="50" />
+    <property name="minimumConnectionCount" value="2" />
+    <property name="simultaneousBuildThrottle" value="50" />
+    <property name="maximumConnectionLifetime" value="14400000" />
+    <property name="houseKeepingTestSql" value="select CURRENT_DATE" />
+</bean>
+```
+
+##### Example 2
+
+***```applicationContext.xml```***
+
+```xml
+<bean id="dataSource"
+    class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName">
+        <value>org.logicalcobwebs.proxool.ProxoolDriver</value>
+    </property>
+    <property name="url">
+        <value>proxool.Pool_dbname</value>
+    </property>
+</bean>
+```
+
+***```proxool.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<proxool-config>
+    <proxool>
+        <alias>Pool_dbname</alias>
+        <driver-url>jdbc:mysql://localhost:3306/dbname</driver-url>
+        <driver-class>com.mysql.jdbc.Driver</driver-class>
+        <driver-properties>
+            <property name="user" value="yourname"/>
+            <property name="password" value="yourpass"/>
+        </driver-properties>
+        <house-keeping-sleep-time>60000</house-keeping-sleep-time>
+        <maximum-connection-count>20</maximum-connection-count>
+        <minimum-connection-count>2</minimum-connection-count>
+        <prototype-count>0</prototype-count>
+        <simultaneous-build-throttle>20</simultaneous-build-throttle>
+        <house-keeping-test-sql>select CURRENT_DATE</house-keeping-test-sql>
+        <statistics>15s,10m,1d</statistics>
+        <statistics-log-level>INFO</statistics-log-level>
+    </proxool>
+    <proxool>
+        <!--可以配置多个库-->
+    </proxool>
+</proxool-config>
+```
+
+***```proxool.properties```***
+
+```python
+jdbc-0.proxool.alias=Pool_dbname
+jdbc-0.proxool.driver-url=jdbc:mysql://localhost:3306/dbname
+jdbc-0.proxool.driver-class=com.mysql.jdbc.Driver
+jdbc-0.user=yourname
+jdbc-0.password=yourpass
+jdbc-0.proxool.house-keeping-sleep-time=60000
+jdbc-0.proxool.house-keeping-test-sql=select CURRENT_DATE
+jdbc-0.proxool.maximum-connection-count=10
+jdbc-0.proxool.minimum-connection-count=3
+jdbc-0.proxool.maximum-connection-lifetime=18000000
+jdbc-0.proxool.prototype-count=3
+jdbc-0.proxool.simultaneous-build-throttle=10
+jdbc-0.proxool.recently-started-threshold=60000
+jdbc-0.proxool.overload-without-refusal-lifetime=50000
+jdbc-0.proxool.maximum-active-time=60000
+jdbc-0.proxool.verbose=true
+jdbc-0.proxool.trace=true
+jdbc-0.proxool.fatal-sql-exception=Fatal error
+
+jdbc-2.proxool.alias=Pool_dbname2
+……
+<!--可以配置多个库-->
+至此，已完成所有配置。
+```
+
+##### <span id = "datasource-006">Spring Druid DataSource</span>
+
+***```pom.xml```***
+
+```xml
+<!-- 数据库连接池 -->
+<dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>druid</artifactId>
+    <version>1.0.28</version>
+</dependency>
+```
+
+***```applicationContext.xml```***
+
+```xml
+<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+    <property name="url" value="${db.master.url}" />
+    <property name="username" value="${db.master.user}" />
+    <property name="password" value="${db.master.password}" />
+    <property name="filters" value="mergeStat,wall,log4j2" />
+    <!-- 配置监控统计拦截的 filters -->
+    <property name="initialSize" value="5" />
+    <property name="maxActive" value="100" />
+    <property name="minIdle" value="10" />
+    <property name="maxWait" value="60000" />
+    <property name="validationQuery" value="SELECT 'x'" />
+    <property name="testOnBorrow" value="true" />
+    <property name="testOnReturn" value="true" />
+    <property name="testWhileIdle" value="true" />
+    <property name="timeBetweenEvictionRunsMillis" value="60000" />
+    <property name="minEvictableIdleTimeMillis" value="300000" />
+    <property name="removeAbandoned" value="true" />
+    <property name="removeAbandonedTimeout" value="1800" />
+    <property name="logAbandoned" value="true" />
+</bean>
+```
+
+***```web.xml```***
+
+```xml
+<servlet>
+    <servlet-name>DruidStatView</servlet-name>
+    <servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+    <init-param>
+        <!-- 允许清空统计数据 -->
+        <param-name>resetEnable</param-name>
+        <param-value>true</param-value>
+    </init-param>
+    <init-param>
+        <!-- 用户名 -->
+        <param-name>loginUsername</param-name>
+        <param-value>druid</param-value>
+    </init-param>
+    <init-param>
+        <!-- 密码 -->
+        <param-name>loginPassword</param-name>
+        <param-value>druid</param-value>
+    </init-param>
+</servlet>
+<servlet-mapping>
+    <servlet-name>DruidStatView</servlet-name>
+    <url-pattern>/druid/*</url-pattern>
+</servlet-mapping>
+<filter>
+    <filter-name>druidWebStatFilter</filter-name>
+    <filter-class>com.alibaba.druid.support.http.WebStatFilter</filter-class>
+    <init-param>
+        <param-name>exclusions</param-name>
+        <param-value>/public/*,*.js,*.css,/druid*,*.jsp,*.swf</param-value>
+    </init-param>
+    <init-param>
+        <param-name>principalSessionName</param-name>
+        <param-value>sessionInfo</param-value>
+    </init-param>
+    <init-param>
+        <param-name>profileEnable</param-name>
+        <param-value>true</param-value>
+    </init-param>
+</filter>
+<filter-mapping>
+    <filter-name>druidWebStatFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

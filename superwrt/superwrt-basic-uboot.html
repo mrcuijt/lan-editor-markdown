@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>superwrt-basic-uboot</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### superwrt-basic-uboot
+
+#### uboot 是用来干什么的，有什么作用？
+
+uboot 属于 bootloader 的一种，是用来引导启动内核的，它的最终目的就是，从 flash 中读出内核，放到内存中，启动内核。
+
+所以，由上面描述的，就知道，UBOOT 需要具有读写 flash 的能力。
+
+#### uboot 是怎样引导启动内核的？
+
+uboot 刚开始被放到 flash 中，板子上电后，会自动把其中的一部分代码拷到内存中执行，这部分代码负责把剩余的 uboot 代码拷到内存中，然后 uboot 代码再把 kernel 部分代码也拷到内存中，并且启动，内核启动后，挂着根文件系统，执行应用程序。
+
+#### uboot 启动的大过程是怎么样的？
+
+uboot 启动主要分为两个阶段，主要在 start.s 文件中，第一阶段主要做的是硬件的初始化，包括，设置处理器模式为 SVC 模式，关闭看门狗，屏蔽中断，初始化 sdram，设置栈，设置时钟，从 flash 拷贝代码到内存，清除 bss 段等，bss 段是用来存储静态变量，全局变量的，然后程序跳转到 start_arm_boot 函数，宣告第一阶段的结束。
+
+第二阶段比较复杂，做的工作主要是
+
+ - 1.从flash中读出内核。
+
+ - 2.启动内核。`start_arm_boot` 的主要流程为，设置机器 id，初始化 flash，然后进入 `main_loop`，等待 uboot 命令，uboot 要启动内核，主要经过两个函数，第一个是 `s=getenv("bootcmd"）`，第二个是 `run_command(s...)` ,所以要启动内核，需要根据 bootcmd 环境变量的内容启动，bootcmd 环境变量一般指示了从某个 flash 地址读取内核到启动的内存地址，然后启动，bootm。
+
+uboot 启动的内核为 uImage，这种格式的内核是由两部分组成：真正的内核和内核头部组成，头部中包括内核中的一些信息，比如内核的加载地址，入口地址。
+
+uboot在接受到启动命令后，要做的主要是，
+
+ - 1，读取内核头部，
+ - 2，移动内核到合适的加载地址，
+ - 3，启动内核，执行 `do_bootm_linux`
+
+`do_bootm_linux` 主要做的为，
+
+ - 1，设置启动参数，在特定的地址，保存启动参数，函数分别为 `setup_start_tag` , `setup_memory_tag` , `setup_commandline_tag` , `setup_end_tag`，根据名字我们就知道具体的段内存储的信息，memory 中为板子的内存大小信息，commandline 为命令行信息，
+
+ - 2，跳到入口地址，启动内核
+
+  启动的函数为 `the_kernel(0,bd->bi_arch_number,bd->bi_boot_param)`
+
+  bd->bi_arch_number为板子的机器码，bd->bi_boot_param为启动参数的地址
+
+参考链接
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="https://blog.csdn.net/wangweijundeqq/article/details/79127800" target="_blank">一.linux开发之uboot移植（一）——初识uboot</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

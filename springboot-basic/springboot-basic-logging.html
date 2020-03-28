@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-basic-logging</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-basic-logging
+
+#### Spring Boot 日志配置(超详细)
+
+![title](images/springboot-basic-logging/springboot-basic-logging-001.png)
+
+默认日志 Logback：
+
+默认情况下，Spring Boot 会用 Logback 来记录日志，并用 INFO 级别输出到控制台。在运行应用程序和其他例子时，你应该已经看到很多 INFO 级别的日志了。
+
+![title](images/springboot-basic-logging/springboot-basic-logging-002.jpg)
+
+从上图可以看到，日志输出内容元素具体如下：
+
+ - 时间日期：精确到毫秒
+
+ - 日志级别：ERROR, WARN, INFO, DEBUG or TRACE
+
+ - 进程 ID
+
+ - 分隔符：— 标识实际日志的开始
+
+ - 线程名：方括号括起来（可能会截断控制台输出）
+
+ - Logger 名：通常使用源代码的类名
+
+ - 日志内容
+
+##### 添加日志依赖
+
+假如 maven 依赖中添加了spring-boot-starter-logging：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-logging</artifactId>
+</dependency>
+```
+
+但是呢，实际开发中我们不需要直接添加该依赖。
+
+你会发现 spring-boot-starter 其中包含了 spring-boot-starter-logging，该依赖内容就是 Spring Boot 默认的日志框架 logback。工程中有用到了 Thymeleaf，而 Thymeleaf 依赖包含了 spring-boot-starter，最终我只要引入 Thymeleaf 即可。
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+```
+
+##### 控制台输出
+
+日志级别从低到高分为：
+
+```python
+TRACE < DEBUG < INFO < WARN < ERROR < FATAL
+```
+
+如果设置为 WARN ，则低于 WARN 的信息都不会输出。
+
+Spring Boot 中默认配置 ERROR、WARN 和 INFO 级别的日志输出到控制台。
+
+您还可以通过启动您的应用程序 --debug 标志来启用“调试”模式（开发的时候推荐开启）,以下两种方式皆可：
+
+在运行命令后加入 --debug 标志，如：**$ java -jar springTest.jar --debug**
+
+在 application.properties 中配置 debug=true，该属性置为 true 的时候，核心 Logger（包含嵌入式容器、hibernate、spring）会输出更多内容，但是你自己应用的日志并不会输出为 DEBUG 级别。
+
+![title](images/springboot-basic-logging/springboot-basic-logging-003.jpg)
+
+如果每次都写这行代码会很麻烦，可以使用注解，但是需要使用 lombok：
+
+ - 添加依赖：
+
+```python
+## 注解
+compile 'org.projectlombok:lombok:1.16.18'
+```
+
+ - 安装 lombok 的插件：
+
+  - Go to File > Settings > Plugins
+
+  - Click on Browse repositories…
+
+  - Search for Lombok Plugin
+
+  - Click on Install plugin
+
+  - Restart Android Studio
+
+  - 允许注解处理，Settings -> Compiler -> Annotation Processors
+
+可以使用 **{}** 占位符来拼接字符串，而不需要使用 **""+""** 来连接字符串。
+
+![title](images/springboot-basic-logging/springboot-basic-logging-004.jpg)
+
+##### 文件输出
+
+默认情况下，Spring Boot 将日志输出到控制台，不会写到日志文件。
+
+使用 Spring Boot 喜欢在 application.properties 或 application.yml 配置，这样只能配置简单的场景，保存路径、日志格式等，复杂的场景（区分 info 和 error 的日志、每天产生一个日志文件等）满足不了，只能自定义配置，下面会演示。
+
+![title](images/springboot-basic-logging/springboot-basic-logging-005.jpg)
+
+![title](images/springboot-basic-logging/springboot-basic-logging-006.jpg)
+
+![title](images/springboot-basic-logging/springboot-basic-logging-007.jpg)
+
+默认会在设置的 path 生成一个 spring.log 文件。
+
+![title](images/springboot-basic-logging/springboot-basic-logging-008.jpg)
+
+![title](images/springboot-basic-logging/springboot-basic-logging-009.jpg)
+
+如果要编写除控制台输出之外的日志文件，则需在 **application.properties** 中设置 **logging.file** 或 **logging.path** 属性。
+
+ - **logging.file**，设置文件，可以是绝对路径，也可以是相对路径。如：**logging.file=my.log**
+
+ - **logging.path**，设置目录，会在该目录下创建 **spring.log** 文件，并写入日志内容，如：**logging.path=/var/log**
+
+ 如果只配置 **logging.file**，会在项目的当前路径下生成一个 **xxx.log** 日志文件。
+
+ 如果只配置 **logging.path**，在 **/var/log** 文件夹生成一个日志文件为 **spring.log**
+
+注：二者不能同时使用，如若同时使用，则只有 **logging.file** 生效
+
+默认情况下，日志文件的大小达到 **10MB** 时会切分一次，产生新的日志文件，默认级别为：**ERROR、WARN、INFO**
+
+##### 级别控制
+
+所有支持的日志记录系统都可以在 **Spring** 环境中设置记录级别（例如在 **application.properties** 中）
+
+格式为：**'logging.level.* = LEVEL'**
+
+ - **logging.level**：日志级别控制前缀，***** 为包名或 **Logger** 名
+
+ - **LEVEL**：选项 **TRACE, DEBUG, INFO, WARN, ERROR, FATAL, OFF**
+
+举例：
+
+```python
+## com.dudu 包下所有 class 以 DEBUG 级别输出
+logging.level.com.dudu=DEBUG
+## root 日志以 WARN 级别输出
+logging.level.root=WARN
+```
+
+![title](images/springboot-basic-logging/springboot-basic-logging-010.jpg)
+
+##### 自定义日志配置
+
+根据不同的日志系统，你可以按如下规则组织配置文件名，就能被正确加载：
+
+ - **Logback**：logback-spring.xml, logback-spring.groovy, logback.xml, logback.groovy
+
+ - **Log4j**：log4j-spring.properties, log4j-spring.xml, log4j.properties, log4j.xml
+
+ - **Log4j2**：log4j2-spring.xml, log4j2.xml
+
+ - **JDK (Java Util Logging)**：logging.properties
+
+Spring Boot 官方推荐优先使用带有 **-spring** 的文件名作为你的日志配置（如使用 **logback-spring.xml**，而不是 **logback.xml**），命名为 **logback-spring.xml** 的日志配置文件，Spring Boot 可以为它添加一些 Spring Boot 特有的配置项（下面会提到）。
+
+默认的命名规则，并且放在 **src/main/resources** 下面即可了。
+
+如果你即想完全掌控日志配置，但又不想用 logback.xml 作为 Logback 配置的名字，application.yml 可以通过 logging.config 属性指定自定义的名字：
+
+```python
+logging.config=classpath:logging-config.xml
+```
+
+虽然一般并不需要改变配置文件的名字，但是如果你想针对不同运行时 Profile 使用不同的日志配置，这个功能会很有用。
+
+一般不需要这个属性，而是直接在 **logback-spring.xml** 中使用 **springProfile** 配置，不需要 **logging.config** 指定不同环境使用不同配置文件。**springProfile** 配置在下面介绍。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/inke88/article/details/75007649" target="_blank">Spring Boot 日志配置(超详细)</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

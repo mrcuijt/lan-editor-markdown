@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-basic-thymeleaf</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-basic-thymeleaf
+
+#### 课程目标
+
+ - 理解 Thymeleaf 的概念、用法
+
+ - Thymeleaf 与 Spring Boot 集成
+
+ - Thymeleaf 实战
+
+##### 理解 Thymeleaf
+
+ - Java 模板引擎。能够处理 HTML、XML、JavaScript、CSS 甚至纯文本。类似 JSP、Freemarker。
+
+ - 自然模板。原型即页面。
+
+ - 语法优雅易懂。OGNL、SpringEL。
+
+ - 遵循 Web 标准。支持 HTML5。
+
+##### Thymeleaf 标准方言
+
+ - 标准表达式
+
+ - 设置属性值
+
+ - 迭代器
+
+ - 条件语句
+
+ - 模板布局
+
+ - 属性优先级
+
+ - 注释
+
+ - 内联
+
+ - 基本对象
+
+ - 工具对象
+
+ - ...
+
+如何识别方言：
+
+ - &lt;span `th:text`=".."&gt;
+
+ **`th:text`** Thymeleaf 标签，需要引入命名空间。
+
+ - &lt;span `data-th-text`=""&gt;
+
+ **`data-th-text`** HTML 5 标准自定义属性模式，不需要引入 Thymeleaf 命名空间。
+
+```html
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Good Thymeleaf Virtual Grocery</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" type="text/css" media="all" href="../../css/gtvg.css" th:href="@{css/gtvg.css}" />
+  </head>
+  <body>
+    <p th:text="#{home.welcome}">Welcome to our grocery store!</p>
+  </body>
+</html>
+```
+
+###### 标准表达式
+
+标准表达式中存储的是变量
+
+语法：**${}**
+
+```xml
+<span th:text="${book.author.name}">
+```
+
+###### 消息表达式
+
+语法：**#{}**
+
+```xml
+<table>
+  ...
+  <th th:text="#{header.address.city}">...</th>
+  <th th:text="#{header.address.country}">...</th>
+  ...
+</table>
+```
+
+ - 也称为**`文本外部化、国际化i18n`**。
+
+###### 选择表达式
+
+语法：***{}**
+
+```xml
+<div th:object="${book}">
+  ...
+  <span th:text="*{title}">...</span>
+  ...
+</div>
+```
+
+ - 与变量表达式的区别：选择表达式是在 **`当前选择的对象`** 而不是整个上下文变量映射上执行。
+
+ - **${book}** 取的是全局上下文中的变量，***{}** 取的是 **${book}** 中的变量。
+
+###### 链接表达式：
+
+语法：**@{}**
+
+链接表达式是相对的，在这种情况下，应用程序上下文将不会作为 URL 的前缀：
+
+```xml
+<a th:href="@{../document/report}">...</a>
+```
+
+也可以是服务器相对（同样，没有应用程序上下文前缀）：
+
+```xml
+<a th:href="@{~/contents/main}">...</a>
+```
+
+和协议相对（就像绝对 URL ，但浏览器将使用在显示的页面中使用相同的 HTTP 或  HTTPS 协议）：
+
+```xml
+<a th:href="@{//static.mycompany.com/res/initial}">...</a>
+```
+
+当然，Link 表达式可以是绝对的：
+
+```xml
+<a th:href="@{http://www.mycompany.com/main}">...</a>
+```
+
+###### 分段表达式
+
+语法： **`th:insert`** 或 **`th:replace`**
+
+```xml
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div th:fragmet="copy">
+      &copy; 2017 <a href="https://waylau.com">waylau.com</a>
+    </div>
+  </body>
+</html>
+```
+
+```xml
+<body>
+  ...
+  <div th:insert="~{footer :: copy}"></div>
+</body>
+```
+
+###### 字面量（文字）
+
+文本
+
+```xml
+<p>
+  Now you are looking at a <span th:text="'working web application'">template file</span>
+</p>
+```
+
+###### 数字
+
+```xml
+<p>The year is <span th:text="2013">1492</span>.</p>
+<p>In tow years, it will be <span th:text="2013 + 2">1494</span>.</p>
+```
+
+###### 布尔
+
+```xml
+<div th:if="${user.isAdmin()} == false"> ...
+```
+
+null
+
+```xml
+<div th:if="${variable.something} == null"> ...
+```
+
+###### 算数操作
+
++、-、*、/、%
+
+```xml
+<div th:with="isEven=(${prodStat.count} % 2 == 0)">
+```
+
+###### 比较和等价
+
+比较： >、<、>=、<= (gt、lt、ge、le)
+
+```xml
+<ul class="pagination" data-th-if="${page.totalPages le 7}">
+```
+
+等价： ==、!= (eq、ne)
+
+```xml
+<option data-th-each="i : ${#arrays.toIntegerArray({5,10,40,100})}" data-th-value="${i}"
+    data-th-selected="${i eq page.size}" data-th-text="${i}"></option>
+```
+
+###### 条件运算符
+
+```xml
+<tr th:class="${row.even} ? 'even' : 'odd'">
+  ...
+</tr>
+```
+
+###### 无操作
+
+**_**
+
+**${user.name}** 值为空将不会去替换原标签中的内容 （no user authenticated）。
+
+```xml
+<span th:text="${user.name} ?: _">no user authenticated</span>
+```
+
+###### 设置属性值
+
+设置任意属性值 **th:attr**
+
+对 HTML 属性值的创建与覆盖。
+
+```xml
+<form action="subscribe.html" th:attr="action=@{/subscribe}">
+  <fieldset>
+    <input type="text" name="email"/>
+    <input type="text" value="Subscribe!" th:attr="value=#{subscribe.submit}"/>
+  </fieldset>
+</form>
+```
+
+```xml
+<form action="/gtvg/subscribe">
+  <fieldset>
+    <input type="text" name="email" />
+    <input type="submit" value="¡Subscribe!" />
+  </fieldset>
+</form>
+```
+
+###### 设置属性值
+
+设置值到指定的属性
+
+```xml
+<form action="subscribe.html" th:attr="action=@{/subscribe}">
+  <fieldset>
+    <input type="text" name="email"/>
+    <input type="text" value="Subscribe!" th:attr="value=#{subscribe.submit}"/>
+  </fieldset>
+</form>
+```
+
+```xml
+<form action="subscribe.html" th:action="@{/subscribe}">
+
+<input type="text" value="Subscribe!" th:value="#{subscribe.submit}"/>
+```
+
+Thyeleaf 中指定的属性值
+
+```js
+th:abbr             th:accept       th:accept-charset
+th:accesskey        th:action       th:align
+th:alt              th:archive      th:audio
+th:autocomplete     th:axis         th:background
+th:bgcolor          th:boder        th:cellpadding
+th:cellspacing      th:challenge    th:charset
+th:cite             th:class        th:classid
+th:codebase         th:codetype     th:cols
+th:colspan          th:compact      th:content
+th:contenteditable  th:contextmenu  th:data
+th:dateline         th:dir          th:draggable
+th:dropzone         th:enctype      th:for
+th:form             th:formaction   th:formenctype
+th:formmethod       th:formarget    th:fragment
+th:frame            th:frameborder  th:headers
+th:height           th:high         th:href
+th:hreflang         th:hspace       th:http-equiv
+th:icon             th:id           th:inline
+th:keytype          th:kind         th:label
+th:lang             th:list         th:longdesc
+th:low              th:manifest     th:marginheight
+th:marginwidth      th:max          th:maxlength
+th:media            th:method       th:min
+```
+
+```xml
+th:name                th:onabort           th:onafterprint
+th:onbeforeprint       th:onbeforeunload    th:onblur
+th:oncanplay           th:oncanplaythrough  th:onchange
+th:onclick             th:oncontextmenu     th:ondblclick
+th:ondrag              th:ondragend         th:ondragenter
+th:ondragleave         th:ondragover        th:ondragstart
+th:ondrop              th:ondurationchange  th:onemptied
+th:onended             th:onerror           th:onfocus
+th:onformchange        th:onforminput       th:onhashchange
+th:oninput             th:oninvalid         th:onkeydown
+th:onkeypress          th:onkeyup           th:onload
+th:onloadeddate        th:onloadedmetadata  th:onloadstart
+th:onmesage            th:onmousedown       th:onmousemove
+th:onmouseout          th:onmouseover       th:onmouseup
+th:onmousewheel        th:onoffline         th:ononline
+th:onpause             th:onplay            th:onplaying
+th:onpospstate         th:onprogress        th:onratechange
+th:onreadystatechange  th:onredo            th:onreset
+th:onresize            th:onscroll          th:onseeked
+th:onseeking           th:onselect          th:onshow
+th:onstalled           th:onstorage         th:onsubmit
+th:onsuspend           th:ontimeupdate      th:onundo
+th:onunload            th:onvolumechange    th:onwaiting
+```
+
+```xml
+th:optimum             th:pattern           th:placeholder
+th:poster              th:preload           th:radiogroup
+th:rel                 th:rew               th:rows
+th:rowspan             th:rules             th:sandbox
+th:scheme              th:scope             th:scrolling
+th:size                th:sizes             th:span
+th:spellcheck          th:src               th:srclang
+th:standby             th:start             th:step
+th:style               th:summary           th:tabindex
+th:target              th:title             th:type
+th:usemap              th:value             th:valuetype
+th:vspace              th:width             th:wrap
+th:xmlbase             th:xmllang           th:xmlspace
+```
+
+###### 设置属性值
+
+固定值布尔属性
+
+```xml
+<!-- HTML -->
+<input type="checkbox" name="option2" checked />
+<!-- XHTML -->
+<input type="checkbox" name="option1" checked="checked" />
+```
+
+**${user.active}** 中取值为 **true/false**
+
+```xml
+<input type="checkbox" name="active" checked="${user.active}" />
+```
+
+常见的固定布尔属性
+
+```xml
+th:async           th:autofocus  th:autoplay
+th:checked         th:controls   th:declare
+th:default         th:defer      th:disabled
+th:formnovalidate  th:hidden     th:ismap
+th:loop            th:multiple   th:novalidate
+th:nowrap          th:open       th:pubdate
+th:readonly        th:required   th:reversed
+th:scoped          th:seamless   th:selected
+```
+
+###### 迭代器
+
+基本的迭代：**th:each**
+
+```xml
+<li th:each="book : ${books}" th:text="${book.title}">En las Orillas del Sar</li>
+```
+
+状态变量
+
+ - **index、count、size、current、even/odd、first、last**
+
+```xml
+<table>
+  <tr>
+    <th>NAME</th>
+    <th>PRICE</th>
+    <th>IN STOCK</th>
+  </tr>
+  <tr th:each="prod,iterStat : ${prods}" th:class="${iterStat.odd}? 'odd'">
+    <td th:text="${prod.name}">Onions</td>
+    <td th:text="${prod.price}">2.41</td>
+    <td th:text="${prod.inStock}? #{true} : #{false}">yes</td>
+  </tr>
+<table>
+```
+
+###### 条件语句
+
+**th:if、th:unless**
+
+**th:if** 成立时可用。
+
+```xml
+<a href="comments.html"
+   th:href="@{/product/comments(prodId=${prod.id})}"
+   th:if="${not #lists.isEmpty(prod.comments)}">view</a>
+```
+
+**th:unless** 不成立时可用。
+
+```xml
+<a href="comments.html"
+   th:href="@{/product/comments(prodId=${prod.id})}"
+   th:unless="${#lists.isEmpty(prod.comments)}">view</a>
+```
+
+**switch**
+
+```xml
+<div th:switch="${user.role}">
+  <p th:case="'admin'">User is an administrator</p>
+  <p th:case="#{roles.manager}">User is a manager</p>
+  <p th:case="*">User is some other thing</p>
+</div>
+```
+
+###### 模板布局
+
+定义和引用片段
+
+定义模板：**th:fragment**
+
+```xml
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div th:fragment="copy">
+      &copy; 2017 <a href="https://waylau.com">waylau.com</a>
+    </div>
+  </body>
+</html>
+```
+
+引用片段：**th:insert**
+
+ **footer** ： 引用的文件名称
+
+ **copy** ： 引用的文件中片段
+
+```xml
+<body>
+  ...
+  <div th:insert="~{footer :: copy}"></div>
+</body>
+```
+
+不使用：**th:fragment**
+
+```xml
+<div id="copy-section">
+  &copy; 2017 <a href="https://waylau.com">waylau.com</a>
+</div>
+```
+
+```xml
+<body>
+  ...
+  <div th:insert="~{footer :: #copy-section}"></div>
+</body>
+```
+
+**th:insert、th:replace、th:include** 都可以用来引入模板，三者区别
+
+ - **th:insert** : 它将简单地插入指定的片段作为正文 的主标签。
+
+ - **th:replace** : 用指定实际片段来替换其主标签。
+
+ - **th:include** : 类似于 **th:insert** ，但不是插入片段它只插入此片段的内容。（3.x版本后，不再推荐使用）。
+
+定义好的页面片段
+
+```xml
+<footer th:fragment="copy">
+  &copy; 2017 <a href="https://waylau.com">waylau.com</a>
+</footer>
+```
+
+使用三种方式引用页面片段
+
+```xml
+<body>
+  ...
+  <div th:insert="~{footer :: copy}"></div>
+
+  <div th:replace="~{footer :: copy}"></div>
+
+  <div th:include="~{footer :: copy}"></div>
+</body>
+```
+
+渲染后的结果
+
+```xml
+<body>
+
+  <!-- insert -->
+  <div>
+    <footer>
+      &copy; 2017 <a href="https://waylau.com">waylau.com</a>
+    </footer>
+  </div>
+
+  <!-- replace -->
+  <footer>
+    &copy; 2017 <a href="https://waylau.com">waylau.com</a>
+  </footer>
+
+  <!-- include -->
+  <div>
+    &copy; 2017 <a href="https://waylau.com">waylau.com</a>
+  </div>
+</body>
+```
+
+##### 属性优先级
+
+当在同一个标签中写入多个 **th:*** 属性时，会发生什么？
+
+```xml
+<ul>
+  <li th:each="item : ${items}" th:text="${item.description}">Item description here ...</li>
+</ul>
+```
+
+```xml
+Order Feature Attributes
+1 Fragment inclusion th:insert
+1 Fragment inclusion th:replace
+2 Fragment iteration th:each
+3 Conditional evaluation th:if
+3 Conditional evaluation th:unless
+3 Conditional evaluation th:switch
+3 Conditional evaluation th:case
+4 Local variable definition th:object
+4 Local variable definition th:with
+5 General attribute modification th:attr
+5 General attribute modification th:attrprepend
+5 General attribute modification th:attrappend
+6 Special attribute modification th:value
+6 Special attribute modification th:href
+6 Special attribute modification th:src
+6 Special attribute modification ...
+7 Text (tag body modification) th:text
+7 Text (tag body modification) th:utext
+8 Fragment specification th:fragment
+9 Fragment removal th:remove
+```
+
+```xml
+["Order","Feature","Attributes",
+"1","Fragment inclusion","th:insert",
+"1","Fragment inclusion","th:replace",
+"2","Fragment iteration","th:each",
+"3","Conditional evaluation","th:if",
+"3","Conditional evaluation","th:unless",
+"3","Conditional evaluation","th:switch",
+"3","Conditional evaluation","th:case",
+"4","Local variable definition","th:object",
+"4","Local variable definition","th:with",
+"5","General attribute modification","th:attr",
+"5","General attribute modification","th:attrprepend",
+"5","General attribute modification","th:attrappend",
+"6","Special attribute modification","th:value",
+"6","Special attribute modification","th:href",
+"6","Special attribute modification","th:src",
+"6","Special attribute modification","...",
+"7","Text (tag body modification)","th:text",
+"7","Text (tag body modification)","th:utext",
+"8","Fragment specification","th:fragment",
+"9","Fragment removal","th:remove"]
+```
+
+##### 注释
+
+标准 HTML/XML 注释
+
+```xml
+<!-- User info follows -->
+<div th:text="${...}">
+  ...
+</div>
+```
+
+Thymeleaf 解释器级别的注释块
+
+ - 删除 `<!--/*-->` 和 `<!--*/-->` 之间的所有内容
+
+```xml
+<!--/*-->
+  <div>
+    you can see me only before Thymeleaf processes me!
+  </div>
+<!--*/-->
+```
+
+原型注释块
+
+ - 当模板静态打开时（比如原型设计），原型注释块所注释的代码将被注释，而在模板执行时，这些注释的代码，就能被显示出来。
+
+```xml
+<span>hello!</span>
+<!--/*/
+  <div th:text="${...}">
+    ...
+  </div>
+/*/-->
+<span>goodbye!</span>
+```
+
+##### 内联
+
+内联表达式
+
+ - **[[...]]** 或 **[(...)]** 分别对应于 **th:text** 和 **text:utext**
+
+**[(...)]** **text:utext**
+
+```xml
+<p>The message is "[(${msg})]"</p>
+```
+
+渲染结果
+
+```xml
+<p>The message is "<b>great!</b>"</p>
+```
+
+**[[...]]** **th:text**
+
+```xml
+<p>The message is "[[${msg}]]"</p>
+```
+
+渲染结果
+
+```xml
+<p>The message is "&lt;b&gt;great!&lt;/b&gt;"</p>
+```
+
+##### 禁用内联
+
+ - 有时需要禁用这种机制，比如，想输出 [[...]] 或 [(...)] 文本内容
+
+```xml
+<p th:inline="none">A double array looks like this: [[1,2,3], [4,5]]!</p>
+```
+
+##### JavaScript 内联
+
+```xml
+<script th:inline="javascript">
+  ...
+  var username = /*[[${session.user.name}]]*/ "Gertrud Kiwifruit";
+  ...
+</script>
+```
+
+```xml
+<script>
+  ...
+  var username = "Sebastian \"Fruity\" Applejuice";
+  ...
+</script>
+```
+
+##### CSS 内联
+
+```css
+classname = 'main elems'
+align = 'center'
+```
+
+```css
+<style th:inline="css">
+  .[[${classname}]] {
+    text-align: [[${align}]];
+  }
+</style>
+```
+
+
+```css
+<style th:inline="css">
+  .main\ elems {
+    text-align: center;
+  }
+</style>
+```
+
+#### 表达式基本对象
+
+在 Thymeleaf 初始化的时候始终有一些对象是可以使用的，这些对象是已经初始化好了存在于当前上下文当中的，我们将这些对象称为表达式基本对象。
+
+基本对象
+
+ - **#ctx** ：上下文对象。是 org.thymeleaf.context.IContext 或者 org.thymeleaf.context.IWebContext 的实现。
+
+ - **#local** ：直接访问与 java.util.Locale 关联的当前的请求。
+
+```java
+/*
+ * ==============================================================
+ * See javadoc API for class org.thymeleaf.context.IContext
+ * ==============================================================
+ */
+${#ctx.locale}
+${#ctx.variableNames}
+
+/*
+ * ==============================================================
+ * See javadoc API for class org.thymeleaf.context.IWebContext
+ * ==============================================================
+ */
+${#ctx.request}
+${#ctx.response}
+${#ctx.session}
+${#ctx.servletContext}
+
+${#locale}
+```
+
+##### request/session 等属性
+
+ - **param** ：用于检索请求参数
+
+ - **session** ：用于检索 session 属性
+
+ - **application** ：用于检索 application/servlet 上下文属性
+
+```java
+/*
+ * ==============================================================
+ * See javadoc API for class org.thymeleaf.context.WebRequestParamsVariablesMap
+ * ==============================================================
+ */
+${param.foo}    // Retrieves a String[] with the values of request parameter 'foo'
+${param.size()}
+${param.isEmpty()}
+${param.containsKey('foo')}
+...
+
+/*
+ * ==============================================================
+ * See javadoc API for class org.thymeleaf.context.WebSessionVariablesMap
+ * ==============================================================
+ */
+${session.foo}    // Retrieves the session attribute 'foo'
+${session.size()}
+${session.isEmpty()}
+${session.containsKey('foo')}
+...
+
+/*
+ * ==============================================================
+ * See javadoc API for class org.thymeleaf.context.WebServletContextVariablesMap
+ * ==============================================================
+ */
+${application.foo}    // Retrieves the ServletContext attribute 'foo'
+${application.size()}
+${application.isEmpty()}
+${application.containsKey('foo')}
+...
+```
+
+##### Web 上下文对象
+
+ - **#request** ：直接访问与当前请求关联的 javax.servlet.http.HttpServletRequest 对象。
+
+ - **#session** ：直接访问于当前请求关联的 javax.servlet.http.HttpSession 对象。
+
+ - **#servletContext** ：直接访问于当前请求关联的 javax.servlet.ServletContext 对象。
+
+```java
+${#request.getAttribute('foo')}
+${#request.getParameter('foo')}
+${#request.getContextPath()}
+${#request.getRequestName()}
+...
+
+${#session.getAttribute('foo')}
+${#session.id}
+${#session.lastAccessedTime}
+...
+
+${#servletContext.getAttribute('foo')}
+${#servletContext.contextPath}
+...
+```
+
+#### Thymeleaf 于 Spring Boot 集成
+
+配置环境
+
+ - Thymeleaf 3.0.3.RELEASE
+
+ - Thymeleaf Layout Dialect 2.2.0
+
+修改 build.gradle
+
+```java
+dependencies {
+    ...
+
+    // 添加 Thymeleaf 的依赖
+    compile('org.springframework.boot:spring-boot-starter-thymeleaf')
+    ...
+}
+
+buildscript {
+    ...
+
+    // 自定义 Thymeleaf 和 Thymeleaf Layout Dialect 的版本
+    ext['thymeleaf.version'] = '3.0.3.RELEASE'
+    ext['thymeleaf-layout-dialect.version'] = '2.0.0'
+    ...
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

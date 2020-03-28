@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shiro Cookie</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Shiro Cookie
+
+##### 定义会话 Cookie 模板
+
+```xml
+<!-- 会话 Cookie 模板 -->
+<bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie"> 
+    <constructor-arg value="sid"/> 
+    <property name="httpOnly" value="true"/> 
+    <property name="maxAge" value="-1"/><!-- 浏览器关闭后失效 -->
+</bean>
+<bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie"> 
+    <constructor-arg value="rememberMe"/> 
+    <property name="httpOnly" value="true"/> 
+    <property name="maxAge" value="2592000"/><!-- 30天 -->
+</bean>
+```
+
+##### 定义 rememberMe 管理器
+
+```xml
+<!-- rememberMe 管理器 -->
+<bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+    <!-- cipherKey 是加密 rememberMe Cookie 的密钥；默认 AES 算法；  -->
+    <property name="cipherKey" value="#{T(org.apache.shiro.codec.Base64).decode('4AvVhmFLUs0KTA3Kprsdag==')}"/> 
+    <!-- 引入会话 Cookie 模板 -->
+    <property name="cookie" ref="rememberMeCookie"/> 
+</bean>
+```
+
+##### 定义表单拦截器 FormAuthenticationFilter
+
+```xml
+<bean id="formAuthenticationFilter" class="org.apache.shiro.web.filter.authc.FormAuthenticationFilter">
+    <!-- rememberMe 请求参数名，请求参数是 boolean 类型，true 表示 rememberMe。 -->
+    <property name="rememberMeParam" value="rememberMe"/> 
+</bean>
+```
+
+##### 设置 securityManager 安全管理器的 rememberMeManager
+
+```xml
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="cacheManager" ref="cacheManager"/>
+        <!-- Single realm app.  If you have multiple realms, use the 'realms' property instead. -->
+        <property name="sessionMode" value="native"/>
+        <property name="realm" ref="myRealm"/>
+        <!-- 引用 rememberMe 管理器 -->
+        <property name="rememberMeManager" ref="rememberMeManager"/> 
+    </bean>
+```
+
+##### 定义 ShiroFilter
+
+```xml
+<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+    <property name="securityManager" ref="securityManager"/>
+    <property name="loginUrl" value="/s/login"/>
+    <property name="successUrl" value="/s/index"/>
+    <property name="unauthorizedUrl" value="/s/unauthorized"/>
+    <property name="filterChainDefinitions">
+        <value>
+            /favicon.ico = anon
+            /logo.png = anon
+            /shiro.css = anon
+            /s/login = anon
+            # allow WebStart to pull the jars for the swing app:
+            /*.jar = anon
+            # everything else requires authentication:
+            /** = user
+        </value>
+    </property>
+</bean>
+```
+
+参考链接：
+
+ - <a href="https://www.jb51.net/article/124231.htm" target="_blank">Shiro rememberMe</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

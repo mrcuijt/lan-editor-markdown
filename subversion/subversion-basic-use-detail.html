@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>subversion-basic-use-detail</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### subversion-basic-use-detail
+
+#### 客户端 SVN 软件使用详解
+
+#### 一、回顾 SVN 三大指令
+
+ - 1）（CheckOut）检出指令操作：
+
+  - ① 建立与服务器的链接操作
+
+  - ② 更新服务器端数据到本地
+
+注意： CheckOut 只在第一次链接时操作一次，以后如果进行更新操作请使用 Update（更新指令）
+
+ - 2）（Commit）提交操作：
+
+  - ① 提交本地数据到服务器
+
+![title](./images/subversion-basic-use-detail/subversion-basic-use-detail-001.png)
+
+鼠标右键单击提交指令。
+
+![title](./images/subversion-basic-use-detail/subversion-basic-use-detail-002.png)
+
+![title](./images/subversion-basic-use-detail/subversion-basic-use-detail-003.png)
+
+注意备注信息必须填写，他是我们版本回退时的一个依据。
+
+![title](./images/subversion-basic-use-detail/subversion-basic-use-detail-004.png)
+
+如显示一下界面表示该程序已经提交成功。
+
+![title](./images/subversion-basic-use-detail/subversion-basic-use-detail-005.png)
+
+以上工作，大部分是由项目经理来完成的，那么如果公司新来一个程序员（李四）他该如何进行操作？
+
+#### 二、切换用户登录
+
+![title](./images/subversion-basic-use-detail/subversion-basic-use-detail-006.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

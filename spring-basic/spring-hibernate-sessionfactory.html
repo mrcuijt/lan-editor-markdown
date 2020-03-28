@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Hibernate SessionFactory</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Spring SessionFactory Generate
+
+##### Use hibernate.cxf.xml
+
+```xml
+<!-- Hibernate Session 工厂 -->
+<bean id="sessionFactory"
+    class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+    <property name="configLocation">
+        <value>classpath:hibernate.cfg.xml</value>
+    </property>
+</bean>
+```
+
+##### Use SpringBean only for mapping
+
+##### DataSource
+
+```xml
+<!-- 配置数据库连接数据源 -->
+<bean id="dataSource"
+    class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+    <property name="url" value="jdbc:mysql://localhost/hibernate_demo?characterEncoding=utf8"></property>
+    <property name="username" value="hibernate_demo"></property>
+    <property name="password" value="hibernate_demo"></property>
+</bean>
+```
+
+```xml
+<!-- Hibernate Session 工厂 -->
+<bean id="sessionFactory"
+    class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"></property>
+    <property name="hibernateProperties">
+        <props>
+            <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+            <prop key="hibernate.show_sql">true</prop>
+            <prop key="hibernate.format_sql">true</prop>
+            <!-- <prop key="hibernate.hbm2ddl.auto">update</prop> -->
+ 
+            <prop key="hibernate.cache.use_second_level_cache">true</prop>
+            <prop key="hibernate.cache.use_query_cache">true</prop>
+            <prop key="hibernate.cache.provider_class">net.sf.ehcache.hibernate.EhCacheProvider</prop>
+        </props>
+    </property>
+    <property name="mappingResources">
+        <list>
+            <value>cn/jbit/jbitoa/entity/Account.hbm.xml</value>
+            <value>cn/jbit/jbitoa/entity/CheckResult.hbm.xml</value>
+            <value>cn/jbit/jbitoa/entity/ClaimVoucher.hbm.xml</value>
+            <value>cn/jbit/jbitoa/entity/ClaimVoucherDetail.hbm.xml</value>
+            <value>cn/jbit/jbitoa/entity/Department.hbm.xml</value>
+            <value>cn/jbit/jbitoa/entity/Dictionary.hbm.xml</value>
+            <value>cn/jbit/jbitoa/entity/Employee.hbm.xml</value>
+            <value>cn/jbit/jbitoa/entity/Position.hbm.xml</value>
+            <value>cn/jbit/jbitoa/entity/MenuOption.hbm.xml</value>
+        </list>
+    </property>
+    <!-- <property name="mappingDirectoryLocations"> 
+        <list> 
+            <value>classpath:cn/jbit/demo/entity</value> 
+        </list> 
+    </property> -->
+</bean>
+```
+
+##### Use SpringBean only for class
+
+```xml
+<!-- Hibernate Session工厂 -->
+<bean id="sessionFactory"
+    class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"></property>
+    <property name="hibernateProperties">
+        <props>
+            <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+            <prop key="hibernate.show_sql">true</prop>
+            <prop key="hibernate.format_sql">true</prop>
+            <!-- <prop key="hibernate.use_second_level_cache">false</prop> -->
+            <!-- <prop key="hibernate.cache.use_query_cache">false</prop> -->
+            <!-- <prop key="hibernate.hbm2ddl.auto">create</prop> --> <!-- update -->
+        </props>
+    </property>
+ 
+    <!-- 
+        <property name="annotatedClasses">
+            <list>
+                <value>cn.jbit.demo.entity.GoodsOrder</value>
+                <value>cn.jbit.demo.entity.User</value>
+            </list>
+        </property>
+    -->
+    <!-- 扫描这个包下的SessionFactory -->
+    <!-- cn/jbit/jbitoa/entity -->
+    <property name="packagesToScan" value="cn.jbit.jbitoa.entity" />
+</bean>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

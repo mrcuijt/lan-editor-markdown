@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>sql-basic-database</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### sql-basic-database
+
+Windows 服务
+
+```bash
+## 启动 MySQL 服务
+net start mysql
+
+## 创建 MySQL 服务
+## 注意：等号与值之间有空格
+sc create mysql binPath= mysqld_bin_path
+```
+
+连接与断开服务器
+
+```sql
+-- 语法
+mysql -h ipaddress/domain -p port -u username -ppassword
+
+-- 显示哪些线程在运行
+SHOW PROCESSLIST
+
+-- 显示 MySQL 系统变量信息
+SHOW VARIABLES
+```
+
+创建（初始化）数据库。
+
+```sql
+CREATE DATABASE sampdb;
+```
+
+查询当前操作的数据库。
+
+```sql
+SELECT DATABASE();
+```
+
+切换当前使用的数据库。
+
+```sql
+USE sampdb;
+```
+
+查看创建数据库的指令。
+
+```sql
+SHOW CREATE DATABASE dbname;
+```
+
+查看所有的数据库。
+
+```sql
+SHOW DATABASES;
+```
+
+删除数据库。
+
+```sql
+DROP DATABASE IF EXTENDS dbname;
+```
+
+备份数据库。
+
+```bash
+mysqldump -u username -ppassword dbname > D:\db-dump\dump.sql
+
+## example
+mysqldump webbs2 > D:\db-dump\webbs2-dump.sql -h 127.0.0.1 -u root -proot
+```
+
+还原数据库。
+
+```sql
+CREATE DATABASE temp;
+
+USE temp;
+
+-- 语法 source file
+-- 文件后面不需要加分号
+source D:\db-dump\webbs2-dump.sql
+```
+
+参考资料：
+
+ - MySQL 权威指南（原书第 2 版）
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

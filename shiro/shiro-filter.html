@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shiro Filter</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Shiro 拦截器
+
+#### 表单拦截器 FormAuthenticationFilter
+
+&amp;#160; &amp;#160;shiro 有几种默认的拦截器，authc,anno,roles,user 等 authc 就是 FormAuthenticationFilter 的实例
+
+ShiroFilterFactoryBean 的配置：
+
+```java
+// <取名，拦截器地址>,可以自定义拦截器放在这 
+private Map<String, Filter> filters;  
+
+// <url,拦截器名>哪些路径会被此拦截器拦截到
+private Map<String, String> filterChainDefinitionMap;
+```
+
+```java
+public ShiroFilterFactoryBean shirFilter(SecurityManager securityManager) {
+    ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
+    // 必须设置 SecurityManager
+    shiroFilterFactoryBean.setSecurityManager(securityManager);
+
+    shiroFilterFactoryBean.setLoginUrl("/login");
+    shiroFilterFactoryBean.setSuccessUrl("/index");
+    shiroFilterFactoryBean.setUnauthorizedUrl("/403");
+
+    // shiro 有一些默认的拦截器 比如 auth，它就是 FormAuthenticationFilter 表单拦截器 
+    // private Map<String, Filter> filters; <取名，拦截器地址> 可以自定义拦截器放在这 
+    // private Map<String, String> filterChainDefinitionMap; <url,拦截器名> 哪些路径会被此拦截器拦截到
+
+    // 拦截器.
+    Map<String, String> filterChainDefinitionMap = new LinkedHashMap <String, String>();
+    // 配置不会被拦截的链接 顺序判断
+    filterChainDefinitionMap.put("/static/**", "anon");
+    filterChainDefinitionMap.put("/ajaxLogin", "anon");
+    filterChainDefinitionMap.put("/focus/userlogin", "anon");
+    filterChainDefinitionMap.put("/swagger-ui.html#", "anon");
+
+    // 过滤链定义，从上向下顺序执行，一般将 /** 放在最为下边 
+    // authc: 所有 url 都必须认证通过才可以访问; 
+    // anon: 所有 url 都都可以匿名访问;
+    // user: remember me 的可以访问
+    filterChainDefinitionMap.put("/fine", "user");
+    filterChainDefinitionMap.put("/focus/**", "authc");
+    shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
+    System.out.println("Shiro拦截器工厂类注入成功");
+    return shiroFilterFactoryBean;
+}
+```
+
+&amp;#160; &amp;#160;**请求被 authc 拦截，如果状态未登录，就会被跳到登录页面，登录成功后，会继续原请求页面，除非原请求就是 successurl，才去 successurl**
+
+![shiro-filter](./images/shiro-filter/shiro-filter-001.png)
+
+ - ***```PathMatchingFilter```*** 是开头讲过得，匹配某 url 拦截进行处理的拦截器，里面有匹配 url 方法，preHandle，onPreHandle 等方法。
+
+  - pathsMatch : 该方法用于 path 与请求路径进行匹配的方法；如果匹配返回 true；
+ 
+  - onPreHandle : 在 preHandle 中，当 pathsMatch 匹配一个路径后，会调用 opPreHandler 方法并将路径绑定参数配置传给 mappedValue；然后可以在这个方法中进行一些验证（如角色授权），如果验证失败可以返回 false 中断流程；默认返回 true；也就是说子类可以只实现 onPreHandle 即可，无须实现 preHandle。如果没有 path 与请求路径匹配，默认是通过的（即 preHandle 返回 true）
+
+  - ```AccessControlFilter``` 重写了 onPreHandle
+
+```java
+// onPreHandle 
+public boolean onPreHandle(ServletRequest request, ServletResponse response, Object mappedValue) throws Exception {
+    return isAccessAllowed(request, response, mappedValue) || onAccessDenied(request, response, mappedValue);
+}
+```
+
+ - isAccessAllowed : 请求是否被允许访问，此方法在 AccessControlFilter 是抽象方法，被 ```AuthenticatingFilter``` 重写
+ 
+```java
+@Override
+protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+    return super.isAccessAllowed(request, response, mappedValue) ||
+        (!isLoginRequest(request, response) && isPermissive(mappedValue));
+}
+```
+
+分别点进去看，调用父类 AuthenticationFilter 的方法判断 当前用户是否已认证过
+
+```java
+protected boolean isAccessAllowed(ServletRequest request, ServletResponse response, Object mappedValue) {
+    Subject subject = getSubject(request, response);
+    return subject.isAuthenticated();
+}
+```
+
+并且判断请求 url 是不是配置的 loginurl
+
+```java
+protected boolean isLoginRequest(ServletRequest request, ServletResponse response) {
+    return pathsMatch(getLoginUrl(), request);
+}
+```
+
+&amp;#160; &amp;#160;回头再看 onPrehandle，如果是一个没认证过的请求，isAccessAlowed 肯定是 false，执行 onAccessDefined 方法，开头也说过，此方法是请求未通过认证时执行的方法，按逻辑推理，请求未认证就跳转到 loginurl 在这里实现
+
+&amp;#160; &amp;#160;这个方法在 authc 里，onAccessDenied（用到这点：子类继承父类，重写了 A 方法，父类有个 B 方法，子类对象调用 B 方法，执行的是子类的 A 方法）
+
+&amp;#160; &amp;#160;如果请求是登录请求，发起登录，如果不是就保存原请求，并重定向到登录 url ，saveRequestAndRedirectToLogin
+
+```java
+protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+    if (isLoginRequest(request, response)) {
+        if (isLoginSubmission(request, response)) {
+            if (log.isTraceEnabled()) {
+                log.trace("Login submission detected.  Attempting to execute login.");
+            }
+            return executeLogin(request, response);
+        } else {
+            if (log.isTraceEnabled()) {
+                log.trace("Login page view.");
+            }
+            //allow them to see the login page ;)
+            return true;
+        }
+    } else {
+        if (log.isTraceEnabled()) {
+            log.trace("Attempting to access a path which requires authentication.  Forwarding to the " +
+                "Authentication url [" + getLoginUrl() + "]");
+        }
+
+        saveRequestAndRedirectToLogin(request, response);
+        return false;
+    }
+}
+```
+
+看看 saveRequestAndRedirectToLogin
+
+```java
+protected void saveRequestAndRedirectToLogin(ServletRequest request, ServletResponse response) throws IOException {
+    saveRequest(request);
+    redirectToLogin(request, response);
+}
+```
+
+saveRequest
+
+```java
+protected void saveRequest(ServletRequest request) {
+    WebUtils.saveRequest(request);
+}
+```
+
+webUtils.saveRequest : 其实是放到了 session 里，key 是 SAVED\_REQUEST\_KEY
+
+```java
+public static void saveRequest(ServletRequest request) {
+    Subject subject = SecurityUtils.getSubject();
+    Session session = subject.getSession();
+    HttpServletRequest httpRequest = toHttp(request);
+    SavedRequest savedRequest = new SavedRequest(httpRequest);
+    session.setAttribute(SAVED_REQUEST_KEY, savedRequest);
+}
+```
+
+&amp;#160; &amp;#160;那登录成功后怎么跳转到原请求页面的？肯定是从 session 取出原请求，还是看 authc 的 onAcessDefined 方法
+
+如果请求是 loginurl 并允许，就发起登录
+
+```java
+if (isLoginRequest(request, response)) {
+    if (isLoginSubmission(request, response)) {
+        if (log.isTraceEnabled()) {
+            log.trace("Login submission detected.  Attempting to execute login.");
+        }
+        return executeLogin(request, response);
+    }
+}
+```
+
+executeLogin：同样是 subject.login(token)
+
+```java
+protected boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
+    AuthenticationToken token = createToken(request, response);
+    if (token == null) {
+        String msg = "createToken method implementation returned null. A valid non-null AuthenticationToken " +
+            "must be created in order to execute a login attempt.";
+        throw new IllegalStateException(msg);
+    }
+    try {
+        Subject subject = getSubject(request, response);
+        subject.login(token);
+        return onLoginSuccess(token, subject, request, response);
+    } catch (AuthenticationException e) {
+        return onLoginFailure(token, e, request, response);
+    }
+}
+```
+
+onLoginSuccess:authc 重写此方法
+
+```java
+protected boolean onLoginSuccess(AuthenticationToken token, Subject subject,
+    ServletRequest request, ServletResponse response) throws Exception {
+    issueSuccessRedirect(request, response);
+    //we handled the success redirect directly, prevent the chain from continuing:
+    return false;
+}
+```
+
+```java
+protected void issueSuccessRedirect(ServletRequest request, ServletResponse response) throws Exception {
+    WebUtils.redirectToSavedRequest(request, response, getSuccessUrl());
+}
+```
+
+找到 session 的的原请求，发起请求
+
+```java
+public static void redirectToSavedRequest(ServletRequest request, ServletResponse response, String fallbackUrl)
+throws IOException {
+    String successUrl = null;
+    boolean contextRelative = true;
+    SavedRequest savedRequest = WebUtils.getAndClearSavedRequest(request);
+    if (savedRequest != null && savedRequest.getMethod().equalsIgnoreCase(AccessControlFilter.GET_METHOD)) {
+        successUrl = savedRequest.getRequestUrl();
+        contextRelative = false;
+    }
+
+    if (successUrl == null) {
+        successUrl = fallbackUrl;
+    }
+
+    if (successUrl == null) {
+        throw new IllegalStateException("Success URL not available via saved request or via the " +
+            "successUrlFallback method parameter. One of these must be non-null for " +
+            "issueSuccessRedirect() to work.");
+    }
+
+    WebUtils.issueRedirect(request, response, successUrl, null, contextRelative);
+}
+```
+
+从 session 取出了那个 key 并清空
+
+```java
+public static SavedRequest getAndClearSavedRequest(ServletRequest request) {
+    SavedRequest savedRequest = getSavedRequest(request);
+    if (savedRequest != null) {
+        Subject subject = SecurityUtils.getSubject();
+        Session session = subject.getSession();
+        session.removeAttribute(SAVED_REQUEST_KEY);
+    }
+    return savedRequest;
+}
+```
+
+到这就大致明白，authc 完成 认证通过后 转发到原请求页面的流程
+
+#### SecurityUtils.getSubject
+
+&amp;#160; &amp;#160;前面的 AuthenticationFilter 或其他过滤器也有不少是直接通过这个方法得到 subject，然后通过 subject.isAuthenticated 包括 check 权限或角色。
+
+&amp;#160; &amp;#160;就会想到是不是 subject 也保存到 session 里，登录成功一次后，以后的请求是如何判断 用户已认证通过呢？确实是这样，shiro 会在浏览器写下 cookie JSESSIONID
+
+通过线程副本，
+
+```java
+public static Subject getSubject() {
+    Subject subject = ThreadContext.getSubject();
+    if (subject == null) {
+        subject = (new Subject.Builder()).buildSubject();
+        ThreadContext.bind(subject);
+    }
+    return subject;
+}
+```
+
+ - <a href="https://blog.csdn.net/u014203449/article/details/80689268" target="_blank">表单拦截器 FormAuthenticationFilter</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

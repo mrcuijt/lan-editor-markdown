@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-basic-stop</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-basic-stop
+
+#### 优雅停止 SpringBoot 服务，拒绝 kill -9 暴力停止！ 
+
+在使用 **SpringBoot** 的时候，都要涉及到服务的停止和启动，当我们停止服务的时候，很多时候大家都是 **kill -9** 直接把程序进程杀掉，这样程序不会执行优雅的关闭。而且一些没有执行完的程序就会直接退出。
+
+我们很多时候都需要安全的将服务停止，也就是把没有处理完的工作继续处理完成。比如停止一些依赖的服务，输出一些日志，发一些信号给其他的应用系统，这个在保证系统的高可用是非常有必要的。那么咱么就来看一下几种停止 **SpringBoot** 的方法。
+
+**第一种就是 SpringBoot 提供的 actuator 的功能**，它可以执行 shutdown, health, info 等，默认情况下，actuator 的 shutdown 是 disable 的，我们需要打开它。首先引入 acturator 的 maven 依赖。
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+然后将 shutdown 节点打开，也将 /actuator/shutdown 暴露 web 访问也设置上，除了 shutdown 之外还有 health, info 的 web 访问都打开的话将 management.endpoints.web.exposure.include=* 就可以。将如下配置设置到 application.properties 里边。设置一下服务的端口号为 3333。
+
+```python
+server.port=3333
+management.endpoint.shutdown.enabled=true
+management.endpoints.web.exposure.include=shutdown
+```
+
+接下来，咱们创建一个 SpringBoot 工程，然后设置一个 bean 对象，配置上 PreDestroy 方法。这样在停止的时候会打印语句。bean 的整个生命周期分为创建、初始化、销毁，当最后关闭的时候会执行销毁操作。在销毁的方法中执行一条输出日志。
+
+```java
+package com.hqs.springboot.shutdowndemo.bean;
+
+import javax.annotation.PreDestroy;
+
+public class TerminateBean {
+
+    @PreDestroy
+    public void preDestroy() {
+        System.out.println("TerminalBean is destroyed");
+    }
+
+}
+```
+
+做一个 configuration，然后提供一个获取 bean 的方法，这样该 bean 对象会被初始化。
+
+```java
+package com.hqs.springboot.shutdowndemo.config;
+
+import com.hqs.springboot.shutdowndemo.bean.TerminateBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class ShutDownConfig {
+
+    @Bean
+    public TerminateBean getTerminateBean() {
+        return new TerminateBean();
+    }
+
+}
+```
+
+在启动类里边输出一个启动日志，当工程启动的时候，会看到启动的输出，接下来咱们执行停止命令。
+
+```python
+curl -X POST http://localhost:3333/actuator/shutdown
+```
+
+以下日志可以输出启动时的日志打印和停止时的日志打印，同时程序已经停止。是不是比较神奇。
+
+![title](images/springboot-basic-stop/springboot-basic-stop-001.png)
+
+**第二种方法也比较简单，获取程序启动时候的 context，然后关闭主程序启动时的 context**。这样程序在关闭的时候也会调用 PreDestroy 注解。如下方法在程序启动十秒后进行关闭。
+
+```java
+/* method 2: use ctx.close to shutdown all application context */
+ConfigurableApplicationContext ctx = SpringApplication.run(ShutdowndemoApplication.class, args);
+
+try {
+    TimeUnit.SECONDS.sleep(10);
+
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}
+
+ctx.close();
+```
+
+**第三种方法，在 SpringBoot 启动的时候将进程号写入一个app.pid文件，生成的路径是可以指定的**，可以通过命令 cat /Users/huangqingshi/app.id | xargs kill 命令直接停止服务，这个时候 bean 对象的 PreDestroy 方法也会调用的。这种方法大家使用的比较普遍。写一个 start.sh 用于启动 springboot 程序，然后写一个停止程序将服务停止。
+
+```java
+/* method 3 : generate a pid in a specified path, while use command to shutdown pid :
+            'cat /Users/huangqingshi/app.pid | xargs kill' */
+        SpringApplication application = new SpringApplication(ShutdowndemoApplication.class);
+        application.addListeners(new ApplicationPidFileWriter("/Users/huangqingshi/app.pid"));
+        application.run();
+```
+
+**第四种方法，通过调用一个 SpringApplication.exit() 方法也可以退出程序**，同时将生成一个退出码，这个退出码可以传递给所有的 context。这个就是一个 JVM 的钩子，通过调用这个方法的话会把所有 PreDestroy 的方法执行并停止，并且传递给具体的退出码给所有 Context。通过调用 System.exit(exitCode) 可以将这个错误码也传给 JVM。程序执行完后最后会输出：Process finished with exit code 0，给 JVM 一个 SIGNAL。
+
+```java
+/* method 4: exit this application using static method */
+ConfigurableApplicationContext ctx = SpringApplication.run(ShutdowndemoApplication.class, args);
+exitApplication(ctx);
+public static void exitApplication(ConfigurableApplicationContext context) {
+int exitCode = SpringApplication.exit(context, (ExitCodeGenerator) () -> 0);
+
+    System.exit(exitCode);
+}
+```
+
+![title](images/springboot-basic-stop/springboot-basic-stop-002.png)
+
+**第五种方法，自己写一个 Controller，然后将自己写好的 Controller 获取到程序的 context，然后调用自己配置的 Controller 方法退出程序**。通过调用自己写的 /shutDownContext 方法关闭程序：curl -X POST http://localhost:3333/shutDownContext。
+
+```java
+package com.hqs.springboot.shutdowndemo.controller;
+
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+public class ShutDownController implements ApplicationContextAware {
+
+    private ApplicationContext context;
+
+    @PostMapping("/shutDownContext")
+    public String shutDownContext() {
+        ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) context;
+        ctx.close();
+        return "context is shutdown";
+    }
+
+    @GetMapping("/")
+    public String getIndex() {
+        return "OK";
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        context = applicationContext;
+    }
+}
+```
+
+好了，SpringBoot 的优雅关闭方法也都实现好了，**也有同学问，如何暴力停止呢，简单，直接 kill -9 相应的 PID 即可。**
+
+#### 总结一下：
+
+以上这几种方法实现的话比较简单，但是真实工作中还需要考虑的点还很多，比如需要保护暴露的点不被别人利用，一般要加一些防火墙，或者只在内网使用，保证程序安全。
+
+在真实的工作中的时候第三种比较常用，程序中一般使用内存队列或线程池的时候最好要优雅的关机，将内存队列没有处理的保存起来或线程池中没处理完的程序处理完。但是因为停机的时候比较快，所以停服务的时候最好不要处理大量的数据操作，这样会影响程序停止。
+
+好了，大家觉得还没看全的话，可以访问我的 GIT 代码：<a href="https://github.com/stonehqs/shutdowndemo.git" target="_blank">shutdowndemo</a>
+
+参考链接：
+
+ - <a href="https://cnblogs.com/huangqingshi/p/11370291.html" target="_blank">优雅停止 SpringBoot 服务，拒绝 kill -9 暴力停止！</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Transcation</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 足够应付面试的 Spring 事务源码阅读梳理
+
+##### Try to find an entrance
+
+&amp;#160; &amp;#160;当你面对一个完全不熟悉的事物时，一定要想办法找到一个突破口，然后逐步深入。那 ```Spring 事物``` 的突破口在哪里呢？很明显在 ```@EnableTransactionManagement``` 注解里，因为是它启用了事物功能。
+
+请看下图：
+
+![spring-transaction-001](./images/spring-transaction/spring-transaction-001.png)
+
+发现注解还引入了一个类 ```TransactionManagementConfigurationSelector```。
+
+再来看这个类，如下图：
+
+![spring-transaction-002](./images/spring-transaction/spring-transaction-002.png)
+
+发现如果采用代理的方式时，又引入了一个类 ```ProxyTransactionManagementConfiguration```。
+
+接着看这个类（```重点来了```），如下图：
+
+![spring-transaction-003](./images/spring-transaction/spring-transaction-003.png)
+
+&amp;#160; &amp;#160;发现这个类往容器中注册了 3 个 bean，第一个是 ```BeanFactoryTransactionAttributeSourceAdvisor```。它以 ```Advisor``` 结尾说明它是 ```Spring AOP``` 范畴里的东西。
+
+&amp;#160; &amp;#160;在 ```AOP``` 里，```Advisor``` = ```Pointcut + Advice```，```Pointcut 是切入点```，表示要拦截的方法，```Advice 是增强```，表示要加进去的事物功能。
+
+&amp;#160; &amp;#160;再看看另外两个注册的 bean，就是和这两个相关的。其中 ```TransactionInterceptor``` 就是一个 ```Advice```，因为它实现了 ```Advice``` 接口，包含了把事物加进去的逻辑。
+
+&amp;#160; &amp;#160;```TransactionAttributeSource``` 虽然不是一个 ```Pointcut```，但是它被 ```Pointcut``` 所用，用于检测一个类的方法上是否有 ```@Transactional``` 注解，来确定该方法是否需要事物增强。
+
+从下图中也可以看出这一点：
+
+![spring-transaction-004](./images/spring-transaction/spring-transaction-004.png)
+
+&amp;#160; &amp;#160;可以看到这个 bean 通过下面的 set 方法被设置进去，然后又用在了 ```Pointcut``` 的类里了。
+
+整体来看，此部分的结构和功能划分还是非常清晰的。下面来逐一研究。
+
+#### AOP 切点
+
+&amp;#160; &amp;#160;```TransactionAttributeSourcePointcut``` 类以 ```Pointcut``` 结尾，说明它是一个切入点，就是标识要被拦截的方法。类名的前缀部分表明了这个切入点的实现原理。
+
+&amp;#160; &amp;#160;看下这个前缀是 ```TransactionAttributeSource```，它以 ```Source``` 结尾，说明它是一个源（即源泉，有向外提供东西的意思）。它的前缀是 ```TransactionAttribute```，即事务属性。
+
+&amp;#160; &amp;#160;由此可见，这个源可以向外提供事务属性，其实就是判断一个类的方法上是否标有 ```@Transactional``` 注解，如果有的话还可以获取这个注解的属性（即事务属性）。
+
+&amp;#160; &amp;#160;整体来说就是，```Pointcut``` 拦截住了方法，然后使用这个```“源”```去方法和类上获取事务属性，如果能获取到，说明此方法需要参与事务，则进行事务增强，反之则不增强。
+
+下面这张图可以证明我们的想法：
+
+![spring-transaction-005](./images/spring-transaction/spring-transaction-005.png)
+
+&amp;#160; &amp;#160;可以看出 ```matches``` 方法的两个参数就是一个方法（```Method```）和一个类（```Class<?>```）。最后从方法和类上获取事务属性，再进行是否为 ```null``` 判断。
+
+&amp;#160; &amp;#160;现在这个```“源”```还是个黑盒子，下面来揭开它的面纱。它的实现类是 ```AnnotationTransactionAttributeSource```，以 ```Annotation``` 开头，说明是基于注解实现的。
+
+下面图是它的源码的一部分：
+
+![spring-transaction-006](./images/spring-transaction/spring-transaction-006.png)
+
+&amp;#160; &amp;#160;第一个方法从类上找事务属性，第二个方法从方法上找事务属性，它俩都调用了第三个方法来实现。
+
+&amp;#160; &amp;#160;PS：我们都知道，方法上的注解优先级高于类上的，是因为找注解时先找方法上的，找不到时再去类上找。所以方法上的优先级高。此部分代码逻辑在父类里写着呢，这里不再展示了。
+
+&amp;#160; &amp;#160;第三个方法使用多个事务注解解析器（```TransactionAnnotationParser```）去解析注解，为啥是多个解析器呢？因为事务注解不仅 ```Spring``` 提供了，```Java``` 后来也提供了，就是 ```javax.transaction.Transactional``` 。
+
+&amp;#160; &amp;#160;```Spring``` 对自己注解的解析器实现类是 ```SpringTransactionAnnotationParser``` ，如下图：
+
+![spring-transaction-007](./images/spring-transaction/spring-transaction-007.png)
+
+&amp;#160; &amp;#160;可以看出使用工具类来读取注解 ```@Transactional``` 的属性，然后逐个解析出属性值并进行类型转换，接着把这些属性封装到一个类里，这个类其实就是事务属性，即 ```TransactionAttribute```。
+
+这个事务属性继承了事务定义接口，事务定义接口我们应该都很熟悉，如下图：
+
+![spring-transaction-008](./images/spring-transaction/spring-transaction-008.png)
+
+&amp;#160; &amp;#160;这也证明了以前文章里说过的话，```@Transactional``` 注解的作用有两个，一是表明要参与事务，二是表明如何参与事务，这些注解属性就是来规定如何参与的。
+
+这个事务属性 ```TransactionAttribute``` 是个接口，它的实现类在这里就不再详说了。
+
+#### AOP 增强
+
+&amp;#160; &amp;#160;```Advice``` 就是 ```AOP``` 中的增强，```TransactionInterceptor``` 实现了 ```Advice``` 接口，所以它就是事务增强。
+
+先来看下该接口，如下图：
+
+![spring-transaction-009](./images/spring-transaction/spring-transaction-009.png)
+
+&amp;#160; &amp;#160;发现它只是一个空的标记接口。而且它的包名是 ```org.aopalliance``` ，是一个 ```AOP``` 联盟组织，它制定的 ```AOP``` 规范。
+
+&amp;#160; &amp;#160;先来了解下 ```AOP``` 领域的一些相关内容，```Pointcut``` 是切入点，表示要拦截的方法。```它是一个静态的概念，即程序不运行时它也是存在的。```
+
+&amp;#160; &amp;#160;那么在真正运行时，已经拦截住了，此时该怎么表示这个情况呢？是用 ```Joinpoint``` 来表示的，***所以 ```Joinpoint``` 是一个运行时的概念，只有在运行时才存在。***
+
+请看 ```Joinpoint``` 接口，如下图：
+
+![spring-transaction-010](./images/spring-transaction/spring-transaction-010.png)
+
+&amp;#160; &amp;#160;第一个方法 ```proceed()``` 是```“继续”```的意思，调用它表示去执行被拦截住的方法本身，返回方法本身的返回值。
+
+&amp;#160; &amp;#160;第二个方法 ```getThis()``` 是获取 ```this``` 对象，即方法运行时所在的目标对象。如果是静态方法，则为 ```null```，因为静态方法是属于类本身的，运行时不需要对象。
+
+&amp;#160; &amp;#160;第三个方法 ```getStaticPart()``` ，其实就表示了被拦截住的方法，即就是一个 ```Method```。```Method``` 其实算是```“元数据”```，是属于类型本身的，也有“静态”的意思。
+
+再看一个接口，```Invocation```，它继承了 ```Joinpoint``` ，如下图：
+
+![spring-transaction-011](./images/spring-transaction/spring-transaction-011.png)
+
+方法 ```getArguments()``` 就表示运行时传递给被拦截住方法的参数。
+
+再看一个接口，```MethodInvocation```，它继承了 ```Invocation```，如下图
+
+![spring-transaction-012](./images/spring-transaction/spring-transaction-012.png)
+
+&amp;#160; &amp;#160;方法 ```getMethod()``` 返回一个 ```Method```，它就是当前正在执行的方法，是对本拦截方法的一个友好实现，返回相同的结果。
+
+&amp;#160; &amp;#160;可见 ```MethodInvocation``` 接口已经包含了一个方法调用的全量信息，```方法，参数，目标对象```。这其实就是运行时被拦截住的东西。
+
+再看下面这个接口，```MethodInterceptor```，方法拦截器，如下图：
+
+![spring-transaction-013](./images/spring-transaction/spring-transaction-013.png)
+
+&amp;#160; &amp;#160;它只有一个方法 ```invoke```，方法参数就是上面介绍的 ```MethodInvocation```。```所以拦截器可以使用这个参数来对目标方法进行调用，当然在调用前/后可以加入自己的逻辑。```
+
+&amp;#160; &amp;#160;```TransactionInterceptor``` 类就实现了这个接口，因此可以在对目标方法的调用前后插入事务逻辑代码来进行事务增强。
+
+&amp;#160; &amp;#160;下面是事务拦截器对该方法的实现，如下图：
+
+![spring-transaction-014](./images/spring-transaction/spring-transaction-014.png)
+
+它调用的 ```invokeWithinTransaction``` 方法是在父类里的，看下图：
+
+![spring-transaction-015](./images/spring-transaction/spring-transaction-015.png)
+
+这个图里做的事情较多，逐个来看：
+
+&amp;#160; &amp;#160;前两行获取事务属性```“源”```，再用这个```“源”```来获取事务属性。```咦，有点奇怪，上面不是已经获取过了吗？```是的，上面是在 ```Pointcut``` 里获取的，那只是用于判断那个方法是否要被拦截而已。这里获取的属性才是真正用于事务的。
+
+第三行是根据事务属性，来确定出一个事务管理器来。
+
+接下来是使用事务管理器打开事务。
+
+接下来是对被拦截住的目标方法的调用执行，当然要 ```try/catch``` 住这个执行。
+
+如果抛出了异常，则进行和异常相关的事务处理，然后将这个异常继续向上抛出。
+
+如果没有抛出异常，则进行事务提交。
+
+&amp;#160; &amp;#160;最后的 ```else``` 分支是对编程式事务的调用，事务的打开/提交/回滚是开发人员自己写代码控制，所以就不需要事务管理器操心了。
+
+下面请看和异常相关的事务处理，如下图：
+
+![spring-transaction-016](./images/spring-transaction/spring-transaction-016.png)
+
+判断异常类型是否需要回滚，需要的话就回滚事务，不需要的话就继续提交事务。
+
+&amp;#160; &amp;#160;这里的整体结构和逻辑流程也是比较清晰的，那是因为一方面得益于AOP领域的概念，另一方面是事务管理器屏蔽了事务的所有复杂性。
+
+&amp;#160; &amp;#160;```PS：事务管理器的内容其实还是挺复杂的，下篇文章再详细解说。```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

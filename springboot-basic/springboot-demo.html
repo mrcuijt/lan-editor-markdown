@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SpringBoot Demo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>science.mrcuijt.maven</groupId>
+	<artifactId>repository-pom</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+
+	<!-- 开发项目时 所有用到的项目框架版本号 尽量 统一使用 父项目管理版本号 -->
+	<properties>
+		<java.version>1.8</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+	</properties>
+
+	<dependencies>		
+		</dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>tk.mybatis</groupId>
+			<artifactId>mapper-spring-boot-starter</artifactId>
+			<version>2.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.pagehelper</groupId>
+			<artifactId>pagehelper-spring-boot-starter</artifactId>
+			<version>1.2.10</version>
+		</dependency>
+		<!--SpringBoot整合JSP需要的依赖 -->
+		<!--引入Springboot内嵌的Tomcat对JSP的解析包 -->
+		<dependency>
+			<groupId>org.apache.tomcat.embed</groupId>
+			<artifactId>tomcat-embed-jasper</artifactId>
+		</dependency>
+		<!--servlet依赖的jiar包 -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+		</dependency>
+		<!--jsp依赖jar包 -->
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>javax.servlet.jsp-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<!--jstl标签依赖的jar包 -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+		</dependency>
+		<!-- taglib c 表达式 -->
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>standard</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid-spring-boot-starter</artifactId>
+			<version>1.1.10</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- converter -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.kenai.nbpwr</groupId>
+			<artifactId>javax-inject</artifactId>
+			<version>1.0-201002241208</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.wicketstuff</groupId>
+			<artifactId>jsr303</artifactId>
+			<version>1.5-RC5.1</version>
+		</dependency>
+
+		<!-- 添加 Spring JSON 结果转换 jackson 组件依赖 -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+
+		<!-- Commons lang3 组件库 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>5.1.44</version>
+			</dependency>
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>druid</artifactId>
+				<version>1.1.10</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>alfresco-public</id>
+			<url>https://artifacts.alfresco.com/nexus/content/groups/public</url>
+		</pluginRepository>
+		<pluginRepository>
+			<id>alfresco-public-snapshots</id>
+			<url>https://artifacts.alfresco.com/nexus/content/groups/public-snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>beardedgeeks-releases</id>
+			<url>http://beardedgeeks.googlecode.com/svn/repository/releases</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<build>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/main/webapp</directory>
+			</resource>
+		</resources>
+
+		<plugins>
+			<!-- SpringBoot Maven Plugin -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- MyBaits 反向生成插件 -->
+			<plugin>
+				<groupId>org.mybatis.generator</groupId>
+				<artifactId>mybatis-generator-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+			</plugin>
+			<!-- Maven Compiler 插件环境配置 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat8-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!-- MyBaits 反向生成插件 -->
+				<plugin>
+					<groupId>org.mybatis.generator</groupId>
+					<artifactId>mybatis-generator-maven-plugin</artifactId>
+					<version>1.3.2</version>
+					<configuration>
+						<!-- mybatis用于生成代码的配置文件 -->
+						<configurationFile>generatorConfig.xml</configurationFile>
+						<verbose>true</verbose>
+						<overwrite>true</overwrite>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>tk.mybatis</groupId>
+							<artifactId>mapper</artifactId>
+							<version>4.0.0-beta3</version>
+						</dependency>
+						<dependency>
+							<groupId>mysql</groupId>
+							<artifactId>mysql-connector-java</artifactId>
+							<!-- 引用依赖库的版本 -->
+							<version>5.1.44</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<configuration>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+				<!-- Maven Compiler 插件环境配置 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>2.3.2</version>
+					<!-- 设置详细信息 -->
+					<configuration>
+						<source>1.7</source>
+						<target>1.7</target>
+						<encoding>UTF-8</encoding>
+						<skip>true</skip>
+					</configuration>
+				</plugin>
+				<!-- Maven Dependency 插件环境配置 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>2.7</version>
+					<executions>
+						<execution>
+							<id>download-doc</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>resolve</goal>
+								<goal>sources</goal>
+							</goals>
+							<configuration>
+								<classifier>javadoc</classifier>
+							</configuration>
+						</execution>
+						<execution>
+							<id>download-source</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>sources</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>copy-dependencies-runtime</id>
+							<phase>prepare-package</phase>
+							<goals>
+								<goal>copy-dependencies</goal>
+							</goals>
+							<configuration>
+								<!--http://maven.apache.org/plugins/maven-dependency-plugin/copy-dependencies-mojo.html#includeScope -->
+								<includeScope>runtime</includeScope>
+								<!--依赖传递 -->
+								<excludeTransitive>false</excludeTransitive>
+							</configuration>
+						</execution>
+						<execution>
+							<id>copy-dependencies-system</id>
+							<phase>prepare-package</phase>
+							<goals>
+								<goal>copy-dependencies</goal>
+							</goals>
+							<configuration>
+								<includeScope>system</includeScope>
+								<!--过滤依赖传递 -->
+								<excludeTransitive>true</excludeTransitive>
+								<outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib</outputDirectory>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				<!-- 设置打包时过滤的文件 -->
+				<plugin>
+					<artifactId>maven-war-plugin</artifactId>
+					<configuration>
+						<!-- 过滤 resource 资源目录下指定的文件 -->
+						<!-- packagingExcludes 中指定的文件位于 src/main/resources 目录中 -->
+						<packagingExcludes></packagingExcludes>
+						<!-- 过滤 webapp 目录下指定的文件 -->
+						<!-- warSourceExcludes 中指定的文件位于 src/main/webapp 目录中 -->
+						<warSourceExcludes></warSourceExcludes>
+						<!-- 引入 Web 资源 -->
+						<webResources>
+							<resource>
+								<directory>${basedir}/libs/</directory>
+								<targetPath>WEB-INF/lib</targetPath>
+							</resource>
+						</webResources>
+					</configuration>
+				</plugin>
+				<!-- jar包插件 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>2.4</version>
+					<configuration>
+						<includes>
+							<include>libs</include>
+						</includes>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>3.0.1</version>
+					<executions>
+						<execution>
+							<phase>prepare-package</phase>
+							<goals>
+								<goal>jar-no-fork</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<!--配置生成Javadoc包 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.10.4</version>
+					<configuration>
+						<encoding>UTF-8</encoding>
+						<aggregate>true</aggregate>
+						<charset>UTF-8</charset>
+						<docencoding>UTF-8</docencoding>
+					</configuration>
+					<executions>
+						<execution>
+							<id>attach-javadocs</id>
+							<phase>prepare-package</phase>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.tomcat.maven</groupId>
+					<artifactId>tomcat8-maven-plugin</artifactId>
+					<version>3.0-r1655215</version>
+					<configuration>
+						<server>tomcat8</server>
+						<charset>UTF-8</charset>
+						<!-- 指定端口 -->
+						<port>8080</port>
+						<!-- 请求路径 -->
+						<path>/</path>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.tomcat.maven</groupId>
+					<artifactId>tomcat7-maven-plugin</artifactId>
+					<version>2.2</version>
+					<configuration>
+						<charset>UTF-8</charset>
+						<!-- 指定端口 -->
+						<port>8080</port>
+						<!-- 请求路径 -->
+						<path>/</path>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.tomcat.maven</groupId>
+					<artifactId>tomcat6-maven-plugin</artifactId>
+					<version>2.2</version>
+					<configuration>
+						<charset>UTF-8</charset>
+						<!-- 指定端口 -->
+						<port>8080</port>
+						<!-- 请求路径 -->
+						<path>/</path>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.8</version>
+					<configuration>
+						<skipTests>true</skipTests>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>
+```
+
+***```application.properties```***
+```python
+# ================================= Druid 官方文档示例 ==============================
+
+# JDBC 配置
+
+spring.datasource.druid.url=jdbc:mysql://localhost:3306/mhpayrbac?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull
+spring.datasource.druid.username=mhpayrbac
+spring.datasource.druid.password=mhpayrbac
+spring.datasource.druid.driver-class-name=com.mysql.jdbc.Driver
+
+# ================================= 连接池配置 ==============================
+
+spring.datasource.druid.initial-size=0
+spring.datasource.druid.max-active=20
+spring.datasource.druid.min-idle=20
+spring.datasource.druid.max-wait=60000
+spring.datasource.druid.pool-prepared-statements=false
+#spring.datasource.druid.max-pool-prepared-statement-per-connection-size= 
+#spring.datasource.druid.max-open-prepared-statements= #和上面的等价
+spring.datasource.druid.validation-query=select 1
+spring.datasource.druid.validation-query-timeout=1
+spring.datasource.druid.test-on-borrow=true
+spring.datasource.druid.test-on-return=true
+spring.datasource.druid.test-while-idle=true
+spring.datasource.druid.time-between-eviction-runs-millis=10000
+spring.datasource.druid.min-evictable-idle-time-millis=30001
+spring.datasource.druid.async-close-connection-enable=true
+spring.datasource.druid.filters=stat,wall,slf4j
+
+# ================================= 配置 StatFilter ==============================
+
+spring.datasource.druid.filter.stat.db-type=mysql
+spring.datasource.druid.filter.stat.log-slow-sql=true
+spring.datasource.druid.filter.stat.slow-sql-millis=2000
+
+# ================================= 配置 WallFilter ==============================
+
+spring.datasource.druid.filter.wall.enabled=true
+spring.datasource.druid.filter.wall.db-type=mysql
+spring.datasource.druid.filter.wall.config.delete-allow=true
+spring.datasource.druid.filter.wall.config.drop-table-allow=false
+
+# ================================= 配置 WebStatFilter ==============================
+# WebStatFilter配置，说明请参考Druid Wiki，配置_配置WebStatFilter
+
+#是否启用StatFilter默认值true
+spring.datasource.druid.web-stat-filter.enabled=true
+spring.datasource.druid.web-stat-filter.url-pattern=/*
+spring.datasource.druid.web-stat-filter.exclusions=*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*
+spring.datasource.druid.web-stat-filter.session-stat-enable=true
+spring.datasource.druid.web-stat-filter.session-stat-max-count=1000
+#spring.datasource.druid.web-stat-filter.principal-session-name=
+#spring.datasource.druid.web-stat-filter.principal-cookie-name=
+spring.datasource.druid.web-stat-filter.profile-enable=true
+
+# ================================= 配置 StatViewServlet ==============================
+# StatViewServlet配置，说明请参考Druid Wiki，配置_StatViewServlet配置
+
+#是否启用StatViewServlet默认值true
+spring.datasource.druid.stat-view-servlet.enabled=true
+spring.datasource.druid.stat-view-servlet.url-pattern=/druid/*
+spring.datasource.druid.stat-view-servlet.reset-enable=true
+spring.datasource.druid.stat-view-servlet.login-username=druid
+spring.datasource.druid.stat-view-servlet.login-password=druid
+#spring.datasource.druid.stat-view-servlet.allow=
+#spring.datasource.druid.stat-view-servlet.deny=
+
+# ================================= Druid 官方文档示例 ==============================
+
+# ================================= Mybatis 配置 ==============================
+#http://www.mybatis.org/spring-boot-starter/mybatis-spring-boot-autoconfigure/index.html
+mybatis.type-aliases-package=science.mrcuijt.rbac.domain
+mybatis.mapper-locations=classpath:science/mrcuijt/rbac/mapping/mysql/*.xml
+#https://blog.csdn.net/chenxidong9/article/details/80609175
+#mybatis.config-location=classpath:mybatis-config.xml
+
+# ================================= Spring 配置 ==============================
+spring.http.encoding.charset=UTF-8
+spring.http.encoding.enabled=true
+spring.http.encoding.force=true
+
+# 服务器 HTTP 端口
+server.port=80
+# 用于解码 URI 的字符编码
+server.servlet-path=/
+server.servlet.contextPath=/
+server.tomcat.uri-encoding=UTF-8
+server.tomcat.max-threads=800
+server.tomcat.accept-count=30000
+server.tomcat.min-spare-threads=20
+server.tomcat.max-connections=30000
+#server.ssl.enable=true
+#server.ssl.port=443
+#server.ssl.key-store=classpath:mrcuijt.keystory
+#server.ssl.key-store-type=JKS
+#server.ssl.key-alias=mrcuijt
+#server.ssl.key-store-password=123456
+# 显示应用程序的名称
+server.display-name=application
+
+# ================================= Spring MVC 配置 ==============================
+
+spring.mvc.view.prefix = /WEB-INF/html/
+spring.mvc.view.suffix = .jsp
+
+# MD5 方式对静态资源
+#spring.resources.chain.strategy.content.enabled=true
+#spring.resources.chain.strategy.content.paths=/**
+
+# 资源版本号方式
+spring.resources.chain.strategy.fixed.enabled=true
+spring.resources.chain.strategy.fixed.paths=/js/**，/css/**
+spring.resources.chain.strategy.fixed.version=v1.0.0
+
+# ================================= SpringBoot actuator 配置 ==============================
+
+management.security.enabled=false
+
+management.server.servlet.contextPath=/management
+#actuator端口 
+management.server.port=9001
+#management.server.ssl.enabled=true
+#management.server.ssl.key-store=classpath:mrcuijt.keystory
+#management.server.ssl.key-password=123456
+#修改访问路径  2.0之前默认是/   2.0默认是 /actuator  可以通过这个属性值修改  
+management.endpoints.web.base-path=/monitor
+#开放所有页面节点  默认只开启了health、info两个节点
+management.endpoints.web.exposure.include=*
+#显示健康具体信息  默认不会显示详细信息  
+management.endpoint.health.show-details=always
+```
+
+***```generatorConfig.xml```***
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+  <!--<classPathEntry location="D:/soft/mysql-connector-java-5.1.9.jar" />  -->
+  <context id="context1">
+    <property name="javaFileEncoding" value="utf-8"></property>
+    <property name="beginningDelimiter" value="`"/>
+    <property name="endingDelimiter" value="`"/>
+    <property name="mergeable" value="false"></property>
+    <plugin type="org.mybatis.generator.plugins.SerializablePlugin"/>
+
+    <plugin type="tk.mybatis.mapper.generator.MapperPlugin">
+      <property name="mappers" value="tk.mybatis.mapper.common.Mapper,tk.mybatis.mapper.common.special.InsertListMapper"></property>
+    </plugin>
+
+    <commentGenerator>
+      <!-- 是否去除自动生成的注释 true：是 ： false:否 -->
+      <property name="suppressAllComments" value="true"/>
+    </commentGenerator>
+
+    <jdbcConnection connectionURL="jdbc:mysql://127.0.0.1:3306/mhpayrbac" 
+    				driverClass="com.mysql.jdbc.Driver"
+                    password="mhpayrbac" userId="mhpayrbac" />
+
+    <javaModelGenerator  targetPackage="science.mrcuijt.rbac.domain" targetProject="src/main/java" >
+      <property name="trimStrings" value="true"/>
+    </javaModelGenerator>
+
+    <sqlMapGenerator targetPackage="science.mrcuijt.rbac.mapping.mysql" targetProject="src/main/resources" />
+
+    <javaClientGenerator targetPackage="science.mrcuijt.rbac.mapper" targetProject="src/main/java" type="XMLMAPPER" />
+
+    <table tableName="sys_authority" schema="" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+           enableSelectByExample="false" selectByExampleQueryId="false">
+    </table>
+    <table tableName="sys_menu_option" schema="" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+           enableSelectByExample="false" selectByExampleQueryId="false">
+    </table>
+    <table tableName="sys_role" schema="" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+           enableSelectByExample="false" selectByExampleQueryId="false">
+    </table>
+    <table tableName="sys_user" schema="" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+           enableSelectByExample="false" selectByExampleQueryId="false">
+    </table>
+    <table tableName="sys_user_group" schema="" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+           enableSelectByExample="false" selectByExampleQueryId="false">
+    </table>
+    <table tableName="employee" schema="" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+           enableSelectByExample="false" selectByExampleQueryId="false">
+    </table>
+    <table tableName="user_account" schema="" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false"
+           enableSelectByExample="false" selectByExampleQueryId="false">
+    </table>
+  </context>
+</generatorConfiguration>
+```
+
+```python
+mvn mybatis-generator:generate
+```
+
+***```Application.java```***
+```java
+package science.mrcuijt.loh;
+
+import javax.inject.Inject;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.resource.ResourceUrlEncodingFilter;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
+
+import tk.mybatis.spring.annotation.MapperScan;
+
+@SpringBootApplication
+//@org.mybatis.spring.annotation.MapperScan(basePackages = { "science.mrcuijt.loh.mapper" })
+@MapperScan(basePackages = { "science.mrcuijt.loh.mapper" })
+public class Application {
+
+	/**
+	 * JSPs, Thymeleaf, FreeMarker and Velocity 模板引擎，可直接使用此方法增加静态文件 md5
+	 */
+	@Bean(name = "resourceUrlEncodingFilter")
+	public ResourceUrlEncodingFilter resourceUrlEncodingFilter() {
+		return new ResourceUrlEncodingFilter();
+	}
+
+	/**
+	 * 注册文件上传处理 Bean
+	 * https://segmentfault.com/q/1010000011629098
+	 * 如果是springboot项目在application.properties中加入multipart.enabled=true
+	 * @return
+	 */
+	@Bean(name = "multipartResolver")
+	public CommonsMultipartResolver getCommonsMultipartResolver() {
+		CommonsMultipartResolver multipartResolver = new CommonsMultipartResolver();
+		multipartResolver.setMaxUploadSize(20971520);
+		multipartResolver.setMaxInMemorySize(1048576);
+		return multipartResolver;
+	}
+
+	public static void main(String[] args) {
+		String str = Application.class.getResource("/").toString();
+		System.out.println(str);
+		SpringApplication.run(Application.class, args);
+	}
+
+}
+```
+
+```java
+package science.mrcuijt.loh.filter;
+
+import java.io.IOException;
+
+import javax.inject.Inject;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.resource.ResourceUrlProvider;
+
+/**
+ * @author Administrator
+ *
+ */
+@Component
+public class ResourceFilter implements Filter {
+
+	@Inject
+	private ResourceUrlProvider resourceUrlProvider;
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest,
+	 * javax.servlet.ServletResponse, javax.servlet.FilterChain)
+	 */
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		request.setAttribute("urls", resourceUrlProvider);
+		chain.doFilter(request, response);
+	}
+
+}
+```
+
+```html
+<!-- 引入 Bootstrap 样式 -->
+<link rel="stylesheet" href="<%=request.getContextPath()%>${urls.getForLookupPath('/js/require/bootstrap/3.3.7/css/bootstrap.min.css')}" />
+<link rel="stylesheet" href="<%=request.getContextPath()%>${urls.getForLookupPath('/css/loh/index/index.css')}" />
+```
+
+参考链接:
+
+ - <a href="https://blog.csdn.net/isea533/article/details/70495714/" target="_blank">Spring DevTools 介绍</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

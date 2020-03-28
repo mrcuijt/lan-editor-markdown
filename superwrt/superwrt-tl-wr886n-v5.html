@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>superwrt-tl-wr886n-v5</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### superwrt-tl-wr886n-v5
+
+&amp;#160; &amp;#160;TL-WR886N是一款单频路由器，最大450Mbs传输速率，2.4GHz 3*3MIMO架构，1个WAN口，4个LAN口，3根外置天线，百兆WAN/LAN口。
+
+&amp;#160; &amp;#160;**主芯片是高通 TP9343，750MHz 主频，2MB 闪存，16MB     存储。**
+
+&amp;#160; &amp;#160;采用高规格的3数据流并发，3个数据流通过3跟天线同时进行收发，能够大幅度提升无线性能，同时提高信号强度，增大覆盖范围，增强连接稳定性。 
+
+&amp;#160; &amp;#160;**内存是 Zentel 的 A3S28D40JTP，DDRAM，8M * 16bit = 16MB**
+
+![title](./images/superwrt-tl-wr886n-v5/superwrt-tl-wr886n-v5-002-2.png)
+
+&amp;#160; &amp;#160;**Flash（闪存）参数：25Q16CSIG 封装：SOP8 容量：16M bits = 2M bytes**
+
+&amp;#160; &amp;#160;IP宽带控制功能，根据不同用户上网需求，合理分配每台电脑的上网带宽，避免个别用户使用BT、迅雷等P2P软件过度抢占宽带资源，影响用户的使用。
+
+&amp;#160; &amp;#160;ARP攻击防护等丰富功能，支持ip与MAC地址绑定，有效防止ARP攻击，保障内网安全。WDS无线桥接，实现两台或多台无线路由器之间的无线连接，轻松扩展无线网络的覆盖范围，满足大范围无线覆盖的应用需求。
+
+&amp;#160; &amp;#160;总的来说，对于普通家庭100平左右，两三堵墙来说，应该说值得推荐。
+
+**内存参数解析：**
+
+&amp;#160; &amp;#160;计算机：主存为16MB的容量为什么和存储字长为16位的8M的存储器容量相等？这跟字长应该没关系吧！
+
+**首先主存的存储容量 = 存储单元个数 x 存储字长。**
+
+**8M 指的应该是存储单元个数，`8M=2^3*2^20`，所以 `存储容量=2^23*2*4=128M`。**
+
+**注意，此处单位应当是 (Mb)即，存储容量=128Mb。众所周知的是，1Byte=8bit。**
+
+**所以 128Mb=16MB 。如有不妥之处，请指正。**
+
+**Mb = Mega bits**
+
+**MB = Mega Byte**
+
+处理器芯片
+
+![处理器芯片](./images/superwrt-tl-wr886n-v5/superwrt-tl-wr886n-v5-001.png)
+
+内存芯片
+
+![内存芯片](./images/superwrt-tl-wr886n-v5/superwrt-tl-wr886n-v5-002.png)
+
+![内存芯片](./images/superwrt-tl-wr886n-v5/superwrt-tl-wr886n-v5-002-1.png)
+
+闪存芯片
+
+![闪存芯片](./images/superwrt-tl-wr886n-v5/superwrt-tl-wr886n-v5-003.png)
+
+![闪存芯片](./images/superwrt-tl-wr886n-v5/superwrt-tl-wr886n-v5-003-1.png)
+
+参考连接：
+
+ - <a href="https://kknews.cc/digital/qe3a36o.html" target="_blank">TP WR886N</a>
+ 
+ - <a href="https://www.right.com.cn/forum/thread-256594-1-1.html" target="_blank">TP_Link WR886N V2.0 拆机 硬件参数</a>
+ 
+ - <a href="http://www.qganjue.com/01669464536519323667.html" target="_blank">内存芯片参数解析</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+        <title>Shiro Tutorial</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Shiro Tutorial
+
+![shiro](./images/shiro-tutorial/shiro-tutorial-001.png)
+
+#### 两条重要的英文
+
+&amp;#160; &amp;#160;我在学习 Shiro 的过程中遇到的第一个障碍就是这两个对象的英文名称：```AuthorizationInfo```，```AuthenticationInfo```。不用怀疑自己的眼睛，它们确实长的很像，不但长的像，就连意思都十分近似。
+
+&amp;#160; &amp;#160;在解释它们前首先必须要描述一下 Shiro 对于安全用户的界定：和大多数操作系统一样。用户具有角色和权限两种最基本的属性。例如，我的 Windows 登陆名称是 learnhow，它的角色是 administrator，而 administrator 具有所有系统权限。这样 learnhow 自然就拥有了所有系统权限。那么其他人需要登录我的电脑怎么办，我可以开放一个 guest 角色，任何无法提供正确用户名与密码的未知用户都可以通过 guest 来登录，而系统对于 guest 角色开放的权限极其有限。
+
+&amp;#160; &amp;#160;同理，Shiro 对用户的约束也采用了这样的方式。```AuthenticationInfo``` 代表了用户的角色信息集合，```AuthorizationInfo``` 代表了角色的权限信息集合。如此一来，当设计人员对项目中的某一个 url 路径设置了只允许某个角色或具有某种权限才可以访问的控制约束的时候，Shiro 就可以通过以上两个对象来判断。说到这里，大家可能还比较困惑。先不要着急，继续往后看就自然会明白了。
+
+![shiro](./images/shiro-tutorial/shiro-tutorial-002.png)
+
+![shiro](./images/shiro-tutorial/shiro-tutorial-003.png)
+
+#### 如何登录
+
+使用用户的登录信息创建令牌
+
+```java
+// UsernamePasswordToken 
+UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+```
+
+token 可以理解为用户令牌，登录的过程被抽象为 Shiro 验证令牌是否具有合法身份以及相关权限。
+
+ - 执行登陆动作
+
+```java
+// 注入 SecurityManager
+SecurityUtils.setSecurityManager(securityManager); 
+
+// 获取 Subject 单例对象
+Subject subject = SecurityUtils.getSubject(); 
+
+// 登陆
+subject.login(token); 
+```
+
+&amp;#160; &amp;#160;Shiro 的核心部分是 SecurityManager，它负责安全认证与授权。Shiro 本身已经实现了所有的细节，用户可以完全把它当做一个黑盒来使用。SecurityUtils 对象，本质上就是一个工厂类似 Spring 中的 ApplicationContext。
+
+&amp;#160; &amp;#160;**```Subject``` 是初学者比较难于理解的对象**，很多人以为它可以等同于 User，其实不然。Subject 中文翻译：项目，而正确的理解也恰恰如此。它是你目前所设计的需要通过 Shiro 保护的项目的一个抽象概念。**通过令牌（token）与项目（subject）的登陆（login）关系，Shiro 保证了项目整体的安全**。
+
+#### 用户注册
+
+&amp;#160; &amp;#160;请注意，虽然我们一直在谈论用户登录的安全性问题，但是说到用户登录首先就是用户注册。如何保证用户注册的信息不丢失，不泄密也是项目设计的重点。
+
+```java
+public class PasswordHelper {
+    private RandomNumberGenerator randomNumberGenerator = new SecureRandomNumberGenerator();
+    private String algorithmName = "md5";
+    private final int hashIterations = 2;
+
+    public void encryptPassword(User user) {
+        // User对象包含最基本的字段Username和Password
+        user.setSalt(randomNumberGenerator.nextBytes().toHex());
+        // 将用户的注册密码经过散列算法替换成一个不可逆的新密码保存进数据，散列过程使用了盐
+        String newPassword = new SimpleHash(algorithmName, user.getPassword(),
+                ByteSource.Util.bytes(user.getCredentialsSalt()), hashIterations).toHex();
+        user.setPassword(newPassword);
+    }
+}
+```
+
+#### Realm
+
+```java
+public class QuickstartShiroModule extends ShiroModule {
+    protected void configureShiro() {
+        try {
+            // bind Realm 
+            bindRealm().toConstructor(IniRealm.class.getConstructor(Ini.class));
+        } catch (NoSuchMethodException e) {
+            addError(e);
+        }
+    }
+
+    @Provides
+    Ini loadShiroIni() {
+        // Init Shiro Realm from .ini
+        return Ini.fromResourcePath("classpath:shiro.ini");
+    }
+}
+```
+
+```java
+public class MyRealm extends AuthorizingRealm {
+    /**
+     * 为当前的登录的用户角色和权限
+     */
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+ 
+        // 通过用户取得他应该拥有的权限
+        SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
+        // 设置角色 集合 这个目前用不到。
+        // authorizationInfo.setRoles(roles);
+        User user = (User) SecurityUtils.getSubject().getSession().getAttribute("currentUser");
+        if (user == null) return null;
+ 
+        user = userService.findById(user.getId());
+ 
+        Map<String, Object> map = new HashMap<String, Object> ();
+        List<Integer> ids = MyUtil.Str_ids_To_ListInteger_ids(user.getMenuIds());
+        map.put("ids", ids);
+        if (ids.size()> 0) {
+            
+        } else {
+            return authorizationInfo;
+        }
+ 
+        List<Tree> treeList = treeService.getTreesByFatherOrIds(map);
+        // 权限集合
+        Set<String> stringPermissions = new HashSet<String> ();
+        for (Tree tree: treeList) {
+            if (StringUtil.isNotEmpty(tree.getPermissions())) {
+                stringPermissions.add(tree.getPermissions());
+            }
+        }
+        authorizationInfo.setStringPermissions(stringPermissions);
+        return authorizationInfo;
+    }
+}
+```
+
+```java
+// We will utilize standard Guice bootstrapping to create a Shiro SecurityManager.
+Injector injector = Guice.createInjector(new QuickstartShiroModule());
+SecurityManager securityManager = injector.getInstance(SecurityManager.class);
+ 
+// for this simple example quickstart, make the SecurityManager
+// accessible as a JVM singleton.  Most applications wouldn't do this
+// and instead rely on their container configuration or web.xml for
+// webapps.  That is outside the scope of this simple quickstart, so
+// we'll just do the bare minimum so you can continue to get a feel
+// for things.
+SecurityUtils.setSecurityManager(securityManager);
+ 
+// Now that a simple Shiro environment is set up, let's see what you can do:
+ 
+// get the currently executing user:
+Subject currentUser = SecurityUtils.getSubject();
+ 
+// Do some stuff with a Session (no need for a web or EJB container!!!)
+Session session = currentUser.getSession();
+session.setAttribute("someKey", "aValue");
+String value = (String) session.getAttribute("someKey");
+if (value.equals("aValue")) {
+    log.info("Retrieved the correct value! [" + value + "]");
+}
+ 
+// let's login the current user so we can check against roles and permissions:
+if (!currentUser.isAuthenticated()) {
+    UsernamePasswordToken token = new UsernamePasswordToken("lonestarr", "vespa");
+    token.setRememberMe(true);
+    try {
+        // Subject.login(Token)
+        currentUser.login(token);
+    } catch (UnknownAccountException uae) {
+        log.info("There is no user with username of " + token.getPrincipal());
+    } catch (IncorrectCredentialsException ice) {
+        log.info("Password for account " + token.getPrincipal() + " was incorrect!");
+    } catch (LockedAccountException lae) {
+        log.info("The account for username " + token.getPrincipal() + " is locked.  " +
+                "Please contact your administrator to unlock it.");
+    }
+    // ... catch more exceptions here (maybe custom ones specific to your application?
+    catch (AuthenticationException ae) {
+        //unexpected condition?  error?
+    }
+}
+ 
+//say who they are:
+//print their identifying principal (in this case, a username):
+log.info("User [" + currentUser.getPrincipal() + "] logged in successfully.");
+ 
+//test a role:
+if (currentUser.hasRole("schwartz")) {
+    log.info("May the Schwartz be with you!");
+} else {
+    log.info("Hello, mere mortal.");
+}
+```
+
+#### Example
+
+```sql
+-- ----------------------------
+-- Table structure for `roles`
+-- ----------------------------
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE `roles` (
+  `role_name` varchar(255) NOT NULL,
+  PRIMARY KEY  (`role_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of roles
+-- ----------------------------
+INSERT INTO `roles` VALUES ('role1');
+INSERT INTO `roles` VALUES ('role2');
+
+-- ----------------------------
+-- Table structure for `roles_permissions`
+-- ----------------------------
+DROP TABLE IF EXISTS `roles_permissions`;
+CREATE TABLE `roles_permissions` (
+  `role_name` varchar(255) NOT NULL,
+  `permission` varchar(255) NOT NULL,
+  PRIMARY KEY  (`role_name`,`permission`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of roles_permissions
+-- ----------------------------
+INSERT INTO `roles_permissions` VALUES ('role1', 'permission1');
+INSERT INTO `roles_permissions` VALUES ('role1', 'permission2');
+INSERT INTO `roles_permissions` VALUES ('role2', 'permission1');
+
+-- ----------------------------
+-- Table structure for `users`
+-- ----------------------------
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY  (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of users
+-- ----------------------------
+INSERT INTO `users` VALUES ('user1', '+XdzYjFKiLoNffcB7Wvr0KNXe+M77+crq8QMOd5lqx8=');
+INSERT INTO `users` VALUES ('user2', 'KmOs0a5jkpeDq5F5tNEjVish+AkcBdLvTw+thmq1x8k=');
+
+-- ----------------------------
+-- Table structure for `user_roles`
+-- ----------------------------
+DROP TABLE IF EXISTS `user_roles`;
+CREATE TABLE `user_roles` (
+  `username` varchar(255) NOT NULL,
+  `role_name` varchar(255) NOT NULL,
+  UNIQUE KEY `user_roles_uq` (`username`,`role_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- ----------------------------
+-- Records of user_roles
+-- ----------------------------
+INSERT INTO `user_roles` VALUES ('user1', 'role1');
+INSERT INTO `user_roles` VALUES ('user1', 'role2');
+INSERT INTO `user_roles` VALUES ('user2', 'role2');
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

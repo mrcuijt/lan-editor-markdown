@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SLF4J Simple Use</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### SLF4J-Simple
+
+ ***```pom.xml```***
+
+```xml
+<dependencies>
+    <!-- 引入 SLF4J Jar -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.5</version>
+    </dependency>
+    <!-- 引入 SLF4J-Simple Jar  -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>1.7.25</version>
+    </dependency>
+</dependencies>
+```
+
+##### 配置 simplelogger.properties
+
+&#160; &#160;在 ```classpath``` 根路径放置名为 ```simplelogger.properties``` 的文件，内容为：
+
+ ***```simplelogger.properties```***
+
+```python
+############################################################
+#  	SLF4J Simpile Properties
+############################################################
+
+## The output target which can be the path to a file, or the special values "System.out" and "System.err". 
+## Default is "System.err".
+org.slf4j.simpleLogger.logFile = System.out
+
+## If the output target is set to "System.out" or "System.err" (see preceding entry), by default, logs will be output to the latest value referenced by System.out/err variables. 
+## By setting this parameter to true, the output stream will be cached, i.e. assigned once at initialization time and re-used independently of the current value referenced by System.out/err. 
+org.slf4j.simpleLogger.cacheOutputStream = false
+
+## Default log level for all instances of SimpleLogger. 
+## Must be one of ("trace", "debug", "info", "warn", "error" or "off"). 
+## If not specified, defaults to "info".
+org.slf4j.simpleLogger.defaultLogLevel = info
+
+## Logging detail level for a SimpleLogger instance named "a.b.c". 
+## Right-side value must be one of "trace", "debug", "info", "warn", "error" or "off". 
+## When a SimpleLogger named "a.b.c" is initialized, its level is assigned from this property. 
+## If unspecified, the level of nearest parent logger will be used, and if none is set, then the value specified by org.slf4j.simpleLogger.defaultLogLevel will be used.
+## org.slf4j.simpleLogger.log.a.b.c
+
+## Set to true if you want the current date and time to be included in output messages. 
+## Default is false
+org.slf4j.simpleLogger.showDateTime = true
+
+## The date and time format to be used in the output messages. 
+## The pattern describing the date and time format is defined by SimpleDateFormat. 
+## If the format is not specified or is invalid, the number of milliseconds since start up will be output.
+org.slf4j.simpleLogger.dateTimeFormat = yyyy-MM-dd HH:mm:ss:SSS zzz
+
+## Set to true if you want the current date and time to be included in output messages. 
+## Default is false
+org.slf4j.simpleLogger.showThreadName = true
+
+## The date and time format to be used in the output messages. 
+## The pattern describing the date and time format is defined by SimpleDateFormat. 
+## If the format is not specified or is invalid, the number of milliseconds since start up will be output.
+org.slf4j.simpleLogger.showLogName = true
+
+## Set to true if you want to output the current thread name. 
+## Defaults to true.
+org.slf4j.simpleLogger.showShortLogName = false
+
+## Set to true if you want the Logger instance name to be included in output messages. 
+## Defaults to true.
+org.slf4j.simpleLogger.showLogName = true 
+
+## Set to true if you want the last component of the name to be included in output messages. 
+## Defaults to false.
+org.slf4j.simpleLogger.showShortLogName = false
+
+## Should the level string be output in brackets? 
+## Defaults to false.
+org.slf4j.simpleLogger.levelInBrackets = false
+
+## The string value output for the warn level. 
+## Defaults to WARN.
+org.slf4j.simpleLogger.warnLevelString = WARN
+```
+
+***```Slf4jSimpleDemo.java```***
+
+```java
+/**
+ * 
+ */
+package science.mrcuijt.slf4j.demo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author Administrator
+ *
+ */
+public class Slf4jSimpleDemo {
+
+	private static final Logger logger = LoggerFactory.getLogger(Slf4jSimpleDemo.class);
+
+	public static void main(String[] args) {
+
+		logger.trace("trace");
+		logger.debug("debug");
+		logger.info("info");
+		logger.warn("warn");
+		logger.error("error");
+
+	}
+
+}
+
+```
+
+***```Console```***
+
+```textarea
+2019-04-04 19:21:14:031 CST [main] INFO science.mrcuijt.slf4j.demo.Slf4jSimpleDemo - info
+2019-04-04 19:21:14:047 CST [main] WARN science.mrcuijt.slf4j.demo.Slf4jSimpleDemo - warn
+2019-04-04 19:21:14:047 CST [main] ERROR science.mrcuijt.slf4j.demo.Slf4jSimpleDemo - error
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

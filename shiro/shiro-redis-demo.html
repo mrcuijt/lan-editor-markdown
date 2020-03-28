@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shiro Redis Demo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Shiro Redis Demo
+
+ - Junit
+ 
+ - Servlet
+ 
+  - jstl
+  
+  - jsp-api
+  
+ - HttpClient
+ 
+  - HttpClient-Cache
+  
+  - HttpMime
+ 
+ - Mybatis
+ 
+  - Mybatis-Spring
+ 
+ - JDBC
+ 
+  - MySQL Driver
+  
+  - Druid Pool
+  
+  - aspectjweaver
+
+ - Spring
+ 
+  - Spring-Context
+  
+  - Spring-Context-Support
+  
+  - Spring-WebMVC
+  
+  - Spring-Core
+  
+  - Spring-JDBC
+  
+  - Spring-Test
+  
+ - JSON
+ 
+  - jackson
+  
+     - jackson-mapper-asl
+     
+     - jackson-databind
+     
+     - jackson-core
+     
+     - jackson-annotations
+  
+  - fastjson
+  
+  - json-lib
+  
+     - ezmorph
+
+ - Commons Lib
+ 
+  - commons-attributes-api
+  
+  - commons-attributes-compiler
+  
+  - commons-beanutils-core
+  
+  - commons-codec
+  
+  - commons-collections
+  
+  - commons-dbcp
+  
+  - commons-httpclient
+  
+  - commons-io
+  
+  - commons-lang
+  
+  - commons-logging
+  
+  - commons-pool
+  
+ - FreeMarker
+ 
+  - freemarker
+  
+  - shiro-freemarker-tags
+  
+ - Quartz
+ 
+ - Shiro
+ 
+  - shiro-all
+  
+  - shiro-core
+  
+  - shiro-web
+  
+  - shiro-quartz
+  
+  - shiro-spring
+  
+ - Redis
+ 
+  - jedis
+
+#### Shiro 架构图
+
+![shiro-redis-demo](./images/shiro-redis-demo/shiro-redis-demo-001.png)
+
+#### Shiro 类图
+
+![shiro-redis-demo](./images/shiro-redis-demo/shiro-redis-demo-002.png)
+
+```xml
+<!-- Shiro 拦截器 -->
+<filter>
+    <filter-name>shiroFilter</filter-name>
+    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>shiroFilter</filter-name>
+    <url-pattern>*.shtml</url-pattern>
+</filter-mapping>
+```
+
+```xml
+<!-- Spring 监听器 -->
+<listener>
+    <description>spring监听器</description>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:spring.xml</param-value>
+</context-param>
+ 
+<!-- 防止 Spring 内存溢出监听器 -->
+<listener>
+    <listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
+</listener>
+ 
+<!-- Spring MVC Servlet -->
+<servlet>
+    <description>spring mvc servlet</description>
+    <servlet-name>springMvc</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+        <description>spring mvc 配置文件</description>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:spring-mvc.xml</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+</servlet>
+<servlet-mapping>
+    <servlet-name>springMvc</servlet-name>
+    <url-pattern>*.shtml</url-pattern>
+</servlet-mapping>
+```
+
+#### Shiro
+
+
+#### Shiro Remember Me 功能配置
+
+ - **需要在 SecurityManager 中添加对 rememberMeManager 的引用**
+
+```xml
+ 
+<!-- 会话 Cookie 模板 - 用户信息记住我功能的相关配置 -->
+<bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+    <constructor-arg value="v_v-re-baidu"/>
+    <property name="httpOnly" value="true"/>
+    <!-- 配置存储 rememberMe Cookie 的 domain 为 一级域名
+    <!-- 
+    <property name="domain" value=".itboy.net"/> -->
+    <property name="maxAge" value="2592000"/><!-- 30天时间，记住我30天 -->
+</bean>
+ 
+<!-- rememberMe管理器 -->
+<bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+    <!-- rememberMe cookie 加密的密钥 建议每个项目都不一样 默认 AES 算法 密钥长度（128 256 512 位）-->
+    <property name="cipherKey" value="#{T(org.apache.shiro.codec.Base64).decode('3AvVhmFLUs0KTA3Kprsdag==')}"/>
+    <property name="cookie" ref="rememberMeCookie"/>
+</bean>
+```
+
+#### SessionId Cookie 配置
+
+ - **需要在 SessionManager 中添加对 sessionIdCookie 的引用**
+
+```xml
+<!-- SessionId Cookie 模板 -->
+<bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+    <!-- cookie 的 name，我故意取名叫 xxxxbaidu -->
+    <constructor-arg value="v_v-s-baidu"/>
+    <property name="httpOnly" value="true"/>
+    <!-- Cookie 的有效时间 -->
+    <property name="maxAge" value="-1"/>
+    <!-- 配置存储 Session Cookie 的 domain 为 一级域名-->
+    <!--
+    <property name="domain" value=".itboy.net"/> -->
+</bean>
+```
+
+#### Shiro 自定义 SessionDao 生成存储 Session 实现配置
+
+ - **需要在 SessionManager 中添加对 customShiroSessionDAO 的引用**
+
+```xml
+<!-- 会话 Session ID 生成器 -->
+<bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"/>
+ 
+<!-- Custom Shiro SessionDAO -->
+<bean id="customShiroSessionDAO" class="com.sojson.core.shiro.CustomShiroSessionDAO">
+    <property name="shiroSessionRepository" ref="jedisShiroSessionRepository"/>
+    <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
+</bean>
+```
+
+#### Shiro 会话验证调度器
+
+ - **需要在 SessionManager 中添加对 sessionValidationScheduler 的引用**
+
+```xml
+<!-- 会话验证调度器 -->
+<bean id="sessionValidationScheduler" class="org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler">
+     <!-- 间隔多少时间检查，不配置是60分钟 -->
+     <property name="interval" value="${session.validate.timespan}"/>
+     <property name="sessionManager" ref="sessionManager"/>
+</bean>
+```
+
+#### Shiro 自定义 Session 监听器
+
+ - **需要在 SessionManager 中添加对 customSessionListener 的引用**
+
+```xml
+<!-- session 创建、删除、查询 -->
+<bean id="jedisShiroSessionRepository" class="com.sojson.core.shiro.cache.JedisShiroSessionRepository" >
+    <property name="jedisManager" ref="jedisManager"/>
+</bean>
+ 
+<!-- custom shiro session listener -->
+<bean id="customSessionListener" class="com.sojson.core.shiro.listenter.CustomSessionListener">
+    <property name="shiroSessionRepository" ref="jedisShiroSessionRepository"/>
+</bean>
+```
+
+#### Shiro SessionManager 配置
+
+ - **需要在 SecurityManager 中添加对 SessionManager 的引用**
+
+```xml
+<!-- Session Manager -->
+<bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+    <!-- 相隔多久检查一次session的有效性   -->
+    <property name="sessionValidationInterval" value="1800000"/>  
+    <!-- session 有效时间为半小时 （毫秒单位）--> 
+    <property name="globalSessionTimeout" value="1800000"/>
+    <property name="sessionDAO" ref="customShiroSessionDAO"/>
+    <!-- session 监听，可以多个。 -->
+    <property name="sessionListeners">
+        <list>
+            <ref bean="customSessionListener"/>
+        </list>
+    </property>
+    <!-- 间隔多少时间检查，不配置是60分钟 --> 
+    <property name="sessionValidationScheduler" ref="sessionValidationScheduler"/>
+    <!-- 是否开启 检测，默认开启 -->
+    <property name="sessionValidationSchedulerEnabled" value="true"/>
+    <!-- 是否删除无效的，默认也是开启 -->
+    <property name="deleteInvalidSessions" value="true"/>
+    <!-- 会话Cookie模板 -->
+    <property name="sessionIdCookie" ref="sessionIdCookie"/>
+</bean>
+```
+
+#### 手动操作 Session，管理 Session
+
+```xml
+<!-- 手动操作 Session，管理 Session -->
+<bean id="customSessionManager" class="com.sojson.core.shiro.session.CustomSessionManager">
+    <property name="shiroSessionRepository" ref="jedisShiroSessionRepository"/>
+    <property name="customShiroSessionDAO" ref="customShiroSessionDAO"/>
+</bean>
+```
+
+#### Shiro 自定义缓存管理实现配置
+
+ - **需要在 SecurityManager 中添加对 customShiroCacheManager 的引用**
+
+```xml
+<!-- Redis 连接池配置 -->
+<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+    <!-- 最大闲置 -->
+    <property name="maxIdle" value="100"/>
+    <!-- 最小闲置 -->
+    <property name="minIdle" value="10"/>
+    <!-- 可以获取 -->
+    <property name="testOnBorrow" value="true"/>
+    <!--
+    <property name="testOnReturn" value="true"/> -->
+</bean>
+ 
+<!-- Redis 配置,也可以把配置挪到 properties 配置文件中,再读取 -->
+<bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+    <constructor-arg index="0" ref="jedisPoolConfig" />
+    <!-- 端口，默认6379 -->
+    <constructor-arg index="2" value="6379"  name="port" type="int"/>
+    <constructor-arg index="3" value="5000"  name="timeout" type="int"/>
+    <constructor-arg index="1" value="127.0.0.1" name="host" type="java.lang.String"/>
+    <!-- 如果你需要配置密码，请打开这里。-->
+    <!--
+    <constructor-arg index="4" value="你的密码" name="password" type="java.lang.String"/> -->
+</bean> 
+
+<!-- Redis 的缓存 -->
+<bean id="jedisManager" class="com.sojson.core.shiro.cache.JedisManager">
+    <property name="jedisPool" ref="jedisPool"/>
+</bean>
+ 
+<!-- Shiro 缓存实现，对 ShiroCacheManager，我是采用 Redis 的实现 -->
+<bean id="jedisShiroCacheManager" class="com.sojson.core.shiro.cache.impl.JedisShiroCacheManager">
+    <property name="jedisManager" ref="jedisManager"/>
+</bean>
+
+<!-- 用户缓存 -->
+<bean id="customShiroCacheManager" class="com.sojson.core.shiro.cache.impl.CustomShiroCacheManager">
+    <property name="shiroCacheManager" ref="jedisShiroCacheManager"/>
+</bean>
+```
+
+#### Shiro 自定义 Realm 授权认证配置
+
+ - **需要在 SecurityManager 中添加对 sampleRealm 的引用**
+
+```xml
+<!-- 授权 认证 -->
+<bean id="sampleRealm" class="com.sojson.core.shiro.token.SampleRealm"></bean>
+```
+
+#### Shiro SecurityManager 配置
+
+ - **需要在 ShiroFilter 中添加对 SecurityManager 的引用**
+
+```xml
+<!-- 安全管理器 -->
+<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+    <property name="realm" ref="sampleRealm"/>
+    <property name="sessionManager" ref="sessionManager"/>
+    <property name="rememberMeManager" ref="rememberMeManager"/>
+    <property name="cacheManager" ref="customShiroCacheManager"/>
+</bean>
+```
+
+#### Shiro 自定义 ShiroFilter 配置
+
+ - **需要在 ShiroFilter 中添加对 Filter 的引用**
+
+```xml
+<!-- 静态注入，相当于调用 SecurityUtils.setSecurityManager(securityManager) -->
+<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+    <property name="staticMethod" value="org.apache.shiro.SecurityUtils.setSecurityManager"/>
+    <property name="arguments" ref="securityManager"/>
+</bean>
+ 
+<!-- 静态注入 jedisShiroSessionRepository-->
+<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+    <property name="staticMethod" value="com.sojson.core.shiro.filter.KickoutSessionFilter.setShiroSessionRepository"/>
+    <property name="arguments" ref="jedisShiroSessionRepository"/>
+</bean>
+ 
+<!-- session 校验单个用户是否多次登录 -->
+<bean id="kickoutSessionFilter"   class="com.sojson.core.shiro.filter.KickoutSessionFilter">  
+    <property name="kickoutUrl" value="/u/login.shtml?kickout"/>  
+</bean> 
+
+<!--
+    自定义角色过滤器 支持多个角色可以访问同一个资源 eg:/home.jsp = authc,roleOR[admin,user]
+    用户有admin或者user角色 就可以访问
+-->
+ 
+<!-- 认证数据库存储-->
+<bean id="shiroManager" class="com.sojson.core.shiro.service.impl.ShiroManagerImpl"/>
+<bean id="login" class="com.sojson.core.shiro.filter.LoginFilter"/>
+<bean id="role" class="com.sojson.core.shiro.filter.RoleFilter"/>
+<bean id="permission" class="com.sojson.core.shiro.filter.PermissionFilter"/>
+<bean id="simple" class="com.sojson.core.shiro.filter.SimpleAuthFilter"/>
+```
+
+#### Shiro ShiroFilter 配置
+
+```xml
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager" />
+        <property name="loginUrl" value="/u/login.shtml" />
+        <!--    TODO 待提取    -->
+        <property name="successUrl" value="/" />
+        <property name="unauthorizedUrl" value="/?login" />
+ 
+<!--    初始配置，现采用自定义 -->
+<!--        <property name="filterChainDefinitions" >-->
+<!--            <value>-->
+<!--                /** = anon-->
+<!--                /page/login.jsp = anon-->
+<!--                /page/register/* = anon-->
+<!--                /page/index.jsp = authc-->
+<!--                /page/addItem* = authc,roles[数据管理员]-->
+<!--                /page/file* = authc,roleOR[普通用户,数据管理员]-->
+<!--                /page/listItems* = authc,roleOR[数据管理员,普通用户]-->
+<!--                /page/showItem* = authc,roleOR[数据管理员,普通用户]-->
+<!--                /page/updateItem*=authc,roles[数据管理员]-->
+<!--            </value>-->
+<!--        </property>-->
+        <!-- 读取初始自定义权限内容-->
+       <property name="filterChainDefinitions" value="#{shiroManager.loadFilterChainDefinitions()}"/>   
+       <property name="filters">
+           <util:map>
+              <entry key="login" value-ref="login"></entry>
+              <entry key="role" value-ref="role"></entry>
+              <entry key="simple" value-ref="simple"></entry>
+              <entry key="permission" value-ref="permission"></entry>
+              <entry key="kickout" value-ref="kickoutSessionFilter"></entry>
+           </util:map>
+       </property>
+    </bean>
+ 
+    <!-- Shiro生命周期处理器-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>subversion-basic-install</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### subversion-basic-install
+
+#### 服务器端软件的安装
+
+#### 一、获取软件安装包
+
+ - **服务端软件：VisualSVN**
+
+  - _**网站：<a href="http://www.visualsvn.com/" target="_blank">http://www.visualsvn.com/</a>**_
+
+&amp;#160; &amp;#160;服务器端软件，不区分软件的版本，安装到 32 位操作系统，或是安装到 64 位操作系统上都是可以使用的。但是在安装过程中有一些细节。
+
+#### 二、客户端软件安装的步骤
+
+服务器端软件，存储于软件/服务器端
+
+ - 1）双击安装服务器软件
+
+ - 2）点击下一步进行安装
+
+ - 3）同意 SVN 服务器的相关协议
+
+ - 4）点击下一步继续
+
+ - 5）需要选择一些安装服务器的相关组件
+
+![title](./images/subversion-basic-install/subversion-basic-install-010.png)
+
+ - 安装信息
+
+  - 第一个选项：包含图形化界面，以及黑窗口界面（DOS窗口）
+ 
+  - 第二个选项：只有管理界面，只能在（DOS窗口）界面上操作
+ 
+  - 第三个选项：将 SVN 指令 添加到系统的环境变量中。
+
+ - 6）下一步
+ 
+ - 7）选择安装的版本：
+
+![title](./images/subversion-basic-install/subversion-basic-install-011.png)
+
+ - 安装信息
+ 
+  - 第一个选项，标准版，是免费的。
+  
+  - 第二个选项，企业版，它的使用需要购买授权的。
+  
+  目前使用标准版，它所包含的功能已经足够我们开发使用了。
+  
+  我们选择标准边进行安装使用。
+
+ - 8）选择安装路径：（重点）
+
+  - **Location：软件安装的路径**
+  
+     所使用的路径一定不能包含中文名称和空格，否则会导致 SVN 服务器无法使用。
+  
+  - **Repositories：默认仓库。**
+  
+     在 SVN 中是不存在项目的概念的，我们的每一个项目在 SVN 中都称为一个数据仓库。在开发过程中一般不使用。
+
+  - **Service Port：指的 SVN 服务器所使用的端口号**
+  
+     有 443 端口 和 8443 端口 可供选择。默认情况下 443 端口，会被 SSL 占用。
+
+     也可以进行随机设置，建议使用 8000 以后的端口号勾选，多选框，使用 https:// 协议
+
+![title](./images/subversion-basic-install/subversion-basic-install-012.png)
+
+ - 9）下一步
+
+ - 10）Install 安装
+
+ - 11）完成。
+
+#### SVN 客户端软件安装 & 使用
+
+#### 一、获取软件安装包
+
+ - **客户端软件：Tortoisesvn**
+
+  - _**网站：<a href="http://tortoisesvn.net/downloads" target="_blank">http://tortoisesvn.net/downloads</a>**_
+
+#### 二、确认操作系统位数
+
+ - **32 位操作系统**
+
+ - **64 位操作系统**
+
+可以在计算机上图标右键单击，选择属性
+
+![title](./images/subversion-basic-install/subversion-basic-install-001.png)
+
+通过系统类型，来确认操作系统位数。
+
+#### 三、客户端软件安装的步骤
+
+![title](./images/subversion-basic-install/subversion-basic-install-002.png)
+
+ - ① 双击运行软件安装包
+
+ - ② 单击下一步
+
+ - ③ 同一许可协议，单击下一步操作
+
+ - ④ 选择默认安装即可，文件路径可以随意选择
+
+![title](./images/subversion-basic-install/subversion-basic-install-003.png)
+
+ - ⑤ 单击下一步
+
+ - ⑥ 点击 install 进行安装，程序将自动在系统中安装 SVN 客户端软件
+
+**`注意：在 TortoiseSVN 软件安装完毕后，请一定要重启计算机，否则 SVN 图标是无法显示的。`**
+
+![title](./images/subversion-basic-install/subversion-basic-install-004.png)
+
+如果我们鼠标右键出现，一下两个图标，代表我们已经安装完成。
+
+#### 四、安装汉化语言包
+
+双击运行汉化语言包，系统会自动寻找之前我们安装的 TortoiseSVN 软件安装目录，并进行自动安装。 
+
+安装完成后可以进行一下设置：
+
+![title](./images/subversion-basic-install/subversion-basic-install-005.png)
+
+在桌面鼠标右键，选择 Settings 菜单
+
+![title](./images/subversion-basic-install/subversion-basic-install-006.png)
+
+**Language 选择中文**
+
+**点击 `应用 -> 确定` 即可。**
+
+#### 五、使用客户端软件连接服务器
+
+&amp;#160; &amp;#160;回顾一下，之前我们说过当我们配置完一个项目之后，并且安装了我们的客户端软件，需要进行我们的 客户端 和 服务器端 的一个连接操作。
+
+我们将，它这个第一次连接操作，都称为 Checkout（检出操作）
+
+&amp;#160; &amp;#160;由于我们的实际开发中，都是边开发边上传。所以我们将我们的版本仓库配置在 Apache 的服务器目录下
+
+##### CheckOut（检出）
+
+ - 首先在你的项目目录鼠标右键 -> TortoiseSVN -> 版本库浏览器。
+
+  - ① 在 Apache 服务器 webapps 目录下 进行以上操作
+
+  - ② 这时他会让你输入一个 SVN 的地址，之前我们已经将我们的项目在 DOS 窗口中使用 SVN 服务器进行监管了。
+
+  这时，我们只需要输入 svn://localhost 或（IP地址）就可以了。
+ 
+![title](./images/subversion-basic-install/subversion-basic-install-007.png)
+
+  - ③ 由于之前的监管操作，他会指向我们之前设置的监管项目（仓库）
+
+  登录之后，在 SVN 目录下，右键 检出。
+
+![title](./images/subversion-basic-install/subversion-basic-install-008.png)
+
+**如果 它提示一个检出成功提示，那么我们的项目仓库，就真正的与SVN 服务器，进行了连接。**
+
+**这时我们选择的目录会存在一个 `.svn` 的隐藏文件夹。**
+
+![title](./images/subversion-basic-install/subversion-basic-install-009.png)
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

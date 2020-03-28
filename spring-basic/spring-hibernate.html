@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Hibernate</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+```textarea
+1、创建 Java 项目
+2、导入 jar 包（Spring & Hibernate）
+3、配置 Hibernate 系统配置文件（hibernate.cfg.xml） ，创建实体类，配置实体映射配置文件
+4、配置 Spring 配置文件（sessionFactory & 声明式事务）；
+5、开发 Dao ，Dao 要继承 HibernateDaoSupport ，配置 Dao 将 SessionFactory 注入给 Dao
+    开发 Service ，Service 要有一个接口 ，配置 Service 将 Dao 注入给 Service
+    开发 Biz 类，配置 Biz 注入 Service 的代理对象；
+6、开发 main 函数
+7、调试运行
+
+集成的重点
+    1、Dao 要继承 HibernateDaoSupport
+    2、注入 SessionFactory 
+    3、通过 HibernateTemplate 操作数据
+```
+
+***```pom.xml```***
+
+```xml
+<!-- 开发项目时 所有用到的项目框架版本号 尽量 统一使用 父项目管理版本号 -->
+<properties>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Spring 框架包版本号 -->
+    <spring-version>3.2.18.RELEASE</spring-version>
+</properties>
+
+<dependencies>
+
+    <!-- 引入 MySQL数据库链接插件 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.30</version>
+    </dependency>
+
+    <!-- Hibernate Core -->
+    <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate</artifactId>
+        <version>3.2.6.ga</version>
+    </dependency>
+
+    <!-- Spring Core -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-core</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <!-- Spring Context -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context-support</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-beans</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-tx</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-orm</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-oxm</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-aspects</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-aop</artifactId>
+        <version>${spring-version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <version>${spring-version}</version>
+        <scope>test</scope>
+    </dependency>
+
+    <!-- 日志工具 -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.21</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.jboss.logging</groupId>
+        <artifactId>jboss-logging</artifactId>
+        <version>3.3.0.Final</version>
+    </dependency>
+
+    <!-- 引入 Apache Log4j Jar -->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.17</version>
+    </dependency>
+
+    <!-- Junit -->
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+***```hibernate.cfg.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<!-- hibernate 配置文件:数据库连接信息,映射信息 -->
+<hibernate-configuration>
+	<session-factory>
+		<!-- 数据库 URL -->
+		<!-- jdbc:mysql://localhost/hibernate_demo?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull -->
+		<property name="connection.url">jdbc:mysql://localhost/hibernate_demo?characterEncoding=utf8</property>
+		<property name="connection.driver_class">com.mysql.jdbc.Driver</property>
+		<property name="connection.username">hibernate_demo</property>
+		<property name="connection.password">hibernate_demo</property>
+
+		<!-- 显示Hibernate持久化操作所生成的SQL -->
+		<property name="show_sql">true</property>
+		<!-- 将SQL脚本进行格式化后再输出 -->
+		<property name="hibernate.format_sql">true</property>
+
+		<property name="dialect">org.hibernate.dialect.MySQLDialect</property>
+
+		<!-- 根据需要自动创建数据表 -->
+		<!-- <property name="hbm2ddl.auto">create</property> -->
+		<!-- 加载映射配置文件 -->
+		<mapping resource="science/mrcuijt/domain/Person.hbm.xml" />
+	</session-factory>
+</hibernate-configuration>
+```
+
+##### Example 1
+
+##### Use HibernateDaoSupport
+
+***```applicationContext.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-3.2.xsd 
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+    http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="configLocation">
+			<value>classpath:hibernate.cfg.xml</value>
+		</property>
+	</bean>
+
+	<!-- 事务管理器 -->
+	<bean id="txManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+	<!-- 注解驱动事务 -->
+	<tx:annotation-driven
+		transaction-manager="txManager" />
+
+	<!-- 事务通知 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="find*" read-only="true"></tx:method>
+			<tx:method name="get*" read-only="true"></tx:method>
+			<tx:method name="query*" read-only="true"></tx:method>
+			<tx:method name="list*" read-only="true"></tx:method>
+			<tx:method name="count*" read-only="true"></tx:method>
+			<tx:method name="exist*" read-only="true"></tx:method>
+			<tx:method name="save*" propagation="REQUIRED"></tx:method>
+			<tx:method name="insert*" propagation="REQUIRED"></tx:method>
+			<tx:method name="add*" propagation="REQUIRED"></tx:method>
+			<tx:method name="del*" propagation="REQUIRED"></tx:method>
+			<tx:method name="remove*" propagation="REQUIRED"></tx:method>
+			<tx:method name="update*" propagation="REQUIRED"></tx:method>
+			<tx:method name="edit*" propagation="REQUIRED"></tx:method>
+			<tx:method name="*"></tx:method>
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- AOP -->
+	<aop:config>
+		<aop:pointcut id="serviceMethod"
+			expression="execution(* science.mrcuijt.service.*.*(..))"></aop:pointcut>
+		<aop:advisor advice-ref="txAdvice"
+			pointcut-ref="serviceMethod"></aop:advisor>
+	</aop:config>
+
+	<!-- PersonDao -->
+	<bean id="personDao" class="science.mrcuijt.dao.PersonDao">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+	<!-- PersonService-->
+	<bean id="personService" class="science.mrcuijt.service.PersonServiceImpl">
+		<property name="personDao" ref="personDao"></property>
+	</bean>
+
+	<!-- 启动注解生成Bean -->
+	<context:annotation-config />
+	<!-- 扫描指定的java包生成Bean -->
+	<context:component-scan
+		base-package="science.mrcuijt.dao"></context:component-scan>
+	<context:component-scan
+		base-package="science.mrcuijt.service"></context:component-scan>
+
+</beans>
+```
+
+***```PersonDao.java```***
+
+```java
+public class PersonDao extends HibernateDaoSupport {
+
+	public Person findPerson(int id) {
+		HibernateTemplate hibernateTemplate = getHibernateTemplate();
+		Person person = hibernateTemplate.get(Person.class, id);
+		return person;
+	}
+}
+```
+
+##### Example 2
+
+##### Use HibernateTemplate
+
+***```applicationContext.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+    http://www.springframework.org/schema/tx 
+    http://www.springframework.org/schema/tx/spring-tx-3.2.xsd 
+    http://www.springframework.org/schema/aop 
+    http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+    http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="configLocation">
+			<value>classpath:hibernate.cfg.xml</value>
+		</property>
+	</bean>
+
+	<!-- 事务管理器 -->
+	<bean id="txManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+	<!-- 注解驱动事务 -->
+	<tx:annotation-driven
+		transaction-manager="txManager" />
+
+	<!-- 事务通知 -->
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="find*" read-only="true"></tx:method>
+			<tx:method name="get*" read-only="true"></tx:method>
+			<tx:method name="query*" read-only="true"></tx:method>
+			<tx:method name="list*" read-only="true"></tx:method>
+			<tx:method name="count*" read-only="true"></tx:method>
+			<tx:method name="exist*" read-only="true"></tx:method>
+			<tx:method name="save*" propagation="REQUIRED"></tx:method>
+			<tx:method name="insert*" propagation="REQUIRED"></tx:method>
+			<tx:method name="add*" propagation="REQUIRED"></tx:method>
+			<tx:method name="del*" propagation="REQUIRED"></tx:method>
+			<tx:method name="remove*" propagation="REQUIRED"></tx:method>
+			<tx:method name="update*" propagation="REQUIRED"></tx:method>
+			<tx:method name="edit*" propagation="REQUIRED"></tx:method>
+			<tx:method name="*"></tx:method>
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- AOP -->
+	<aop:config>
+		<aop:pointcut id="serviceMethod"
+			expression="execution(* science.mrcuijt.service.*.*(..))"></aop:pointcut>
+		<aop:advisor advice-ref="txAdvice"
+			pointcut-ref="serviceMethod"></aop:advisor>
+	</aop:config>
+
+	<!-- hibernateTemplate -->
+	<bean id="hibernateTemplate"
+		class="org.springframework.orm.hibernate3.HibernateTemplate">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+		<property name="cacheQueries" value="true"></property>
+	</bean>
+
+	<!-- PersonDao-->
+	<bean id="personDao" class="science.mrcuijt.dao.PersonDao">
+		<property name="hibernateTemplate" ref="hibernateTemplate"></property>
+	</bean>
+
+	<!-- PersonService-->
+	<bean id="personService" class="science.mrcuijt.service.PersonServiceImpl">
+		<property name="personDao" ref="personDao"></property>
+	</bean>
+
+	<!-- 启动注解生成Bean -->
+	<context:annotation-config />
+	<!-- 扫描指定的java包生成Bean -->
+	<context:component-scan
+		base-package="science.mrcuijt.dao"></context:component-scan>
+	<context:component-scan
+		base-package="science.mrcuijt.service"></context:component-scan>
+
+</beans>
+```
+
+***```PersonDao.java```***
+
+```java
+public class PersonDao implements Serializable {
+
+	private HibernateTemplate hibernateTemplate;
+
+	public Person findPerson(int id) {
+		Person person = hibernateTemplate.get(Person.class, id);
+		return person;
+	}
+
+	/**
+	 * @return the hibernateTemplate
+	 */
+	public HibernateTemplate getHibernateTemplate() {
+		return hibernateTemplate;
+	}
+
+	/**
+	 * @param hibernateTemplate the hibernateTemplate to set
+	 */
+	public void setHibernateTemplate(HibernateTemplate hibernateTemplate) {
+		this.hibernateTemplate = hibernateTemplate;
+	}
+
+}
+```
+
+***```PersonServiceImpl.java```***
+
+```java
+public class PersonServiceImpl implements PersonService {
+
+	private PersonDao personDao;
+
+	/** (non-Javadoc)
+	 * @see science.mrcuijt.service.PersonService#findPerson(int)
+	 */
+	@Override
+	public Person findPerson(int id) {
+		return personDao.findPerson(id);
+	}
+
+	/**
+	 * @return the personDao
+	 */
+	public PersonDao getPersonDao() {
+		return personDao;
+	}
+
+	/**
+	 * @param personDao the personDao to set
+	 */
+	public void setPersonDao(PersonDao personDao) {
+		this.personDao = personDao;
+	}
+
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

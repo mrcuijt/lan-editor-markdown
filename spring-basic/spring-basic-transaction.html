@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>spring-basic-transaction</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### spring-basic-transaction
+
+#### 手写 Spring 事务注解
+
+框架源码 - 应该注意些什么东西
+
+ 1. 面试造火箭
+
+ 2. 工作效率
+
+ 3. 降低 BUG 返工
+
+Spring 太大 - 核心思想 - 模块清晰
+
+ 1. 事务注解实现
+
+ 框架 - 目的
+
+ 提供 JDK 无法实现的功能？否。封装功能实现，提高开发效率？是
+
+  - 不用 Spring 也是可以实现的。 -- 有哪些麻烦的事情
+
+  - 如果自己去封装，如何实现？
+
+     事务注解 - 本事只是标记这段代码需要事务控制。
+
+     AOP 技术应用 - 用于非侵入式功能增强的场景。
+
+     理论概念是经过实践后的总结。
+
+ 2. Spring 设计如何提供多种框架集成
+
+ 3. 事务坑
+
+ 4. Spring 学习指南
+
+#### 事务
+
+##### 事务 ACID
+
+**ACID - “要么全部成功，要么全部失败”**
+
+ **1. Atomicity 原子性**
+
+ **2. Consistency 一致性**
+
+ **3. Isolation 隔离性**
+
+ **4. Durability 耐久性**
+
+**数据库以 `单个数据库连` 接执行的若干个 SQL 语句，可以将它们囊括到一个事务里面。**
+
+##### 学习示例 
+
+```python
+server:
+  port: 8081
+
+# Spring datasource.url
+# Spring datasource.username
+# Spring 启动的时候，根据配置文件的内容创建 datasource 对象，存放 IOC 容器，需要时候取/注入
+spring:
+  datasource: # 数据源 接口---有很多实现--数据源 + 连接池 结合体
+    # 数据库配置
+    url: jdbc:mysql://127.0.0.1:3306/public-lesson?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false
+    username: root
+    password: root@
+    driver-class-name: com.mysql.jdbc.Driver
+
+logging:
+  level:
+    root: WARN
+```
+
+```java
+@Service
+public class UserService {
+
+  @Autowired
+  JdbcTemplate jdbcTemplate; // Mybatis Hibernate JdbcTemplate JPA 支持
+
+  /**
+   * 新增用户（插入日志 --- 两个表的操作 --- 两次 SQL 执行）
+   *
+   */
+  @Transactional
+  public void insertUser(User user) throws SQLException {
+    // ORM 框架
+    // 插入用户表
+    jdbcTemplate.execute("insert tb_user values ('" + user.getUserId() + "','" + user.getUserName() + "')");
+    // 插入日志记录表
+    jdbcTemplate.execute("insert tb_log values('" + UUID.randomUUID() + "','新增用户" + user.getUserName() + "', now())");
+    // 异常
+    int i = 1/0; // 除数不能为 0
+  }
+
+  @Autowired
+  DataSource dataSource // C3P0/druid 连接池
+
+  public void deleteUser(String userId){
+    // 数据库连接
+    Connection connection = dataSource.getConnection();
+    connection.setAutoCommit(false); // 设置事务手动提交
+
+    Statement statement = connection.createStatement();
+
+    try {
+
+      String deleteUser = "delete from tb_user where user_id = '" + userId + "'";
+      String insertLog = "insert tb_log values('" + UUID.randomUUID() + "','删除用户" + userId + "', now())"
+      statement.execute(deleteUser);
+      statement.execute(insertLog);
+
+      int i = 1/0; // 除数不能为 0
+
+      connection.commit();
+
+      System.out.println("事务提交成功。");
+
+    } catch(Exception e){
+      e.printStackTrace();
+      System.out.println("出现一次，事务回滚");
+      connection.rollback(); // 回滚
+    } finally {
+      connection.close();
+    }
+  }
+
+}
+```
+
+```java
+/**
+ * 不用 Spring 事务时，会存在以下这些大量无关业务的重复冗余代码。
+ *
+ */
+public void operator(){
+  // 数据库连接
+  Connection connection = dataSource.getConnection();
+  connection.setAutoCommit(false); // 设置事务手动提交
+ 
+  Statement statement = connection.createStatement();
+ 
+  try {
+ 
+    connection.commit();
+ 
+    System.out.println("事务提交成功。");
+ 
+  } catch(Exception e){
+    e.printStackTrace();
+    System.out.println("出现一次，事务回滚");
+    connection.rollback(); // 回滚
+  } finally {
+    connection.close();
+  }
+}
+```
+
+#### Spring AOP
+
+![title](images/spring-basic-transaction/spring-basic-transaction-001.jpg)
+
+```java
+@Transactional
+public void deleteUser(String userId){
+  // TODO: 开启事务
+  // 数据库连接
+  Connection connection = dataSource.getConnection();
+  Statement statement = connection.createStatement();
+  String deleteUser = "delete from tb_user where user_id = '" + userId + "'";
+  String insertLog = "insert tb_log values('" + UUID.randomUUID() + "','删除用户" + userId + "', now())"
+  statement.execute(deleteUser);
+  statement.execute(insertLog);
+  int i = 1/0; // 除数不能为 0
+  // TODO: 事务提交/回滚
+}
+```
+
+##### AOP 切面编程示例
+
+**AOP 实现原理之一，动态代理。**
+
+```java
+@Component
+@Aspect // AOP 切面程序注解，Spring 提供
+public class MyTransactionalAsepct {
+
+  // @After   前置增强
+  // @Before  后置增强
+  // @Around  环绕增强
+
+  // 一堆的代码
+  @Around("@annoational(MyTransactional)") // 和哪一个目标进行关联 -- 指定切入点
+  public Object doTranactional(ProceedingJoinPoint proceedingJoinPoint){
+    System.out.println("方法执行前 -------");
+    // TODO: 开启事务
+    // TODO: 在目标方法执行的前后
+    try {
+      proceedingJoinPoint.proceed(); // 调用方法
+    } catch(Throwable throwable){
+      throwable.printStackTrace();
+    }
+    // TODO: 提交/回滚事务
+    System.out.println("方法执行后 -------");
+    return null;
+  }
+
+}
+```
+
+```java
+public @interface MyTransactionalAsepct {
+
+}
+```
+
+#### Service 层
+
+使用 Spring 注解事务，Service 层不要做异常捕获，Spring 会根据抛出的异常进行事务回滚。
+
+或者是捕获异常后再抛出。
+
+#### ThreadLocal
+
+ThreadLocal 是 Java 里一种特殊变量。
+
+它是一个线程级别变量，每个线程都有一个 ThreadLocal 就是每个想吃都拥有了自己独立的一个变量，竞争条件被彻底消除了，在并发模式下是绝对安全的变量。
+
+**用法：`ThreadLocal<T> var = new ThreadLocal<T>();`**
+
+会自动在每个线程创建一个 T 的副本，副本之间彼此独立，互不影响。
+
+可以用 ThreadLocal 存储一些参数，以便在线程中多个方法中使用，用来代替方法传参的做法。
+
+实在难以理解的，可以理解为，JVM 维护了一个 `Map<Thread, T>`，每个线程要用这个 T 的时候，用当前的线程去 Map 里面取。仅作为一个概念理解。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

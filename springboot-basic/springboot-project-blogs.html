@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-project-blogs</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-project-blogs
+
+#### 课程概述
+
+ - 名称：基于 Spring Boot 的博客系统
+
+ - 功能：注册博主、发博客、评论、点赞、全文检索、文件上传...
+
+ - 技术：前端、后端、数据库、NoSQL、文件存储、大数据...
+
+ - 目的：掌握企业级应用开发的流程，提升市场核心竞争力！
+
+##### 核心功能
+
+ - 用户管理
+
+ - 安全设置
+
+ - 博客管理
+
+ - 评论管理
+
+ - 点赞管理
+
+ - 分类管理
+
+ - 标签管理
+
+ - 首页检索
+
+ - ...
+
+###### 用户管理
+
+ - 注册
+
+ - 登录
+
+ - 增加用户
+
+ - 修改用户
+
+ - 删除用户
+
+ - 搜索用户
+
+###### 安全设置
+
+ - 角色授权
+
+ - 权限设置
+
+###### 博客管理
+
+ - 发表博客
+
+ - 编辑博客
+
+ - 删除博客
+
+ - 博客分类
+
+ - 设置标签
+
+ - 删除图片
+
+ - 模糊查询
+
+ - 最新排序
+
+ - 最热排序
+
+ - 阅读量统计
+
+###### 评论管理
+
+ - 发表评论
+
+ - 删除评论
+
+ - 评论量统计
+
+###### 点赞管理
+
+ - 点赞
+
+ - 取消点赞
+
+###### 分类管理
+
+ - 创建分类
+
+ - 编辑分类
+
+ - 删除分类
+
+ - 按分类查询
+
+###### 标签管理
+
+ - 创建标签
+
+ - 删除标签
+
+ - 按标签查询
+
+###### 首页搜索
+
+ - 全文检索
+
+ - 最新文章
+
+ - 最热文章
+
+ - 热门标签
+
+ - 热门用户
+
+ - 热门文章
+
+ - 最新发布
+
+#### 核心技术
+
+ - 前端
+
+  - BootStrap
+
+  - Thymeleaf
+
+  - JQuery
+
+  - HTML5
+
+  - JavaScript
+
+  - CSS
+
+ - 后端
+
+  - Spring
+
+  - Spring Boot
+
+  - Spring MVC
+
+  - Spring Data
+
+  - Spring Security
+
+  - Hibernate
+
+ - 数据存储
+
+  - MySQL
+
+  - H2
+
+  - MongoDB
+
+ - 其他
+
+  - ElasticSearch
+
+  - Gradle
+
+  - ...
+
+#### 授课方式
+
+ - 精讲技术 -> 各个攻破
+
+ - 功能累加 -> 步步为营
+
+ - 实战入门阶段
+
+  - Gradle、Gradle Wrapper
+
+  - 开发环境搭建及项目运行
+
+  - Thymeleaf 知识讲解及实战
+
+  - 数据持久化讲解及实战
+
+  - 全文搜索讲解及实战
+
+  - Bootstrap 讲解及实战
+
+ - 实战进阶阶段
+
+  - 架构设计与分层
+
+  - 需要分析与设计
+
+  - 权限管理
+
+  - 整体框架搭建
+
+  - API 设计
+
+ - 实战高级阶段
+
+  - 用户管理实现
+
+  - 角色管理实现
+
+  - 权限管理实现
+
+  - 博客管理实现
+
+  - 评论管理实现
+
+  - 点赞管理实现
+
+  - 分类管理实现
+
+  - 标签管理实现
+
+  - 首页搜索实现
+
+#### 学习收获
+
+ - 学会了 Spring Boot 及周边技术栈
+
+ - 掌握如何运行上述技术进行整合，搭建框架的能力
+
+ - 熟悉完整企业级应用开发的流程
+
+ - 掌握了如何打造一款企业级应用产品
+
+#### 特色
+
+ - 技术涉及面广
+
+ - 技术点富有前瞻性，符合主流
+
+ - 知识点梳理+实战案例
+
+ - 真实可用的企业级应用——博客系统
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

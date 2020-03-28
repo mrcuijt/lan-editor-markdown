@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring AOP</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Ioc 和 Aop 使用扩展
+
+##### 回顾作业与点评：
+
+ - 如何理解控制反转 / 依赖注入？
+
+ - 如何理解面向切面编程？
+
+ - 如何使用 Spring IoC？
+
+ - 如何使用 Spring AOP？
+ 
+##### 如何使用 Spring IoC？
+
+&amp;#160; &amp;#160;在 Spring 中，注入依赖和控制反转其实是一个概念，就是将对象的创建与对象之间的关系的管理交给了我们的 Spring 容器，在我们的程序中不需要我们自己手动的去 new 出一个对象和手动的去管理对象的之间的关系。这样可以极大的简化我们的 Java 代码，并且利于模块之间的解耦。
+
+##### 预习检查
+
+列举 Spring 提供的几种依赖注入的方式
+
+ - 值注入
+
+ - 构造注入
+
+ - p 命名空间注入（增强型植入）
+
+列举 Spring 提供的几种实现 AOP 的方式（3种）
+
+ - 实现接口
+
+  - ```ThrowsAdvice``` 异常增强
+
+  - ```MethodInterceptor``` 环绕增强
+
+ - ```@AspectJ``` 注解
+
+ - ```Schema``` 配置文件
+
+##### 本章任务
+
+ - 使用多种方式实现依赖注入
+ 
+ - 使用多种方式实现 AOP
+
+
+##### 本章目标
+
+<text>╔════════════════════════════╤═════════════════╗
+║ 理解构造注入               │ 重点 ▲          ║
+╟────────────────────────────┼─────────────────╢
+║ 理解不同数据类型的注入方法 │ 重点 ▲▲▲▲       ║
+╟────────────────────────────┼─────────────────╢
+║ 掌握p命名空间注入          │ 重点 ▲▲         ║
+╟────────────────────────────┼─────────────────╢
+║ 理解更多增强类型的使用     │ 重点 难点 ▲▲▲▲  ║
+╟────────────────────────────┼─────────────────╢
+║ 掌握使用注解定义增强       │ 重点 难点 ▲▲▲▲  ║
+╟────────────────────────────┼─────────────────╢
+║ 理解使用POJO定义增强       │ 重点 难点 ▲▲▲▲▲ ║
+╚════════════════════════════╧═════════════════╝</text>
+
+#### 构造注入 1 - 1
+
+&amp;#160; &amp;#160;Spring 提供了多种依赖注入的手段，除了通过属性的 setter 访问器，还可以通过带参构造方法实现依赖注入。
+
+创建带参构造函数
+
+▲要点：
+
+ 1. 一个 ```constructor-arg``` 元素只代表一个参数，且使用时不区分顺序。
+
+ 2. 多个 ```constructor-arg``` 元素的顺序可以不按照构造函数声明的顺序来编写。匹配时使用过元素的类型来匹配的。通过 ```constructor-arg``` 元素的 ```index``` 属性可以指定该参数的位置索引，位置从 0 开始。（避免多个构造函数匹配混淆）；
+
+ 3. ```constructor-arg``` 元素还提供了 ```type``` 属性用来指定参数的类型，避免字符串和基本数据类型的混淆。
+
+**```▲注意```**：
+
+&amp;#160; &amp;#160;编写带参构造方法后，Java 虚拟机不再提供默认的无参构造方法，为了保证使用的灵活性，建议自行添加一个无参构造方法。
+
+#### 构造注入 1 - 2
+
+构造注入 与 设值注入  的区别：
+
+***```设值注入```***
+
+ 1. 通过 ```setter``` 访问器实现。
+ 
+ 2. 灵活性好，但 ```setter``` 方法数量较多。
+ 
+ 3. 时效性差（对象构建完之后，再使用对象的 ```setter``` 方法设置进去的）。
+ 
+ 4. 通过无参构造实例化。
+
+***```注意：```***设值注入需要，```无参的构造``` & ```setter``` 方法
+
+***```构造注入```***
+
+ 1. 通过构造函数实现
+
+ 2. 灵活性差，仅靠重载限制太多
+
+ 3. 时效性好（在对象初始化构建的时候，就将值设置进去了）
+
+ 4. 通过匹配的构造函数实例化，但建议保留无参构造
+
+##### 练习：学员操作 - 使用构造注入
+
+需求说明：
+
+输出：
+
+&amp;#160; &amp;#160;张嘎说：“三天不打小鬼子，手都痒痒！”
+
+&amp;#160; &amp;#160;Rod 说：“世界上有两种人，认识二进制的人和不认识二级制的人。”
+
+要求：说话的人和说话的内容都是通过构造方法注入。
+
+提示：
+
+ 1. ```因说话的人和说话的内容均为字符串类型，需要使用 index 属性指定参数下标。```
+
+ 2. ```使用 ref 属性对引用类型参数赋值，使用 value 属性为基本数据类型赋值。```
+
+***```applicationContext.xml```***
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-2.0.xsd 
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx-2.0.xsd 
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+
+	<bean id="helloSpring" class="cn.jbit.demo.HelloSpring">
+		<property name="trueName" value="Spring"></property>
+	</bean>
+
+	<bean id="zhang" class="cn.jbit.demo.ManBean">
+		<property name="trueName" value="张嘎" />
+		<property name="content" value="三天不打小鬼子，手都痒痒。" />
+	</bean>
+
+	<bean id="rod" class="cn.jbit.demo.ManBean">
+		<property name="trueName" value="Rod" />
+		<property name="content" value="世界上有两种人，认识二进制的和不认识二进制的。" />
+	</bean>
+
+</beans>
+```
+
+***```ManBean.java```***
+```java
+/**
+ * @描述：
+ * @开发人员：moshco zhu
+ * @开发时间：2012-9-25 上午10:49:58
+ */
+package cn.jbit.demo;
+
+import java.io.Serializable;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+/**
+ * @描述：演示1
+ * @开发人员：moshco zhu
+ * @开发时间：2012-9-25 上午10:49:58
+ */
+public class ManBean implements Serializable {
+
+	// 真实姓名
+	protected String trueName = null;
+
+	// 说话内容
+	protected String content = null;
+
+	public String getTrueName() {
+		return trueName;
+	}
+
+	public void setTrueName(String trueName) {
+		this.trueName = trueName;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+
+	/**
+	 * @描述：说
+	 * @开发人员：moshco zhu
+	 * @开发时间：2012-9-25 上午10:51:51
+	 * @return
+	 */
+	public String say() {
+		String str = trueName + "说：" + content + "！";
+		System.out.println(str);
+		return str;
+	}
+
+	/**
+	 * @描述：入口函数
+	 * @开发人员：moshco zhu
+	 * @开发时间：2012-9-25 上午10:49:58
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		ApplicationContext context = new ClassPathXmlApplicationContext(
+				"applicationContext.xml");
+		ManBean bean1 = (ManBean) context.getBean("zhang");
+		bean1.say();
+		ManBean bean2 = (ManBean) context.getBean("rod");
+		bean2.say();
+	}
+}
+```
+
+***```HelloSpring.java```***
+```java
+/**
+ * @描述：
+ * @开发人员：moshco zhu
+ * @开发时间：2013-3-24 下午12:42:44
+ */
+package cn.jbit.demo;
+
+import java.io.Serializable;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+/**
+ * @描述：你好，Spring
+ * @开发人员：moshco zhu
+ * @开发时间：2013-3-24 下午12:42:44
+ */
+public class HelloSpring implements Serializable {
+
+	// 姓名
+	protected String trueName = null;
+
+	public String getTrueName() {
+		return trueName;
+	}
+
+	public void setTrueName(String trueName) {
+		this.trueName = trueName;
+	}
+
+	/**
+	 * @描述：hello
+	 * @开发人员：moshco zhu
+	 * @开发时间：2013-3-24 下午12:47:25
+	 * @return
+	 */
+	public String sayHello() {
+		String strMsg = "你好，" + trueName + "！";
+		System.out.print(strMsg);
+		return strMsg;
+	}
+
+	/**
+	 * @描述：入口函数
+	 * @开发人员：moshco zhu
+	 * @开发时间：2013-3-24 下午12:42:44
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
+		ApplicationContext context = 
+				new ClassPathXmlApplicationContext(
+				"applicationContext.xml");
+		HelloSpring bean = (HelloSpring) context.getBean("helloSpring");
+		bean.sayHello();
+
+	}
+
+}
+```
+
+#### 小结
+
+##### 一、理解依赖注入
+
+&amp;#160; &amp;#160;所谓的依赖注入，是指程序运行过程中，如果需要另一个对象协作（调用它的方法、访问它的属性）时，无须在代码创建被调用者，而是依赖于外部容器的注入。Spring 的依赖注入对调用者和被调用者几乎没有任何需求，完全支持对 POJO 之间依赖关系的管理。
+
+依赖注入通常有如下两种。
+
+ 1. 设值注入：IoC 容器使用属性的 setter 方法来注入被依赖的实例。
+ 
+ 2. 构造注入：IoC 容器使用构造器来注入被依赖的实例。
+
+##### 二、设值注入
+
+&amp;#160; &amp;#160;依赖注入以配置文件管理 Bean 实例之间的耦合，让 Bean 实例之间的耦合从代码层次分离出来。依赖注入式是一种优秀的解耦方式。
+
+使用 SpringIoC 容器的 3 个基本要点：
+
+ 1. 应用程序的各组件面向接口编程。面向接口编程可以将各组件之间的耦合提升到接口层次，从而有利项目后期的扩展。
+ 
+ 2. 应用程度的各组件不再由程序主动产生，而是由 Spring 容器来负责产生、并初始化。
+ 
+ 3. Spring 采用配置文件、或 Annotation 来管理 Bean 的实现类、依赖关系，Spring 容器则根据配置文件、利用反射来创建实例，并为之注入依赖关系。
+
+##### 三、构造注入
+
+&amp;#160; &amp;#160;在构造实例时，已经为其完成了依赖关系的初始化，Spring 通过构造器为其注入所依赖的 Bean 实例。
+
+#### 总结
+
+ - Spring 提供了设值注入、构造注入等注入方式
+
+ - 使用 p 命名空间可以简化依赖注入的配置
+
+ - Spring 提供的增强处理类型包括：
+
+  - ***```前置增强(Before)```***
+ 
+  - ***```后置增强(AfterReturning)```***
+ 
+  - ***```环绕增强(Around)```***
+ 
+  - ***```异常抛出增强(AfterThrowing)```***
+ 
+  - ***```最终增强等(After)```***
+
+ - 使用注解方式定义切面可以简化配置工作量，通过在配置文件中添加 ```<aop:aspectj-autoproxy />``` 元素启用对于 ```@AspectJ``` 注解的支持。常用的注解有 ```@Aspect、@Before、@AfterReturning、@Around、@AfterThrowing、@After``` 等。
+
+ - 也可以通过 ```Schema``` 形式将 POJO 的方法配置成切面，所用标签包括 ```<aop:aspect>、<aop:before>、<aop:after-returning>、<aop:around>、  <aop:after-throwing>、<aop:after>``` 等
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

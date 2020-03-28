@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>software-test-diagram</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### software-test-diagram
+
+#### 软件测试设计
+
+主题
+
+ - 软件测试设计。
+
+ - 测试用例的概念和生命周期。
+
+ - 测试环境的设计。
+
+ - 测试工具和脚本的设计。
+
+#### 软件测试设计
+
+ - 根据测试计划中定义的测试目标、范围内容和准则，设计和开发测试方案的过程。
+
+ - **软件测试设计（测试方案）的主要内容**
+
+  - 测试流程。
+
+  - 测试管理。
+
+  - 测试用例。
+
+  - 测试环境。
+
+  - 测试工具和脚本。
+
+ - **软件测试设计的目标**
+
+  - 用尽可能少的工作量，生成足够多的、不同的测试用例，并能最大限度地发现软件中可能存在的缺陷。
+
+ - **关于测试设计的认识误区**
+
+  - 1、误认为测试计划就是测试设计。
+
+     - 两者的定义不同。
+
+         - 测试计划是对整个测试工作不同阶段的任务目标、工作时间进度资源规划、风险评估。
+
+         - 测试设计，将测试计划转换成具体的切实可行的技术方案。
+
+     - 两者的层次不同。
+
+         - 测试计划是管理层的设计。
+
+         - 测试设计时技术层的设计。
+
+  - 2、实际工作中好像不需要进行测试设计
+
+     - 项目规模小、周期短，设计过程不明显。
+
+     - 项目规模大、周期长，已经积累了比较完善的设计方案。
+
+#### 测试用例的概念和生命周期
+
+ - **测试用例**
+
+  - 为特定测试目标或测试条件而制定的一组输入值、执行入口条件、预期结果和执行出口条件的集合称作 ~ 。[IEEE 610]
+
+  - ~ 是为某个特殊目标而编写的一组测试输入、执行条件以及预期结果的集合，以便测试软件是否满足某个特定需求。
+
+  - ~ 测试时用的方案，和用例。
+
+ - **为什么需要测试用例？**
+
+  - 避免盲目测试、提高测试效率、是测试活动规范有序。
+
+  - 减轻测试设计的工作量，减少回归测试的复杂程度。
+
+  - 可以根据测试用例的多少和执行难度，估算测试工作量，便于跟踪测试项目的时间进度和资源分配调度。
+
+![title](./images/software-test-diagram/software-test-diagram-001.png)
+
+##### 测试用例的生命周期 - 1 - 确定测试条件
+
+某业务系统【转账】功能的需求描述如下：
+
+ - 1、系统支持本行和跨行转账两种转账方式。
+
+ - 2、转账手续费的收取标准：
+
+  - 1）本行转账 1 万元以内不收取手续费，1 万元以上按 0.5% 收取。
+
+  - 2）跨行转账不论金额大小，一律按 1% 收取。
+
+ - 3、本行转账及时到账、跨行转账三天内到账。
+
+ - **确定测试条件**
+
+  - 测试条件即测试目标和范围。
+  
+     - 手续费。
+
+     - 到账时间。
+
+ - **本案当中的测试条件**
+
+     - 本行和跨行转账手续费和到账时间。
+
+##### 测试用例的生命周期 - 2 - 设计测试用例
+
+ - **黑河测试设计技术**
+
+  - 等价类划分
+
+  - 边界值分析
+
+  - 因果图和决策表
+
+  - 状态转换图
+
+  - 基于经验的测试
+
+  - ...
+
+ - **白盒测试**
+
+  - 语句覆盖
+
+  - 分支覆盖
+
+  - 条件覆盖
+
+  - 路径覆盖
+
+  - ...
+
+##### 测试用例的生命周期 - 3 - 实现测试用例
+
+ - **测试用例需要包含的内容**
+
+  - 测试前置条件。
+
+     - 需要两个银行账户，如果没有账户则需要先开户。
+
+     - 同一账户不能给自己账户转账。
+
+     - 如果账号上没有金额则无法进行转账。
+
+  - 测试输入和操作。
+
+     - 要输入哪些内容。
+
+     - 点击哪些按钮。
+
+     - 完成哪些操作才能够进行转账。
+
+  - 测试数据。
+
+     - 如果没有测试数据，则无法进行相关操作。
+
+     - 增、删、改、查。
+
+  - 测试预期结果。
+
+     - 执行测试用例后我应该看到的结果是什么。
+
+     - 如果测试用例中不包含预期结果的话，那么这个测试用例本身就是不完整。
+     
+         是一个错误的。
+
+  - 测试后置条件。
+
+     - 在做完了这个测试后会产生哪些影响。
+
+     - 如转账功能从 A 账户转 1 万到 B 账户，
+     
+         如果转账完成后 A 账户中没有减去这 1 万，B 账户中没有增加 1 万，
+         
+         那么实际上你这个转账功能是没有完成的。
+
+     - 后台日志，我们在完成转账这一操作后，
+     
+         数据库后台肯定会要有这么一个操作记录到日志中。
+
+  - ...
+
+##### 测试用例的生命周期 - 4 - 执行测试用例
+
+ - **执行测试用例**
+
+  - 通过运行测试用例来对系统进行测试。
+
+ - **执行测试用例的方式**
+
+  - 手工执行。
+
+  - 自动化执行。
+
+##### 测试用例的生命周期 - 5 - 管理测试用例
+
+ - **测试用例的组织**
+
+  - 使用测试管理工具来存储和组织测试用例。
+
+     - TD、QC、禅道
+     
+     - 方便我们分类查找、执行、统计
+
+  - 常见的测试用例的组织方式：
+
+     - 按照功能模块组织。
+
+     - 按照测试类型组织。
+
+     - 按照测试用例的优先级和重要性组织等。
+
+ - **测试用例的跟踪**
+
+  - 根据测试用例的执行情况，评估进度、质量和工作情况。
+
+  - 记录测试的执行时间。（评估测试周期）
+
+ - **测试用例的维护**
+
+  - 确定测试用例的覆盖率。
+
+     - 如果现在有 300 条测试用例，覆盖了软件当中的 50 个功能。
+     
+         也就是说平均一个功能需要六条左右的测试用例。
+
+     - 如果我们软件有 100 个功能的话，我们的测试用例就覆盖了 50% 。
+
+         50 / 100 = 0.5 = 50%
+
+     - 这就说明了软件中的很多需求和功能是没有测试到的。（追加测试用例）
+
+     - 测试用例的覆盖率最好是达到 100% 的。
+
+  - 在需求变更时，及时更新测试用例。
+
+     - 如软件的界面，可能会发生一些细微的改动。
+
+     - 软件执行中一些细微的流程。
+
+     - 软件当中的一些字段，操作当中的控件菜单，摆放的一些位置布局。
+
+     - 测试用例也需要相应的进行调整。
+
+  - 统计测试用例在发现缺陷方面的有效性。
+
+     - 如有些测试用例一直可以很好的进行缺陷的检查。
+
+     - 一些测试用例从项目一开始就没有发现过缺陷。（可以对其进行改进）
+     
+         修改输入数据、更新执行流程等。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>software-test</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### software-test
+
+#### 软件测试的产生
+
+ - 早在 20 世纪 50 年代，英国著名的计算机科学家图灵就给出了程序测试的原始定义。他认为，测试是证明程序正确性的一种极端实验形式。
+
+ - 直到 60-70 年代，软件危机出现以后，人们才逐渐意识到测试的意义。
+
+ - 1999 年，美国 Los Angeles 召开的第 21 界国际软件工程会议，将软件测试作为一个技术专题展开，以改善软件开发过程，提高软件质量。
+
+ - 2001 年，我国首次召开的全国测试学术会议，将软件测试作为一个主要的议题，以推进我国软件测试工作的研究。
+
+#### 软件测试删除的根本原因
+
+ - 软件复杂度
+
+  - 程序规模的爆发式增长。
+
+  - 软件功能和算法复杂度提高。
+
+ - 市场竞争和行业发展
+
+  - 同行之间的产品竞争。
+
+  - 用户需求和认知水平的提升。
+
+ - 国内
+
+  - 处于初步和迅猛发展的阶段。
+
+  - 大中型公司已经开始重视测试，但还有很多小公司不太看重测试。
+
+  - 主要以手动测试为主、自动化测试为辅。
+
+  - 流程和规范上还不是非常健全。
+
+ - 国外
+
+  - 处于成熟、规范和革新的阶段。
+
+  - 软件企业普遍非常注释软件测试。
+
+  - 手动测试和自动测试的地位同等重要。
+
+  - 流程和规范已形成体系，着眼于过程改进和外包合作。
+
+#### 软件测试的概念
+
+ - 维基百科
+
+  - ~ 是在规定的条件下对程序进行操作，以发现程序错误，衡量软件质量，并对其是否满足设计要求进行评估的过程。
+
+ - IEEE 1983（国际电气和电子工程师协会）
+
+  - ~ 是使用人工或自动手段对系统运行或测试的过程，其目的在于检验系统是否满足规定的需求，或者搞清楚预期结果与实际结果之间的差别。 -- 测试规范标准
+
+软件测试的目标 - 提升软件的质量。
+
+ - 软件运行不出错是软件测试的底线。
+
+ - 用户的界面是否美观。
+
+ - 软件的稳定性、安全性要足够强。
+
+ - 软件要易于安装易于使用，软件的兼容性要很好。
+
+ - 软件要有不错的性能。
+
+ - ...
+
+#### 软件测试的目标
+
+ - 用户角度
+
+  - 通过软件测试活动来暴露软件中隐藏的错误和问题，以便考虑是否可以接受该产品。
+
+ - 软件开发者角度
+
+  - 通过软件测试活动来证明软件不存在错误和问题，验证该软件已经正确地实现了用户的要求，确立人们对软件质量的信息。
+
+ - G.J.Myers 的观点（软件测试的艺术）
+
+  - 软件测试是为了发现程序中的错误而执行的程序过程。
+
+  - 好的或成功的测试是发现了至今为止尚未发现的错误的测试。
+
+ - 确保交付的产品符合用户的 `需求` 。
+
+  - 满足用户需求的产品成功的关键。
+
+ - 在产品交付之前尽可能多的 `发现` 和 `修复` 缺陷。
+
+  - 尽可能的发现缺陷。
+
+  - 跟踪确保修复缺陷。
+
+ - 技术层面
+
+  - 软件测试以检验和衡量产品是否满足需求为目标，是提升软件质量的重要手段之一（但不是唯一）。
+
+ - 经济和社会层面
+
+  - 在提高产品质量的同时，软件企业也收获了商业利益。
+
+  - 高质量的软件可以提高生产力，促进社会进步，提高大众的生活品质。
+
+#### 软件缺陷导致的事故（1）
+
+ - 1979 年，新西兰航空公司的一架客机因计算机控制的自动飞行系统发生故障而撞在阿尔卑斯山上，导致机上 257 名乘客全部遇难。
+
+ - 1985~1987 年间，加拿大产生的 Therac-25 放射治疗仪的软件缺陷导致多起治疗过程中射线剂量严重超标引发的医疗事故。
+
+ - 2000 年，巴拿马市国家肿瘤中心使用的治疗软件计算得到了错误的射线剂量，导致治疗过程中有 20 多个病人受到过量射线照射。
+
+ - ...
+
+ - 2003 年，由于监狱管理局的计算机系统错误，密歇根政府将 23 名刑期未到的囚犯提前释放，而另外原本已到刑期的囚犯却仍然被关在监狱里。
+
+ - 2012 年，苹果 iOS 6 系统首次尝试地图服务，由于许多地点和定位都出现错误，引来了无数人的抱怨。该错误导致在 48 小时内近 1000 万用户改用 Google 地图。
+
+ - 2013 年，印第安纳州家庭和社会服务管理局因系统漏洞导致 18.8 万人的社会安全号码和个人隐私信息被泄露和公开。
+
+ - 2013 年 8 月，美国纳斯达克因为软件缺陷导致纽约证券交易所长达 3 小时无法正常交易。
+
+ - 2013 年 9 月，美联航售票网栈由于程序错误导致售出一批 0-10 美元价格超低价机票，引发乘客大量哄抢。
+
+ - ...
+
+ - 由于软件导致的事故每天都在发生 ...
+
+#### 软件测试和开发的关系
+
+ - 大众对测试认识上的误区
+
+  - 测试人员就像工厂里面的质检员。
+
+  - 测试必须等到开发完成以后才能进行。
+
+  - 测试肯定比开发简单，做不了开发才去做测试。
+
+ - 软件开发与测试的关系
+
+  - 相符相成，缺一不可。
+
+#### 软件测试工程师的技能要求
+
+ - 个人素养
+
+  - 责任心
+
+  - 沟通和协作
+
+  - 耐心和细信
+
+  - 态度和精神
+
+  - ...
+
+ - 专业技能
+
+  - 软件工程
+
+  - 软件测试流程
+
+  - 软件测试技术
+
+  - 软件测试管理
+
+  - 软件开发基础
+
+  - ...
+
+ - 基础知识
+
+  - 计算机硬件
+
+  - 操作系统
+
+  - 中间件
+
+  - 数据库
+
+  - 计算机网络
+
+ - 业务能力
+
+  - 产品需求
+
+  - 业务逻辑
+
+  - 用户思维
+
+  - ...
+
+#### 软件测试的专业技能
+
+ - 软件测试管理
+
+  - 软件测试流程
+
+  - 软件测试组织和管理。
+
+ - 软件测试设计
+
+  - 软件测试的基本方法
+
+  - 软件的特性测试
+
+ - 软件测试的高级技术
+
+  - 单元和集成测试
+
+  - 自动化测试
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
