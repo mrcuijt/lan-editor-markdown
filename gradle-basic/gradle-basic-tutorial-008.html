@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>gradle-basic-tutorial-008</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### gradle-basic-tutorial-008
+
+#### Gradle 学习(8)- Gradle 的命令行
+
+##### 执行多个任务
+
+在命令行下，要想执行多个任务，可以在 Gradle 关键字后面跟多个任务名，之间要用空格隔开，执行的顺序按照你的输入的顺序执行。例如我们要执行编译和测试的任务。可以在命令行下输入：
+
+```python
+gradle compile test
+
+:compile1
+nihao
+:compileJava UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:compileTestJava UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+
+BUILD SUCCESSFUL
+
+Total time: 2.787 secs
+```
+
+可以看出先执行 compile，然后是 test。那么如果我倒过来呢？
+
+还是这样的顺序，因为这个是 Gradle 自带的任务，肯定要按严格的顺序执行。所以没有说服力，我们现在写一个自己的。 
+
+build.gradle
+
+```java
+apply plugin:'java'
+
+task test {
+  println "test1"
+}
+
+task compile1 {
+  println "compile1"
+}
+```
+
+这个时候按不同的顺序执行一下，这下验证了上面的说法，确实是按照输入的顺序执行的。
+
+##### 依赖任务
+
+其实刚才我们让 test 先执行，compile 后执行的时候已经可以看出，Gradle 会将命令行中列举的任务的依赖任务也执行了。不然先执行test肯定会报错了，就是因为 test 任务依赖于 compile 等任务，所以我们执行 test 任务的时候，它的依赖任务会先被执行，然后才执行 test 任务，命令行的输出看的很明显。
+
+而且被依赖的任务只会被执行一次。
+
+```java
+task compile1 {
+  println 'compiling source'
+}
+
+task compileTest1(dependsOn:compile1){
+  println 'compiling unit test'
+}
+
+task test1(dependsOn:[compile1, compileTest1]){
+  println 'running unit tests'
+}
+
+task dist1(dependsOn:[compile1, test1]){
+  println 'build the destribution'
+}
+```
+
+看上面的例子，dist1 依赖 compile1 和 test1。然后 test1 又依赖 compile1 和 compileTest1。疏导一下关系
+
+dist1 依赖：compile1、test1
+test1 依赖：compile1、compileTest1
+
+依据执行的顺序与命令行的列举顺序有关，且被依赖的任务只会被执行一次的这两个原则，思考一下输出应该是什么样子。
+
+```java
+compiling source
+compiling unit tests
+running unit tests
+build the distribution
+```
+
+##### 排除任务
+
+Gradle 提供了排除某个特定任务的语法，不执行所依赖的任务中的某个任务，来看一下命令
+
+```java
+gradle task1 -x task2
+```
+
+在执行 task1 任务时不执行 task1 所依赖的 task2 任务。而且只删除 task2 有依赖，而 task1 没有依赖的任务。
+
+同样我们来看看执行下面的命令
+
+```java
+gradle -q dist1 -x test1
+```
+
+考虑一下执行的结果。我自己先猜一下，刨除 test1 中的两个依赖项目。就剩下了
+
+```java
+compiling source
+build the distribution
+```
+
+##### 倔强的构建方式
+
+默认情况下，Gradle 在构建过程中遇到错误会自动停止，这样有些错误你无法一次性发现。但是你也可以去设置：即使遇到错也要倔强的构建，不撞南墙不回头。
+
+这样的话等执行完毕后，再把所有的错误都打印出来，是不是很好呢。使用 `--continue` 属性。(这块还不太清楚怎么使用，以后知道了再补充)
+
+##### 智能匹配
+
+执行任务的时候，任务名不需要写全，但是得能够匹配唯一一个。
+
+例如上面的任务，我们可以通过 comile 匹配 compile1。但是 dist 就不能匹配 dist1，因为还有一个 dist2 也匹配。
+
+对于有 2 个单词组成的任务名，我们可以通过首字母的缩写匹配该任务。
+
+##### 选择特定的文件去执行
+
+比如我们去执行同目录下 sob 目录下的的 user.gradle 构建文件。sob/user.gradle 文件内容如下
+
+```java
+task hello {
+  println "using build file "$buildFile.name" in "$buildFile.parentFile.name""
+}
+```
+
+执行该文件 
+
+```python
+gradle -q -b sob/user.gradle hello
+
+using build file 'user.gradle' in 'sob'
+```
+
+可以看出要在命令行上用 -b 后面跟目录来表示指定的文件。任务在前或在后效果都是一样的。
+
+```python
+gradle -q hello -b sob/user.gradle
+
+using build file 'user.gradle' in 'sob'
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/qhshiniba/article/details/42552187" target="_blank">Gradle 学习(8)- Gradle 的命令行</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

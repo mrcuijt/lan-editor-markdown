@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>spring-basic-request-mapping-handler-adapter</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### spring-basic-request-mapping-handler-adapter
+
+![](images/spring-basic-request-mapping-handler-adapter/spring-basic-request-mapping-handler-adapter-001.jpg)
+
+前言：Spring MVC 通过前端控制器 **`DispatcherServlet#doDispach()`** 方法进行请求处理。其中，我们通过 **`HandlerAdapter#handle()`** 方法将请求交给合适的 handler 处理，此外，执行一些参数解析、返回值处理工作。
+
+ - 步骤1：**`AbstractHandlerMethodAdapter#handle()`** 方法将参数解析、handler 调用、返回值处理交由其子类 **`RequestMappingHandlerAdapter#invokeHandleMethod()`** 方法，后者调用 **`ServletInvocableHandlerMethod#invokeAndHandle()`** 方法。
+
+ - 步骤2：**`ServletInvocableHandlerMethod`** 继承于 **`InvocableHandlerMethod`**，**`ServletInvocableHandlerMethod#invokeAndHandle()`** 方法。
+
+ （2.1）调用其继承于父类的 **invokeForRequest** 方法进行参数解析、handler 处理器调用；
+
+ （2.2）通过其成员变量 **returnValueHandlers** 方便调用 **HandlerMethodReturnValueHandler#handleReturnValue()** 抽象方法的实现进行返回值处理。
+
+  - 步骤2.1：InvocableHandlerMethod#invokeForRequest() 方法调用其本类的 getMethodArgumentValues 方法进行参数解析，利用成员变量 argumentResolvers 调用方法参数解析器，通过 SupportsParameter 方法，选择合适的解析器，通过解析器的 resolveArgument 方法调用 readWithMessageConverters 方法进行参数解析，解析的参数供处理器方法使用，通过 doInvoke 方法调用处理器方法。
+
+  - 步骤2.2：通过 ServletInvocableHandlerMethod 类成员变量 returnValueHandlers 来方便调用返回值处理器，通过 HandlerMethodReturnValueHandler#supportsReturnType() 方法选择合适的返回值处理器、handleReturnValue 方法进行返回值处理。handleReturnValue 方法调用 WriteWithMessageConverters 方法，利用消息转换器的 canWrite、Write 方法完成返回值处理过程。
+
+消息转换工作交由 Spring MVC 执行，开发者只要通过一些xml配置、注解，就可以实现想要的消息数据类型，大大减少了开发者的工作。但任何技术都不会是完美的，把消息转换工作交给 Spring MVC，我们就要知道它是怎么做的、为什么这么做，这样用的过程中遇到了坑，我们也就有办法解决。
+
+#### RequestMappingHandlerAdapter 源码分析
+
+AbstractHandlerMethodAdapter 和 RequestMappingHandlerAdapter
+
+其中 AbstractHandlerMethodAdapter 是抽象类，AbstractHandlerMethodAdapter 只是简单实现了 HandlerAdapter 中定义的接口（其实最终还是在 RequesrMappingHandlerAdapter 中对代码进行实现的）。并且 AbstractHandlerMethodAdapter 中增加了执行顺序Oder，AbstractHandlerMethod 的源码如下：
+
+```java
+public abstract class AbstractHandlerMethodAdapter 
+		extends WebContentGenerator implements HandlerAdapter, Ordered {
+
+	private int order = Ordered.LOWEST_PRECEDENCE;
+	public AbstractHandlerMethodAdapter() {
+		// no restriction of HTTP methods by default
+		super(false);
+	}
+	public void setOrder(int order) {
+		this.order = order;
+	}
+	@Override
+	public int getOrder() {
+		return this.order;
+	}
+	@Override
+	public final boolean supports(Object handler) {
+		return (handler instanceof HandlerMethod && supportsInternal((HandlerMethod) handler));
+	}
+	protected abstract boolean supportsInternal(HandlerMethod handlerMethod);
+	@Override
+	public final ModelAndView handle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws Exception {
+
+		return handleInternal(request, response, (HandlerMethod) handler);
+	}
+	// handleInternal 主要做如下操作:
+	// (1)备好处理器所需要的参数
+	// (2)使用处理器处理请求
+	// (3)处理返回值，也就是将不同类型的返回值统一处理成 ModelAndView 类型
+	protected abstract ModelAndView handleInternal(HttpServletRequest request,
+			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception;
+
+	@Override
+	public final long getLastModified(HttpServletRequest request, Object handler) {
+		return getLastModifiedInternal(request, (HandlerMethod) handler);
+	}
+
+	protected abstract long getLastModifiedInternal(HttpServletRequest request, HandlerMethod handlerMethod);
+
+}
+```
+
+从上面代码中我们可以看到 handleInternal 和 getLastModifiedInternal 是抽象方法，具体实现是在子类 RequestMappingHandlerAdapter 中。
+
+RequestMappingHandlerAdapter#getLastModifiedInternal() 的实现如下，直接返回值 -1
+
+```java
+	@Override
+	protected long getLastModifiedInternal(HttpServletRequest request, HandlerMethod handlerMethod) {
+		return -1;
+	}
+```
+
+handleInternal 的实现如下，因为中间涉及到很多参数等等操作的处理，这里我们就不做过多介绍了。
+
+```java
+	@Override
+	protected ModelAndView handleInternal(HttpServletRequest request,
+			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
+		............
+		//handlerMethod既是我们要执行的Controller中的具体的方法
+		return invokeHandlerMethod(request, response, handlerMethod);
+	}
+```
+
+最终操作是在 invokeHandlerMothod 中，执行结果返回 ModelAndView 值。
+
+```java
+	protected ModelAndView invokeHandlerMethod(HttpServletRequest request,
+			HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
+
+		.........
+
+		// 执行 Controller 中的 RequestMapping 注释的方法
+		invocableMethod.invokeAndHandle(webRequest, mavContainer);
+		if (asyncManager.isConcurrentHandlingStarted()) {
+			return null;
+		}
+		// 返回 ModelAndView 视图
+		return getModelAndView(mavContainer, modelFactory, webRequest);
+	}
+```
+
+其实简单来说就是采用反射机制调用 url 请求对应的 Controller 中的方法（这其中还包括参数处理等等操作没有介绍），返回执行结果值，这样就完成了 HandlerAdapter 的使命。
+
+参考链接：
+
+ - <a href="https://www.jianshu.com/p/ffc1152fad03" target="_blank">RequestMappingHandlerAdapter 消息转换机制</a>
+
+ - <a href="https://blog.csdn.net/qq924862077/article/details/53895054" target="_blank">RequestMappingHandlerAdapter 源码分析</a>
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>gradle-basic-tutorial-009</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### gradle-basic-tutorial-009
+
+#### Gradle 学习(9) - 获取 build 相关信息
+
+##### 列举当前目录下的所有项目，包括子项目
+
+```python
+gradle -q projects
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+Root project 'multproject'
++--- Project ':api'
++--- Project ':services'
+|    +--- Project ':services:shared'
+|    \--- Project ':services:webservice'
+\--- Project ':shared'
+
+To see a list of the tasks of a project, run gradle <project-path>
+:tasksFor example, try running gradle :api:tasks
+```
+
+在 Gradle 后加 projects，就可以列举出所有的项目，从上面的结果可以看出来。该目录的根目录为multproject。下面包括了 api/services/shared 三个子项目。其中 services 下面又包含了 2 个子项目 shared/webservice。
+
+##### 列举任务
+
+```java
+gradle -q tasks
+
+------------------------------------------------------------
+All tasks runnable from root project - The shared API for the application
+------------------------------------------------------------ 
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+buildDependents - Assembles and tests this project and all projects that depend on it.
+buildNeeded - Assembles and tests this project and all projects it depends on.
+classes - Assembles classes 'main'.
+clean - Deletes the build directory.
+jar - Assembles a jar archive containing the main classes.
+testClasses - Assembles classes 'test'. 
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build. [incubating]
+wrapper - Generates Gradle wrapper files. [incubating] 
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code. 
+
+Help tasks
+----------
+components - Displays the components produced by root project 'multproject'. [incubating]
+dependencies - Displays all dependencies declared in root project 'multproject'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'multproject'.
+help - Displays a help message.projects - Displays the sub-projects of root project 'multproject'.
+properties - Displays the properties of root project 'multproject'.
+tasks - Displays the tasks runnable from root project 'multproject' (some of the displayed tasks may belong to subprojects). 
+
+IDE tasks
+---------
+cleanEclipse - Cleans all Eclipse files.
+cleanEclipseWtp - Cleans Eclipse wtp configuration files.
+eclipse - Generates all Eclipse files.
+eclipseWtp - Generates Eclipse wtp configuration files. 
+
+Verification tasks
+------------------
+check - Runs all checks.
+test - Runs the unit tests. 
+
+To see all tasks and more detail, run with --all.
+```
+
+如果想再多的信息可以在后面加上 --all，不过还是不要加的好，因为实在太多了。 
+
+##### 搜索任务
+
+```java
+gradle -q help --task test
+
+Detailed task information for test
+
+Paths
+     :api:test
+     :services:test
+     :shared:test
+     :services:shared:test
+     :services:webservice:test
+
+Type
+     Test (org.gradle.api.tasks.testing.Test)
+
+Options
+     --debug-jvm     Enable debugging for the test process. The process is started suspended and listening on port 5005. [INCUBATING]
+
+     --tests     Sets test class or method name to be included, '*' is supported. 
+
+Description
+     Runs the unit tests.
+
+```
+
+上面是以 test 为关键字搜索匹配项。 
+
+##### 列举依赖
+
+```python
+gradle -q dependencies api:dependencies
+```
+
+例举出了 api 项目的依赖信息。
+
+##### 根据特定配置列举依赖
+
+```python
+gradle -q dependencies api:dependencies --configuration testCompile
+```
+
+##### 获取插入依赖
+
+获取项目中哪个任务依赖 groovy 的 jar 包
+
+```python
+gradle -q api:dependencyInsight --dependency groovy --configuration testCompile
+No dependencies matching given input were found in configuration ':api:testCompile'
+```
+
+##### 列举项目属性
+
+```python
+gradle -q api:properties
+```
+
+##### 获取构建过程中的时间信息 --profile 
+
+```java
+gradle build --profile
+```
+
+在项目的 build/reports/profile 下会生成一个 html 文件，打开
+
+可以看到一个报告。
+
+##### dry run
+
+就是模拟执行过程，但是并没有执行
+
+```java
+gradle -m clean
+
+:api:clean SKIPPED
+:services:clean SKIPPED
+:shared:clean SKIPPED
+:services:shared:clean SKIPPED
+:services:webservice:clean SKIPPED
+
+BUILD SUCCESSFUL
+```
+
+会发现项目目录中里的 build 目录并没有被删除。而且上面的输出信息也可以看出 SKIPPED。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/qhshiniba/article/details/42558993" target="_blank">Gradle 学习(9) - 获取 build 相关信息</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

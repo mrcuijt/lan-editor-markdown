@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>groovy-language-basic-function</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### groovy-language-basic-function
+
+#### Groovy 方法
+
+Groovy 中的方法是使用返回类型或使用def关键字定义的。方法可以接收任意数量的参数。定义参数时，不必显式定义类型。可以添加修饰符，如 public，private 和 protected。默认情况下，如果未提供可见性修饰符，则该方法为 public。
+
+最简单的方法是没有参数的方法，如下所示：
+
+```java
+def methodName() {
+   // Method code
+}
+```
+
+下面是一个简单方法的例子
+
+```java
+class Example {
+   static def DisplayName() {
+      println("This is how methods work in groovy");
+      println("This is an example of a simple method");
+   }
+
+   static void main(String[] args) {
+      DisplayName();
+   }
+}
+```
+
+在上面的例子中，DisplayName 是一个简单的方法，它由两个 println 语句组成，用于向控制台输出一些文本。在我们的静态 main 方法中，我们只是调用 DisplayName 方法。上述方法的输出将是
+
+```java
+This is how methods work in groovy
+This is an example of a simple method
+```
+
+##### 方法参数
+
+如果一个方法的行为由一个或多个参数的值确定，则它通常是有用的。我们可以使用方法参数将值传递给被调用的方法。请注意，参数名称必须彼此不同。
+
+使用参数的最简单的方法类型，如下所示
+
+```java
+def methodName(parameter1, parameter2, parameter3) {
+   // Method code goes here
+}
+```
+
+以下是使用参数的简单方法的示例
+
+```java
+class Example {
+   static void sum(int a,int b) {
+      int c = a + b;
+      println(c);
+   }
+
+   static void main(String[] args) {
+      sum(10,5);
+   }
+}
+```
+
+在这个例子中，我们创建一个带有 2 个参数 a 和 b 的 sum 方法。两个参数都是 int 类型。然后我们从我们的 main 方法中调用 sum 方法，并将值传递给变量 a 和 b。
+
+然后我们从我们的 main 方法中调用 sum 方法，并将值传递给变量 a 和 b。
+
+上述方法的输出将是值 15。
+
+##### 默认参数
+
+Groovy 中还有一个规定来指定方法中的参数的默认值。 如果没有值传递给参数的方法，则使用缺省值。 如果使用非默认和默认参数，则必须注意，默认参数应在参数列表的末尾定义。
+
+以下是使用参数的简单方法的示例
+
+```java
+def someMethod(parameter1, parameter2 = 0, parameter3 = 0) {
+   // Method code goes here
+}
+```
+
+让我们看看我们之前看到的添加两个数字的相同示例，并创建一个具有一个默认和另一个非默认参数的方法
+
+```java
+class Example {
+   static void sum(int a,int b = 5) {
+      int c = a + b;
+      println(c);
+   }
+
+   static void main(String[] args) {
+      sum(6);
+   }
+}
+```
+
+在这个例子中，我们创建一个具有两个参数 a 和 b 的 sum 方法。两个参数都是 int 类型。此示例和上一个示例的区别在于，在这种情况下，我们将 b 的默认值指定为 5。
+
+因此，当我们从 main 方法中调用 sum 方法时，我们可以选择只传递一个值为 6 的值，并将其分配给 sum 方法中的参数 a。
+
+上述方法的输出将为值 11。
+
+```java
+class Example {
+   static void sum(int a,int b = 5) {
+      int c = a + b;
+      println(c);
+   }
+
+   static void main(String[] args) {
+      sum(6,6);
+   }
+}
+```
+
+我们也可以通过传递 2 个值来调用 sum 方法，在上面的例子中，我们传递 2 个值 6.第二个值 6 实际上将替换分配给参数 b 的默认值。
+
+上述方法的输出将是值 12。
+
+##### 方法返回值
+
+方法也可以将值返回到调用程序。 这在现在编程语言中是必需的，其中方法执行某种计算，然后将所需值返回到调用方法。
+
+下面是一个带有返回值的简单方法的例子。
+
+```java
+class Example {
+   static int sum(int a,int b = 5) {
+      int c = a + b;
+      return c;
+   }
+
+   static void main(String[] args) {
+      println(sum(6));
+   }
+}
+```
+
+在我们上面的例子中，注意这次我们为我们的方法 sum 指定一个类型为 int 的返回类型。 在方法中，我们使用 return 语句将 sum 值发送到调用主程序。 由于方法的值现在可用于main方法，因此我们使用 println 函数在控制台中显示该值。在前面的例子中，我们将我们的方法定义为静态方法，这意味着我们可以直接从类中访问这些方法。方法的下一个示例是实例方法，其中通过创建类的对象来访问方法。我们将在后面的章节中看到类，现在我们将演示如何使用方法。
+
+上述方法的输出将为值 11。
+
+##### 实例方法
+
+方法通常在 Groovy 中的类中实现，就像 Java 语言一样。类只是一个蓝图或模板，用于创建定义其属性和行为的不同对象。类对象显示由其类定义的属性和行为。因此，通过在类中创建方法来定义行为。
+
+我们将在后面的章节中更详细地看到类，下面是类中方法实现的例子。
+
+以下是如何实现方法的示例。
+
+```java
+class Example {
+   int x;
+
+   public int getX() {
+      return x;
+   }
+
+   public void setX(int pX) {
+      x = pX;
+   }
+
+   static void main(String[] args) {
+      Example ex = new Example();
+      ex.setX(100);
+      println(ex.getX());
+   }
+}
+```
+
+在我们上面的例子中，这次我们没有为类方法指定静态属性。在我们的 main 函数中，我们实际上创建了一个 Example 类的实例，然后调用 'ex' 对象的方法。
+
+上述方法的输出将是值 100。
+
+##### 本地和外部参数名称
+
+Groovy 提供的设施就像 Java 一样具有本地和全局参数。在下面的示例中，lx 是一个局部参数，它只具有 getX() 函数内的作用域，x 是一个全局属性，可以在整个 Example 类中访问。如果我们尝试访问 getX() 函数之外的变量 lx，我们将得到一个错误。
+
+```java
+class Example {
+   static int x = 100;
+
+   public static int getX() {
+      int lx = 200;
+      println(lx);
+      return x;
+   }
+
+   static void main(String[] args) {
+      println getX()
+   }
+}
+```
+
+当我们运行上面的程序，我们会得到以下结果。
+
+```java
+200
+100
+```
+
+##### 方法属性
+
+就像在 Java 中一样，Groovy 可以使用 this 关键字访问它的实例成员。以下示例显示了当我们使用语句 this.x 时，它引用其实例并相应地设置 x 的值。
+
+```java
+class Example {
+   int x = 100;
+
+   public int getX() {
+      this.x = 200;
+      return x;
+   }
+
+   static void main(String[] args) {
+      Example ex = new Example();
+      println(ex.getX());
+   }
+}
+```
+
+当我们运行上面的程序，我们将得到 200 的结果打印在控制台上。
+
+参考链接：
+
+- <a href="https://www.w3cschool.cn/groovy/groovy_methods.html" target="_blank">Groovy 方法</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

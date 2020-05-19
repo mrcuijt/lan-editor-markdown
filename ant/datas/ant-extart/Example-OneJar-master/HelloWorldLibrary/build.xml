@@ -1,0 +1,50 @@
+<project name="Hello World Library" default="compile" basedir=".">
+
+    <property file="default.properties"/>
+
+    <path id="classpath">
+        <pathelement location="${project.classes}" />
+    </path>
+
+<!-- CLEAN -->
+    <target name="clean" description="Remove the Build and Dist directories">
+        <delete dir="${project.classes}"/>
+        <delete dir="${project.dist}" />
+    </target>
+
+   
+<!-- COMPILE -->
+    <target name="compile" 
+            description="Compile All Java Sources for ${project.name}">
+        
+        <mkdir dir="${project.classes}" />
+        
+        <javac srcdir="${project.src}" 
+            destdir="${project.classes}" 
+            debug="${compile.debug}" 
+            deprecation="${compile.deprecation}" 
+            optimize="${compile.optimize}">
+            
+            <classpath refid="classpath"/>
+
+            <compilerarg value="-Xlint:all"/>
+            <compilerarg value="-Xlint:-path"/>
+            <compilerarg value="-Xlint:-serial"/>
+
+        </javac>
+       
+    </target>
+    
+<!-- DIST -->
+    <target name="dist" 
+            depends="compile" 
+            description="Generate a jar file for ${project.name}">
+
+        <mkdir dir="${project.dist}"   />
+        <jar destfile="${project.dist}/${project.jar}" 
+             basedir="${project.classes}"
+             index="true">
+         </jar>
+    </target>
+
+</project>

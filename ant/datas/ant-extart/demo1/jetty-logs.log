@@ -1,0 +1,9 @@
+2019-09-26 18:09:38,740 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 0ms - Hello Ant.
+2019-09-26 18:09:38,746 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 6ms - Hello LOG4J.
+2019-09-26 18:09:38,746 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 6ms - Hello SLF4J.
+2019-09-26 18:12:50,754 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 0ms - Hello Ant.
+2019-09-26 18:12:50,760 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 6ms - Hello LOG4J.
+2019-09-26 18:12:50,766 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 12ms - Hello SLF4J.
+2019-09-28 22:50:45,377 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 0ms - Hello Ant.
+2019-09-28 22:50:45,381 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 4ms - Hello LOG4J.
+2019-09-28 22:50:45,386 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 9ms - Hello SLF4J.

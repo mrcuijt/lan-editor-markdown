@@ -1,0 +1,205 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>science.mrcuijt.jaxws</groupId>
+	<artifactId>jaxws-service-client</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<!-- 开发项目时 所有用到的项目框架版本号 尽量 统一使用 父项目管理版本号 -->
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+	</properties>
+
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/dom4j/dom4j -->
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.sun.xml.ws/jaxws-rt -->
+		<dependency>
+			<groupId>com.sun.xml.ws</groupId>
+			<artifactId>jaxws-rt</artifactId>
+			<version>2.2.8</version>
+			<!-- <type>pom</type> -->
+		</dependency>
+
+		<dependency>
+			<groupId>net.java.dev.stax-utils</groupId>
+			<artifactId>stax-utils</artifactId>
+			<version>20040917</version>
+		</dependency>
+
+		<!-- 引入阿里巴巴 fastjson -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.28</version>
+		</dependency>
+
+		<!-- 引入 SLF4J 日志门面 -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.5</version>
+		</dependency>
+
+		<!-- 整合 Log4j -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.8.0-alpha2</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/javax.mail/mail -->
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.5.0-b01</version>
+		</dependency>
+
+	</dependencies>
+
+	<!-- Maven official repository -->
+	<!-- <repositories>
+		<repository>
+			<id>nexus-aliyun</id>
+			<name>Aliyun Repository</name>
+			<url>http://central.maven.org/maven2</url>
+		</repository>
+		<repository>
+			<id>maven</id>
+			<name>Maven Repository Switchboard</name>
+			<layout>default</layout>
+			<url>http://repo1.maven.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>nexus-Atlassian</id>
+			<name>Atlassian 3rd-P Old</name>
+			<url>https://maven.atlassian.com/3rdparty/</url>
+		</repository>
+	</repositories>
+	-->
+
+	<!-- 配置 Maven 项目的构建环境 -->
+	<build>
+
+		<!-- 引入静态资源 -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.properties</include>
+					<include>**/*.xml</include>
+					<include>**/*.tld</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<!-- Maven Compiler 插件环境配置 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+
+			<!-- 设置资源文件的编码方式 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+			</plugin>
+			<!-- Maven Dependency 插件环境配置 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+			</plugin>
+		</plugins>
+
+		<!-- 插件管理配置 -->
+		<pluginManagement>
+			<plugins>
+				<!-- Maven Dependency 插件环境配置 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+				</plugin>
+				<!-- Maven Compiler 插件环境配置 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<!-- 设置详细信息 -->
+					<configuration>
+						<source>1.7</source>
+						<target>1.7</target>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+				<!-- 设置资源文件的编码方式 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>2.4.3</version>
+					<executions>
+						<execution>
+							<phase>compile</phase>
+						</execution>
+					</executions>
+					<configuration>
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+				<!-- Maven Dependency 插件环境配置 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>2.7</version>
+					<executions>
+						<execution>
+							<id>download-doc</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>resolve</goal>
+								<goal>sources</goal>
+							</goals>
+							<configuration>
+								<classifier>javadoc</classifier>
+							</configuration>
+						</execution>
+						<execution>
+							<id>download-source</id>
+							<phase>compile</phase>
+							<goals>
+								<goal>sources</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>copy-dependencies</id>
+							<phase>package</phase>
+							<goals>
+								<goal>copy-dependencies</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>2.4.3</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

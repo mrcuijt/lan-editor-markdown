@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Crypt Demo</title>
+<link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<!-- 引入 jsencrypt -->
+<script type="text/javascript" src="js/plugin/jsencrypt-3.0.0/jsencrypt.js"></script>
+<!-- 引入 crypto-js -->
+<script type="text/javascript" src="js/plugin/crypto-js-3.1.9-1/crypto-js.js"></script>
+</head>
+<body>
+    <button class="demo btn btn-primary">加密</button>
+    <br/>
+    <span class="encrypt"></span>
+    <br/>
+    <button class="decrypt btn btn-primary">解密</button>
+    <br/>
+    <span class="decrypt-result"></span>
+    <br/>
+    <button class="sign btn btn-primary">消息摘要</button>
+    <br/>
+    <span class="sign-result"></span>
+    <br/>
+    <button class="verify btn btn-primary">验签</button>
+    <br/>
+    <span class="verify-result"></span>
+<script>
+ 
+// 原文
+var input = "1";
+ 
+// 私钥
+var privateKey = "-----BEGIN PRIVATE KEY-----\r\n" +
+"MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCAPQ6QfOzGFBpx\r\n" +
+"f9MbYOQOaUV935KTiJvrJN6IrQPuSWpwVn9PQ1JmRziNs02ujxWi9XS5FxOIy/Rc\r\n" +
+"klO6q1j0BGDAvWkJg9eMp+50eWEnXQZ4iV3rRFKMjfJYy5A6VlXcNYscY8pZcpLN\r\n" +
+"g8JhZcy1+Y6doV0MOmD2YxCsXsOxaxl++VmSJ04tiKE9nrJmOR5YbbR4x04S5HEr\r\n" +
+"aq4hTeuxDsdNs+QfyCJKLaIRaH8+hrG2GZg8eMuwhnRB5Di7hMej7SRNV6ekYG9X\r\n" +
+"V4q/2Zn/ByxgHGF792Xmu/Ai0DA9Kdtgq7qAgJhiLdgrc2YFCtzPV78XhJTHN07Y\r\n" +
+"2vvQMOaDAgMBAAECggEAGNK41QM5mgYeMEY8CRqySo/aIcl7SA+zjsruQKqtDh0r\r\n" +
+"+17i+ebgNmgm7Fb+/IE6APdehs2OvHYucRTqHEI6z9FhIS4I/QyGVvXS1L0CL2p0\r\n" +
+"bDS692WcTRTVCpcs7f30VNIQgYhXjQT+ocWVhOD9xWPvVVf8+Pb7+fWnLpaRbvA0\r\n" +
+"C4/TGM8j7rkGnPtAxKBdmTqoykgmWYdceZb2DTk2mjdypfxH8kL/qc7p1harUA5k\r\n" +
+"wSqKql2pH5Pem7E8uoWBeciinzsXurjY3CAfRdLg+CGCzUNpOR0tx6cTfjWZbt85\r\n" +
+"b1P0YsDeJCdjMJ8MRU0vzOJUTytAnB1o8ohJojCQ8QKBgQDBu9oPiqQ6LRQ1bUYo\r\n" +
+"eIA8xK0WWm56PFU9S1EXyeF5l9A04z9fDex76QtfYnF5sXlpWusI/qNLLxvAtzWD\r\n" +
+"b2jqwtJXZaScIZiylslNJCAT1xcMGa+iRwyeY/m16awjcyV/xVZX2dQFDUp3oKnN\r\n" +
+"XRC88CdpIktC+7f2+PdvQZAZXQKBgQCpdFfcHiYdh4S9YVHYG3eI4BEiZdhPbN0i\r\n" +
+"/Gc+//rBsu6kjHWcYvYgklIDTISdXlynQAi/AkHBnuZHOc4jxBe/BxSoV5TgiCLq\r\n" +
+"8bGRO/Lb2+5z2AmS6/q+X21JvFPNak++O++lG9pI413XR4s5E/MUaIeHSYssRfzr\r\n" +
+"obXb2pShXwKBgGbIlU59jdfXpssZqIk8NT0IU5Rycf6kF80nMmTelKOAKdSFZE+4\r\n" +
+"AWlUINaAUhfwUqvUsrHY9yWiXqUGDnwnFZDHv/TiVk0Hfg3x9ebZbbNZAD9JOWdt\r\n" +
+"LoKyI/+hc9Ry+MgrGD4PsW7kuEdzk+MCpyi2eRJMQYXOKrH7MLt0G1F5AoGAVFnc\r\n" +
+"rm63jHV8JwU9x3SMwS7AeL33ujm3roW0I1ErEqauUmy00t8UI8ySVKAPV4K0XnDq\r\n" +
+"qaJG90nQ2V219mnTZDzzFIVcT5SUxR0Axgnwb28AONwuj9s12vQHo+/CS3uDLHAL\r\n" +
+"b8X4l9XOTa6IaCY9F0idRkPeqnBAYU8DBui8mcMCgYATYtN71jUJhox4rO6PpeSk\r\n" +
+"LmCnRkPR8adaduqjy3fNBjV2tLJ8c2NwAmMHccaacAkXzAzRjaHitOqost8MILnH\r\n" +
+"sR9V1hj0SLZ+F7ePvOxxIP8OO/zq50T8g/j0tgWHQt2WiJ6x4UGpsMenGo2Y826K\r\n" +
+"AN89sIJacjNA/XrTnAgpQQ==" +
+"-----END PRIVATE KEY-----";
+ 
+// 公钥，可由私钥生成
+var publicKey = "";
+ 
+// 非对称加密 RSA：公钥加密
+$(".demo").click(function() {
+ 
+    // Create the encryption object.
+    var crypt = new JSEncrypt();
+    // Set the private.
+    crypt.setPrivateKey(privateKey);
+    // If no public key is set then set it here...
+    if (!publicKey) {
+        publicKey = crypt.getPublicKey();
+    }
+    // 公钥加密
+    var encrypt = crypt.encrypt(input);
+    $(".encrypt").html(encrypt);
+});
+ 
+// 非对称加密 RSA：私钥解密
+$(".decrypt").click(function(){
+    // Create the encryption object.
+    var crypt = new JSEncrypt();
+    // Set the private.
+    crypt.setPrivateKey(privateKey);
+    // If no public key is set then set it here...
+    if (!publicKey) {
+        publicKey = crypt.getPublicKey();
+    }
+    var encrypt = $(".encrypt").html();
+    // 私钥解密
+    var decrypt = crypt.decrypt(encrypt);
+    $(".decrypt-result").html(decrypt);
+});
+ 
+// 消息摘要 MD5withRSA
+$(".sign").click(function(){
+ 
+    // Create the encryption object.
+    var sign = new JSEncrypt();
+    // Set the private.
+    sign.setPrivateKey(privateKey);
+    var signature = sign.sign(input, CryptoJS.MD5, "md5");
+    $(".sign-result").html(signature);
+ 
+});
+ 
+// 验签
+$(".verify").click(function(){
+    // Create the encryption object.
+    var verify = new JSEncrypt();
+    // Set the private.
+    verify.setPrivateKey(privateKey);
+    // If no public key is set then set it here...
+    if (!publicKey) {
+        publicKey = verify.getPublicKey();
+    }
+    var signature = $(".sign-result").html();
+    var verified = verify.verify(input, signature, CryptoJS.MD5);
+    $(".verify-result").html(verified);
+});
+ 
+</script>
+</body>
+</html>

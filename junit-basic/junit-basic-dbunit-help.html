@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>junit-basic-dbunit-help</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### junit-basic-dbunit-help
+
+#### Java – DbUnit 无法清理插入：外键约束
+
+我正在询问并回答这个问题以供将来参考,因为我认为我找到了一个解决DbUnit常见问题的合适解决方案.我希望它能帮到某个人,某个地方.
+
+我正在使用 DbUnit 2.5.0 和 TestNG 6.8.8. 我的用例是包含 3 个实体的数据库的一部分.有一个 ServiceUser,它为 Administrable 和 UserGroup 保存一个外键.
+
+我跟随了 http://city81.blogspot.com/2011/03/testing-jpa-entities-using-dbunit.html 的大部分代码示例
+
+```java
+public abstract class AbstractDatabaseTest {
+    protected EntityManager em; // initialized elsewhere
+    private IDatabaseConnection connection;
+    private IDataSet dataset;
+
+    @BeforeClass
+    private void setupDatabaseResource() throws Exception {
+        // using Hibernate
+        connection = new DatabaseConnection(((SessionImpl) (em.getDelegate())).connection());
+        connection.getConfig().setProperty(DatabaseConfig.PROPERTY_DATATYPE_FACTORY, new HsqldbDataTypeFactory());
+
+        // full database export
+        IDataSet fullDataSet = connection.createDataSet();
+
+        final String datasetPath = String.format("%s%s", RESOURCE_FOLDER, "Testing.xml");
+        FlatXmlDataSet.write(fullDataSet, new FileOutputStream(datasetPath));
+
+        FlatXmlDataSetBuilder flatXmlDataSetBuilder = new FlatXmlDataSetBuilder();
+        flatXmlDataSetBuilder.setColumnSensing(true);
+        dataset = flatXmlDataSetBuilder.build(new FileInputStream(datasetPath));
+    }
+
+    @AfterMethod
+    public void cleanDB() throws Exception {
+        em.getTransaction().begin();
+        DatabaseOperation.CLEAN_INSERT.execute(connection, dataset);
+        em.getTransaction().commit();
+    }
+}
+```
+
+结果是以下 XMLDataSet(省略数据)：
+
+```xml
+<dataset>
+  <administrable/>
+  <serviceuser/>
+  <usergroup/>
+</dataset>
+```
+
+当 TestNG 执行 @AfterMethod 时,我得到以下异常：
+
+```python
+com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException
+Cannot delete or update a parent row: a foreign key constraint fails (`testing_db`.`serviceuser`, CONSTRAINT `FK_gyylcfbhpl2ukqs5rm7sq0uy8` FOREIGN KEY (`userGroup_id`) REFERENCES `usergroup` (`id`))
+```
+
+最佳答案
+
+问题是我上面创建的 XMLDataSet 不知道表中的外键约束,并按字母顺序创建表列表.但是, CLEAN_INSERT 操作获取表的列表并以相反的顺序遍历它,并且它要求在引用的实体(此处为：UserGroup)之前删除外键引用(此处为：ServiceUser.userGroup_id).
+
+我通过 <a href="https://stackoverflow.com/questions/17204060/unitils-doesnt-work" target="_blank">Unitils doesn’t work</a> 和 <a href="http://forum.spring.io/forum/spring-projects/data/12868-dbunit-test-fails-mysql-server-hates-me?p=337672#post337672" target="_blank">http://forum.spring.io/forum/spring-projects/data/12868-dbunit-test-fails-mysql-server-hates-me?p=337672#post337672</a>
+找到了这些信息
+
+对 DbUnit 文档的一些细微挖掘导致了一种创建数据集的更正方法,该方法检查外键依赖关系并尝试正确地对实体进行排序：
+
+```java
+// example code
+IDataSet fullDataSet = new FilteredDataSet(new DatabaseSequenceFilter(connection), connection.createDataSet());
+```
+
+结果：
+
+```xml
+<dataset>
+  <administrable/>
+  <usergroup/>
+  <serviceuser/>
+</dataset>
+```
+
+这将正确 CLEAN_INSERT.
+
+免责声明：我没有遇到循环依赖或自引用外键,我还没有测试过这个修复可以处理它们.
+
+参考链接：
+
+ - <a href="http://cncc.bingj.com/cache.aspx?q=dbunit+%e5%a4%96%e9%94%ae%e5%bc%95%e7%94%a8&d=4606167888305288&mkt=zh-CN&setlang=en-US&w=RHsInsIRBbsupNpBmh8SbWf79Tp9dylW" target="_blank">Java – DbUnit 无法清理插入：外键约束</a>
+
+ - <a href="https://codeday.me/bug/20190401/858355.html" target="_blank">Java – DbUnit 无法清理插入：外键约束</a>
+
+ - <a href="https://sourceforge.net/p/dbunit/mailman/message/19801450/" target="_blank">foreign key constraint fails only when foreign key is in the same table </a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

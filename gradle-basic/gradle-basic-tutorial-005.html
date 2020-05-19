@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>gradle-basic-tutorial-005</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### gradle-basic-tutorial-005
+
+#### Gradle 学习(5) - 创建 eclipse 项目
+
+##### 标示 eclipse 项目
+
+```java
+apply plugin: 'eclipse'
+```
+build.gradle 如下
+
+```java
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile group:'commons-collections',name:'commons-collections',version:'3.2'
+  testCompile group:'junit',name:'junit',version:'4.0+'
+}
+
+sourceCompatibility = 1.5
+version = '2.0'
+
+jar {
+  manifest {
+    attributes 'Implementation-Title':'Gradle Quickstart',
+               'Implementation-Version':version
+  }
+}
+
+test {
+  systemProperties 'property':'value'
+}
+
+uploadArchives {
+  repositories {
+    flatDir {
+      dirs 'repos'
+    }
+  }
+}
+```
+
+执行 gradle eclipse 构建项目
+
+```python
+gradle eclipse
+
+## :eclipseClasspath
+## :eclipseJdt
+## :eclipseProject
+## :eclipse
+
+## BUILD SUCCESSFUL
+
+## Total time: 2 mins 33.783 secs
+```
+
+##### 多重项目构建
+
+项目目录结构如下：
+
+multprojec 目录下含有 3 个项目［api, services, shared］,services 项目下又含有［shared, webservice］
+
+##### settings.gradle
+
+为了构建多重项目，需要在多重项目的根目录定义一个文件,包含所有的子项目。该文件名必须定义为 settings.gradle
+
+```java
+touch settings.gradle
+```
+
+在该文件中用 include 来包含所有的子项目
+
+```java
+include "shared","api","services:webservice","services:shared"
+```
+
+##### 配置注入
+
+使用 configuration injection 来管理所有的项目，主项目像一个容器，通过 subprojects 方法能够遍历所有的子项目,然后为每一个项目注入特殊的配置信息。这样我们就能够很容易的为依赖和压缩包定义配置内容。如下所示，我们首先根据 settings.gradle 里的配置信息得到所有的子项目，然后逐个位每个项目注入下面的配置。
+
+```java
+subprojects {
+  apply plugin:'java'
+  apply plugin:'eclipse-wtp'
+
+  repositories {
+    mavenCentral()
+  }
+
+  dependencies {
+    testCompile 'junit:junit:4.11'
+  }
+
+  jar {
+    manifest.attributes provider:'gradle'
+  }
+}
+```
+
+这个时候在根项目下执行 gradle build，你会发现它为每个项目都做了构建 
+
+```java
+gradle build
+
+## api:compileJava UP-TO-DATE
+:api:processResources UP-TO-DATE
+:api:classes UP-TO-DATE
+:api:jar
+:api:assemble
+:api:compileTestJava UP-TO-DATE
+:api:processTestResources UP-TO-DATE
+:api:testClasses UP-TO-DATE
+:api:test UP-TO-DATE
+:api:check UP-TO-DATE
+:api:build
+:services:compileJava UP-TO-DATE
+:services:processResources UP-TO-DATE
+:services:classes UP-TO-DATE
+:services:jar
+:services:assemble
+:services:compileTestJava UP-TO-DATE
+:services:processTestResources UP-TO-DATE
+:services:testClasses UP-TO-DATE
+:services:test UP-TO-DATE
+:services:check UP-TO-DATE
+:services:build
+:shared:compileJava UP-TO-DATE
+:shared:processResources UP-TO-DATE
+:shared:classes UP-TO-DATE
+:shared:jar
+:shared:assemble
+:shared:compileTestJava UP-TO-DATE
+:shared:processTestResources UP-TO-DATE
+:shared:testClasses UP-TO-DATE
+:shared:test UP-TO-DATE
+:shared:check UP-TO-DATE
+:shared:build
+:services:shared:compileJava UP-TO-DATE
+:services:shared:processResources UP-TO-DATE
+:services:shared:classes UP-TO-DATE
+:services:shared:jar
+:services:shared:assemble
+:services:shared:compileTestJava UP-TO-DATE
+:services:shared:processTestResources UP-TO-DATE
+:services:shared:testClasses UP-TO-DATE
+:services:shared:test UP-TO-DATE
+:services:shared:check UP-TO-DATE
+:services:shared:build
+:services:webservice:compileJava UP-TO-DATE
+:services:webservice:processResources UP-TO-DATE
+:services:webservice:classes UP-TO-DATE
+:services:webservice:jar
+:services:webservice:assemble
+:services:webservice:compileTestJava UP-TO-DATE
+:services:webservice:processTestResources UP-TO-DATE
+:services:webservice:testClasses UP-TO-DATE
+:services:webservice:test UP-TO-DATE
+:services:webservice:check UP-TO-DATE
+:services:webservice:build
+
+BUILD SUCCESSFUL
+
+Total time: 6.571 secs
+```
+
+相应的子项目目录下都生成了 jar 包。但是要注意上面的配置不会对 root project 产生作用。
+
+##### 项目之间的依赖
+
+比如 A 项目依赖 B 项目，那么在A项目下定义一个 build.gradle 。写法如下
+
+```java
+dependencies {
+  compile project(':B')
+}
+```
+
+那么在 A 项目构建前，会先构建 B 项目。然后将 B 项目的 jar 包作为A项目的依赖 jar，构建 A 的 jar 包。
+
+##### 调配项目
+
+```java
+task dist(type: Zip){
+  dependsOn spiJar
+  from 'src/dist'
+  into('libs'){
+    from spiJar.archivePath
+    from configurations.runtime
+  }
+}
+
+artifacts {
+  archives dist
+}
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/qhshiniba/article/details/42401267" target="_blank">Gradle 学习(5) - 创建 eclipse 项目</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

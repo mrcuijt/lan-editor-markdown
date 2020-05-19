@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<project name="Ant-Test" default="main" basedir=".">
+
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property name="src.dir" location="src" />
+    <property name="lib.dir" location="lib" />
+    <property name="build.dir" location="bin" />
+    <property name="dist.dir" location="dist" />
+    <property name="docs.dir" location="docs" />
+
+    <target name="main">
+        <description>Main target</description>
+        <echo message="${src.dir}" />
+    </target>
+</project>

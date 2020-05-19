@@ -1,0 +1,107 @@
+<project name="New Project" default="main" basedir=".">
+
+    <property environment="env" />
+    <property name="one-jar.dist.dir" value="F:/ant/apache-ant-1.8.2/one-jar-ant" />
+    <import file="${one-jar.dist.dir}/one-jar-ant-task.xml" optional="true" />
+
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property name="src.dir" location="src" />
+    <property name="lib.dir" location="lib" />
+    <property name="build.dir" location="bin" />
+    <property name="dist.dir" location="dist" />
+    <property name="docs.dir" location="docs" />
+
+    <!-- Create a classpath container which can be later used in the ant task -->
+    <path id="build.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <!-- Deletes the existing build, docs and dist directory -->
+    <target name="clean">
+        <delete dir="${build.dir}" />
+        <delete dir="${docs.dir}" />
+        <delete dir="${dist.dir}" />
+    </target>
+
+    <!-- Creates the  build, docs and dist directory -->
+    <target name="makedir">
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${docs.dir}" />
+        <mkdir dir="${dist.dir}" />
+    </target>
+
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+
+<!-- COMPILE -->
+    <target name="compile" depends="clean, makedir"
+            description="Compile All Java Sources">
+
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}" includes="**/*.properties"/>
+        </copy>
+
+        <javac srcdir="${src.dir}" 
+            destdir="${build.dir}" 
+            classpathref="build.classpath" 
+            debug="${compile.debug}" 
+            deprecation="${compile.deprecation}" 
+            optimize="${compile.optimize}">
+
+            <compilerarg value="-Xlint:all"/>
+            <compilerarg value="-Xlint:-path"/>
+            <compilerarg value="-Xlint:-serial"/>
+
+        </javac>
+    </target>
+
+    <!-- Creates Javadoc -->
+    <target name="docs" depends="compile">
+        <javadoc packagenames="src" sourcepath="${src.dir}" destdir="${docs.dir}">
+            <!-- Define which files / directory should get included, we include all -->
+             <fileset dir="${src.dir}">
+                <include name="**" />
+             </fileset>
+        </javadoc>
+    </target>
+
+    <!-- Creates the deployable jar file -->
+    <target name="jar" depends="compile">
+        <jar destfile="${dist.dir}\demo.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="demo.AntDemo" />
+            </manifest>
+        </jar>
+    </target>
+
+    
+<!-- DIST -->
+    <target name="dist-one-jar" 
+            depends="compile" 
+            description="Generate a jar file">
+        <one-jar destfile="${dist.dir}\demo.jar" onejarmainclass="demo.AntDemo">
+            <main>
+                <fileset dir="${build.dir}" />
+            </main>
+            <lib>
+                <fileset dir="${lib.dir}" />
+            </lib>
+        </one-jar>
+    </target>
+
+<!-- RUN -->
+    <target name="run" depends="compile" description="Run">
+        <java jar="${dist.dir}\demo.jar" fork="true">
+            <classpath refid="build.classpath"></classpath>
+        </java>
+    </target>
+
+    <target name="main" depends="compile, jar, run">
+        <description>Main target</description>
+    </target>
+
+</project>

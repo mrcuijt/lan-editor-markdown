@@ -557,6 +557,66 @@ public class CalculateTest {
 
 观察 CalculateTest 类，它满足上述所有的要求，因此它就可以称为一个参数化测试类。**addedNumbers 方法使用注释 @Parameters 返回数组的集合，每个数组包括每个测试执行输入和输出数字，每个数组中的元素数必须相同好与构造参数的个数相匹配**。所以，在这种特定的情况下，每个数组包括三个元素，即表示要加入的两个元素和一个结果元素。
 
+Junit 4 参数化测试 允许通过变化范围的参数值来测试方法。参数化测试可以通过以下简单的步骤实现：
+
+ - 1. 对测试类添加注解 @RunWith(Parameterized.class)；
+
+ - 2. 将需要使用变化范围参数值测试的参数定义为私有变量；
+
+ - 3. 使用上一步骤声明的私有变量作为入参，创建构造函数；
+
+ - 4. 创建一个使用@Parameters注解的公共静态方法，它将需要测试的各种变量值通过集合的形式返回；
+
+ - 5. 使用定义的私有变量定义测试方法；
+
+被测类：
+
+```java
+public class EvenNumberChecker {
+    public boolean isEven(int i){
+        if ((i & 1) == 0){
+            return true;
+        }else return false;
+    }
+}
+```
+
+测试类：
+
+```java
+//第一步
+@RunWith(Parameterized.class)
+public class EvenNumberCheckerTest {
+    //第二步
+    private int inputNumber;
+    private boolean isEven;
+    //第三步
+    public EvenNumberCheckerTest(int inputNumber, boolean isEven){
+        this.inputNumber = inputNumber;
+        this.isEven = isEven;
+    }
+    //第四步
+    @Parameterized.Parameters
+    public static Collection<Object[]> data(){
+        Object[][] data = new Object[][]{
+                {2,true},
+                {5,false},
+                {7,false},
+                {4,true}
+        };
+        return Arrays.asList(data);
+    }
+    //第五步
+    @Test
+    public void testEvenNumberChecker(){
+        System.out.println("inputNumber:" + inputNumber + " isEven:" + isEven);
+        EvenNumberChecker evenNumberChecker = new EvenNumberChecker();
+        boolean result = evenNumberChecker.isEven(inputNumber);
+        assertEquals(isEven, result);
+    }
+}
+```
+
 ##### 6 个人建议
 
 有些童鞋可能会有一些误解，认为写测试代码没有用，而且还会增大自己的压力，浪费时间。但事实上，写测试代码与否，还是有很大区别的，如果是在小的项目中，或许这种区别还不太明显，但如果在大型项目中，一旦出现错误或异常，用人力去排查的话，那将会浪费很多时间，而且还不一定排查的出来，但是如果用测试代码的话，JUnit 就是自动帮我们判断一些代码的结果正确与否，从而节省的时间将会远远超过你写测试代码的时间。

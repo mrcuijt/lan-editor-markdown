@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>spring-property-editor</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### spring-property-editor
+
+#### Spring 中的类型转换与数据绑定（PropertyEditor、ConversionService、Data Binding、Formatter） 
+
+Spring 早期使用 PropertyEditor 进行 Object 与 String 的转换。
+
+到 Spring 3 后，Spring 提供了统一的 ConversionService API 和强类型的 Converter SPI，以实现转换逻辑。Spring 容器使用该系统来绑定 bean property values。
+
+但是，除了格式转换，你还经常需要本地化 String values。也就是以当地格式展示，如货币、日期等。通用的 core.convert Converter SPI 不能直接完成格式化需求。基于此，Spring 3 引入了 Formatter SPI，相比 PropertyEditors 简单直接。
+
+ConversionService 为 Converter SPI 和 Formatter SPI 提供了统一的 API。
+
+ - PropertyEditor：Spring 早期使用 PropertyEditor 进行 Object 与 String 的转换。
+
+ - ConversionService：Spring 3 引入了core.convert 包，提供了通用的类型转换系统。
+
+ - Data Binding：Spring Web 中用来解析参数字符类型的参数，并绑定到实体中 Formatter：Spring 3 引入了 Formatter SPI，相比 PropertyEditors 简单直接。
+
+Spring 应用中，不会自动注册 ConversionService bean，就是说默认基于 PropertyEditor。
+
+##### 相关类和接口
+
+ - ConversionService：这是 Spring 类型转换体系的核心接口
+
+ - ConversionServiceFactoryBean：这个相当于是类型转换器的容器，里面可以配置很多个转换器
+
+转换器接口：
+
+ - Converter：最简单的转换器接口，将 S 类型转为 T 类型
+
+ - ConverterFactory：将 S 类型转换为另一种类型 T 及其子类型 R 的转换器接口。将相同系列多个 Converter 封装到一起
+
+ - GenericConverter：相对于 Converter 接口，该接口会根据源类型与目标类型的上下文信息进行转换
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/kevin-yuan/p/7093433.html" target="_blank">Spring中的类型转换与数据绑定（PropertyEditor、ConversionService、Data Binding、Formatter） </a>
+
+ - <a href="http://www.cnblogs.com/sonng/p/6658825.html" target="_blank">http://www.cnblogs.com/sonng/p/6658825.html</a>
+
+ - <a href="http://www.cnblogs.com/larryzeal/p/5951196.html" target="_blank">http://www.cnblogs.com/larryzeal/p/5951196.html</a>
+
+ - <a href="http://www.cnblogs.com/larryzeal/p/5953391.html" target="_blank">http://www.cnblogs.com/larryzeal/p/5953391.html</a>
+
+ - <a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#format-configuring-formatting-globaldatetimeformat" target="_blank">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#format-configuring-formatting-globaldatetimeformat</a>
+
+ - <a href="http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#format-CustomFormatAnnotations" target="_blank">http://docs.spring.io/spring/docs/current/spring-framework-reference/htmlsingle/#format-CustomFormatAnnotations</a>
+
+#### @InitBinder 注解作用
+
+从字面意思可以看出这个的作用是给Binder做初始化的，被此注解的方法可以对 WebDataBinder 初始化。webDataBinder 是用于表单到方法的数据绑定的！
+
+@InitBinder 只在 @Controller 中注解方法来为这个控制器注册一个绑定器初始化方法，方法只对本控制器有效。       
+
+##### 代码演示
+
+对数据绑定进行设置
+
+WebDataBinder 中有很多方法可以对数据绑定进行具体的设置：比如我们设置 name 属性为非绑定属性（也可以设置绑定值 setAllowedFields）：
+
+在 Controller 中添加一个方法：
+
+```java
+@InitBinder
+public void initBinder(WebDataBinder binder) {
+    binder.setDisallowedFields("name");
+}
+```
+
+代表将取消对参数名为 name 对应字段值的绑定操作。
+
+（具体作用视频举了个例子来阐述其某个作用：比如表单中有多选按钮，对应的是 JaveBean 中的一个集合属性，然而选择的是 id，而集合保存的确实类，这里我们就不能任 Spring MVC 自动绑定，需要我们手动绑定，所以就关闭其的自动绑定，不然会报错！）
+
+##### 注册已有的编辑器
+
+WebDataBinder 是用来绑定请求参数到指定的属性编辑器.由于前台传到 controller 里的值是 String 类型的，当往 Model 里 Set 这个值的时候，如果 set 的这个属性是个对象，Spring 就会去找到对应的 editor 进行转换，然后再 set 进去！Spring 自己提供了大量的实现类（如下图所示的在 org.springframwork.beans.propertyEditors 下的所有 editor），诸如 CustomDateEditor ，CustomBooleanEditor，CustomNumberEditor 等许多，基本上够用。  在平时使用 Spring MVC 时，会碰到 javabean 中有 Date 类型参数，表单中传来代表日期的字符串转化为日期类型，Spring MVC 默认不支持这种类型的转换。我们就需要手动设置时间格式并在 webDateBinder 上注册这个编辑器！
+
+实现代码
+
+```java
+@InitBinder
+public void initBinder(WebDataBinder binder) {
+    //binder.setDisallowedFields("name");
+    CustomDateEditor editor = new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"),true);
+    binder.registerCustomEditor(Date.class, editor);
+}
+```
+
+编辑器构造函数
+
+```java
+public CustomDateEditor(DateFormat dateFormat, boolean allowEmpty)
+```
+
+注册编辑器函数
+
+```java
+public void registerCustomEditor(Class<?> requiredType, PropertyEditor propertyEditor)
+public void registerCustomEditor(Class<?> requiredType, String field, PropertyEditor propertyEditor)
+```
+
+##### 注册自定义编辑器
+
+使用自定义编辑器就是在第二个的基础上添加个自定义编辑器就行了，自定义的编辑器类需要继承 **org.springframework.beans.propertyeditors.PropertiesEditor** 并重写其 setAsText 和 getAsText 两个方法就行了！
+
+比如下面这个 DoubleEditor：
+
+```java
+public class DoubleEditor extends PropertiesEditor {
+    @Override
+    public void setAsText(String text) throws IllegalArgumentException {
+        if (text == null || text.equals("")) {
+            text = "0";
+        }
+        setValue(Double.parseDouble(text));
+    }
+
+    @Override
+    public String getAsText() {
+        return getValue().toString();
+    }
+}
+```
+
+注册 DoubleEditor
+
+```java
+@InitBinder
+public void initBinder(WebDataBinder binder) {
+    //binder.setDisallowedFields("name");
+    // CustomDateEditor
+    CustomDateEditor editor = new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"),true);
+    binder.registerCustomEditor(Date.class, editor);
+    // DoubleEditor
+    DoubleEditor doubleEditor = new DoubleEditor();
+    binder.registerCustomEditor(Double.class, doubleEditor);
+}
+```
+
+##### 设置属性的前缀可以实现参数绑定
+
+```xml
+<form action="/testBean" method="post">
+    name: <input type="text" name="u.name"> <br>
+    age: <input type="text" name="u.age"> <br>
+    name: <input type="text" name="s.name"> <br>
+    age: <input type="text" name="s.age"> <br>
+    <input type="submit">
+</form>
+```
+
+```java
+@InitBinder("user")
+public void init1(WebDataBinder binder) {
+    binder.setFieldDefaultPrefix("u.");
+}
+ 
+@InitBinder("stu")
+public void init2(WebDataBinder binder) {
+    binder.setFieldDefaultPrefix("s.");
+}
+ 
+@RequestMapping("/testBean")
+public ModelAndView testBean(User user, @ModelAttribute("stu") Student stu) {
+    System.out.println(stu);
+    System.out.println(user);
+    String viewName = "success";
+    ModelAndView modelAndView = new ModelAndView(viewName);
+    modelAndView.addObject("user", user);
+    modelAndView.addObject("student", stu);
+    return modelAndView;
+ 
+}
+```
+
+@InitBinder("user") 括号内的参数为类的首字母小写(默认命名规则)，也可以用 @ModelAttribute("stu") 做限定.
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/qq_38016931/article/details/82080940" target="_blank">@InitBinder 注解</a>
+
+#### @InitBinder
+
+ `@InitBinder` 用于在 `@Controller` 中标注于方法上，表示为当前控制器注册一个属性编辑器，**只对当前的 Controller 有效**。`@InitBinder` 标注的方法必须有一个参数 `WebDataBinder`。所谓的属性编辑器可以理解就是帮助我们完成参数绑定。
+
+```java
+@ResponseBody
+@RequestMapping(value = "/test")
+public String test(@RequestParam String name,@RequestParam Date date) throws Exception {
+    System.out.println(name);
+    System.out.println(date);
+    return name;
+}
+ 
+@InitBinder
+public void initBinder(WebDataBinder binder){
+    binder.registerCustomEditor(String.class,
+            new StringTrimmerEditor(true));
+ 
+    binder.registerCustomEditor(Date.class,
+            new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"), false));
+ 
+}
+```
+
+上面例子中，`@InitBinder` 方法会帮助我们把 String 类型的参数先 trim 再绑定，而对于 Date 类型的参数会先格式化在绑定。例如当请求是 `/test?name=%20zero%20&date=2018-05-22` 时，会把 zero 绑定到 name，再把时间串格式化为 Date 类型，再绑定到 date。
+
+这里的 `@InitBinder` 方法只对当前 Controller 生效，要想全局生效，可以使用 `@ControllerAdvice`。通过 `@ControllerAdvice` 可以将对于控制器的全局配置放置在同一个位置，注解了 `@ControllerAdvice` 的类的方法可以使用 `@ExceptionHandler`，`@InitBinder`，`@ModelAttribute` 注解到方法上，这对所有注解了 `@RequestMapping` 的控制器内的方法有效。
+
+```java
+@ControllerAdvice
+public class GlobalControllerAdvice {
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(String.class,
+                new StringTrimmerEditor(true));
+
+        binder.registerCustomEditor(Date.class,
+                new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"), false));
+
+    }
+}
+```
+
+除了使用 `@ControllerAdvice` 来配置全局的 `WebDataBinder` ，还可以使用 `RequestMappingHandlerAdapter` ：
+
+```java
+@Bean
+public RequestMappingHandlerAdapter webBindingInitializer() {
+    RequestMappingHandlerAdapter adapter = new RequestMappingHandlerAdapter();
+    adapter.setWebBindingInitializer(new WebBindingInitializer(){
+ 
+        @Override
+        public void initBinder(WebDataBinder binder, WebRequest request) {
+            binder.registerCustomEditor(Date.class, new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd"), false));
+ 
+        }
+    });
+    return adapter;
+}
+```
+
+如上示例，可以实现同样的效果。
+
+ `@ControllerAdvice` 中除了配置 `@InitBinder` ,还可以有 `@ExceptionHandler` 用于全局处理控制器里面的异常；`@ModelAttribute` 作用是绑定键值对到 Model 里，让全局的 `@RequestMapping` 都能获得在此处设置的键值对。
+
+补充：如果 `@ExceptionHandler` 注解中未声明要处理的异常类型，则默认为方法参数列表中的异常类型。示例：
+
+```java
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    @ResponseBody
+    String handleException(Exception e){
+        return "Exception Deal! " + e.getMessage();
+    }
+}
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/zero__007/article/details/80466392" target="_blank">@InitBinder</a>
+
+#### Spring PropertyEditor 分析
+
+##### 简介
+
+通过 xml 解析器解析出 bean 定义之后，解析出来的是一个一个的字符串，但是 bean 的属性可以各种 java 类型，那么在对 bean 进行初始化时需要在这些字符串和 java 类型之间进行转换，比如我的 bean 有个 Class 属性，那么在注入这个 Class 属性时在只能给 property 设置一个字符串 value="a.b.C" ，框架在最终填充这个属性的时候需要把 "a.b.C" 转换成 Class 对象，这项工作是通过什么来完成的呢？它就是几天这篇博客的主角，PropertyEditor。
+
+PropertyEditor 的处理过程如下：
+
+ - 调用 setAsText 把待处理的 text 传递到 PropertyEditor，PropertyEditor 把 text 转换成相应类型的值并且保存到 PropertyEditor
+
+ - 调用 getValue 把获取上面步骤转换后的 value
+
+通过上面的过程可以发现 PropertyEditor 保存了 value，所以是非线程安全的，因此在值转换的过程中需要做同步
+
+##### 内置 PropertyEditor
+
+Spring 框架内置了一些 PropertyEditor 来对，并且 bean 填充属性之前都会把这些 PropertyEditor 添加到 BeanWrapper 中（<a href="http://blog.csdn.net/pentiumchen/article/details/43940323" target="_blank">在 Spring IOC 容器 bean 初始化源码分析有分析</a>），代码在 PropertyEditorRegistrySupport 类的 createDefaultEditors 方法中：
+
+```java
+private void createDefaultEditors() {
+	this.defaultEditors = new HashMap<Class<?>, PropertyEditor>(64);
+
+	// Simple editors, without parameterization capabilities.
+	// The JDK does not contain a default editor for any of these target types.
+	this.defaultEditors.put(Charset.class, new CharsetEditor());
+	this.defaultEditors.put(Class.class, new ClassEditor());
+	this.defaultEditors.put(Class[].class, new ClassArrayEditor());
+	this.defaultEditors.put(Currency.class, new CurrencyEditor());
+	this.defaultEditors.put(File.class, new FileEditor());
+	this.defaultEditors.put(InputStream.class, new InputStreamEditor());
+	this.defaultEditors.put(InputSource.class, new InputSourceEditor());
+	this.defaultEditors.put(Locale.class, new LocaleEditor());
+	this.defaultEditors.put(Pattern.class, new PatternEditor());
+	this.defaultEditors.put(Properties.class, new PropertiesEditor());
+	this.defaultEditors.put(Resource[].class, new ResourceArrayPropertyEditor());
+	this.defaultEditors.put(TimeZone.class, new TimeZoneEditor());
+	this.defaultEditors.put(URI.class, new URIEditor());
+	this.defaultEditors.put(URL.class, new URLEditor());
+	this.defaultEditors.put(UUID.class, new UUIDEditor());
+
+	// Default instances of collection editors.
+	// Can be overridden by registering custom instances of those as custom editors.
+	this.defaultEditors.put(Collection.class, new CustomCollectionEditor(Collection.class));
+	this.defaultEditors.put(Set.class, new CustomCollectionEditor(Set.class));
+	this.defaultEditors.put(SortedSet.class, new CustomCollectionEditor(SortedSet.class));
+	this.defaultEditors.put(List.class, new CustomCollectionEditor(List.class));
+	this.defaultEditors.put(SortedMap.class, new CustomMapEditor(SortedMap.class));
+
+	// Default editors for primitive arrays.
+	this.defaultEditors.put(byte[].class, new ByteArrayPropertyEditor());
+	this.defaultEditors.put(char[].class, new CharArrayPropertyEditor());
+
+	// The JDK does not contain a default editor for char!
+	this.defaultEditors.put(char.class, new CharacterEditor(false));
+	this.defaultEditors.put(Character.class, new CharacterEditor(true));
+
+	// Spring's CustomBooleanEditor accepts more flag values than the JDK's default editor.
+	this.defaultEditors.put(boolean.class, new CustomBooleanEditor(false));
+	this.defaultEditors.put(Boolean.class, new CustomBooleanEditor(true));
+
+	// The JDK does not contain default editors for number wrapper types!
+	// Override JDK primitive number editors with our own CustomNumberEditor.
+	this.defaultEditors.put(byte.class, new CustomNumberEditor(Byte.class, false));
+	this.defaultEditors.put(Byte.class, new CustomNumberEditor(Byte.class, true));
+	this.defaultEditors.put(short.class, new CustomNumberEditor(Short.class, false));
+	this.defaultEditors.put(Short.class, new CustomNumberEditor(Short.class, true));
+	this.defaultEditors.put(int.class, new CustomNumberEditor(Integer.class, false));
+	this.defaultEditors.put(Integer.class, new CustomNumberEditor(Integer.class, true));
+	this.defaultEditors.put(long.class, new CustomNumberEditor(Long.class, false));
+	this.defaultEditors.put(Long.class, new CustomNumberEditor(Long.class, true));
+	this.defaultEditors.put(float.class, new CustomNumberEditor(Float.class, false));
+	this.defaultEditors.put(Float.class, new CustomNumberEditor(Float.class, true));
+	this.defaultEditors.put(double.class, new CustomNumberEditor(Double.class, false));
+	this.defaultEditors.put(Double.class, new CustomNumberEditor(Double.class, true));
+	this.defaultEditors.put(BigDecimal.class, new CustomNumberEditor(BigDecimal.class, true));
+	this.defaultEditors.put(BigInteger.class, new CustomNumberEditor(BigInteger.class, true));
+
+	// Only register config value editors if explicitly requested.
+	if (this.configValueEditorsActive) {
+		StringArrayPropertyEditor sae = new StringArrayPropertyEditor();
+		this.defaultEditors.put(String[].class, sae);
+		this.defaultEditors.put(short[].class, sae);
+		this.defaultEditors.put(int[].class, sae);
+		this.defaultEditors.put(long[].class, sae);
+	}
+}
+```
+
+此外还内置了一些 Resource 相关的 PropertyEditor，代码在 ResourceEditorRegistrar 类的 registerCustomEditors 方法中：
+
+```java
+public void registerCustomEditors(PropertyEditorRegistry registry) {
+	ResourceEditor baseEditor = new ResourceEditor(this.resourceLoader, this.propertyResolver);
+	doRegisterEditor(registry, Resource.class, baseEditor);
+	doRegisterEditor(registry, ContextResource.class, baseEditor);
+	doRegisterEditor(registry, InputStream.class, new InputStreamEditor(baseEditor));
+	doRegisterEditor(registry, InputSource.class, new InputSourceEditor(baseEditor));
+	doRegisterEditor(registry, File.class, new FileEditor(baseEditor));
+	doRegisterEditor(registry, URL.class, new URLEditor(baseEditor));
+
+	ClassLoader classLoader = this.resourceLoader.getClassLoader();
+	doRegisterEditor(registry, URI.class, new URIEditor(classLoader));
+	doRegisterEditor(registry, Class.class, new ClassEditor(classLoader));
+	doRegisterEditor(registry, Class[].class, new ClassArrayEditor(classLoader));
+
+	if (this.resourceLoader instanceof ResourcePatternResolver) {
+		doRegisterEditor(registry, Resource[].class,
+				new ResourceArrayPropertyEditor((ResourcePatternResolver) this.resourceLoader, this.propertyResolver));
+	}
+}
+```
+
+ResourceEditorRegistrar 是框架内置的一个 PropertyEditor 注册器，它是一个 BFPP，在 ClasspathXmlApplicationContext 启动时就会把它添加到容器中，具体的代码分析在 <a href="http://blog.csdn.net/pentiumchen/article/details/43876819" target="_blank">Spring IOC 容器启动简介</a>中。 
+
+##### 自定义 PropertyEditor
+
+当 Spring 内置的 PropertyEditor 无法满足我们的要求的时候，我们可以根据 Spring 提供的扩展机制来自定义 PropertyEditor，下面通过一个例子来介绍如何实现自定义的 PropertyEditor，我的这个 PropertyEditor 是一个时间相关的 Editor，它可以一个满足特定时间格式的字符串转换成日期对象。 
+
+自定义 PropertyEditor，可以通过继承 **org.springframework.beans.propertyeditors.PropertiesEditor** 或 **java.beans.PropertyEditorSupport**
+
+首先定义一个 PropertyEditor，框架中提供了一个 PropertyEditor 基类 PropertyEditorSupport，直接继承这个类可以省去一部分代码，代码如下：
+
+```java
+public class DateEditor extends PropertyEditorSupport {
+	private DateFormat dateFormat;
+
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = new SimpleDateFormat(dateFormat);
+	}
+
+	@Override
+	public void setAsText(String text) throws IllegalArgumentException {
+		try {
+			Object value = dateFormat.parse(text);
+			setValue(value);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public String getAsText() {
+		if (getValue() instanceof Date) {
+			Date d = (Date) getValue();
+			return dateFormat.format(d);
+		}
+		return super.getAsText();
+	}
+
+}
+```
+
+dateFormat 是日期格式，需要使用者注入 
+
+接下来要把 DateEditor 注入到到容器中，框架提供了一个 BFPP 类 CustomEditorConfigurer 来完成这项工作，我们只要在 DateEditor 注入到这个 BFPP bean 中就可以了，有以下几种注入方式：
+
+通过 customEditors 属性注入，它是 CustomEditorConfigurer 中一个 Map 属性，key是类型字符串，value 是 PropertyEditor 实例，xml 配置片段如下：
+
+```xml
+<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+	<property name="customEditors">
+		<map>
+			<entry key="java.util.Date" value-ref="dateEditor"></entry>
+		</map>
+	</property>
+</bean>
+<bean id="dateEditor" class="spring.beans.propertyeditor.DateEditor">
+	<property name="dateFormat" value="yyyy-MM-dd HH:mm:ss" />
+</bean>
+```
+
+通过一个测试 bean 和一段测试代码测试一下： 
+
+```xml
+<bean id="dateBean" class="spring.beans.propertyeditor.DateBean">
+	<constructor-arg value="2014-06-01 09:21:20"></constructor-arg>
+</bean>
+```
+
+```java
+@Test
+public void test() {
+	BeanFactory context = new ClassPathXmlApplicationContext(
+			"spring/beans/propertyeditor/propertyeditor1.xml");
+	DateBean dateBean = (DateBean) context.getBean("dateBean");
+	System.out.println(dateBean.getDate());
+}
+```
+
+打印结果
+
+```java
+Sun Jun 01 09:21:20 CST 2014
+```
+
+说明日志转成功了
+
+**注意：这种方式有一个问题，在这种配置方式下，PropertyEditor 是共享的，在博客最开始的时候提到了 PropertyEditor 是非线程安全的，所以在处理的过程中需要做同步，这意味着在在高并发坏境下这里的同步会对应用的性能造成比较大的影响。所以这种方式是不推荐的，事实上这种方式已经被 Spring 打上 deprecated 标签了。**
+
+为了解决上面提到的可能引发的性能问题，我们可以修改配置：
+
+```xml
+<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+	<property name="customEditors">
+		<map>
+			<entry key="java.util.Date" value="spring.beans.propertyeditor.DateEditor"></entry>
+		</map>
+	</property>
+</bean>
+```
+
+上面这段配置是把 DateEditor 的 class 注入到 customEditors 属性中，这种情况下在 bean 初始化时会创建一个新的 PropertyEditor 对象注册到 BeanWrapper 中（可以参考 <a href="http://blog.csdn.net/pentiumchen/article/details/43940323" target="_blank">Spring IOC 容器 bean 初始化源码分析有分析</a>），这样 PropertyEditor 是不同的对象状态是独立的，就不会有上面提到的同步问题。但是还是有个问题，这个 DateEditor 是需要注入属性的，而 PropertyEditor 的实例化又不能被应用层干预，所以无法注入这个 dateFormat 属性到 DateEditor 对象中，因此这种方式是不能满足我们的需求的，它只能应用在 PropertyEditor 不需要注入属性的情况。对于我们的需求只能通过下面这种方式来实现。 
+
+通过 propertyEditorRegistrars 注入，它是 CustomEditorConfigurer 的一个 PropertyEditor 注册器数组，它的职责是用来注册 PropertyEditor，而且可以注册任意数量的 PropertyEditor，首先需要定义一个注册器：
+
+```java
+public class CustomPropertyEditorRegistrar implements PropertyEditorRegistrar {
+
+	private String dateFormat;
+
+	public String getDateFormat() {
+		return dateFormat;
+	}
+
+	public void setDateFormat(String dateFormat) {
+		this.dateFormat = dateFormat;
+	}
+
+	@Override
+	public void registerCustomEditors(PropertyEditorRegistry registry) {
+		DateEditor dateEditor = new DateEditor();
+		dateEditor.setDateFormat(dateFormat);
+		registry.registerCustomEditor(Date.class, dateEditor);
+
+	}
+
+}
+```
+
+在注册器的 registerCustomEditors 方法中把 DateEditor 注册到容器中并且和 Date 类型绑定，要确保 DateEditor 对象时临时创建的对象而不是一个全局对象，否则一样可能会引发性能问题。把日期格式通过 dateFormat 字段注入，然后修改 xml 片段：
+
+```xml
+<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+	<property name="propertyEditorRegistrars">
+		<list>
+			<bean class="spring.beans.propertyeditor.CustomPropertyEditorRegistrar">
+				<property name="dateFormat" value="yyyy-MM-dd HH:mm:ss"></property>
+			</bean>
+		</list>
+	</property>
+</bean>
+```
+
+这种方式下，每个 BeanWrapper 都会注册不同的 PropertyEditor，不会有高并发下的性能问题，而且用法也比较灵活，所以 Spring 的推荐是通过 propertyEditorRegistrars 注入来完成 PropertyEditor 的自定义。
+
+##### 代码原理
+
+下面来看看关于框架中关于自定义 PropertyEditor 的实现 
+
+看下 CustomEditorConfigurer 类的 postProcessBeanFactory 方法：
+
+```java
+public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+	if (this.propertyEditorRegistrars != null) {
+		for (PropertyEditorRegistrar propertyEditorRegistrar : this.propertyEditorRegistrars) {
+			beanFactory.addPropertyEditorRegistrar(propertyEditorRegistrar);
+		}
+	}
+
+	if (this.customEditors != null) {
+		for (Map.Entry<String, ?> entry : this.customEditors.entrySet()) {
+			String key = entry.getKey();
+			Object value = entry.getValue();
+			Class requiredType = null;
+
+			try {
+				requiredType = ClassUtils.forName(key, this.beanClassLoader);
+				if (value instanceof PropertyEditor) {
+					...
+					beanFactory.addPropertyEditorRegistrar(
+							new SharedPropertyEditorRegistrar(requiredType, (PropertyEditor) value));
+				}
+				else if (value instanceof Class) {
+					beanFactory.registerCustomEditor(requiredType, (Class) value);
+				}
+				else if (value instanceof String) {
+					Class editorClass = ClassUtils.forName((String) value, this.beanClassLoader);
+					Assert.isAssignable(PropertyEditor.class, editorClass);
+					beanFactory.registerCustomEditor(requiredType, editorClass);
+				}
+				else {
+					...
+				}
+			}
+			catch (ClassNotFoundException ex) {
+				...
+			}
+		}
+	}
+}
+```
+
+从代码中可以看到：
+
+把 propertyEditorRegistrars 中所有的 PropertyEditor 注册器通过调用 beanFactory 的 addPropertyEditorRegistrar 方法注册到容器中，保存在 propertyEditorRegistrars 集合属性中。
+
+如果 customEditors 属性 value 的类型为 String 或 Class，调用 beanFactory 的 registerCustomEditor 把自定义 PropertyEditor 的 Class 添加到容器中（String 转换成 Class），保存在容器的 customEditors 哈希表属性中，key为值类型，value 为 PropertyEditor 类型。
+
+如果 customEditors 属性 value 是一个 PropertyEditor 实例，那么注册一个 PropertyEditor 注册器 SharedPropertyEditorRegistrar 到容器中（同样是调用 beanFactory 的 addPropertyEditorRegistrar 方法），该注册器保存这个 PropertyEditor 实例，并且 BeanWrapper 进行初始化工作时会把这个 PropertyEditor 实例注册到 BeanWrapper 中，无论哪个 BeanWrapper 注册的都是这同一个实例。
+
+通过 <a href="http://blog.csdn.net/pentiumchen/article/details/43940323" target="_blank">在 Spring IOC 容器 bean 初始化源码分析有分析</a>中的分析，bean 实例化时会调用 AbstractBeanFactory 的 initBeanWrapper 方法，这个方法紧接着都调用 registerCustomEditors 方法，看看 registerCustomEditors 方法中的代码：
+
+```java
+protected void registerCustomEditors(PropertyEditorRegistry registry) {
+	PropertyEditorRegistrySupport registrySupport =
+			(registry instanceof PropertyEditorRegistrySupport ? (PropertyEditorRegistrySupport) registry : null);
+	if (registrySupport != null) {
+		registrySupport.useConfigValueEditors();
+	}
+	if (!this.propertyEditorRegistrars.isEmpty()) {
+		for (PropertyEditorRegistrar registrar : this.propertyEditorRegistrars) {
+			try {
+				registrar.registerCustomEditors(registry);
+			}
+			catch (BeanCreationException ex) {
+				...
+			}
+		}
+	}
+	if (!this.customEditors.isEmpty()) {
+		for (Map.Entry<Class<?>, Class<? extends PropertyEditor>> entry : this.customEditors.entrySet()) {
+			Class<?> requiredType = entry.getKey();
+			Class<? extends PropertyEditor> editorClass = entry.getValue();
+			registry.registerCustomEditor(requiredType, BeanUtils.instantiateClass(editorClass));
+		}
+	}
+}
+```
+
+registry 这个参数就是 BeanWrapper 实例（BeanWrapperImpl 实现了 PropertyEditorRegistry 接口，并且继承了 PropertyEditorRegistrySupport 类）从代码中可以看到： 
+
+
+ - 首先调用所有框架内置和自定义 PropertyEditor 注册器的 registerCustomEditors 方法，这个方法把执行 PropertyEditor 注册到 BeanWrapper 逻辑，比如在我们的 CustomPropertyEditorRegistrar 注册器就是就是通过 registry.registerCustomEditor 方法把 DateEditor 实例添加到 BeanWrapper 中，注意这个实例是新鲜出炉的哟。而在上面提到的 SharedPropertyEditorRegistrar 注册器中，它里面持有一个之前注册进来的 PropertyEditor 对象，这个对象实例始终是同一个，是共享的，这个注册器在注册 PropertyEditor 时会先调用 PropertyEditorRegistrySupport.registerSharedEditor 方法，但是最终还是会调到 PropertyEditorRegistrySupport.registerCustomEditor 的方法，registerCustomEditor 这个方法的作用就是把 PropertyEditor 保存在 customEditors 这个 Map 属性中，key 是类型，value 是 PropertyEditor 实例，BeanWrapper 在进行值转换时直接从这个 Map 中获取相关的 PropertyEditor。
+
+ - 接下来处理 customEditors 中的 PropertyEditor，这里面的 value 都收 Class，所以先根据 Class 创建一个实例，然后调用 registry.registerCustomEditor 把创建好的实例注册到 BeanWrapper 中，实例也是新鲜出炉的。
+
+
+以上是关于 Spring 中 PropertyEditor 的全部内容。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/pentiumchen/article/details/44026575" target="_blank">Spring PropertyEditor 分析</a>
+
+#### Spring MVC 类型转换 PropertyEditor 的背后
+
+PropertyEditor 是 Spring 最初采用的转换策略。将会转移到 Converter 上。本文章主要对 @InitBinder 注解背后代码层面的运行过程做介绍。所以最好先熟悉它的用法然后来看通代码流程。 
+
+先看实例，Controller 代码如下：
+
+```java
+@Controller
+public class FormAction{
+
+    // 这样的方法里，一般是用来注册一些 PropertyEditor
+    @InitBinder 
+    public void initBinder(WebDataBinder binder) throws Exception {  
+        DateFormat df = new SimpleDateFormat("yyyy---MM---dd HH:mm:ss");  
+        CustomDateEditor dateEditor = new CustomDateEditor(df, true);  
+        binder.registerCustomEditor(Date.class, dateEditor);      
+    }
+
+    @RequestMapping(value="/test/json",method=RequestMethod.GET)
+    @ResponseBody
+    public Map<String,Object> getFormData(Date date){
+        Map<String,Object> map=new HashMap<String,Object>();
+        map.put("name","lg");
+        map.put("age",23);
+        map.put("date",new Date());
+        return map;
+    }
+}
+```
+
+xml 文件仅仅开启 mvc:ananotation-driven: 
+
+```xml
+<mvc:annotation-driven />
+```
+
+然后访问 **http://localhost:8080/test/json?date=2014---08---3 03:34:23** ，便看到成功的获取到了数据。接下来源代码代码分析这一过程：
+
+由于使用了 @RequestMapping 所以会选择 RequestMappingHandlerAdapter 来调度执行相应的方法，如下：
+
+```java
+/**
+ * Invoke the {@link RequestMapping} handler method preparing a {@link ModelAndView}
+ * if view resolution is required.
+ */
+private ModelAndView invokeHandleMethod(HttpServletRequest request,
+        HttpServletResponse response, HandlerMethod handlerMethod) throws Exception {
+ 
+    ServletWebRequest webRequest = new ServletWebRequest(request, response);
+ 
+    // 我们关注的重点
+    WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
+    ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
+    ServletInvocableHandlerMethod requestMappingMethod = createRequestMappingMethod(handlerMethod, binderFactory);
+ 
+    ModelAndViewContainer mavContainer = new ModelAndViewContainer();
+    mavContainer.addAllAttributes(RequestContextUtils.getInputFlashMap(request));
+    modelFactory.initModel(webRequest, mavContainer, requestMappingMethod);
+    mavContainer.setIgnoreDefaultModelOnRedirect(this.ignoreDefaultModelOnRedirect);
+ 
+    AsyncWebRequest asyncWebRequest = WebAsyncUtils.createAsyncWebRequest(request, response);
+    asyncWebRequest.setTimeout(this.asyncRequestTimeout);
+ 
+    final WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+    asyncManager.setTaskExecutor(this.taskExecutor);
+    asyncManager.setAsyncWebRequest(asyncWebRequest);
+    asyncManager.registerCallableInterceptors(this.callableInterceptors);
+    asyncManager.registerDeferredResultInterceptors(this.deferredResultInterceptors);
+ 
+    if (asyncManager.hasConcurrentResult()) {
+        Object result = asyncManager.getConcurrentResult();
+        mavContainer = (ModelAndViewContainer) asyncManager.getConcurrentResultContext()[0];
+        asyncManager.clearConcurrentResult();
+ 
+        if (logger.isDebugEnabled()) {
+            logger.debug("Found concurrent result value [" + result + "]");
+        }
+        requestMappingMethod = requestMappingMethod.wrapConcurrentResult(result);
+    }
+ 
+    requestMappingMethod.invokeAndHandle(webRequest, mavContainer);
+ 
+    if (asyncManager.isConcurrentHandlingStarted()) {
+        return null;
+    }
+ 
+    return getModelAndView(mavContainer, modelFactory, webRequest);
+}
+```
+
+这里面就是整个执行过程。首先绑定请求参数到方法的参数上，然后执行方法，接下来根据方法返回的类型来选择合适的 HandlerMethodReturnValueHandler 来进行处理，最后要么走 view 路线，要么直接写入 response 的 body 中返回。
+
+我们此时关注的重点是：如何绑定请求参数到方法的参数上的呢？ 
+
+```java
+WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod); 
+```
+
+针对每次对该 handlerMethod 请求产生一个绑定工厂，由这个工厂来完成数据的绑定。
+
+这里的 handlerMethod 包含了 controller 对象 FormAction 和、test/json 映射到的方法即 getFormData。 
+
+然后详细看下 getDataBinderFactory 的实现： 
+
+```java
+    // 这里的 handlerType 便是 Controller 的类型 FormAction
+    Class<?> handlerType = handlerMethod.getBeanType();
+    Set<Method> methods = this.initBinderCache.get(handlerType);
+    if (methods == null) {
+    // 关注点1：找出 FormAction 类的所有的含有 @InitBinder 的方法（方法的返回类型必须为 void），找到后同时缓存起来
+        methods = HandlerMethodSelector.selectMethods(handlerType, INIT_BINDER_METHODS);
+        this.initBinderCache.put(handlerType, methods);
+    }
+    List<InvocableHandlerMethod> initBinderMethods = new ArrayList<InvocableHandlerMethod>();
+    // Global methods first
+    // 关注点2：再寻找出全局的初始化 Binder 的方法
+    for (Entry<ControllerAdviceBean, Set<Method>> entry : this.initBinderAdviceCache .entrySet()) {
+        if (entry.getKey().isApplicableToBeanType(handlerType)) {
+            Object bean = entry.getKey().resolveBean();
+            for (Method method : entry.getValue()) {
+                initBinderMethods.add(createInitBinderMethod(bean, method));
+            }
+        }
+    }
+    for (Method method : methods) {
+        Object bean = handlerMethod.getBean();
+        initBinderMethods.add(createInitBinderMethod(bean, method));
+    }
+    // 关注点3：找到了所有的与该 handlerMethod 有关的初始化 binder 的方法，保存起来
+    return createDataBinderFactory(initBinderMethods);
+}
+```
+
+上面稍微做了些注释，然后看下详细的内容： 
+
+关注点1：就是使用过滤，过滤类为：INIT_BINDER_METHODS，如下 
+
+```java
+/**
+ * MethodFilter that matches {@link InitBinder @InitBinder} methods.
+ */
+public static final MethodFilter INIT_BINDER_METHODS = new MethodFilter() {
+ 
+    @Override
+    public boolean matches(Method method) {
+        return AnnotationUtils.findAnnotation(method, InitBinder.class) != null;
+    }
+};
+```
+
+这个过滤类就是在 handlerType 即 FormAction 中过滤那些含有 @InitBinder 注解的方法。找到了之后就缓存起来，供下次使用。key 为：handlerType，value 为找到的方法。存至 initBinderCache 中。 
+
+关注点2：从 initBinderAdviceCache 中获取所有支持这个 handlerType 的 method。这一块有待继续研究，这个 initBinderAdviceCache 是如何初始化来的等等。针对目前的工程来说，initBinderAdviceCache 是为空的。
+
+关注点3：遍历所有找到的和 handlerType 有关的 method,然后封装成 InvocableHandlerMethod，如下： 
+
+```java
+for (Method method : methods) {
+    Object bean = handlerMethod.getBean();
+    initBinderMethods.add(createInitBinderMethod(bean, method));
+}
+```
+
+```java
+private InvocableHandlerMethod createInitBinderMethod(Object bean, Method method) {
+    InvocableHandlerMethod binderMethod = new InvocableHandlerMethod(bean, method);
+    binderMethod.setHandlerMethodArgumentResolvers(this.initBinderArgumentResolvers);
+    binderMethod.setDataBinderFactory(new DefaultDataBinderFactory(this.webBindingInitializer));
+    binderMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
+    return binderMethod;
+}
+```
+
+在封装的过程中，同时设置一些 RequestMappingHandlerAdapter 的一些参数进去 initBinderArgumentResolvers、webBindingInitializer、parameterNameDiscoverer。 
+
+封装完所有的方法后，创建出最终的 WebDataBinderFactory。如下： 
+
+```java
+protected InitBinderDataBinderFactory createDataBinderFactory(List<InvocableHandlerMethod> binderMethods)
+        throws Exception {
+ 
+    return new ServletRequestDataBinderFactory(binderMethods, getWebBindingInitializer());
+}
+```
+
+getWebBindingInitializer() 也是 RequestMappingHandlerAdapter 的 webBindingInitializer 参数。 
+
+至此绑定数据的工厂完成了，包含了这个 handlerType 的所有的 PropertyEditor。这是准备工作，然后就是等待执行这个我们自己的方法 getFormData 执行时来完成参数的绑定过程。 
+
+绑定参数过程即 getFormData 的执行过程如下： 
+
+```java
+ServletInvocableHandlerMethod requestMappingMethod = createRequestMappingMethod(handlerMethod, binderFactory);
+略
+requestMappingMethod.invokeAndHandle(webRequest, mavContainer);
+```
+
+其中的 requestMappingMethod 经过了进一步的包装，已经包含刚才已经创建的绑定工厂。 
+
+执行过程如下： 
+
+```java
+public final Object invokeForRequest(NativeWebRequest request, ModelAndViewContainer mavContainer,
+        Object... providedArgs) throws Exception {
+ 
+    Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs);
+    if (logger.isTraceEnabled()) {
+        StringBuilder sb = new StringBuilder("Invoking [");
+        sb.append(getBeanType().getSimpleName()).append(".");
+        sb.append(getMethod().getName()).append("] method with arguments ");
+        sb.append(Arrays.asList(args));
+        logger.trace(sb.toString());
+    }
+    Object returnValue = invoke(args);
+    if (logger.isTraceEnabled()) {
+        logger.trace("Method [" + getMethod().getName() + "] returned [" + returnValue + "]");
+    }
+    return returnValue;
+}
+```
+
+分两大步，绑定参数和执行方法体。最重要的就是如何来绑定参数呢？ 
+
+```java
+private Object[] getMethodArgumentValues(NativeWebRequest request, ModelAndViewContainer mavContainer,
+        Object... providedArgs) throws Exception {
+ 
+    MethodParameter[] parameters = getMethodParameters();
+    Object[] args = new Object[parameters.length];
+    for (int i = 0; i < parameters.length; i++) {
+        MethodParameter parameter = parameters[i];
+        parameter.initParameterNameDiscovery(this.parameterNameDiscoverer);
+        GenericTypeResolver.resolveParameterType(parameter, getBean().getClass());
+        args[i] = resolveProvidedArgument(parameter, providedArgs);
+        if (args[i] != null) {
+            continue;
+        }
+        if (this.argumentResolvers.supportsParameter(parameter)) {
+            try {
+                args[i] = this.argumentResolvers.resolveArgument(
+                        parameter, mavContainer, request, this.dataBinderFactory);
+                continue;
+            }
+            catch (Exception ex) {
+                if (logger.isTraceEnabled()) {
+                    logger.trace(getArgumentResolutionErrorMessage("Error resolving argument", i), ex);
+                }
+                throw ex;
+            }
+        }
+        if (args[i] == null) {
+            String msg = getArgumentResolutionErrorMessage("No suitable resolver for argument", i);
+            throw new IllegalStateException(msg);
+        }
+    }
+    return args;
+}
+```
+
+绑定参数又引出来另一个重要名词：
+
+```java
+HandlerMethodArgumentResolver.args[i] = this.argumentResolvers.resolveArgument( 
+    parameter, mavContainer, request, this.dataBinderFactory);
+```
+
+具体内容如下： 
+
+```java
+/**
+ * Iterate over registered {@link HandlerMethodArgumentResolver}s and invoke the one that supports it.
+ * @exception IllegalStateException if no suitable {@link HandlerMethodArgumentResolver} is found.
+ */
+@Override
+public Object resolveArgument(
+        MethodParameter parameter, ModelAndViewContainer mavContainer,
+        NativeWebRequest webRequest, WebDataBinderFactory binderFactory)
+        throws Exception {
+ 
+    HandlerMethodArgumentResolver resolver = getArgumentResolver(parameter);
+    Assert.notNull(resolver, "Unknown parameter type [" + parameter.getParameterType().getName() + "]");
+    return resolver.resolveArgument(parameter, mavContainer, webRequest, binderFactory);
+}
+```
+
+遍历所有已注册的 HandlerMethodArgumentResolver，然后找出一个适合的来进行参数绑定，对于本工程来说，getFormData(Date date) 的参数date默认是 request params 级别的，所以使用 RequestParamMethodArgumentResolver 来处理这一过程。处理过程如下： 
+
+```java
+@Override
+public final Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
+        NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+ 
+    Class<?> paramType = parameter.getParameterType();
+    NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
+ 
+    Object arg = resolveName(namedValueInfo.name, parameter, webRequest);
+    if (arg == null) {
+        if (namedValueInfo.defaultValue != null) {
+            arg = resolveDefaultValue(namedValueInfo.defaultValue);
+        }
+        else if (namedValueInfo.required) {
+            handleMissingValue(namedValueInfo.name, parameter);
+        }
+        arg = handleNullValue(namedValueInfo.name, arg, paramType);
+    }
+    else if ("".equals(arg) && (namedValueInfo.defaultValue != null)) {
+        arg = resolveDefaultValue(namedValueInfo.defaultValue);
+    }
+ 
+    if (binderFactory != null) {
+        WebDataBinder binder = binderFactory.createBinder(webRequest, null, namedValueInfo.name);
+        arg = binder.convertIfNecessary(arg, paramType, parameter);
+    }
+ 
+    handleResolvedValue(arg, namedValueInfo.name, parameter, mavContainer, webRequest);
+ 
+    return arg;
+}
+```
+
+```java
+// 获取参数信息，就是按照 @RequestParam 的 3 个属性来收集的
+// 即 defaultValue=null、required=false、name=date, 
+NamedValueInfo namedValueInfo = getNamedValueInfo(parameter);
+Object arg = resolveName(namedValueInfo.name, parameter, webRequest);
+```
+
+然后就是获取原始数据,获取过程如下： 
+
+```java
+@Override
+protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest webRequest) throws Exception {
+    Object arg;
+ 
+    HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
+    MultipartHttpServletRequest multipartRequest =
+        WebUtils.getNativeRequest(servletRequest, MultipartHttpServletRequest.class);
+ 
+    if (MultipartFile.class.equals(parameter.getParameterType())) {
+        assertIsMultipartRequest(servletRequest);
+        Assert.notNull(multipartRequest, "Expected MultipartHttpServletRequest: is a MultipartResolver configured?");
+        arg = multipartRequest.getFile(name);
+    }
+    else if (isMultipartFileCollection(parameter)) {
+        assertIsMultipartRequest(servletRequest);
+        Assert.notNull(multipartRequest, "Expected MultipartHttpServletRequest: is a MultipartResolver configured?");
+        arg = multipartRequest.getFiles(name);
+    }
+    else if(isMultipartFileArray(parameter)) {
+        assertIsMultipartRequest(servletRequest);
+        Assert.notNull(multipartRequest, "Expected MultipartHttpServletRequest: is a MultipartResolver configured?");
+        arg = multipartRequest.getFiles(name).toArray(new MultipartFile[0]);
+    }
+    else if ("javax.servlet.http.Part".equals(parameter.getParameterType().getName())) {
+        assertIsMultipartRequest(servletRequest);
+        arg = servletRequest.getPart(name);
+    }
+    else if (isPartCollection(parameter)) {
+        assertIsMultipartRequest(servletRequest);
+        arg = new ArrayList<Object>(servletRequest.getParts());
+    }
+    else if (isPartArray(parameter)) {
+        assertIsMultipartRequest(servletRequest);
+        arg = RequestPartResolver.resolvePart(servletRequest);
+    }
+    else {
+        arg = null;
+        if (multipartRequest != null) {
+            List<MultipartFile> files = multipartRequest.getFiles(name);
+            if (!files.isEmpty()) {
+                arg = (files.size() == 1 ? files.get(0) : files);
+            }
+        }
+        if (arg == null) {
+            // 对于本工程，我们的重点在这里
+            String[] paramValues = webRequest.getParameterValues(name);
+            if (paramValues != null) {
+                arg = paramValues.length == 1 ? paramValues[0] : paramValues;
+            }
+        }
+    }
+ 
+    return arg;
+}
+```
+
+通过 webRequest.getParameterValues(name) 来获取原始的字符串。这里便有涉及到了容器如 Tomcat 的处理过程，这一获取参数的过程在本系列的第五篇文章 Tomcat 的获取参数中进行了详细的源码介绍，那一篇主要是介绍乱码的。本文章不再介绍，接着说，这样就可以获取到我们请求的原始字符串"2014---08---3 03:34:23"，接下来便是执行转换绑定的过程： 
+
+```java
+if (binderFactory != null) {
+    WebDataBinder binder = binderFactory.createBinder(webRequest, null, namedValueInfo.name);
+    arg = binder.convertIfNecessary(arg, paramType, parameter);
+}
+```
+
+这一过程就是要寻找我们已经注册的所有的 PropertyEditor 来进行转换，如果还没有找到，则使用另一套转换流程，使用 conversionService 来进行转换。我们慢慢来看这一过程，有了 binderFactory 便可以创建出 WebDataBinder，具体的创建过程如下： 
+
+```java
+public final WebDataBinder createBinder(NativeWebRequest webRequest, Object target, String objectName)
+        throws Exception {
+    WebDataBinder dataBinder = createBinderInstance(target, objectName, webRequest);
+    if (this.initializer != null) {
+        this.initializer.initBinder(dataBinder, webRequest);
+    }
+    initBinder(dataBinder, webRequest);
+    return dataBinder;
+}
+```
+
+先创建出 WebDataBinder，然后使用 initializer 的 initBinder 方法来初始化一些 PropertyEditor，initializer 的类型为我们常见的 ConfigurableWebBindingInitializer 即在 **mvc:annotation-driven** 时默认注册的最终设置为 RequestMappingHandlerAdapter 的 webBindingInitializer 属性值。
+
+```java
+this.initializer.initBinder(dataBinder, webRequest);
+```
+
+过程如下： 
+
+```java
+@Override
+public void initBinder(WebDataBinder binder, WebRequest request) {
+    binder.setAutoGrowNestedPaths(this.autoGrowNestedPaths);
+    if (this.directFieldAccess) {
+        binder.initDirectFieldAccess();
+    }
+    if (this.messageCodesResolver != null) {
+        binder.setMessageCodesResolver(this.messageCodesResolver);
+    }
+    if (this.bindingErrorProcessor != null) {
+        binder.setBindingErrorProcessor(this.bindingErrorProcessor);
+    }
+    if (this.validator != null && binder.getTarget() != null &&
+            this.validator.supports(binder.getTarget().getClass())) {
+        binder.setValidator(this.validator);
+    }
+    if (this.conversionService != null) {
+        binder.setConversionService(this.conversionService);
+    }
+    if (this.propertyEditorRegistrars != null) {
+        for (PropertyEditorRegistrar propertyEditorRegistrar : this.propertyEditorRegistrars) {
+            propertyEditorRegistrar.registerCustomEditors(binder);
+        }
+    }
+}
+```
+
+即设置一些我们 conversionService、messageCodesResolver、validator 等，这些参数即我们在 **mvc:annotation** 中进行设置的，若无设置，采用默认的。 
+
+继续执行
+
+```java
+initBinder(dataBinder, webRequest); 
+```
+
+```java
+public void initBinder(WebDataBinder binder, NativeWebRequest request) throws Exception {
+    for (InvocableHandlerMethod binderMethod : this.binderMethods) {
+        if (isBinderMethodApplicable(binderMethod, binder)) {
+            Object returnValue = binderMethod.invokeForRequest(request, null, binder);
+            if (returnValue != null) {
+                throw new IllegalStateException("@InitBinder methods should return void: " + binderMethod);
+            }
+        }
+    }
+}
+```
+
+执行那些适合我们已经创建的 WebDataBinder，怎样才叫适合的呢？看 isBinderMethodApplicable(binderMethod, binder) 方法 
+
+```java
+protected boolean isBinderMethodApplicable(HandlerMethod initBinderMethod, WebDataBinder binder) {
+    InitBinder annot = initBinderMethod.getMethodAnnotation(InitBinder.class);
+    Collection<String> names = Arrays.asList(annot.value());
+    return (names.size() == 0 || names.contains(binder.getObjectName()));
+}
+```
+
+当 initBinderMethod 上的 @InitBinder 注解指定了 value，该 value 可以是多个，当它包含了我们的方法的参数 date,则这个 initBinderMethod 就会被执行。当 @InitBinder 注解没有指定 value，则也会被执行。所以为了不用执行一些不必要的 initBinderMethod，我们最好为这些 initBinderMethod 上的 @InitBinder 加上 value 限定。对于我们写的 initBinder 便因此开始执行了。 
+
+由 binderFactory 创建出来的 WebDataBinder 就此完成，然后才是详细的转换过程： 
+
+```java
+public <T> T convertIfNecessary(String propertyName, Object oldValue, Object newValue,
+        Class<T> requiredType, TypeDescriptor typeDescriptor) throws IllegalArgumentException {
+ 
+    Object convertedValue = newValue;
+ 
+    // Custom editor for this type?
+    PropertyEditor editor = this.propertyEditorRegistry.findCustomEditor(requiredType, propertyName);
+ 
+    ConversionFailedException firstAttemptEx = null;
+ 
+    // No custom editor but custom ConversionService specified?
+    ConversionService conversionService = this.propertyEditorRegistry.getConversionService();
+ 
+    //略
+}
+```
+
+这里首先使用已注册的 PropertyEditor，当仍然没有找到时才使用 ConversionService。对于本工程来说，由于已经手动注册了对于 Date 的转换的 PropertyEditor 即 CustomDateEditor，然后便会执行 CustomDateEditor 的具体的转换过程。至此，大体过程就算是完了。
+
+参考链接：
+
+ - <a href="https://yq.aliyun.com/articles/38955" target="_blank">Spring MVC 类型转换 PropertyEditor 的背后</a>
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

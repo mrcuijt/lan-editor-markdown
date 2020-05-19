@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>mulit-index-get-way</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 多线程
+
+ - **同步关键字 原理**
+ 
+ - **线程通信 -- wait/notify**
+ 
+ - **volatile 作用 -- 可见性，重排序**
+ 
+ - **为什么会有可见性问题，防止指令重排序**
+ 
+ - **JMM 内存模型（错误：老年代 新生代）**
+ 
+  - **方法区、堆、虚拟机线**
+ 
+ - 
+
+#### 多线程应用
+
+ - **互联网公司 -> 快 -> 需求 -> 响应速度**
+
+ - 后端分布式系统，拆分成多个子系统
+ 
+ - 前端通过 - **`网关/前置业务系统` 访问后台**
+
+非常常用的编程方式---弊端：时间累加。
+
+ - 总的执行时间，取决于没人任务的执行的时间累计，任务越多，总计执行时间越长。
+
+多线程编程方式
+
+ - 总的执行时间，取决于最慢的逻辑
+
+ - **`多线程的运用`**
+  
+  - **`拆分 （从业务角度，从代码逻辑角度）`**
+
+#### 分布式系统
+
+分布式系统特点：
+
+ - 一个用户请求由多个系统协同完成。
+
+ - 否则则称为各个独立系统。
+
+为什么不让 App 去直接访问各个启动区请求数据？
+
+ - 1、Http 请求流量的消费非常大
+
+#### 多线程并行编程的设计
+
+**原理：计算机 -- 科学 -- 可以被论证 -- 用已知推理未知**
+
+  - 多线程异步执行，结果如何获取？
+   - Java JDK 专门针对异步编程：Future/Callable -- API
+  - 
+
+```java
+FutureTask<JSONObject> futureTask = new FutureTask<>(new Callable<JSONObject>(){
+   @Override
+   public JSONObject call() throws Exception{
+       // 1. 用户级别信息获取
+       JSONObject userInfo = remoteProcedureCall.getUserInfo(userId);
+       return userInfo;
+   } 
+});
+
+FutureTask<JSONObject> futureTask2 = new FutureTask<>(new Callable<JSONObject>(){
+   @Override
+   public JSONObject call() throws Exception{
+       // 2. 积分信息接口获取
+       JSONObject intergralInfo = remoteProcedureCall.getIntergralInfo(userId);
+       return intergralInfo;
+   } 
+});
+
+new Thread(futureTask).start(); // 把任务交给线程执行
+new Thread(futureTask2).start(); // 把任务交给线程执行
+
+// TODO 面试 Runable 和 Callable 不同：
+// 接口不同 Callable 有返回值，还有异常抛出...。
+// Callable 在获取返回值时会有阻塞，等待数据返回。
+
+// Runable 和 Callable 联系：
+// Callable 最终在 Ranable 中的 run 方法中执行。
+
+// Callable 中包装了业务逻辑，在 Runable 中的 run 方法中被调用。
+
+// 获取任务线程执行结果
+// 3、数据汇总 -- 接口返回（不能和 1,2 并行）
+JSONObject obj = new JSONObject();
+obj.add(futureTask.get());
+obj.add(futureTask2.get());
+```
+
+#### 推理
+
+```java
+// 目标：替换掉 jdk 的 FutureTask。验证的过程
+// 已知推理未知
+
+public class TonyFutureTask<T> implements Runnable{
+    
+    // 包装 - 任务执行的逻辑
+    Callable<T> callable;
+    // callable 的执行结果
+    T result;
+    // 状态
+    volatile String state = "NEW"; // volatile 保证可见性？
+
+    public TonyFutureTask(Callable<T> callable){
+        this.callable = callable;
+    }
+    
+    @Override
+    public void run(){
+        // 线程执行 -- run
+        try {
+            result = callable.call();
+        } catch(Exception e){
+            e.printStackTrace();
+        } finally {
+            state = "END";
+        }
+        // 执行结束，已有结果，所有等待结果的线程，唤醒！继续执行。
+        synchronized(this){
+            this.notifyAll();
+        }
+    }
+
+    // 等待 任务执行结束，再返回结果
+    // 注意调用该方法的线程，如果开启的新线程的任务没有执行结束。
+    // 调用的线程会进入等待状态，直到另外一个线程执行完毕。
+    public T get() throws InterrupteException {
+        // 如果执行没有结束
+        // 返回 Task 执行的结果（Callable）
+        if("END".equals(state)){
+            return result; 
+        }
+        
+        while(!"END".equals(state)){
+            // 进入等待 -- 线程不再执行
+            // syschronized 同步关键字，配合 wait , notify 使用
+            syschronized(this){
+                // 当前对象所在的线程，执行 this.wait() 时，
+                // 当前线程会状态会变成等待状态。
+                // 直到其他线程调用 notify() 或 notifyAll()
+                this.wait();
+            }
+        }
+        
+        return result;
+    }
+}
+```
+
+```java
+// 创建 Thread 对象 -> JDK -> JVM -> C++ -> 操作系统
+private native void start();
+```
+
+#### 重要问题
+
+在代码运行时，逻辑向上调用都会进行等待。
+
+哪些线程会去等待，哪些线程不会去等待呢？
+
+ - 1、函数调用在哪里会让线程进入等待状态呢？
+ 
+  - **`syschronized(this){this.wait();}`**
+  
+  - **它属于 `TonyFutureTask` 类的 `get()` 方法**
+  
+  - 也就是说当程序调用 get() 方法时，会使调用该方法的线程进入等待状态。
+
+ - 2、在主线程中开启的新的线程不会进入等待状态
+ 
+  - **由主线程调用创建 Thread 对象调用 start() 函数开启的新线程不会进入等待状态会继续执行。**
+ 
+  - 它是主线程新开启的，主线程直到在该线程执行完毕后，才会继续执行。
+
+#### 例子
+
+ - RPC 远程过程调用
+  - HTTP 接口、Dubbo 接口、数据库接口
+ - 在程序中的 RPC 远程过程调用，就是通过开启一个新的线程去完成的。 
+
+#### Spring
+
+ - restTemplate Spring 的 Http 调用工具
+
+#### 网络
+
+ - 发起 http
+ - 调用
+ - 等待
+ - 网络
+ - 结果
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

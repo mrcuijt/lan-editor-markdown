@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>groovy-language-basic-loop</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### groovy-language-basic-loop
+
+#### Groovy 循环
+
+到目前为止，我们已经看到已经按顺序方式一个接一个执行的语句。此外，在 Groovy 中提供了语句来改变程序逻辑中的控制流。然后将它们分类为我们将详细看到的控制语句的流程。
+
+##### Groovy While语句
+
+while 语句
+
+while 语句首先通过计算条件表达式（布尔值）来执行，如果结果为真，则执行 while 循环中的语句。
+
+while 语句的语法如下所示
+
+```java
+while(condition) {
+   statement #1
+   statement #2
+   ...
+}
+```
+
+通过首先计算条件表达式（布尔值）来执行 while 语句，如果结果为 true，则执行 while 循环中的语句。从 while 语句中的条件的评估开始重复该过程 此循环继续，直到条件计算为 false。当条件变为假时，循环终止。 然后程序逻辑继续紧跟在 while 语句之后的语句。下图显示了此循环的图解说明。
+
+![title](images/groovy-language-basic-loop/groovy-language-basic-loop-001.jpg)
+
+下面是一个while循环语句的例子
+
+```java
+class Example {
+   static void main(String[] args) {
+      int count = 0;
+
+      while(count < 5) {
+         println(count);
+         count++;
+      }
+   }
+}
+```
+
+在上面的例子中，我们首先将计数整数变量的值初始化为 0.然后我们在 while 循环中的条件是我们计算表达式的条件是计数应该小于 5。count 小于 5，我们将打印 count 的值，然后增加 count 的值。上面的代码的输出将是
+
+```java
+0
+1
+2
+3
+4
+```
+
+##### Groovy For语句
+
+for 语句
+
+for 语句用于遍历一组值。
+
+for 语句用于遍历一组值。for 语句通常以以下方式使用。
+
+```java
+for(variable declaration;expression;Increment) {
+   statement #1
+   statement #2
+   ...
+}
+```
+
+经典的语句包括以下部分
+
+ - **变量声明** : 此步骤对整个循环只执行一次，用于声明将在循环中使用的任何变量。
+
+ - **表达式** : 这将包含一个表达式，将为循环的每次迭代计算。
+
+ - 增量部分将包含在 for 语句中声明的变量所需的逻辑。
+
+下图显示了此循环的图解说明。
+
+![title](images/groovy-language-basic-loop/groovy-language-basic-loop-002.jpg)
+
+下面是一个经典的语句的例子
+
+```java
+class Example {
+   static void main(String[] args) {
+
+      for(int i = 0; i < 5; i++) {
+         println(i);
+      }
+
+   }
+}
+```
+
+在上面的例子中，我们在 for 循环中做三件事
+
+ - 声明变量 i 并将 i 的值初始化为 0
+
+ - 设置 for 循环的条件表达式应该执行，直到 i 的值小于 5。
+
+ - 每次迭代将 i 的值增加1。
+
+上面的代码的输出将是
+
+```java
+0
+1
+2
+3
+4
+```
+
+##### Groovy for-in 语句
+
+for-in 语句
+
+for-in 语句用于遍历一组值。
+
+for-in 语句用于遍历一组值。for-in 语句通常以以下方式使用。
+
+```java
+for(variable in range) {
+   statement #1
+   statement #2
+   ...
+}
+```
+
+下图显示了此循环的图解说明。
+
+![title](images/groovy-language-basic-loop/groovy-language-basic-loop-003.jpg)
+
+以下是 for-in 语句的示例
+
+```java
+class Example {
+   static void main(String[] args) {
+      int[] array = [0,1,2,3];
+
+      for(int i in array) {
+         println(i);
+      }
+   }
+}
+```
+
+在上面的例子中，我们首先初始化一个具有 0,1,2 和 3 的 4 个值的整数数组。然后我们使用 for 循环语句首先定义一个变量 i，然后遍历数组中的所有整数 并相应地打印值。上面的代码的输出将是
+
+```java
+0
+1
+2
+3
+```
+
+for-in 语句也可用于循环范围。以下示例说明如何完成此操作。
+
+```java
+class Example {
+   static void main(String[] args) {
+
+      for(int i in 1..5) {
+         println(i);
+      }
+
+   }
+}
+```
+
+在上面的例子中，我们实际上循环了从1到5定义的范围，并打印该范围中的每个值。上面的代码的输出将是 -
+
+```java
+1
+2
+3
+4
+5
+```
+
+for-in 语句也可用于循环访问 Map。以下示例说明如何完成此操作。
+
+```java
+class Example {
+   static void main(String[] args) {
+      def employee = ["Ken" : 21, "John" : 25, "Sally" : 22];
+
+      for(emp in employee) {
+         println(emp);
+      }
+   }
+}
+```
+
+在上面的例子中，我们实际上循环通过一个映射，它有一组定义的键值条目。上面的代码的输出将是
+
+```java
+Ken = 21
+John = 25
+Sally = 22
+```
+
+##### Groovy Break 语句
+
+break 语句
+
+break 语句用于改变循环和 switch 语句内的控制流。
+
+break 语句用于更改 loop 和 switch 语句内的控制流。我们已经看到 break 语句与 switch 语句结合使用。break 语句也可以与 while 和 for 语句一起使用。使用这些循环结构中的任何一个执行 break 语句会立即终止最内层的循环。
+
+下图显示了 break 语句的图解说明。
+
+![title](images/groovy-language-basic-loop/groovy-language-basic-loop-004.jpg)
+
+以下是 break 语句的示例
+
+```java
+class Example {
+   static void main(String[] args) {
+      int[] array = [0,1,2,3];
+
+      for(int i in array) {
+         println(i);
+         if(i == 2)
+         break;
+      }
+   }
+}
+```
+
+上面的代码的输出将是
+
+```java
+0
+1
+2
+```
+
+正如预期的，因为有一个条件，说如果 i 的值为 2，那么从循环中断，这就是为什么不打印数组的最后一个元素为 3。
+
+##### Groovy Continue 语句
+
+continue  语句
+
+continue 语句补充了 break 语句。它的使用仅限于 while 和 for 循环。
+
+continue 语句补充了 break 语句。它的使用局限于 while 和 for 循环。当执行 continue 语句时，控制立即传递到最近的封闭循环的测试条件，以确定循环是否应该继续。对于该特定循环迭代，循环体中的所有后续语句都将被忽略。
+
+下图显示了 continue 语句的图解说明
+
+![title](images/groovy-language-basic-loop/groovy-language-basic-loop-005.jpg)
+
+以下是 continue 语句的示例
+
+```java
+class Example {
+   static void main(String[] args) {
+      int[] array = [0,1,2,3];
+
+      for(int i in array) {
+         println(i);
+         if(i == 2)
+         continue;
+      }
+   }
+}
+```
+
+上面的代码的输出将是
+
+```java
+0
+1
+2
+3
+```
+
+参考链接：
+
+ - <a href="https://www.w3cschool.cn/groovy/groovy_loops.html" target="_blank">Groovy 循环</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

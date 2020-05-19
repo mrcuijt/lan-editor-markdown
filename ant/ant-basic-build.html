@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ant-basic-build</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### ant-basic-build
+
+定义 Ant 程序成员路径属性，并在运行时进行输出。
+
+```xml
+<?xml version="1.0"?>
+<project name="Ant-Test" default="main" basedir=".">
+
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property name="src.dir" location="src" />
+    <property name="lib.dir" location="lib" />
+    <property name="build.dir" location="bin" />
+    <property name="dist.dir" location="dist" />
+    <property name="docs.dir" location="docs" />
+
+    <target name="main">
+        <description>Main target</description>
+        <echo message="${src.dir}" />
+    </target>
+</project>
+```
+
+运行 Ant 构建程序
+
+```python
+ant -f ant-property-echo.xml
+```
+
+运行结果
+
+```python
+Buildfile: D:\Others\webservice-doc\ant\datas\ant-basic\ant-property-echo.xml
+
+main:
+     [echo] D:\Others\webservice-doc\ant\datas\ant-basic\src
+
+BUILD SUCCESSFUL
+Total time: 0 seconds
+```
+
+定义 Ant 程序系统变量。
+
+```xml
+<?xml version="1.0"?>
+<project name="Ant-Test" default="main" basedir=".">
+
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property environment="osenv"/>
+
+    <target name="main">
+        <description>Main target</description>
+        <echo message="System Variable: ${osenv.path}" />
+    </target>
+</project>
+```
+
+定义 Ant classpath 路径元素，并进行输出。
+
+```xml
+<?xml version="1.0"?>
+<project name="Ant-Test" default="main" basedir=".">
+
+    <property name="lib.dir" location="lib" />
+
+    <!-- 定义 classpath 路径 -->
+    <path id="build.classpath">
+        <!-- 定义路径中引入的文件 -->
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <target name="main">
+        <description>Main target</description>
+        <pathconvert property="path.element.value" refid="build.classpath" />
+        <echo message="${path.element.value}" />
+    </target>
+</project>
+```
+
+运行 Ant 构建程序
+
+```python
+ant -f ant-classpath-echo.xml
+```
+
+运行结果
+
+```python
+Buildfile: D:\Others\webservice-doc\ant\datas\ant-basic\ant-classpath-echo.xml
+
+main:
+     [echo] D:\Others\webservice-doc\ant\datas\ant-basic\lib\log4j-1.2.17.jar;D:\Others\webservice-d
+oc\ant\datas\ant-basic\lib\slf4j-api-1.7.28.jar;D:\Others\webservice-doc\ant\datas\ant-basic\lib\slf
+4j-log4j12-1.7.28.jar
+
+BUILD SUCCESSFUL
+Total time: 0 seconds
+```
+
+定义 Ant 项目构建程序。
+
+```xml
+<?xml version="1.0"?>
+<project name="Ant-Test" default="main" basedir=".">
+
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property name="src.dir" location="src" />
+    <property name="lib.dir" location="lib" />
+    <property name="build.dir" location="bin" />
+    <property name="dist.dir" location="dist" />
+    <property name="docs.dir" location="docs" />
+
+    <!-- Create a classpath container which can be later used in the ant task -->
+    <path id="build.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <!-- Deletes the existing build, docs and dist directory -->
+    <target name="clean">
+        <delete dir="${build.dir}" />
+        <delete dir="${docs.dir}" />
+        <delete dir="${dist.dir}" />
+    </target>
+
+    <!-- Creates the  build, docs and dist directory -->
+    <target name="makedir">
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${docs.dir}" />
+        <mkdir dir="${dist.dir}" />
+    </target>
+
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+
+    <!-- Compiles the java code (including the usage of library for JUnit -->
+    <target name="compile" depends="clean, makedir">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="build.classpath" ></javac>
+    </target>
+
+    <!-- Creates Javadoc -->
+    <target name="docs" depends="compile">
+        <javadoc packagenames="src" sourcepath="${src.dir}" destdir="${docs.dir}">
+            <!-- Define which files / directory should get included, we include all -->
+             <fileset dir="${src.dir}">
+                <include name="**" />
+             </fileset>
+        </javadoc>
+    </target>
+
+    <!-- Creates the deployable jar file -->
+    <target name="jar" depends="compile">
+        <jar destfile="${dist.dir}\demo.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="demo.AntDemo" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="main" depends="compile, jar">
+        <description>Main target</description>
+    </target>
+
+</project>
+```
+
+运行 Ant 构建程序
+
+```python
+ant -f ant-build.xml
+```
+
+运行结果
+
+```python
+Buildfile: D:\Others\webservice-doc\ant\datas\ant-basic\ant-build.xml
+Trying to override old definition of task javac
+
+clean:
+   [delete] Deleting directory D:\Others\webservice-doc\ant\datas\ant-basic\bin
+   [delete] Deleting directory D:\Others\webservice-doc\ant\datas\ant-basic\docs
+   [delete] Deleting directory D:\Others\webservice-doc\ant\datas\ant-basic\dist
+
+makedir:
+    [mkdir] Created dir: D:\Others\webservice-doc\ant\datas\ant-basic\bin
+    [mkdir] Created dir: D:\Others\webservice-doc\ant\datas\ant-basic\docs
+    [mkdir] Created dir: D:\Others\webservice-doc\ant\datas\ant-basic\dist
+
+compile:
+    [javac] Compiling 1 source file to D:\Others\webservice-doc\ant\datas\ant-basic\bin
+
+jar:
+      [jar] Building jar: D:\Others\webservice-doc\ant\datas\ant-basic\dist\demo.jar
+
+main:
+
+BUILD SUCCESSFUL
+Total time: 2 seconds
+```
+
+定义 Ant 项目构建程序，并执行构建完成后的程序
+
+```xml
+<?xml version="1.0"?>
+<project name="Ant-Test" default="main" basedir=".">
+
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property name="src.dir" location="src" />
+    <property name="lib.dir" location="lib" />
+    <property name="build.dir" location="bin" />
+    <property name="dist.dir" location="dist" />
+    <property name="docs.dir" location="docs" />
+
+    <!-- Create a classpath container which can be later used in the ant task -->
+    <path id="build.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <!-- Deletes the existing build, docs and dist directory -->
+    <target name="clean">
+        <delete dir="${build.dir}" />
+        <delete dir="${docs.dir}" />
+        <delete dir="${dist.dir}" />
+    </target>
+
+    <!-- Creates the  build, docs and dist directory -->
+    <target name="makedir">
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${docs.dir}" />
+        <mkdir dir="${dist.dir}" />
+    </target>
+
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+
+    <!-- Compiles the java code (including the usage of library for JUnit -->
+    <target name="compile" depends="clean, makedir">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="build.classpath" ></javac>
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}" includes="**/*.properties"/>
+        </copy>
+    </target>
+
+    <!-- Creates Javadoc -->
+    <target name="docs" depends="compile">
+        <javadoc packagenames="src" sourcepath="${src.dir}" destdir="${docs.dir}">
+            <!-- Define which files / directory should get included, we include all -->
+             <fileset dir="${src.dir}">
+                <include name="**" />
+             </fileset>
+        </javadoc>
+    </target>
+
+    <!-- Creates the deployable jar file -->
+    <target name="jar" depends="compile">
+        <jar destfile="${dist.dir}\demo.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="demo.AntDemo" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="run" depends="compile">
+        <java classname="demo.AntDemo" fork="true">
+            <classpath>
+                <path refid="build.classpath" />
+                <path location="${build.dir}/" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="run-jar" depends="jar">
+        <java classname="demo.AntDemo" fork="true">
+            <classpath>
+                <path refid="build.classpath" />
+                <path location="${dist.dir}/demo.jar" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="main" depends="compile, jar, run">
+        <description>Main target</description>
+    </target>
+
+</project>
+```
+
+**src/`AntDemo.java`**
+
+```java
+package demo;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class AntDemo {
+
+  private static final Logger logger = LoggerFactory.getLogger(AntDemo.class);
+
+  public static void main(String[] args){
+    logger.info("Hello Ant.");
+    logger.info("Hello LOG4J.");
+    logger.info("Hello SLF4J.");
+  }
+
+}
+```
+
+**src/`log4j.properties`**
+
+```python
+log4j.rootLogger=debug,console
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d %p [%c] %l %rms - %m%n
+
+log4j.appender.file=org.apache.log4j.FileAppender
+log4j.appender.file.File=./logs.log
+log4j.appender.file.layout=org.apache.log4j.PatternLayout
+log4j.appender.file.layout.conversionPattern=%d %p [%c] %l %rms - %m%n
+```
+
+运行 Ant 构建程序
+
+```python
+vim ant-build.xml
+```
+
+运行结果
+
+```python
+Buildfile: D:\Others\webservice-doc\ant\datas\ant-basic\ant-build.xml
+Trying to override old definition of task javac
+
+clean:
+   [delete] Deleting directory D:\Others\webservice-doc\ant\datas\ant-basic\bin
+   [delete] Deleting directory D:\Others\webservice-doc\ant\datas\ant-basic\docs
+   [delete] Deleting directory D:\Others\webservice-doc\ant\datas\ant-basic\dist
+
+makedir:
+    [mkdir] Created dir: D:\Others\webservice-doc\ant\datas\ant-basic\bin
+    [mkdir] Created dir: D:\Others\webservice-doc\ant\datas\ant-basic\docs
+    [mkdir] Created dir: D:\Others\webservice-doc\ant\datas\ant-basic\dist
+
+compile:
+    [javac] Compiling 1 source file to D:\Others\webservice-doc\ant\datas\ant-basic\bin
+     [copy] Copying 1 file to D:\Others\webservice-doc\ant\datas\ant-basic\bin
+
+jar:
+      [jar] Building jar: D:\Others\webservice-doc\ant\datas\ant-basic\dist\demo.jar
+
+run:
+     [java] 2019-09-26 11:24:07,309 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 0ms - Hello Ant.
+     [java] 2019-09-26 11:24:07,309 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 0ms - Hello LOG4J.
+     [java] 2019-09-26 11:24:07,325 INFO [demo.AntDemo] demo.AntDemo.main(?:?) 16ms - Hello SLF4J.
+
+main:
+
+BUILD SUCCESSFUL
+Total time: 3 seconds
+```
+
+配置 Ant 编译时附加调试信息
+
+```xml
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+
+    <!-- Compiles the java code (including the usage of library for JUnit -->
+    <target name="compile" depends="clean, makedir">
+        <javac srcdir="${src.dir}" 
+               destdir="${build.dir}" 
+               classpathref="build.classpath"
+               debug="true"
+               debuglevel="lines,source"></javac>
+    </target>
+```
+
+参考链接：
+
+ - <a href="https://ant.apache.org/manual/tutorial-HelloWorldWithAnt.html" target="_blank">Tutorial: Hello World with Apache Ant</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

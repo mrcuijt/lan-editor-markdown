@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ant-basic-build-one-jar</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### ant-basic-build-one-jar
+
+使用 ant one-jar 插件将项目文件构建成一个 Jar 文件
+
+通过自定义实现 ClassLoader ，开发的项目作为项目程序主 jar ，以及相关依赖 jar 统一打包，通过 one-jar 来启动主项目程序。
+
+下载 <a href="http://one-jar.sourceforge.net/index.php?page=downloads&file=downloads" target="_blank">one-jar-ant-task-0.97.jar</a>
+
+将 one-jar-ant-task-0.97.jar 解压到 ant 目录下
+
+引入 one jar 自定义 ant 任务核心配置
+
+```xml
+<property environment="env" />
+<!-- 配置工程路径 -->
+<property name="one-jar.dist.dir" value="F:/ant/apache-ant-1.8.2/one-jar-ant" />
+<import file="${one-jar.dist.dir}/one-jar-ant-task.xml" optional="true" />
+ 
+<target name="dist-one-jar"
+        depends="compile"
+        description="Generate a jar file">
+    <one-jar destfile="${dist.dir}\demo.jar" onejarmainclass="demo.AntDemo">
+        <main>
+            <fileset dir="${build.dir}" />
+        </main>
+        <lib>
+            <fileset dir="${lib.dir}" />
+        </lib>
+    </one-jar>
+</target>
+```
+
+```xml
+<project name="New Project" default="main" basedir=".">
+
+    <property environment="env" />
+    <property name="one-jar.dist.dir" value="F:/ant/apache-ant-1.8.2/one-jar-ant" />
+    <import file="${one-jar.dist.dir}/one-jar-ant-task.xml" optional="true" />
+
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property name="src.dir" location="src" />
+    <property name="lib.dir" location="lib" />
+    <property name="build.dir" location="bin" />
+    <property name="dist.dir" location="dist" />
+    <property name="docs.dir" location="docs" />
+
+    <!-- Create a classpath container which can be later used in the ant task -->
+    <path id="build.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <!-- Deletes the existing build, docs and dist directory -->
+    <target name="clean">
+        <delete dir="${build.dir}" />
+        <delete dir="${docs.dir}" />
+        <delete dir="${dist.dir}" />
+    </target>
+
+    <!-- Creates the  build, docs and dist directory -->
+    <target name="makedir">
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${docs.dir}" />
+        <mkdir dir="${dist.dir}" />
+    </target>
+
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+
+<!-- COMPILE -->
+    <target name="compile" depends="clean, makedir"
+            description="Compile All Java Sources">
+
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}" includes="**/*.properties"/>
+        </copy>
+
+        <javac srcdir="${src.dir}" 
+            destdir="${build.dir}" 
+            classpathref="build.classpath" 
+            debug="${compile.debug}" 
+            deprecation="${compile.deprecation}" 
+            optimize="${compile.optimize}">
+
+            <compilerarg value="-Xlint:all"/>
+            <compilerarg value="-Xlint:-path"/>
+            <compilerarg value="-Xlint:-serial"/>
+
+        </javac>
+    </target>
+
+    <!-- Creates Javadoc -->
+    <target name="docs" depends="compile">
+        <javadoc packagenames="src" sourcepath="${src.dir}" destdir="${docs.dir}">
+            <!-- Define which files / directory should get included, we include all -->
+             <fileset dir="${src.dir}">
+                <include name="**" />
+             </fileset>
+        </javadoc>
+    </target>
+
+    <!-- Creates the deployable jar file -->
+    <target name="jar" depends="compile">
+        <jar destfile="${dist.dir}\demo.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="demo.AntDemo" />
+            </manifest>
+        </jar>
+    </target>
+
+    
+<!-- DIST -->
+    <target name="dist-one-jar" 
+            depends="compile" 
+            description="Generate a jar file">
+        <one-jar destfile="${dist.dir}\demo.jar" onejarmainclass="demo.AntDemo">
+            <main>
+                <fileset dir="${build.dir}" />
+            </main>
+            <lib>
+                <fileset dir="${lib.dir}" />
+            </lib>
+        </one-jar>
+    </target>
+
+<!-- RUN -->
+    <target name="run-jar" depends="jar" description="Run">
+        <java classname="demo.AntDemo" fork="true">
+            <classpath>
+                <path refid="build.classpath" />
+                <path location="${dist.dir}/demo.jar" />
+            </classpath>
+        </java>
+    </target>
+
+<!-- RUN -->
+    <target name="run-one-jar" depends="dist-one-jar" description="Run">
+        <java jar="${dist.dir}/demo.jar" fork="true"></java>
+    </target>
+
+    <target name="main" depends="compile, jar, run-one-jar">
+        <description>Main target</description>
+    </target>
+
+</project>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

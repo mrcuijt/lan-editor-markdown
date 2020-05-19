@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>junit-basic-dbunit</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### junit-basic-dbunit
+
+#### junit-stub-mock
+
+#### Stub 和 mock
+
+Service 调用 Dao，Dao 通常会将数据存储到数据库中。
+
+我们在测试过程中，每个测试方法中的输入数据都应该是独立的，不应该依赖于外部的传递，或者是其他的单元测试执行后生成的数据。但是我们在进行数据库操作时，我们对数据库中数据的操作，就会破坏数据库中数据的结构，这是我们不希望的。
+
+通过 Stub 和 mock 方式，对 Dao 做一个装箱的操作，通过一个 Map 来模拟数据库操作。
+
+但是如果想要更好的测试我们写的代码是否有问题，还是是要在数据库中做测试。
+
+如何有效的在数据库中做测试，并在完成测试后不会对数据库造成影响。
+
+这就需要用到 dbunit 框架来进行。
+
+dbunit 框架主旨就是为了有效的帮助我们做数据库测试。
+
+##### DBUnit 使用
+
+1、导入 jar 包
+
+ dbunit.jar
+
+ slf4j.jar
+
+2、创建 dbunit 的测试数据 xml 文件。 
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+  <!--
+  <t_user>
+    <id>1</id>
+    <username>kh</username>
+    <password>123</password>
+    <nickname>孔浩</nickname>
+  </t_user>
+  -->
+
+  <t_user id="1" username="admin" password="123" nickname="超级管理员"/>
+
+</dataset>
+```
+
+3、创建 dbunit 的 Connection
+
+dbunit 的 Connection 是用来对数据文件进行操作的，这个 Connection 必须依赖于目前项目中所使用的 Connection。
+
+```xml
+import org.dbunit.database.DatabaseConnection;
+import org.dbunit.database.IDatabaseConnection;
+import org.junit.Test;
+
+public class TestDbUnit {
+
+  @Test
+  public void testLoad(){
+    IDatabaseConnection conn = new DatabaseConnection(DBUtil.getConnection());
+  }
+
+}
+```
+
+4、创建 IDataSet，通过 DataSet 来获取测试数据中的数据集
+
+```java
+/*
+ * FlatXmlDataSet 用来获取基于属性存储的属性值
+ *
+ * XmlDataSet 用来获取基于节点类型存储的属性值
+ *
+ */
+IDataSet ds = new FlatXmlDataSet(
+    new FlatXmlProducer(
+        new InputSource(
+            new TestDbUnit().getClass().getResource("t_user.xml").openStream())));
+```
+
+5、初始化数据并且完成测试
+
+```java
+// 会将数据库中的数据清空，并且把测试数据插入
+DatabaseOperation.CLEAN_INSERT.execute(conn, ds);
+
+// 从 Dao 中获取数据并且完成测试
+IUserDao userDao = new UserDao();
+User tu = userDao.load("admin");
+assertEquals(tu.getId(), 1);
+assertEquals(tu.getUsername(), "admin");
+assertEquals(tu.getPassword(), "123");
+assertEquals(tu.getNickname(), "超级管理员");
+```
+
+DatabaseOperation 中的操作
+
+ - **DatabaseOperation.CLEAN_INSERT**
+
+ 将数据库中所有的数据清空，将 DataSet 中的数据添加到数据库。
+
+ - **DatabaseOperation.DELETE**
+
+ 删除数据库与 DataSet 中相关联的数据。
+
+ - **DatabaseOperation.DELETE_ALL**
+
+ 把数据库中所有的数据删除。
+
+ - **DatabaseOperation.INSERT**
+
+ 把 DataSet 中的数据添加到数据库。
+
+ - **DatabaseOperation.NONE**
+
+ 不执行操作。
+
+ - **DatabaseOperation.REFRESH**
+
+ 刷新数据数据。
+
+ - **DatabaseOperation.TRUNCATE_TABLE**
+
+ 清空数据库中所有的数据，自增长 id 也设置为从 0 开始。
+
+ - **DatabaseOperation.UPDATE**
+
+ 将 DataSet 中的数据，与和数据库中存在的那条数据进行关联更新。
+
+##### 备份数据库中的数据
+
+```java
+@Test
+public void testBackupAllTable(){
+  try {
+    // 创建 dbunit 的 Connection
+    IDatabaseConnection conn = new DatabaseConnection(DbUtil.getConnection());
+    // 根据 conn 创建相应的 dataset，这个 dataset 包含了所有的表
+    IDataSet ds = conn.createDataSet();
+    // 将 dataSet 中的数据通过 FlatXmlDataSet 的格式写入到文件中
+    FlatXmlDataSet.write(ds, new FileWriter("back.xml"));
+  } catch(DataSetException e){
+    e.printStackTrace();
+  } catch(DatabaseUnitException e){
+    e.printStackTrace();
+  } catch(SQLException e){
+    e.printStackTrace();
+  } catch(IOException e){
+    e.printStackTrace();
+  }
+}
+```
+
+##### 备份指定表中的数据
+
+```java
+@Test
+public void testBackupTable(){
+  try {
+    // 创建 dbunit 的 Connection
+    IDatabaseConnection conn = new DatabaseConnection(DbUtil.getConnection());
+    /*
+     * FlatXmlDataSet 用来获取基于属性存储的属性值
+     *
+     * XmlDataSet 用来获取基于节点类型存储的属性值
+     *
+     */
+    QueryDataSet backup = new QueryDataSet(conn);
+    // 添加 t_user 这张表作为备份表
+    backup.addTable("t_user");
+    // 将 dataSet 中的数据通过 FlatXmlDataSet 的格式写入到文件中
+    FlatXmlDataSet.write(backup, new FileWriter("test.xml"));
+  } catch(DataSetException e){
+    e.printStackTrace();
+  } catch(DatabaseUnitException e){
+    e.printStackTrace();
+  } catch(SQLException e){
+    e.printStackTrace();
+  } catch(IOException e){
+    e.printStackTrace();
+  }
+}
+```
+
+##### 还原备份的数据
+
+```java
+@Test
+public void testResume(){
+  try {
+    // 创建 dbunit 的 Connection
+    IDatabaseConnection conn = new DatabaseConnection(DbUtil.getConnection());
+    /*
+     * FlatXmlDataSet 用来获取基于属性存储的属性值
+     *
+     * XmlDataSet 用来获取基于节点类型存储的属性值
+     *
+     */
+    IDataSet ds = new FlatXmlDataSet(
+        new FlatXmlProducer(
+            new InputSource(
+                TestDbUnit.class.getClassLoader().getResourceAsStream("back.xml"))));
+    // 会将数据库中的数据清空，并且把测试数据插入
+    DatabaseOperation.CLEAN_INSERT.execute(conn, ds);
+  } catch(DataSetException e){
+    e.printStackTrace();
+  } catch(DatabaseUnitException e){
+    e.printStackTrace();
+  } catch(SQLException e){
+    e.printStackTrace();
+  }
+}
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>gradle-basic-tutorial-016</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### gradle-basic-tutorial-016
+
+#### Gradle 学习(16) - 操作文件
+
+##### 定位文件
+
+Project 类中有一个 file 方法可以用来定位文件。
+
+build.gradle：
+
+```java
+File configFile = file('src/config.xml')
+configFile = file(configFile.absolutePath)
+println configFile.path
+configFile = file(new File('src/config.xml'))
+```
+
+执行 gradle -q 命令： 
+
+```python
+gradle -q
+
+D:\gradle_product\0112\src\config.xml
+```
+
+虽然我们目录中没有 src\config.xml。但是 file 方法仍然定位了该文件，且能正确输出文件的绝对路径。 
+
+从上面的脚本中可以看出，file 方法可以接受字符串和 File 对象作为参数。file 方法一般都会将项目的根目录作为默认的父目录，而不是当前工作目录。
+
+##### 文件集合 - FileCollection
+
+项目集合在 gradle 中用 FileCollection 接口来表示。而且 gradle 中很多对象都是实现该接口的，例如依赖配置就是实现该接口的。
+
+调用 Project.files() 方法可以获得 FileCollection 实例，你可以传入任意数量的对象，然后会被转换为 File 对象的集合，下面创建一个 FileCollection 集合。
+
+```java
+// example code
+FileCollection collection = files('src/file1.txt',new File('src/file2.txt'),['src/file3.txt','src/file4.txt'])
+```
+
+上面的files方法里传入的参数真是“乱其八糟”的，有字符串，文件，文件集合。下面来看看文件集合的一些特性： 
+
+ - 可迭代
+
+ 文件结合是可迭代的，支持下面的操作：
+
+ `as操作符`：将集合转化为其他类型
+
+ `+操作符`：合并2个文件集合
+
+ `-操作符`：从一个集合扣除一个集合
+
+看下面一个综合的例子：
+
+```java
+FileCollection collection = files('src/file1.txt', new File('src/file2.txt'), ['src/file3.txt', 'src/file4.txt'])
+collection.each {
+  File file -> println file.name
+}
+Set set = collection.files
+Set set2 = collection as Set
+List list = collection as List
+String path = collection.asPath
+def union = collection + files('src/file5.txt')
+def different = collection - files('src/file5.txt')
+```
+
+执行命令： 
+
+```python
+gradle -q
+
+file1.txt
+file2.txt
+file3.txt
+file4.txt
+```
+
+##### 闭包和可回调方法
+
+```java
+task list {
+  File srcDir
+  // Create a file collection using a closure
+  FileCollection collection = files { srcDir.listFiles() }
+  srcDir = file('src')
+  collection.collect {
+    relativePath(it)
+  }.sort().each {
+    println it
+  }
+  srcDir = file('src2')
+  println "Contents of $srcDir.name"
+  collection.collect {
+    relativePath(it)
+  }.sort().each {
+    println it
+  }
+}
+```
+
+build.gradle 在之前的基础上添加了一个 list 任务，可以看到 files 方法中传入的是什么？是一个闭包代码块，然后当调用 sort() 方法来查询集合内容的时候，才会调用闭包代码块，所以 srcDir 写在了 collection 的定义后。
+
+##### 文件的树形结构 - FileTree
+
+FileTree 接口继承于 FileCollection 接口，在 Gradle 中有一些对象是继承 FileTree，比如 SourseSet。
+
+##### 获得 FileTree 对象
+
+Project.fileTree 方法，
+
+```java
+FileTree tree = fileTree(dir: 'src/main')
+tree.include '**/*.java'
+tree.exclude '**/Abstract'
+tree = fileTree('src').include('**/*.java')
+tree = fileTree('src'){
+  include '**/*.java'
+}
+tree = fileTree(dir: 'src', include: '**/*.java')
+tree = fileTree(dir: 'src', includes: ['**/*.java', '**/*.xml'])
+tree = fileTree(dir: 'src', include: '**/*.java', exclude: '**/*test*/**')
+```
+
+ - 第一个定义中，是将 src/main 目录(包括子目录的子目录)下的文件生成 fileTree 文件，包括以 java 结尾的文件，不包括已 Abstract 开头的文件。
+
+ - 第二个定义中，采用连写的方式,包括 src 目录下的所有的 java 文件。
+
+ - 第三个定义中，类似第二种，只是采用的方式是闭包形式来定义所包含的文件。
+
+ - 第四种-第六中，根据构造函数的重载特性，传入不同的参数创建的。
+
+##### 使用 FileTree 对象
+
+```java
+task findTree(dependsOn: 'create'){
+  FileTree filtered = tree.matching {
+    include 'org/gradle/api/**'
+  }
+
+  FileTree sum = tree + fileTree(dir: 'src/test')
+  tree.visit {
+    element -> printlnl "$element.relativePath => $element.file"
+  }
+}
+
+task create {
+  File testFile = file('src/test/java')
+  testFile.mkdirs()
+}
+```
+
+执行命令 
+
+```python
+gradle -q findTree
+
+main =>D:\gradle_product\0112\src\main
+main/java =>D:\gradle_product\0112\src\main\java
+test =>D:\gradle_product\0112\src\test
+test/java =>D:\gradle_product\0112\src\test\java
+```
+
+##### 由压缩文件得到 FileTree
+
+针对压缩文件有 2 个方法 zipTree 和 tarTree 两个方法。
+
+```java
+FileTree zip = zipTree('someFile.zip')
+FileTree tar = tarTree('someFile.tar')
+FileTree someTar = tarTree(resources.gzip('someTar.ext'))
+```
+
+##### 指定输入文件的集合
+
+```java
+compile {
+  source = file('src/main/java')
+}
+
+compile {
+  source = 'src/main/java'
+}
+
+compile {
+  source = ['src/main/java', '../shared/java']
+}
+
+compile {
+  source {
+    file('src').listFiles.findAll {
+      it.name.endsWith('.zip')
+    }.collect {
+      zipTree(it)
+    }
+  }
+}
+```
+
+上面的 4 中方式都是重新设置了 source 文件夹的位置，也就是输入文件的位置。
+
+Project 下还有一个 source 方法来定义输入文件。
+
+```java
+compile {
+  source 'src/main/java', 'src/main/groovy'
+  source file('../shared/java')
+  source {
+    file('src/test').listFiles()
+  }
+}
+```
+
+##### 复制文件
+
+继承 Copy 对象来复制文件
+
+```java
+task copyTask(type:Copy){
+  from 'src/main/webapp'
+  into 'build/exploadedWar'
+}
+```
+
+from 定义要被复制的文件目录，into 定义的是复制到的目录。
+
+from 的来源有很多，类似 files()
+
+ 1. 目录：目录下的所有文件都会包含在内
+
+ 2. 文件
+
+ 3. 不存在的文件：忽略
+
+ 4. 任务：任务的输出文件
+
+into 方法类似 file 方法
+
+```java
+task copyTask(type:Copy){
+  from 'src/main/webapp'
+  into 'build/exploadedWar'
+}
+
+task copyTaskWithPaths(type:Copy){
+  from 'src/main/webapp'
+  into 'build/exploadedWar'
+  include '**/*.html'
+  include '**/*.jsp'
+  exclude {
+    details -> details.file.name.endsWith('/html') && details.file.text.contains('staging')
+  }
+}
+
+task anotherCopyTask(type:Copy){
+  from 'src/main/webapp'
+  from 'index.html'
+  from copyTask
+  from copyTaskWithPaths.outputs
+  from zipTree(asserts.zip)
+  into {
+    getDestDir()
+  }
+}
+```
+
+任务 copyTaskWithPaths 可以来删选所选目录中的文件。
+
+anotherCopyTask 任务说明 from 的来源有多种形式。
+
+还有一种复制文件的方式是调用 Project 的 copy 方法,需要注意的一点是，在任务中使用 copy 方法，必须显示的定义输入和输出文件。
+
+```java
+task copyMethod {
+  copy {
+    from 'src/main/webapp'
+    into 'build/exploadedWar'
+    include '**/*.html'
+    include '**/*.jsp'
+  }
+}
+```
+
+##### 重命名文件
+
+```java
+task rename(type:Copy){
+  from 'src/main/webapp'
+  into 'build/exploadedWar'
+  rename {
+    String fileName -> fileName.replace('1', '2')
+  }
+}
+```
+
+上面的任务是将 src/main/webapp 目录下的文件移到 build/explodedWar 下，在移动后，将文件名为 1 的文件重命名为 2。
+
+```java
+task rename(type:Copy){
+  from 'src/main/webapp'
+  into 'build/exploadedWar'
+  rename {
+    String fileName -> fileName.replace('1', '2')
+  }
+  rename '(.+)1(.+)', '$1$2'
+  rename (/(.+)1(.+)/, '$1$2')
+}
+```
+
+第 2 个和第三个 rename 中，使用了正则表达式。$1 表示表达式中第一个匹配项。 
+
+##### 过滤文件
+
+```java
+import org.apache.tools.ant.filters.FixCrLfFilter
+import org.apache.tools.ant.filters.ReplaceTokens
+
+task filter(type:Copy){
+  from 'src/main/webapp'
+  into 'build/exploadedWar'
+  expand(copyright: '2009', version: '2.3.2')
+  expand(project.properties)
+  filter(FixCrLfFilter)
+  filter(ReplaceTokens, tokens:[copyright: '2009', version: '2.3.1'])
+  filter {
+    "[$line]"
+  }
+}
+```
+
+expand 和 filter 都是寻找一个叫 token 的东西，形式有点像 @tokenName@
+
+##### CopySpec 的使用
+
+复制规范形成一个层次结构。一份规范继承目的地路径,包括模式、排除模式,复制操作,名称映射和过滤器。嵌套复制：
+
+```java
+task nestedSpescs(type:Copy){
+  into 'build/exploadedWar'
+  exclude '**/*staging'
+  from('src/dist'){
+    include '**/*.html'
+  }
+  into('libs'){
+    from configurations.runtime
+  }
+}
+```
+
+但是执行的时候报错。是因为我们没有定义 runtime 的依赖，所以会报如下错误。
+
+```python
+gradle -q nestedSpecs
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/Users/qianhui/Documents/Developer/gradle_project/0112/build.gradle' line: 8
+
+* What went wrong:
+A problem occurred evaluating root project '0112'.
+> Could not find property 'runtime' on configuration container.
+
+* Try:
+Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
+```
+
+##### Sync 任务
+
+同步任务继承与 copy 任务，当它执行的时候，将 source 文件 copy 到目标目录中，然后删除目标文件中不是 copy 过来的文件。
+
+```java
+task libs(type:Copy){
+  from configurations.runtime
+  into "$buildDir/libs"
+}
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  runtime 'junit:junit:4.11'
+}
+```
+
+将 runtime 运行时所依赖的 jar 文件复制到 build/libs 目录下。
+
+##### 压缩文件
+
+```java
+apply plugin 'java'
+version = 1.0
+task myZip(type:Zip){
+  from 'src'
+}
+
+println myZip.archiveName
+println relativePath(myZip.destinationDir)
+println relativePath(myZip.archivePath)
+```
+
+执行命令输出： 
+
+```python
+gradle -q myZip
+
+0112-1.0.zip
+build/distributions
+build/distributions/0112-1.0.zip
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/qhshiniba/article/details/42642813" target="_blank">Gradle 学习(16) - 操作文件</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

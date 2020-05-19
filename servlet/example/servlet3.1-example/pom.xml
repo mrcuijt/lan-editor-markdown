@@ -1,0 +1,285 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>science.mrcuijt.loh</groupId>
+	<artifactId>lease-of-house</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<!-- 开发项目时 所有用到的项目框架版本号 尽量 统一使用 父项目管理版本号 -->
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+		<!-- Servlet API -->
+		<javax-servlet-api.version>3.1.0</javax-servlet-api.version>
+		<!-- JSTL 表达式 -->
+		<javax-servlet-jsp-jstl.version>1.2.1</javax-servlet-jsp-jstl.version>
+		<!-- taglib c 表达式 -->
+		<taglibs-standard.version>1.1.2</taglibs-standard.version>
+		<!-- apache 文件上传组件 -->
+		<commons-io.version>2.4</commons-io.version>
+		<commons-fileupload.version>1.3.3</commons-fileupload.version>
+		<!-- commons-lang3 -->
+		<org-apache-commons-lang3.version>3.8.1</org-apache-commons-lang3.version>
+		<!-- MySQL数据库插件包版本号 -->
+		<mysql-connector-java.version>5.1.30</mysql-connector-java.version>
+		<!-- 阿里巴巴 druid 数据库连接池 -->
+		<druid.version>1.1.10</druid.version>
+		<!-- log4j日志文件管理包版本 -->
+		<log4j.version>1.2.17</log4j.version>
+		<log4j-core.version>2.9.0</log4j-core.version>
+		<!-- slf4j日志工具包版 -->
+		<org-slf4j.version>1.7.25</org-slf4j.version>
+		<slf4j-log4j12.version>1.7.25</slf4j-log4j12.version>
+		<logback.version>1.2.3</logback.version>
+		<!-- 阿里巴巴 JSON解析包版本 -->
+		<com-alibaba.version>1.2.28</com-alibaba.version>
+		<!-- json-lib包版本 -->
+		<json-lib.version>2.4</json-lib.version>
+	</properties>
+
+	<dependencies>
+
+		<!-- Servlet API -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${javax-servlet-api.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- JSTL 表达式 -->
+		<dependency>
+			<groupId>javax.servlet.jsp.jstl</groupId>
+			<artifactId>javax.servlet.jsp.jstl-api</artifactId>
+			<version>${javax-servlet-jsp-jstl.version}</version>
+		</dependency>
+
+		<!-- taglib c 表达式 -->
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>standard</artifactId>
+			<version>${taglibs-standard.version}</version>
+		</dependency>
+
+		<!-- -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>${commons-fileupload.version}</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${org-apache-commons-lang3.version}</version>
+		</dependency>
+
+		<!-- 引入阿里巴巴 fastjson -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>${com-alibaba.version}</version>
+		</dependency>
+
+		<!-- 引入 MySQL数据库链接插件 -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql-connector-java.version}</version>
+		</dependency>
+
+		<!-- 阿里巴巴 druid 数据库连接池 -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>${druid.version}</version>
+		</dependency>
+
+		<!-- 日志工具 -->
+		<!-- <dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+		</dependency> -->
+
+		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+		<!-- <dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>${log4j-core.version}</version>
+		</dependency> -->
+
+		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
+		<!-- <dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>${log4j-core.version}</version>
+		</dependency> -->
+
+
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${org-slf4j.version}</version>
+		</dependency>
+
+		<!-- <dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${org-slf4j.version}</version>
+		</dependency> -->
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-access</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/junit/junit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+
+	<!-- Maven official repository -->
+	<!--
+	<repositories>
+		<repository>
+			<id>maven</id>
+			<name>Maven Repository Switchboard</name>
+			<layout>default</layout>
+			<url>http://repo1.maven.org/maven2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>nexus-Atlassian</id>
+			<name>Atlassian 3rd-P Old</name>
+			<url>https://maven.atlassian.com/3rdparty/</url>
+		</repository>
+	</repositories>
+	-->
+
+	<!-- 配置 Maven 项目的构建环境 -->
+	<build>
+		<plugins>
+
+			<!-- Maven Compiler 插件环境配置 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<!-- 设置详细信息 -->
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
+			<!-- 设置资源文件的编码方式 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.4.3</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+
+			<!-- 设置打包时过滤的文件 -->
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<!-- 过滤 resource 资源目录下指定的文件 -->
+					<packagingExcludes></packagingExcludes><!-- packagingExcludes 中指定的文件位于 
+						src/main/resources 目录中 -->
+					<!-- 过滤 webapp 目录下指定的文件 -->
+					<warSourceExcludes><!-- warSourceExcludes 中指定的文件位于 src/main/webapp 目录中 -->
+						upload_file/** ,
+						temp_dir/**
+					</warSourceExcludes>
+				</configuration>
+			</plugin>
+
+			<!-- Maven tomcat7 插件环境配置 -->
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<configuration>
+					<charset>UTF-8</charset>
+					<port>8081</port>
+					<path>/</path>
+				</configuration>
+				<!-- or if you want to use tomcat 6.x <artifactId>tomcat6-maven-plugin</artifactId> -->
+				<executions>
+					<execution>
+						<id>tomcat-run</id>
+						<goals>
+							<goal>run-war-only</goal>
+						</goals>
+						<phase>pre-integration-test</phase>
+						<configuration>
+							<fork>true</fork>
+						</configuration>
+					</execution>
+					<execution>
+						<id>tomcat-shutdown</id>
+						<goals>
+							<goal>shutdown</goal>
+						</goals>
+						<phase>post-integration-test</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<!-- 插件管理配置 -->
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.tomcat.maven</groupId>
+					<artifactId>tomcat6-maven-plugin</artifactId>
+					<version>2.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.tomcat.maven</groupId>
+					<artifactId>tomcat7-maven-plugin</artifactId>
+					<version>2.2</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>

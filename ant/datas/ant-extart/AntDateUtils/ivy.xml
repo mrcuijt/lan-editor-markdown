@@ -1,0 +1,8 @@
+<ivy-module version="2.0">
+	<info organisation="org.apache" module="dateUtilsProject" />
+	<dependencies>
+		<dependency org="joda-time" name="joda-time" rev="2.5"  />
+		<dependency org="org.slf4j" name="slf4j-api" rev="1.7.6" />
+		<dependency org="ch.qos.logback" name="logback-classic" rev="1.1.2" />
+	</dependencies>
+</ivy-module>

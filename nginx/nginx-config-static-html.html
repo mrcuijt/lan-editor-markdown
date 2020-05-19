@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>nginx-config-static-html</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### nginx-config-static-html
+
+单页面快速配置 Nginx 服务器访问并支持 HTTPS
+
+注：如果配置文件较大需要在 http 模块中添加一下属性
+
+```python
+server_names_hash_bucket_size 512;
+```
+
+Nginx 配置文件
+
+在 server 模块中对 Nginx 服务器的请求访问配置
+
+ - **listen** 属性配置监听端口;
+
+ - **server_name** 属性配置请求路径中的主机名; 可以配置多个
+
+ - **location** 模块配置对应请求路径中的资源
+
+ - **return 301 https://$server_name$request_uri;** 配置服务器 301 跳转到 https 
+
+```python
+    server {
+     
+        listen       80;               # 配置监听 80 端口
+        server_name  www.huayiyun.net; # 请求路径中的主机名（域名或IP地址）
+        server_name  huayiyun.net;     # 请求路径中的主机名（域名或IP地址）
+ 
+        # 跳转到HTTPS
+        return  301 https://$server_name$request_uri;
+ 
+        #charset koi8-r;
+ 
+        #access_log  logs/host.access.log  main;
+ 
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+ 
+        # 配置 404 错误页重定向到指定URL路径
+        error_page  404              https://huayiyun.net;
+ 
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+ 
+        # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+        #
+        #location ~ \.php$ {
+        #    proxy_pass   http://127.0.0.1;
+        #}
+ 
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        #
+        #location ~ \.php$ {
+        #    root           html;
+        #    fastcgi_pass   127.0.0.1:9000;
+        #    fastcgi_index  index.php;
+        #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+        #    include        fastcgi_params;
+        #}
+ 
+        # deny access to .htaccess files, if Apache's document root
+        # concurs with nginx's one
+        #
+        #location ~ /\.ht {
+        #    deny  all;
+        #}
+    }
+```
+
+在 server 模块中对 Nginx 服务器的请求访问配置（HTTPS）
+
+将证书文件放在 config 目录中的 cert 目录下
+
+ - **listen** 属性配置监听端口;
+
+ - **server_name** 属性配置请求路径中的主机名; 可以配置多个
+
+ - **ssl_certificate** 属性配置 SSL 的证书 pem 格式
+
+ - **ssl_certificate_key** 属性配置 SSL 证书的私钥
+
+ - **ssl_protocols** 属性配置支持 SSL 协议
+
+ - **ssl_ciphers** 属性配置加密套件
+
+ - **ssl_prefer_server_ciphers**
+
+ - **location** 模块配置对应请求路径中的资源
+
+```python
+    server {
+ 
+        listen  443 ssl;               # 监听 443 端口
+        server_name www.huayiyun.net;  # 请求路径中的主机名（域名或IP地址）
+        server_name huayiyun.net;      # 请求路径中的主机名（域名或IP地址）
+ 
+        # SSL 证书
+        ssl_certificate cert/214720028920109.pem;
+        # SSL 私钥
+        ssl_certificate_key  cert/214720028920109.key;
+        # 支持的 SSL 协议
+        ssl_protocols  SSLv2 SSLv3 TLSv1;
+        # 加密套件
+        ssl_ciphers  ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
+        ssl_prefer_server_ciphers   on;
+ 
+        # 配置指定路径下的 Web 页面
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+ 
+        # 配置 404 错误页重定向到指定URL路径
+        error_page  404              https://huayiyun.net;
+    }
+```
+
+配置多个域名同主机可以添加多个 server 模块完成对不同域名的请求配置。
+
+```python
+    server {
+        listen 80;
+        server_name  chufang.huayiyun.net;
+ 
+        # 跳转到HTTPS
+        return  301 https://$server_name$request_uri;
+ 
+        location / {
+            root   login;
+            index  index-chufang.html;
+        }
+ 
+        error_page  404              https://chufang.huayiyun.net;
+    }
+```
+
+```python
+    server {
+        listen  443 ssl;
+        server_name  chufang.huayiyun.net;
+ 
+        ssl_certificate cert/214720028920109.pem;
+        ssl_certificate_key  cert/214720028920109.key;
+        ssl_protocols  SSLv2 SSLv3 TLSv1;
+        ssl_ciphers  ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
+        ssl_prefer_server_ciphers   on;
+ 
+        location / {
+            root   login;
+            index  index-chufang.html;
+        }
+ 
+        error_page  404              https://chufang.huayiyun.net;
+    }
+```
+
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

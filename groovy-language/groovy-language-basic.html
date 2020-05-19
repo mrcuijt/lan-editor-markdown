@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>groovy-language-basic</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### groovy-language-basic
+
+#### Groovy 语言快速入门
+
+前言
+
+由于项目需要用到 Groovy 语言，这两天对其进行了粗略的学习，本文是对学习做的一个简单总结，主要内容参考于官方文档（Groovy 的官方文档还是非常不错的，强烈推荐阅读），希望本文对准备学习使用或者对 Groovy 感兴趣的同学有所帮助，如有不对之处还望指出哈，对这门语言的理解还是比较肤浅的。
+
+简介
+
+Groovy 是 Apache 旗下的一门基于 JVM 平台的动态/敏捷编程语言，在语言的设计上它吸纳了 Python、Ruby 和 Smalltalk 语言的优秀特性，语法非常简练和优美，开发效率也非常高（编程语言的开发效率和性能是相互矛盾的，越高级的编程语言性能越差，因为意味着更多底层的封装，不过开发效率会更高，需结合使用场景做取舍）。并且，Groovy 可以与 Java 语言无缝对接，在写 Groovy 的时候如果忘记了语法可以直接按Java的语法继续写，也可以在 Java 中调用 Groovy 脚本，都可以很好的工作，这有效的降低了 Java 开发者学习 Groovy 的成本。Groovy 也并不会替代 Java，而是相辅相成、互补的关系，具体使用哪门语言这取决于要解决的问题和使用的场景。
+
+快速开始
+
+ - 下载 Groovy 开发工具包（GDK）<a href="http://www.groovy-lang.org/download.html" target="_blank">Download</a>
+
+ - 创建 Groovy 项目
+
+使用 IDEA 的话需要安装 Groovy 的支持插件，安装完成后在新建项目中便会出现 Groovy 项目选项，选择 Groovy 项目并关联 Groovy libray 即可，当然也可以直接创建 .groovy 文件用命令行直接运行。
+
+ - Hello World
+
+```java
+public class Hello {
+    public static void main(String[] args) {
+        System.out.println("hello world");
+    }
+}
+```
+
+在 Groovy 中，这些都可以省略，下面这4种方式都可以输出 “hello world”。
+
+```java
+System.out.println("hello world");
+System.out.println "hello world";
+
+println("hello world")
+```
+
+当然，也可以像 Java 一样运行在类的 main 方法中。
+
+如果 Groovy 脚本文件里只有执行代码，没有类的定义，则 Groovy 编译器会生成一个 Script 的子类，类名和脚本文件的文件名一样，而脚本中的代码会被包含在一个名为run的方法中，同时还会生成一个main方法，作为整个脚本的入口。所以，作为 JVM 平台语言，与 Java 本质上还是一样的。
+
+与 Java 的一些区别
+
+Groovy 会默认导入下面这些包、类，不需要使用 import 语句显式导入。
+
+```java
+java.io.*
+java.lang.*
+java.math.BigDecimal
+java.math.BigInteger
+java.net.*
+java.util.*
+groovy.lang.*
+groovy.util.*
+```
+
+##### 多重方法
+
+在 Groovy 中，调用的方法将在运行时被选择。这种机制被称为运行时分派或多重方法（multi-methods），是根据运行时实参（argument）的类型来选择方法。Java 采用的是相反的策略：编译时根据声明的类型来选择方法。
+
+下面是一个例子，同样的 Java 代码在 Java 和 Groovy 环境中运行结果是不同的.
+
+```java
+int method(String arg) {
+    return 1;
+}
+int method(Object arg) {
+    return 2;
+}
+Object o = "Object";
+int result = method(o);
+// In Java
+assertEquals(2, result);
+// In Groovy
+assertEquals(1, result);
+```
+
+产生差异的原因在于，Java 使用静态数据类型，o 被声明为 Object 对象，而 Groovy 会在运行时实际调用方法时进行选择。因为调用的是 String 类型的对象，所以自然调用 String 版本的方法。
+
+##### 数组初始化语法
+
+在 Groovy 中，{...} 语句块是留给闭包（Closure）使用的，所以不能像 Java 中一样使用下面这种方式初始化数组
+
+```java
+int[] array = { 1, 2, 3}
+```
+
+而应该是下面这样
+
+```java
+int[] array = [1,2,3]
+```
+
+##### POJO
+
+Groovy 默认会隐式的创建 getter、setter 方法，并且会提供带参的构造器，下面两者是等价的。
+
+ - **In Java**
+
+```java
+public class Person {
+    private String name;
+    Person(String name) {
+        this.name = name
+    }
+    public String getName() {
+        return name
+    }
+    public void setName(String name) {
+        this.name = name
+    }
+}
+```
+
+ - **In Groovy**
+
+```java
+class Person {
+    String name
+}
+
+def person = new Person(name: '张三')
+assert '张三' == person.name
+person.name = '李四'
+//person.setName('李四')
+assert '李四' == person.getName()
+```
+
+##### 包访问权限
+
+在 Java 中如果没有显式的指定访问修饰符（public、protected、private）那么默认是包访问权限，但在 Groovy 中默认是 public 的，所以需要使用 @PackageScope 注解。
+
+```java
+class Person {
+    @PackageScope String name
+}
+```
+
+##### ARM 语句块
+
+ARM（Automatic Resource Management，自动资源管理）语句块（或者叫 TWR 语法）从 Java 7 开始引入，用于降低 IO 操作代码的复杂度，但 Groovy 并不支持。相反，Groovy 提供多种基于闭包的方法，不但可以达到同样的效果并且会更加简洁优美。
+
+```java
+//In Groovy
+Path file = Paths.get("/User/lihengming/test.txt");
+Charset charset = Charset.forName("UTF-8");
+try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+    String line;
+    while ((line = reader.readLine()) != null) {
+        System.out.println(line);
+    }
+
+} catch (IOException e) {
+    e.printStackTrace();
+}
+
+//In Groovy
+new File('/User/lihengming/test.txt').eachLine('UTF-8') {
+   println it
+}
+//或者这样，更接近于Java的方式
+new File('/User/lihengming/test.txt').withReader('UTF-8') { reader ->
+   reader.eachLine {
+       println it
+   }
+}
+//如果只是为了读取并打印出文本的内容的话，下面是最简洁的方式
+print new File('/User/lihengming/test.txt').text
+```
+
+##### 内部类
+
+Groovy 同样支持内部类并且实现跟 Java 是一样的，但不应拿 Java 语言规范来考量它，应对差异情况保持冷静与宽容（keep shaking the head about things that are different）。在 Groovy 中内部类看起来有点类似 groovy.lang.Closure 类的实现。
+
+```java
+//静态内部类
+class A {
+    static class B {}
+}
+new A.B()
+
+//匿名内部类
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+
+CountDownLatch called = new CountDownLatch(1)
+
+Timer timer = new Timer()
+timer.schedule(new TimerTask() {
+    void run() {
+        called.countDown()
+    }
+}, 0)
+
+assert called.await(10, TimeUnit.SECONDS)
+```
+
+##### Lambda 表达式
+
+Java 8 支持 Lambda 表达式和方法引用
+
+```java
+Runnable run = () -> System.out.println("Run");
+list.forEach(System.out::println);
+```
+
+Java 8 的 lambda 几乎可以认为是匿名内部类。Groovy 并没有采用这种语法，而采用闭包来实现。
+
+```java
+Runnable run = { println 'run' }
+list.each { println it } // or list.each(this.&println)
+```
+
+##### GString
+
+由于双引号所包括起来的字符串字面量会被解释为 GString 值（即 “Groovy 字符串”的简称），所以如果当某个类中的 String 字面量含有美元字符（$）时，那么利用 Groovy 和 Java 编译器进行编译时，Groovy 很可能就会编译失败，或者产生与 Java 编译所不同的结果。
+
+通常，如果某个 API 声明了形参的类型，Groovy 会自动转换 GString 和 String。要小心那些形参为 Object 的 Java API，需要检查它们的实际类型。
+
+##### 字符串和字符字面量
+
+在 Groovy 中，由单引号所创建的字面量属于 String 类型对象，而双引号创建的字面量则可能是 String 或 GString 对象，具体分类由字面量中是否有插值来决定。
+
+```java
+assert 'c'.getClass()==String
+assert "c".getClass()==String
+assert "c${1}".getClass() in GString
+```
+
+##### 基础语法
+
+ - Groovy 语句无需使用分号（;）结尾，当然加上也不会报错，毕竟完全兼容 Java 的语法。
+
+ - Groovy 中 == 等价于 Java 中的 equals 方法。
+
+##### 注释
+
+注释和 Java 一样，支持单行（`//`）、多行（`/* */`）和文档注释（`/** */`)
+
+除此之外还支持 Shebang line（UNIX系统支持一种特殊的单行注释叫作 Shebang line，用于指明脚本的运行环境，便于在终端中可以直接运行）`#`号必须是文件的第一个字符。
+
+```java
+#!/usr/bin/env groovy
+println "Hello from the shebang line"
+```
+
+##### 变量
+
+Groovy 中定义变量默认访问修饰符是 public，变量定义时遵循 Java 变量命名规范，变量名以字母、下划线或美元符号$开始，可以包含字母、数字、下划线和美元符号$，但关键字除外。除了这些规则之外，Groovy 定义变量时如果是一行定义一个类型，末尾的分号可以省略，但是如果多个变量占一行，变量之间必须以分号分割。
+
+Groovy 定义变量的方式和 Java 是类似的，区别在于 Groovy 提供了def关键字供使用，它可以省略变量类型的定义，根据变量的值进行类型推导。
+
+```java
+def a = 123
+def b = 'b'
+def c = true
+boolean d = false
+int e = 123
+```
+
+如果定义变量的字面量值为数字时，类型会根据数字的大小自动调整
+
+```java
+def a = 1
+assert a instanceof Integer
+
+// Integer.MAX_VALUE
+def b = 2147483647
+assert b instanceof Integer
+
+// Integer.MAX_VALUE + 1
+def c = 2147483648
+assert c instanceof Long
+
+// Long.MAX_VALUE
+def d = 9223372036854775807
+assert d instanceof Long
+
+// Long.MAX_VALUE + 1
+def e = 9223372036854775808
+assert e instanceof BigInteger
+```
+
+对于浮点型字面量为了精度 Groovy 默认使用的类型为 BigDecimal
+
+```java
+def decimal = 123.456
+println decimal.getClass() // class java.math.BigDecimal
+```
+
+Groovy 为 数字类型提供一种更简单的声明类型的方式：类型后缀
+
+ - Integer 使用I或i
+
+ - Long 使用L或l
+
+ - BigInteger 使用G或g
+
+ - BigDecimal 使用G或g
+
+ - Double 使用D或d
+
+ - Float 使用F或f
+
+使用例子
+
+```java
+def a = 123I
+assert a instanceof Integer
+def b= 123L
+assert b instanceof Long
+```
+
+##### 字符串
+
+在 Groovy 种有两种字符串类型，普通字符串（java.lang.String）和插值字符串（groovy.lang.GString）。
+
+普通字符串使用单引号
+
+```java
+println 'hello'
+```
+
+插值字符串使用双引号
+
+```java
+def name = '张三'
+println "hello $name"
+```
+
+除此之外，还支持三单引号的写法，可以保留文本的换行及缩进格式
+
+```java
+def strippedFirstNewline = '''line one
+        line two
+            line three
+'''
+println strippedFirstNewline
+// 可以写成下面这种形式，可读性更好
+def strippedFirstNewline2 = '''\
+line one
+    line two
+line three
+'''
+println strippedFirstNewline2
+```
+
+##### 字符
+
+在 Groovy 中并没有明确的字符字面量表示形式，需要显示的指定，有三种方式
+
+```java
+char c1 = 'A' // 声明类型
+assert c1 instanceof Character
+
+def c2 = 'B' as char // 用as关键字
+assert c2 instanceof Character
+```
+
+##### 方法（函数）
+
+Groovy 方法的默认访问修饰符是 public，方法的返回类型可以不需要声明，但需添加 def 关键字。有返回值的方法 return 可以被省略，默认返回最后一行代码的运行结果，如果使用了 return 关键字则返回指定的返回值。
+
+```java
+String method1() {
+    return 'hello'
+}
+assert method1() == 'hello';
+
+def method2() {
+    return 'hello'
+}
+assert method2() == 'hello';
+
+def method3() {
+    'hello'
+}
+assert method3() == 'hello';
+```
+
+Groovy 方法的参数类型可以被省略，默认为 Object 类型。
+
+```java
+def add(int a, int b) {
+    return a + b
+}
+// 与上面的等价
+def add(a, b) {
+    a + b
+}
+```
+
+Groovy 方法的其他特性与Java一样，比如支持重载、不定长参数（...）等。
+
+##### 闭包
+
+Groovy 提供了闭包的支持，语法和 Lambda 表达式有些类似，简单来说就是一段可执行的代码块或函数指针。闭包在 Groovy 中是 groovy.lang.Closure 类的实例，这使得闭包可以赋值给变量，或者作为参数传递。 Groovy 定义闭包的语法很简单，就像下面这样。
+
+```java
+// 闭包的参数为可选项
+def closure = { [closureParameters -> ] statements }
+```
+
+闭包可以访问外部变量，而方法（函数）则不能。
+
+```java
+def str = 'hello'
+def closure={
+    println str
+}
+closure() // hello
+```
+
+闭包调用的方式有两种，闭包.call(参数)或者闭包(参数)，在调用的时候可以省略圆括号。
+
+```java
+def closure = {
+    param -> println param
+}
+
+closure('hello')
+closure.call('hello')
+closure 'hello'
+```
+
+闭包的参数是可选的，如果没有参数的话可以省略->操作符。
+
+```java
+def closure = {println 'hello'}
+closure()
+```
+
+多个参数以逗号分隔，参数类型和方法一样可以显式声明也可省略
+
+```java
+def closure = { String x, int y ->
+    println "hey ${x} the value is ${y}"
+}
+```
+
+如果只有一个参数的话，也可省略参数的定义，Groovy 提供了一个隐式的参数 it 来替代它。
+
+```java
+def closure = { it -> println it }
+//和上面是等价的
+def closure = { println it }
+closure('hello')
+```
+
+闭包可以作为参数传入，闭包作为方法的唯一参数或最后一个参数时可省略括号。
+
+```java
+def eachLine(lines, closure) {
+    for (String line : lines) {
+        closure(line)
+    }
+}
+
+eachLine('a'..'z',{ println it })
+// 可省略括号，与上面等价
+eachLine('a'..'z') { println it }
+```
+
+##### Lists
+
+Groovy 定义 List 的方式非常简洁，使用中括号([])，以逗号(,)分隔元素即可。Groovy 中的 List 其实就是 java.util.List，实现类默认使用的是 java.util.ArrayList。
+
+```java
+def numbers = [1, 2, 3]
+
+assert numbers instanceof List
+assert numbers.class == java.util.ArrayList
+assert numbers.size() == 3
+```
+
+##### Arrays
+
+Groovy 定义数组的语法和 List 非常类似，区别在于数组的定义必须指定类型为数组类型，可以直接定义类型或者使用 def 定义然后通过 as 关键字来指定其类型。
+
+```java
+String[] arrStr = ['Ananas', 'Banana', 'Kiwi'] //直接声明类型为数组类型  String[]
+
+assert arrStr instanceof String[]
+assert !(arrStr instanceof List)
+
+def numArr = [1, 2, 3] as int[]     //痛过as关键字指定类型为数组类型 int[]
+
+assert numArr instanceof int[]
+assert numArr.size() == 3
+```
+
+##### Maps
+
+Groovy 定义 Map 的方式非常简洁，通过中括号包含 key、val 的形式，key 和 value 以冒号分隔([key:value])。Groovy 中的 Map 其实就是 java.util.Map，实现类默认使用的是 java.util.LinkedHashMap。
+
+```java
+// key虽然没有加引号，不过Groovy会默认将其转换为字符串
+def colors = [red: '#FF0000', green: '#00FF00', blue: '#0000FF']
+
+assert colors['red'] == '#FF0000' // 使用中括号访问
+assert colors.green == '#00FF00' // 使用点表达式访问
+
+colors['pink'] = '#FF00FF' // 使用中括号添加元素，相当于Java Map 的 put(key,value)方法
+colors.yellow = '#FFFF00'// 使用点表达式添加元素
+assert colors.pink == '#FF00FF'
+assert colors['yellow'] == '#FFFF00'
+assert colors instanceof java.util.LinkedHashMap // 默认使用LinkedHashMap类型
+
+// Groovy Map的key默认语法不支持变量，这里的key时间上是字符串'keyVal'而不是keyVal变量的值'name'
+def keyVal = 'name'
+def persons = [keyVal: 'Guillaume']
+assert !persons.containsKey('name')
+assert persons.containsKey('keyVal')
+
+//要使用变量作为key，需要使用括号
+def keyVal = 'name'
+def persons = [(keyVal): 'Guillaume']
+assert persons.containsKey('name')
+assert !persons.containsKey('keyVal')
+```
+
+##### Range
+
+在 Groovy 中可以使用 `..` 操作符来定义一个区间对象，简化范围操作的代码。
+
+```java
+def range = 0..5
+assert (0..5).collect() == [0, 1, 2, 3, 4, 5]
+assert (0..<5).collect() == [0, 1, 2, 3, 4] // 相当于左闭右开区间
+assert (0..5) instanceof List // Range实际上是List接口的实现
+assert (0..5).size() == 6
+assert ('a'..'d').collect() == ['a','b','c','d']//也可以是字符类型
+
+//常见使用场景
+for (x in 1..10) {
+    println x
+}
+
+('a'..'z').each {
+    println it
+}
+
+def age = 25;
+switch (age) {
+    case 0..17:
+        println '未成年'
+        break
+    case 18..30:
+        println '青年'
+        break
+    case 31..50:
+        println '中年'
+        break
+    default:
+        println '老年'
+}
+```
+
+##### 常见使用场景
+
+###### Grails
+
+Grails 是一个基于 Groovy 语言，构建于 Spring/Spring Boot、Hibernate 之上的高生产力、一站式 Web 开发框架。特别适合小型团队进行敏捷开发，效率非常高。由于性能和学习成本的原因，普及率比较低，大分部公司还是更倾向于选择 Spring Boot 作为开发框架。
+
+###### Gradle
+
+Gradle 是一个基于 Apache Ant 和 Apache Maven 概念的项目自动化构建工具。它使用一种基于 Groovy 的特定领域语言(DSL)来进行构建配置，抛弃了基于 XML 的各种繁琐配置，主要以面向 Java 应用为主，支持从 Maven 仓库下载依赖。现在越来越多的项目（Android 项目居多）使用 Gradle 来作为项目的构建工具，相信未来 Gradle 也会逐渐代替 Maven，就像 Maven 代替 Ant 那样。
+
+使用 Maven 构建项目
+
+```java
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.vs</groupId>
+    <artifactId>com.vs.maven.gradle</artifactId>
+    <version>1.0</version>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.2.6.RELEASE</version>
+    </parent>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa
+            </artifactId>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.25</version>
+        </dependency>
+    </dependencies>
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+使用 Gradle 构建项目
+
+```java
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.6.RELEASE")
+    }
+}
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+    compile("org.springframework.boot:spring-boot-starter-security")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    testCompile("mysql:mysql-connector-java:5.1.25")
+}
+```
+
+##### Spring 支持
+
+从 Spring 2.0 版本开始对动态脚本语言进行了支持（Spring 官方文档该部分地址），其中便包括 Groovy ，Spring 提供了 `<lang:groovy/>` 标签来定义 Groovy Bean 。Groovy Bean 可以通过 script-source 属性加载脚本文件，脚本源文件可以来自本地或者网络，并且可以通过 refresh-check-delay 属性监听脚本内代码变更重新装载 Bean 实现动态 Bean 。
+
+```java
+// from the file '/java/Calculator.java'
+public interface Calculator {
+    int add(int x, int y);
+}
+
+// from the file '/resources/CalculatorGroovyImpl.groovy'
+class CalculatorGroovyImpl implements Calculator {
+    int add(int x, int y) {
+        x + y
+    }
+}
+```
+
+```xml
+<-- from the file 'beans.xml' 省略 xmlns -->
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+    <lang:groovy id="calculator" script-source="classpath:CalculatorGroovyImpl.groovy" refresh-check-delay="1000"/>
+</beans>
+```
+
+```java
+public class Tester {
+    public static void main(String[] args) throws InterruptedException {
+        ApplicationContext context = new ClassPathXmlApplicationContext("beans.xml");
+        Calculator calculator = (Calculator)context.getBean("calculator");
+        //尝试修改CalculatorGroovyImpl.groovy，将 x + y，修改为x * y。
+        while (true){
+            System.out.println(calculator.add(1, 1));
+            TimeUnit.SECONDS.sleep(1);
+        }
+    }
+}
+```
+
+从 Spring 4.0 版本开始 Spring 支持使用 Groovy DSL 来定义 Bean 的配置，详见 Spring 官方文档该部分 。
+
+```java
+beans {
+    //beanName(type)
+    dataSource(BasicDataSource) {
+        //注入属性
+        driverClassName = "org.hsqldb.jdbcDriver"
+        url = "jdbc:hsqldb:mem:grailsDB"
+        username = "sa"
+        password = ""
+        settings = [mynew:"setting"]
+    }
+    sessionFactory(SessionFactory) {
+       //注入属性，引用其他Bean
+        dataSource = dataSource
+    }
+    myService(MyService) {
+       //使用闭包定义嵌套的Bean
+        nestedBean = { AnotherBean bean ->
+            dataSource = dataSource
+        }
+    }
+}
+```
+
+```java
+ApplicationContext context = new GenericGroovyApplicationContext("beans.groovy");
+MyService myService = context.getBean(MyService.class);
+```
+
+##### 与 Java 集成
+
+Groovy 非常容易集成在 Java 环境中，利用其动态性来做规则引擎、流程引擎、动态脚本环境，非常适合那些不不需要经常发布但又经常变更的场景下使用。在 Java 中集成（调用）Groovy 代码有下面几种方式。
+
+##### Eval
+
+groovy.util.Eval 类是最简单的用来在运行时动态执行 Groovy 代码的类，提供了几个静态工厂方法供使用，内部其实就是对 GroovyShell 的封装。
+
+```java
+//执行Groovy代码
+Eval.me("println 'hello world'");
+//绑定自定义参数
+Object result = Eval.me("age", 22, "if(age < 18){'未成年'}else{'成年'}");
+assertEquals(result, "成年");
+//绑定一个名为 x 的参数的简单计算
+assertEquals(Eval.x(4, "2*x"), 8);
+//带有两个名为 x 与 y 的绑定参数的简单计算
+assertEquals(Eval.xy(4, 5, "x*y"), 20);
+//带有三个绑定参数（x、y 和 z）的简单计算
+assertEquals(Eval.xyz(4, 5, 6, "x*y+z"), 26);
+```
+
+##### GroovyShell
+
+groovy.lang.GroovyShell 除了可以执行 Groovy 代码外，提供了更丰富的功能，比如可以绑定更多的变量，从文件系统、网络加载代码等。
+
+```java
+GroovyShell shell = new GroovyShell();
+//可以绑定更多变量
+shell.setVariable("age",22);
+//直接求值
+shell.evaluate("if(age < 18){'未成年'}else{'成年'}");
+//解析为脚本，延迟执行或者缓存起来
+Script script = shell.parse("if(age < 18){'未成年'}else{'成年'}");
+assertEquals(script.run(), "成年");
+//可以从更多位置加载/执行脚本
+//shell.evaluate(new File("script.groovy"));
+//shell.evaluate(new URI("http://wwww.a.com/script.groovy"));
+```
+
+##### GroovyClassLoader
+
+groovy.lang.GroovyClassLoader 是一个定制的类加载器，可以在运行时加载 Groovy 代码，生成 Class 对象。
+
+```java
+ GroovyClassLoader groovyClassLoader = new GroovyClassLoader();
+ String scriptText = "class Hello { void hello() { println 'hello' } }";
+ //将Groovy脚本解析为Class对象
+ Class clazz = groovyClassLoader.parseClass(scriptText);
+ //Class clazz = groovyClassLoader.parseClass(new File("script.groovy"));
+ assertEquals(clazz.getName(),"Hello");
+ clazz.getMethod("hello").invoke(clazz.newInstance());
+```
+
+##### GroovyScriptEngine
+
+groovy.util.GroovyScriptEngine 能够处理任何 Groovy 代码的动态编译与加载，可以从统一的位置加载脚本，并且能够监听脚本的变化，当脚本发生变化时会重新加载。
+
+```java
+//script/groovy/hello.groovy
+println "hello $name"
+```
+
+```java
+GroovyScriptEngine scriptEngine = new GroovyScriptEngine("script/groovy");
+Binding binding = new Binding();
+binding.setVariable("name", "groovy");
+while (true){
+    scriptEngine.run("hello.groovy", binding);
+    TimeUnit.SECONDS.sleep(1);
+}
+```
+
+```java
+//输出
+hello groovy
+hello groovy
+....
+// 将 hello.groovy 内代码修改为 println "hi $name"， GroovyScriptEngine 会重新进行加载
+hi groovy
+hi groovy
+```
+
+##### JSR 223 javax.script API
+
+JSR-223 是 Java 中调用脚本语言的标准 API。从 Java 6 开始引入进来，主要目的是用来提供一种统一的框架，以便在 Java 中调用多种脚本语言。JSR-223 支持大部分流行的脚本语言，比如 JavaScript、Scala、JRuby、Jython 和 Groovy 等。
+
+```java
+ScriptEngine engine = new ScriptEngineManager().getEngineByName("groovy");
+Bindings bindings = new SimpleBindings();
+bindings.put("age", 22);
+Object value = engine.eval("if(age < 18){'未成年'}else{'成年'}",bindings);
+assertEquals(value,"成年");
+
+//script/groovy/hello.groovy
+//println "hello world"
+engine.eval(new FileReader("script/groovy/hello.groovy"));
+//hello world
+```
+
+由于 Groovy 自身已经提供了更丰富的集成机制，如果在 Java 应用中只是使用 Groovy 一种脚本语言的话，使用 Groovy 提供的集成机制可能会更合适一点。
+
+与 Java 集成大致就以上几种方式，在使用前推荐阅读：<a href="https://link.jianshu.com/?t=https://yq.aliyun.com/articles/2357" target="_blank">Groovy 与 Java 集成常见的坑</a>
+
+参考
+
+ - <a href="https://link.jianshu.com/?t=http://www.groovy-lang.org/documentation.html" target="_blank">Apache Groovy Docmentation</a>
+
+ - <a href="https://link.jianshu.com/?t=https://docs.spring.io/spring/docs/4.3.11.RELEASE/spring-framework-reference/htmlsingle/" target="_blank">Spring Framework Reference Documentation</a>
+
+ - <a href="https://www.jianshu.com/p/e8dec95c4326" target="_blank">Groovy 语言快速入门</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

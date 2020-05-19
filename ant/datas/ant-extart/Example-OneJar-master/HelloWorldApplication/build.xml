@@ -1,0 +1,67 @@
+<project name="New Project" default="compile" basedir=".">
+
+    <property environment="env" />
+    <property name="one-jar.dist.dir" value="../onejar" />
+    <import file="${one-jar.dist.dir}/one-jar-ant-task.xml" optional="true" />
+
+    <property file="default.properties"/>
+
+    <path id="classpath">
+        <pathelement location="${project.classes}" />
+        <pathelement location="${project.lib}/libHello.jar" />
+    </path>
+
+<!-- CLEAN -->
+    <target name="clean" description="Remove the Build and Dist directories">
+        <delete dir="${project.classes}"/>
+        <delete file="${project.jar}"/>
+
+    </target>
+
+   
+<!-- COMPILE -->
+    <target name="compile" 
+            description="Compile All Java Sources for ${project.name}">
+        
+        <mkdir dir="${project.classes}" />
+        
+        <javac srcdir="${project.src}" 
+            destdir="${project.classes}" 
+            debug="${compile.debug}" 
+            deprecation="${compile.deprecation}" 
+            optimize="${compile.optimize}">
+            
+            <classpath refid="classpath"/>
+
+            <compilerarg value="-Xlint:all"/>
+            <compilerarg value="-Xlint:-path"/>
+            <compilerarg value="-Xlint:-serial"/>
+
+        </javac>
+    </target>
+    
+<!-- DIST -->
+    <target name="dist" 
+            depends="compile" 
+            description="Generate a jar file for ${project.name}">
+
+        <one-jar destfile="${project.jar}" onejarmainclass="${project.package}.${project.main}">
+            <main>
+                <fileset dir="${project.classes}" />
+            </main>
+            <lib>
+                <fileset dir="${project.lib}" />
+            </lib>
+        </one-jar>
+    </target>
+
+
+
+<!-- RUN -->
+    <target name="run" depends="dist" description="Run ${project.name}">
+        <java jar="${project.jar}" fork="true">
+            <classpath refid="classpath" />
+        </java>
+    </target>
+
+</project>

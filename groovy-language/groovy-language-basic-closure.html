@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>groovy-language-basic-closure</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### groovy-language-basic-closure
+
+#### Groovy 闭包
+
+闭包是一个短的匿名代码块。它通常跨越几行代码。一个方法甚至可以将代码块作为参数。它们是匿名的。
+
+下面是一个简单闭包的例子，它是什么样子。
+
+```java
+class Example {
+   static void main(String[] args) {
+      def clos = {println "Hello World"};
+      clos.call();
+   }
+}
+```
+
+在上面的例子中，代码行 `{println "Hello World"}` 被称为闭包。此标识符引用的代码块可以使用 call 语句执行。
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+Hello World
+```
+
+##### 闭包中的形式参数
+
+闭包也可以包含形式参数，以使它们更有用，就像 Groovy 中的方法一样。
+
+```java
+class Example {
+   static void main(String[] args) {
+      def clos = {param -> println "Hello ${param}"};
+      clos.call("World");
+   }
+}
+```
+
+在上面的代码示例中，注意使用 `${param}` ，这导致 closure 接受一个参数。当通过 clos.call 语句调用闭包时，我们现在可以选择将一个参数传递给闭包。
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+Hello World
+```
+
+下一个图重复了前面的例子并产生相同的结果，但显示可以使用被称为它的隐式单个参数。这里的 '`it`' 是 Groovy 中的关键字。
+
+```java
+class Example {
+   static void main(String[] args) {
+      def clos = {println "Hello ${it}"};
+      clos.call("World");
+   }
+}
+```
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+Hello World
+```
+
+##### 闭包和变量
+
+更正式地，闭包可以在定义闭包时引用变量。以下是如何实现这一点的示例。
+
+```java
+class Example {
+   static void main(String[] args) {
+      def str1 = "Hello";
+      def clos = {param -> println "${str1} ${param}"}
+      clos.call("World");
+
+      // We are now changing the value of the String str1 which is referenced in the closure
+      str1 = "Welcome";
+      clos.call("World");
+   }
+}
+```
+
+在上面的例子中，除了向闭包传递参数之外，我们还定义了一个名为 str1 的变量。闭包也接受变量和参数。
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+Hello World
+Welcome World
+```
+
+##### 在方法中使用闭包
+
+闭包也可以用作方法的参数。在 Groovy 中，很多用于数据类型（例如列表和集合）的内置方法都有闭包作为参数类型。
+
+以下示例显示如何将闭包作为参数发送到方法。
+
+```java
+class Example {
+   def static Display(clo) {
+      // This time the $param parameter gets replaced by the string "Inner"
+      clo.call("Inner");
+   }
+
+   static void main(String[] args) {
+      def str1 = "Hello";
+      def clos = { param -> println "${str1} ${param}" }
+      clos.call("World");
+
+      // We are now changing the value of the String str1 which is referenced in the closure
+      str1 = "Welcome";
+      clos.call("World");
+
+      // Passing our closure to a method
+      Example.Display(clos);
+   }
+}
+```
+
+在上述示例中，
+
+ - 我们定义一个名为 Display 的静态方法，它将闭包作为参数。
+
+ - 然后我们在我们的 main 方法中定义一个闭包，并将它作为一个参数传递给我们的 Display 方法。
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+Hello World
+Welcome World
+Welcome Inner
+```
+
+##### 集合和字符串中的闭包
+
+几个 List，Map和 String 方法接受一个闭包作为参数。让我们看看在这些数据类型中如何使用闭包的例子。
+
+##### 使用闭包和列表
+
+以下示例显示如何使用闭包与列表。在下面的例子中，我们首先定义一个简单的值列表。列表集合类型然后定义一个名为 `.each` 的函数。此函数将闭包作为参数，并将闭包应用于列表的每个元素
+
+```java
+class Example {
+   static void main(String[] args) {
+      def lst = [11, 12, 13, 14];
+      lst.each {println it}
+   }
+}
+```
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+11
+12
+13
+14
+```
+
+##### 使用映射闭包
+
+以下示例显示了如何使用闭包。在下面的例子中，我们首先定义一个简单的关键值项 Map。然后，映射集合类型定义一个名为 `.each` 的函数。此函数将闭包作为参数，并将闭包应用于映射的每个键值对。
+
+```java
+class Example {
+   static void main(String[] args) {
+      def mp = ["TopicName" : "Maps", "TopicDescription" : "Methods in Maps"]
+      mp.each {println it}
+      mp.each {println "${it.key} maps to: ${it.value}"}
+   }
+}
+```
+
+当我们运行上面的程序，我们会得到以下结果
+
+```java
+TopicName = Maps
+TopicDescription = Methods in Maps
+TopicName maps to: Maps
+TopicDescription maps to: Methods in Maps
+```
+
+通常，我们可能希望遍历集合的成员，并且仅当元素满足一些标准时应用一些逻辑。这很容易用闭包中的条件语句来处理。
+
+```java
+class Example {
+   static void main(String[] args) {
+      def lst = [1,2,3,4];
+      lst.each {println it}
+      println("The list will only display those numbers which are divisible by 2")
+      lst.each{num -> if(num % 2 == 0) println num}
+   }
+}
+```
+
+上面的例子显示了在闭包中使用的条件if `(num % 2 == 0)` 表达式，用于检查列表中的每个项目是否可被 2 整除。
+
+当我们运行上面的程序，我们会得到以下结果
+
+```java
+1
+2
+3
+4
+The list will only display those numbers which are divisible by 2.
+2
+4
+```
+
+##### 闭包使用的方法
+
+##### Groovy find() 方法
+
+find()
+
+find 方法查找集合中与某个条件匹配的第一个值。
+
+ - **句法**
+
+```java
+Object find(Closure closure)
+```
+
+ - **参数**
+
+ collection 元素要满足的条件在闭包中指定，该闭包必须是一些布尔表达式。
+
+ - **返回值**
+
+ 如果没有这样的元素， find 方法返回找到的第一个值或 null。
+
+例子
+
+下面是一个使用这个方法的例子
+
+```java
+class Example {
+   static void main(String[] args) {
+      def lst = [1,2,3,4];
+      def value;
+
+      value = lst.find {element -> element > 2}
+      println(value);
+   }
+}
+```
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+3
+```
+
+##### Groovy findAll() 方法
+
+findAll()
+
+它找到接收对象中与闭合条件匹配的所有值。
+
+ - **句法**
+
+```java
+List findAll(Closure closure)
+```
+
+ - **参数**
+
+ collection 元素要满足的条件在闭包中指定，该闭包必须是一些布尔表达式。
+
+ - **返回值**
+
+ find 方法返回根据表达式找到的所有值的列表。
+
+例子
+
+下面是一个使用这个方法的例子
+
+```java
+class Example {
+   static void main(String[] args) {
+      def lst = [1,2,3,4];
+      def value;
+
+      value = lst.findAll{element -> element > 2}
+      value.each {println it}
+   }
+}
+```
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+3
+4
+```
+
+##### Groovy any() & every() 方法
+
+any() & every()
+
+方法 any 迭代集合的每个元素，检查布尔谓词是否对至少一个元素有效。
+
+ - **句法**
+
+```java
+boolean any(Closure closure)
+boolean every(Closure closure)
+```
+
+ - **参数**
+
+ collection 元素要满足的条件在闭包中指定，该闭包必须是一些布尔表达式。
+
+ - **返回值**
+
+ find 方法返回一个布尔值。
+
+例子
+
+下面是一个使用这个方法的例子
+
+```java
+class Example {
+   static void main(String[] args) {
+      def lst = [1,2,3,4];
+      def value;
+
+      // Is there any value above 2
+      value = lst.any{element -> element > 2}
+      println(value);
+
+      // Is there any value above 4
+      value = lst.any{element -> element > 4}
+      println(value);
+   }
+}
+```
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+true
+false
+```
+
+
+下面是使用这个方法的每个方法的一个例子
+
+```java
+class Example {
+   static void main(String[] args) {
+      def lst = [1,2,3,4];
+      def value;
+
+      // Are all value above 2
+      value = lst.every{element -> element > 2}
+      println(value);
+
+      // Are all value above 4
+      value = lst.every{element -> element > 4}
+      println(value);
+      def largelst = [4,5,6];
+
+      // Are all value above 2
+      value = largelst.every{element -> element > 2}
+      println(value);
+   }
+}
+```
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+false
+false
+true
+```
+
+##### Groovy collect() 方法
+
+collect()
+
+该方法通过集合收集迭代，使用闭包作为变换器将每个元素转换为新值。
+
+- **句法**
+
+```java
+List collect(Closure closure)
+```
+
+- **参数**
+
+Closure 表达式。
+
+- **返回值**
+
+修改列表集合。
+
+例子
+
+下面是使用这个方法的每个方法的一个例子
+
+```java
+class Example {
+   static void main(String[] args) {
+      def lst = [1,2,3,4];
+      def newlst = [];
+      newlst = lst.collect {element -> return element * element}
+      println(newlst);
+   }
+}
+```
+
+当我们运行上面的程序，我们将得到以下结果
+
+```java
+[1, 4, 9, 16]
+```
+
+参考链接：
+
+ - <a href="https://www.w3cschool.cn/groovy/groovy_closures.html" target="_blank">Groovy 闭包</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

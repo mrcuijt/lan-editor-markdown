@@ -1,0 +1,9 @@
+1. HTTP Proxy 代理访问问题
+  1) 请求 localhost port , 由指定 port 进行请求，设置 Host 头信息
+  2) Proxy Port Request Real Server Host, Socket layer / HTTP layer?
+
+
+2. Modified Http Header 
+  1) new ByteArrayOutputStream
+  2) readLine if(host) modify www.webxml.com.cn
+  3) write

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>junit5-basic-technology</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### junit5-basic-technology
+
+#### JUnit 5 简介，第 1 部分
+
+JUnit 5 Jupiter API
+
+了解全新 JUnit Jupiter API 中的注解、断言和前置条件
+
+本教程介绍 JUnit 5。我们首先介绍如何在您的计算机上安装并设置 JUnit 5。我将简要介绍 JUnit 5 的架构和组件，然后展示如何使用 JUnit Jupiter API 中的新注解、断言和前置条件。
+
+在第 2 部分中，我们将更深入地介绍 JUnit 5，包括新的 JUnit Jupiter 扩展模型、参数注入、动态测试等。
+
+在本教程中，我使用了 JUnit 5, Version 5.0.2。
+
+##### 前提条件
+
+出于本教程的目的，我假设您熟悉以下软件的使用：
+
+ - Eclipse IDE
+
+ - Maven
+
+ - Gradle（可选）
+
+ - Git
+
+要跟随示例进行操作，您应在计算机上安装 JDK 8、Eclipse、Maven、Gradle（可选）和 Git。如果缺少其中的任何工具，可使用下面的链接下载和安装它们：
+
+ - <a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html" target="_blank">JDK 8 for Windows, Mac, and Linux。</a>
+
+ - <a href="http://www.eclipse.org/downloads/eclipse-packages/" target="_blank">Eclipse IDE for Windows, Mac, and Linux。</a>
+
+ - <a href="https://maven.apache.org/download.cgi" target="_blank">Apache Maven for Windows, Mac, and Linux。</a>
+
+ - <a href="https://gradle.org/install" target="_blank">Gradle for Windows, Mac, and Linux。</a>
+
+ - <a href="https://git-scm.com/downloads" target="_blank">Git for Windows, Mac, and Linux。</a>
+
+<a href="https://github.com/makotogo/HelloJUnit5" target="_blank">从 GitHub 克隆示例应用程序
+</a>
+
+##### 术语
+
+人们倾向于将术语 JUnit 5 和 JUnit Jupiter 当作同义词使用。在大部分情况下，这种互换使用没有什么问题。但是，一定要认识到这两个术语是不同的。JUnit Jupiter 是使用 JUnit 5 编写测试内容的 API。JUnit 5 是一个项目名称（和版本），其 3 个主要模块关注不同的方面：JUnit Jupiter、JUnit Platform 和 JUnit Vintage。
+
+当我提及 JUnit Jupiter 时，指的是编写单元测试的 API；提及 JUnit 5 时，指的是整个项目。
+
+##### JUnit with Gradle
+
+在本教程中，我将展示如何使用 Gradle 运行 JUnit Jupiter 测试。并非必须观看该演示内容，但您可以通过它学习 Gradle。这是一个很好的构建系统，而且越来越流行。很快它就会进入您身旁的某个项目中 — 我敢保证！
+
+##### JUnit 5 概述
+
+以前的 JUnit 版本都是整体式的。除了在 4.4 版中包含 Hamcrest JAR，JUnit 基本来讲就是一个很大的 JAR 文件。测试内容编写者 — 像您我这样的开发人员 — 和工具供应商都使用它的 API，但后者使用很多内部 JUnit API。
+
+大量使用内部 API 给 JUnit 的维护者造成了一些麻烦，并且留给他们推动该技术发展的选择余地不多。<a href="http://junit.org/junit5/docs/current/user-guide/#api-evolution" target="_blank">来自 JUnit 5 用户指南：</a>
+
+“在 JUnit 4 中，只有外部扩展编写者和工具构建者才使用最初作为内部结构而添加的许多功能。这让更改 JUnit 4 变得特别困难，有时甚至根本不可能。”
+
+JUnit Lambda（现在称为 JUnit 5）团队决定将 JUnit 重新设计为两个明确且不同的关注区域：
+
+ - 一个是编写测试内容的 API。
+
+ - 一个是发现和运行这些测试的 API。
+
+这些关注区域现在已整合到 JUnit 5 的架构中，并且它们是明确分离的。图 1 演示了新架构（图像来自 <a href="https://blog.codefx.org/design/architecture/junit-5-architecture/" target="_blank">Nicolai Parlog</a>）：
+
+![JUnit 5 的架构](images/junit5-basic-technology/junit5-basic-technology-001.png)
+
+如果仔细查看，就会发现 JUnit 5 的架构有多么强大。好了，让我们仔细看看这个架构。右上角的方框表明，对 JUnit 5 而言，JUnit Jupiter API 只是另一个 API！因为 JUnit Jupiter 的组件遵循新的架构，所以它们可应用 JUnit 5，但您可以轻松定义不同的测试框架。只要一个框架实现了 TestEngine 接口，就可以将它插入任何支持 junit-platform-engine 和 junit-platform-launcher API 的工具中！
+
+我仍然认为 JUnit Jupiter 非常特殊（毕竟我即将用一整篇教程来介绍它），但 JUnit 5 团队完成的工作确实具有开创性。我只是想指出这一点。我们继续看看图 1，直到我们完全达成一致。
+
+##### 使用 JUnit Jupiter 编写测试内容
+
+就测试编写者而言，任何符合 JUnit 规范的测试框架（包括 JUnit Jupiter）都包含两个组件：
+
+ - 我们为其编写测试的 API。
+
+ - 理解这个特定 API 的 JUnit TestEngine 实现。 
+
+对于本教程，前者是 JUnit Jupiter API，后者是 JUnit Jupiter Test Engine。我将介绍这二者。
+
+ - JUnit Jupiter API
+
+作为开发人员，您将使用 JUnit Jupiter API 创建单元测试来测试您的应用程序代码。使用该 API 的基本特性 — 注解、断言等 — 是本部分教程的主要关注点。
+
+JUnit Jupiter API 的设计让您可通过插入各种生命周期回调来扩展它的功能。您将在第 2 部分中了解如何使用这些回调完成有趣的工作，比如运行参数化测试，将参数传递给测试方法，等等。
+
+ - JUnit Jupiter Test Engine
+
+您将使用 JUnit Jupiter Test Engine 发现和执行 JUnit Jupiter 单元测试。该测试引擎实现了 JUnit Platform 中包含的 TestEngine 接口。可将 TestEngine 看作单元测试与用于启动它们的工具（比如 IDE）之间的桥梁。
+
+##### 使用 JUnit Platform 运行测试
+
+在 JUnit 术语中，运行单元测试的过程分为两部分：
+
+ - 发现测试和创建测试计划。
+
+ - 启动测试计划，以 (1) 执行测试和 (2) 向用户报告结果。
+
+###### 用于发现测试的 API
+
+用于发现测试和创建测试计划的 API 包含在 JUnit Platform 中，由一个 TestEngine 实现。该测试框架将测试发现功能封装到其 TestEngine 实现中。JUnit Platform 负责使用 IDE 和构建工具（比如 Gradle 和 Maven）发起测试发现流程。
+
+测试发现的目的是创建测试计划，该计划中包含一个测试规范。测试规范包含以下组件：
+
+ - 选择器，比如：
+
+  - 要扫描哪个包来寻找测试类
+
+  - 特定的类名称
+
+  - 特定的方法
+
+  - 类路径根文件夹
+
+ - 过滤器，比如：
+
+  - 类名称模式（比如 “.*Test”）
+
+  - 标签（将在第 2 部分中讨论）
+
+  - 特定的测试引擎（比如 “junit-jupiter”）
+
+测试计划是根据测试规范所发现的所有测试类、这些类中的测试方法、测试引擎等的分层视图。测试计划准备就绪后，就可以执行了。
+
+###### 用于执行测试的 API
+
+用于执行测试的 API 包含在 JUnit Platform 中，由一个或多个 TestEngine 实现。测试框架将测试执行功能封装在它们的 TestEngine 实现中，但 JUnit Platform 负责发起测试执行流程。通过 IDE 和构建工具（比如 Gradle 和 Maven）发起测试执行工作。
+
+一个名为 Launcher 的 JUnit Platform 组件负责执行在测试发现期间创建的测试计划。某个流程 — 假设是您的 IDE — 通过 JUnit Platform（具体来讲是 junit-platform-launcher API）发起测试执行流程。这时，JUnit Platform 将测试计划连同 TestExecutionListener 一起传递给 Launcher。TestExecutionListener 将报告测试执行结果，从而在您的 IDE 中显示该结果。
+
+测试执行流程的目的是向用户准确报告在测试运行时发生了哪些事件。这包括测试成功和失败报告，以及伴随失败而生成的消息，帮助用户理解所发生的事件。
+
+##### 后向兼容性：JUnit Vintage
+
+许多组织对 JUnit 3 和 4 进行了大力投资，因此无法承担向 JUnit 5 的大规模转换。了解到这一点后，JUnit 5 团队提供了 junit-vintage-engine 和 junit-jupiter-migration-support 组件来帮助企业进行迁移。
+
+对 JUnit Platform 而言，JUnit Vintage 只是另一个测试框架，包含自己的 TestEngine 和 API（具体来讲是 JUnit 4 API）。
+
+显示了各种 JUnit 5 包之间的依赖关系。
+
+![JUnit 5 包关系图](images/junit5-basic-technology/junit5-basic-technology-002.png)
+
+##### opentest4j 的用途
+
+支持 JUnit 的测试框架在如何处理测试执行期间抛出的异常方面有所不同。JVM 上的测试没有统一标准，这是 JUnit 团队一直要面对的问题。除了 java.lang.AssertionError，测试框架还必须定义自己的异常分层结构，或者将自身与 JUnit 支持的异常结合起来（或者在某些情况下同时采取两种方法）。
+
+为了解决一致性问题，JUnit 团队提议建立一个开源项目，该项目目前称为 Open Test Alliance for the JVM（JVM 开放测试联盟）。该联盟在此阶段仅是一个提案，它仅定义了初步的异常分层结构。但是，JUnit 5 使用 opentest4j 异常。（可在图 2 中看到这一点；请注意从 junit-jupiter-api 和 junit-platform-engine 包到 opentest4j 包的依赖线。） 
+
+支持 opentest4j：要加入 Open Test Alliance for the JVM，或者提供反馈来帮助该联盟推进工作，请访问 <a href="https://github.com/ota4j-team/opentest4j" target="_blank">opentest4j</a> Github 存储库并单击 CONTRIBUTING.md 链接。
+
+现在您已基本了解各种 JUnit 5 组件如何结合在一起，是时候使用 JUnit Jupiter API 编写一些测试了！
+
+##### 使用 JUnit Jupiter 编写测试
+
+注解
+
+从 JUnit 4 开始，注解 (annotation) 就成为测试框架的核心特性，这一趋势在 JUnit 5 中得以延续。我无法介绍 JUnit 5 的所有注解，本节仅简要介绍最常用的注解。
+
+首先，我将比较 JUnit 4 中与 JUnit 5 中的注解。JUnit 5 团队更改了一些注解的名称，让它们更直观，同时保持功能不变。如果您正在使用 JUnit 4，下表将帮助您适应这些更改。
+
+JUnit 4 与 JUnit 5 中的注解比较
+
+<text zoom="8.2">╔═════════════╤══════════════╤═══════════════════════════════════════════════════════════════╗
+║ JUnit 5     │ JUnit 4      │ 说明                                                          ║
+╟─────────────┼──────────────┼───────────────────────────────────────────────────────────────╢
+║ @Test       │ @Test        │ 被注解的方法是一个测试方法。与 JUnit 4 相同。                 ║
+╟─────────────┼──────────────┼───────────────────────────────────────────────────────────────╢
+║ @BeforeAll  │ @BeforeClass │ 被注解的（静态）方法将在当前类中的所有 @Test 方法前执行一次。 ║
+╟─────────────┼──────────────┼───────────────────────────────────────────────────────────────╢
+║ @BeforeEach │ @Before      │ 被注解的方法将在当前类中的每个 @Test 方法前执行。             ║
+╟─────────────┼──────────────┼───────────────────────────────────────────────────────────────╢
+║ @AfterEach  │ @After       │ 被注解的方法将在当前类中的每个 @Test 方法后执行。             ║
+╟─────────────┼──────────────┼───────────────────────────────────────────────────────────────╢
+║ @AfterAll   │ @AfterClass  │ 被注解的（静态）方法将在当前类中的所有 @Test 方法后执行一次。 ║
+╟─────────────┼──────────────┼───────────────────────────────────────────────────────────────╢
+║ @Disabled   │ @Ignore      │ 被注解的方法不会执行（将被跳过），但会报告为已执行。          ║
+╚═════════════╧══════════════╧═══════════════════════════════════════════════════════════════╝</text>
+
+```
+["JUnit 5","JUnit 4","说明"],
+["@Test","@Test","被注解的方法是一个测试方法。与 JUnit 4 相同。"],
+["@BeforeAll","@BeforeClass","被注解的（静态）方法将在当前类中的所有 @Test 方法前执行一次。"],
+["@BeforeEach","@Before","被注解的方法将在当前类中的每个 @Test 方法前执行。"],
+["@AfterEach","@After","被注解的方法将在当前类中的每个 @Test 方法后执行。"],
+["@AfterAll","@AfterClass","被注解的（静态）方法将在当前类中的所有 @Test 方法后执行一次。"],
+["@Disabled","@Ignore","被注解的方法不会执行（将被跳过），但会报告为已执行。"]
+```
+
+使用注解
+
+接下来看看一些使用这些注解的示例。尽管一些注解已在 JUnit 5 中重命名，但如果您使用过 JUnit 4，应熟悉它们的功能。清单 1 中的代码来自 JUnit5AppTest.java，可在 <a href="https://github.com/makotogo/HelloJUnit5" target="_blank">HelloJUnit5</a> 示例应用程序中找到。
+
+```java
+@RunWith(JUnitPlatform.class)
+@DisplayName("Testing using JUnit 5")
+public class JUnit5AppTest {
+  
+  private static final Logger log = LoggerFactory.getLogger(JUnit5AppTest.class);
+  
+  private App classUnderTest;
+  
+  @BeforeAll
+  public static void init() {
+    // Do something before ANY test is run in this class
+  }
+  
+  @AfterAll
+  public static void done() {
+    // Do something after ALL tests in this class are run
+  }
+  
+  @BeforeEach
+  public void setUp() throws Exception {
+    classUnderTest = new App();
+  }
+  
+  @AfterEach
+  public void tearDown() throws Exception {
+    classUnderTest = null;
+  }
+  
+  @Test
+  @DisplayName("Dummy test")
+  void aTest() {
+    log.info("As written, this test will always pass!");
+    assertEquals(4, (2 + 2));
+  }
+  
+  @Test
+  @Disabled
+  @DisplayName("A disabled test")
+  void testNotRun() {
+    log.info("This test will not run (it is disabled, silly).");
+  }
+
+}
+```
+
+看看上面行中的注解：
+
+ - **@RunWith**
+
+ 连同它的参数 JUnitPlatform.class（一个基于 JUnit 4 且理解 JUnit Platform 的 Runner）让您可以在 Eclipse 内运行 JUnit Jupiter 单元测试。Eclipse 尚未原生支持 JUnit 5。未来，Eclipse 将提供原生的 JUnit 5 支持，那时我们不再需要此注解。
+
+ - **@DisplayName**
+
+ 告诉 JUnit 在报告测试结果时显示 String “Testing using JUnit 5”，而不是测试类的名称。
+
+ - **@BeforeAll**
+
+ 告诉 JUnit 在运行这个类中的所有 @Test 方法之前运行 init() 方法一次。
+
+ - **@AfterAll**
+
+ 告诉 JUnit 在运行这个类中的所有 @Test 方法之后运行 done() 方法一次。
+
+ - **@BeforeEach**
+
+ 告诉 JUnit 在此类中的每个@Test 方法之前运行 setUp() 方法。
+
+ - **@AfterEach**
+
+ 告诉 JUnit 在此类中的每个@Test 方法之后运行 tearDown() 方法。
+
+ - **@Test**
+
+ 告诉 JUnit，aTest() 方法是一个 JUnit Jupiter 测试方法。
+
+ - **@Disabled**
+
+ 告诉 JUnit 不运行此 @Test 方法，因为它已被禁用。
+
+断言
+
+断言 (assertion) 是 org.junit.jupiter.api.Assertions 类上的众多静态方法之一。断言用于测试一个条件，该条件必须计算为 true，测试才能继续执行。
+
+如果断言失败，测试会在断言所在的代码行上停止，并生成断言失败报告。如果断言成功，测试会继续执行下一行代码。
+
+表 2 中列出的所有 JUnit Jupiter 断言方法都接受一个可选的 message 参数（作为最后一个参数），以显示断言是否失败，而不是显示标准的缺省消息。
+
+JUnit Jupiter 中的断言
+
+<text zoom="8.2">╔════════════════════════════════╤═════════════════════════════════════════════════╗
+║ 断言方法                       │ 说明                                            ║
+╟────────────────────────────────┼─────────────────────────────────────────────────╢
+║ assertEquals(expected, actual) │ 如果 expected 不等于 actual，则断言失败。       ║
+╟────────────────────────────────┼─────────────────────────────────────────────────╢
+║ assertFalse(booleanExpression) │ 如果 booleanExpression 不是 false，则断言失败。 ║
+╟────────────────────────────────┼─────────────────────────────────────────────────╢
+║ assertNull(actual)             │ 如果 actual 不是 null，则断言失败。             ║
+╟────────────────────────────────┼─────────────────────────────────────────────────╢
+║ assertNotNull(actual)          │ 如果 actual 是 null，则断言失败。               ║
+╟────────────────────────────────┼─────────────────────────────────────────────────╢
+║ assertTrue(booleanExpression)  │ 如果 booleanExpression 不是 true，则断言失败。  ║
+╚════════════════════════════════╧═════════════════════════════════════════════════╝</text>
+
+```
+["断言方法","说明"],
+["assertEquals(expected, actual)","如果 expected 不等于 actual，则断言失败。"],
+["assertFalse(booleanExpression)","如果 booleanExpression 不是 false，则断言失败。"],
+["assertNull(actual)","如果 actual 不是 null，则断言失败。"],
+["assertNotNull(actual)","如果 actual 是 null，则断言失败。"],
+["assertTrue(booleanExpression)","如果 booleanExpression 不是 true，则断言失败。"]
+```
+
+清单 2 给出了一个使用这些断言的示例，该示例来自 HelloJUnit5 示例应用程序。
+
+清单 2. 示例应用程序中的 JUnit Jupiter 断言
+
+```java
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+
+  @Test
+  @DisplayName("Dummy test")
+  void dummyTest() {
+    int expected = 4;
+    int actual = 2 + 2;
+    assertEquals(expected, actual, "INCONCEIVABLE!");
+    //
+    Object nullValue = null;
+    assertFalse(nullValue != null);
+    assertNull(nullValue);
+    assertNotNull("A String", "INCONCEIVABLE!");
+    assertTrue(nullValue == null);
+  }
+```
+
+ - **assertEquals**
+
+ 如果第一个参数值 (4) 不等于第二个参数值 (2+2)，则断言失败。在报告断言失败时使用用户提供的消息（该方法的第 3 个参数）。
+
+ - **assertFalse**
+
+ 表达式 nullValue != null 必须为 false，否则断言失败。
+
+ - **assertNull**
+
+ nullValue 参数必须为 null，否则断言失败。
+
+ - **assertNotNull**
+
+ String 文字值 “A String” 不得为 null，否则断言失败并报告消息 “INCONCEIVABLE!”（而不是缺省的 “Assertion failed” 消息）。
+
+ - **assertTrue**
+
+ 如果表达式 nullValue == null 不等于 true，则断言失败。
+
+除了支持这些标准断言，JUnit Jupiter AP 还提供了多个新断言。下面介绍其中的两个。
+
+方法 @assertAll()
+
+清单 3 中的 @assertAll() 方法给出了清单 2 中看到的相同断言，但包装在一个新的断言方法中：
+
+清单 3. assertAll()
+
+```java
+import static org.junit.jupiter.api.Assertions.assertAll;
+
+
+@Test
+@DisplayName("Dummy test")
+void dummyTest() {
+  int expected = 4;
+  int actual = 2 + 2;
+  Object nullValue = null;
+
+  assertAll(
+      "Assert All of these",
+      () -> assertEquals(expected, actual, "INCONCEIVABLE!"),
+      () -> assertFalse(nullValue != null),
+      () -> assertNull(nullValue),
+      () -> assertNotNull("A String", "INCONCEIVABLE!"),
+      () -> assertTrue(nullValue == null));
+}
+```
+
+assertAll() 的有趣之处在于，它包含的所有断言都会执行，即使一个或多个断言失败也是如此。与此相反，在清单 2 中的代码中，如果任何断言失败，测试就会在该位置失败，意味着不会执行任何其他断言。
+
+方法 @assertThrows()
+
+在某些条件下，接受测试的类应抛出异常。JUnit 4 通过 expected = 方法参数或一个 @Rule 提供此能力。与此相反，JUnit Jupiter 通过 Assertions 类提供此能力，使它与其他断言更加一致。
+
+我们将所预期的异常视为可以进行断言的另一个条件，因此 Assertions 包含处理此条件的方法。清单 4 引入了新的 assertThrows() 断言方法。
+
+清单 4. assertThrows()
+
+```java
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@Test()
+@DisplayName("Empty argument")
+public void testAdd_ZeroOperands_EmptyArgument() {
+  long[] numbersToSum = {};
+  assertThrows(IllegalArgumentException.class, () -> classUnderTest.add(numbersToSum));
+}
+```
+
+如果对 classUnderTest.add() 的调用没有抛出 IllegalArgumentException，则断言失败
+
+##### 前置条件
+
+前置条件 (Assumption) 与断言类似，但前置条件必须为 true，否则测试将中止。与此相反，当断言失败时，则将测试视为已失败。测试方法只应在某些条件 —前置条件下执行时，前置条件很有用。
+
+前置条件是 org.junit.jupiter.api.Assumptions 类的静态方法。要理解前置条件的价值，只需一个简单的示例。
+
+假如您只想在星期五运行一个特定的单元测试（我假设您有自己的理由）：
+
+```java
+@Test
+@DisplayName("This test is only run on Fridays")
+public void testAdd_OnlyOnFriday() {
+  LocalDateTime ldt = LocalDateTime.now();
+  assumeTrue(ldt.getDayOfWeek().getValue() == 5);
+  // Remainder of test (only executed if assumption holds)...
+}
+```
+
+在此情况下，如果条件不成立），就不会执行 lambda 表达式的内容。
+
+如果该条件不成立，则跳过该测试。在此情况下，该测试不是在星期五 (5) 运行的。这不会影响项目的 “绿色” 部分，而且不会导致构建失败；会跳过 assumeTrue() 后的测试方法中的所有代码。
+
+使用断言还是前置条件
+
+二者的区别可能很细微，所以可使用这条经验法则：使用断言检查一个测试方法的结果。使用前置条件确定是否运行测试方法。不会将已中止的测试报告为失败，意味着这种失败不会中断构建工作。
+
+如果在前置条件成立时仅应执行测试方法的一部分，可以使用 assumingThat() 方法编写上述条件，该方法使用 lambda 语法：
+
+```java
+@Test
+@DisplayName("This test is only run on Fridays (with lambda)")
+public void testAdd_OnlyOnFriday_WithLambda() {
+  LocalDateTime ldt = LocalDateTime.now();
+  assumingThat(ldt.getDayOfWeek().getValue() == 5,
+      () -> {
+        // Execute this if assumption holds...
+      });
+  // Execute this regardless
+}
+```
+
+注意，无论 assumingThat() 中的前置条件成立与否，都会执行 lambda 表达式后的所有代码。
+
+##### 嵌套单元测试，实现清晰的结构
+
+在继续介绍下节内容之前，我想介绍在 JUnit 5 中编写单元测试的最后一个特性。
+
+JUnit Jupiter API 允许您创建嵌套的类，以保持测试代码更清晰，这有助于让测试结果更易读。通过在主类中创建嵌套的测试类，可以创建更多的名称空间，这提供了两个主要优势：
+
+ - 每个单元测试可以拥有自己的测试前和测试后生命周期。这让您能使用特殊条件创建要测试的类，从而测试极端情况。
+
+ - 单元测试方法的名称变得更简单。在 JUnit 4 中，所有测试方法都以对等形式存在，不允许重复的方法名（所以您最终会得到类似 testMethodButOnlyUnderThisOrThatCondition_2() 的方法名）。从 JUnit Jupiter 开始，只有嵌套类中的方法必须具有唯一的名称。清单 6 展示了这一优势。
+
+清单 5. 传递一个空或 null 数组引用
+
+```java
+@RunWith(JUnitPlatform.class)
+@DisplayName("Testing JUnit 5")
+public class JUnit5AppTest {
+
+  @Nested
+  @DisplayName("When zero operands")
+  class JUnit5AppZeroOperandsTest {
+  
+  // @Test methods go here...
+  
+  }
+
+}
+```
+
+其中的 JUnit5AppZeroOperandsTest 类可以拥有测试方法。任何测试的结果都会在父类 JUnit5AppTest 中以嵌套的形式显示。
+
+##### 使用 JUnit Platform 运行测试
+
+能编写单元测试很不错，但如果不能运行它们，就没有什么意义了。本节展示如何在 Eclipse 中运行 JUnit 测试，首先使用 Maven，然后从命令行使用 Gradle。
+
+下面的视频展示了如何从 GitHub 克隆示例应用程序代码，并在 Eclipse 中运行测试。在该视频中，我还展示了如何从命令行以及 Eclipse 内使用 Maven 和 Gradle 运行单元测试。Eclipse 对 Maven 和 Gradle 都提供了很好的支持。
+
+**应用 3 种工具运行单元测试**
+
+下面将提供一些简要的说明，但该视频提供了更多细节。观看该视频，了解如何：
+
+ - 从 GitHub 克隆 HelloJUnit5 示例应用程序。
+
+ - 将应用程序导入 Eclipse 中。
+
+ - 从 Eclipse 内的 HelloJUnit5 应用程序运行一个 JUnit 测试。
+
+ - 使用 Maven 从命令行运行 HelloJUnit5 单元测试。
+
+ - 使用 Gradle 从命令行运行 HelloJUnit5 单元测试。
+
+##### 克隆 HelloJUnit5 示例应用程序
+
+要理解教程的剩余部分，您需要从 GitHub 克隆示例应用程序。为此，可打开一个终端窗口 (Mac) 或命令提示 (Windows)，导航到您希望放入代码的目录，然后输入以下命令：
+
+```java
+git clone https://github.com/makotogo/HelloJUnit5
+```
+
+现在您的机器上已拥有该代码，可以在 Eclipse IDE 内运行 JUnit 测试了。接下来介绍如何运行测试。
+
+###### 在 Eclipse IDE 中运行单元测试
+
+如果您已跟随该视频进行操作，应该已将代码导入 Eclipse 中。现在，在 Eclipse 中打开 Project Explorer 视图，展开 HelloJUnit5 项目，直至看到 src/test/java 路径下的 JUnit5AppTest 类。
+
+打开 JUnit5AppTest.java 并验证 class 定义前的下面这个注解（以下代码的第 3 行）：
+
+```java
+.
+.
+@RunWith(JUnitPlatform.class)
+public class JUnit5AppTest {
+.
+.
+}
+```
+
+现在右键单击 JUnit5AppTest 并选择 Run As > JUnit Test。单元测试运行时，JUnit 视图将会出现。您现在已准备好完成本教程的练习。
+
+##### 使用 Maven 运行单元测试
+
+打开一个终端窗口 (Mac) 或命令提示 (Windows)，导航到您将 HelloJUnit5 应用程序克隆到的目录，然后输入以下命令：
+
+```python
+mvn test
+```
+
+这会启动 Maven 构建并运行单元测试。您的输出应类似于：
+
+```python
+$ mvn clean test
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building HelloJUnit5 1.0.2
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ HelloJUnit5 ---
+[INFO] Deleting /Users/sperry/home/development/projects/learn/HelloJUnit5/target
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ HelloJUnit5 ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/sperry/home/development/projects/learn/HelloJUnit5/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.6.1:compile (default-compile) @ HelloJUnit5 ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 2 source files to /Users/sperry/home/development/projects/learn/HelloJUnit5/target/classes
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ HelloJUnit5 ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /Users/sperry/home/development/projects/learn/HelloJUnit5/src/test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.6.1:testCompile (default-testCompile) @ HelloJUnit5 ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 2 source files to /Users/sperry/home/development/projects/learn/HelloJUnit5/target/test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.19:test (default-test) @ HelloJUnit5 ---
+ 
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Nov 28, 2017 6:04:49 PM org.junit.vintage.engine.discovery.DefensiveAllDefaultPossibilitiesBuilder$DefensiveAnnotatedBuilder buildRunner
+WARNING: Ignoring test class using JUnitPlatform runner: com.makotojava.learn.hellojunit5.solution.JUnit5AppTest
+Running com.makotojava.learn.hellojunit5.solution.JUnit5AppTest
+Nov 28, 2017 6:04:49 PM org.junit.vintage.engine.discovery.DefensiveAllDefaultPossibilitiesBuilder$DefensiveAnnotatedBuilder buildRunner
+WARNING: Ignoring test class using JUnitPlatform runner: com.makotojava.learn.hellojunit5.solution.JUnit5AppTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.038 sec - in com.makotojava.learn.hellojunit5.solution.JUnit5AppTest
+ 
+Results :
+ 
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 1
+ 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 3.741 s
+[INFO] Finished at: 2017-11-28T18:04:50-06:00
+[INFO] Final Memory: 21M/255M
+[INFO] ------------------------------------------------------------------------
+```
+
+##### Running unit tests with Gradle
+
+Open a terminal window (Mac) or command prompt (Windows), navigate to the directory where you cloned the HelloJUnit5 application, and enter this command:
+
+```python
+gradle clean test
+```
+
+The output should look like this:
+
+```python
+$ gradle clean test
+Starting a Gradle Daemon (subsequent builds will be faster)
+:clean
+:compileJava
+:processResources NO-SOURCE
+:classes
+:compileTestJava
+:processTestResources NO-SOURCE
+:testClasses
+:junitPlatformTest
+ERROR StatusLogger No log4j2 configuration file found. Using default configuration: logging only errors to the console.
+ 
+Test run finished after 10097 ms
+[         7 containers found      ]
+[         5 containers skipped    ]
+[         2 containers started    ]
+[         0 containers aborted    ]
+[         2 containers successful ]
+[         0 containers failed     ]
+[        10 tests found           ]
+[        10 tests skipped         ]
+[         0 tests started         ]
+[         0 tests aborted         ]
+[         0 tests successful      ]
+[         0 tests failed          ]
+ 
+:test SKIPPED
+ 
+BUILD SUCCESSFUL
+ 
+Total time: 21.014 secs
+```
+
+##### 测试练习
+
+现在您已了解 JUnit Jupiter，查看了代码示例，并观看了视频（希望您已跟随视频进行操作）。非常棒，但没有什么比动手编写代码更有用了！在第 1 部分的最后一节，您将完成以下任务：
+
+ - 编写 JUnit Jupiter API 单元测试。
+
+ - 运行单元测试。
+
+ - 实现 App 类，让您的单元测试通过检查。
+
+采用真正的测试驱动开发 (TDD) 方式，首先编写单元测试，运行它们，并会观察到它们全部失败了。然后编写实现，直到单元测试通过，这时您就大功告成了。
+
+注意，JUnit5AppTest 类仅提供了两个现成的测试方法。首次运行该类时，二者都是 “绿色” 的。要完成这些练习，您需要添加剩余的代码，包括用于告诉 JUnit 运行哪些测试方法的注解。记住，如果没有正确配备一个类或方法，JUnit 将跳过它。
+
+如果遇到困难，请查阅 com.makotojava.learn.hellojunit5.solution 包来寻找解决方案。
+
+##### 编写 JUnit Jupiter 单元测试
+
+首先从 JUnit5AppTest.java 开始。打开此文件并按照 Javadoc 注解中的指示操作。
+
+提示：使用 Eclipse 中的 Javadoc 视图读取测试指令。要打开 Javadoc 视图，可以转到 Window > Show View > Javadoc。您应该看到 Javadoc 视图。根据您设置工作区的方式，该窗口可能出现在任意多个位置。在我的工作区中，该窗口与图 3 中的屏幕截图类似，出现在 IDE 右侧的编辑器窗口下方：
+
+![Javadoc 视图](images/junit5-basic-technology/junit5-basic-technology-003.png)
+
+编辑器窗口中显示了具有原始 HTML 标记的 Javadoc 注解，但在 Javadoc 窗口中，已将其格式化，因此更易于阅读。
+
+##### 在 Eclipse 中运行单元测试
+
+如果您像我一样，您会使用 IDE 执行以下工作：
+
+ - 编写单元测试。
+
+ - 编写单元测试所测试的实现内容。
+
+ - 运行初始测试（使用 IDE 的原生 JUnit 支持）。
+
+JUnit 5 提供了一个名为 JUnitPlatform 的类，它允许您在 Eclipse 中运行 JUnit 5 测试。
+
+要在 Eclipse 中运行测试，需要确保您的计算机上拥有示例应用程序。为此，最轻松的方法是从 GitHub 克隆 HelloJUnit5 应用程序，然后将它导入 Eclipse 中。（因为本教程的视频展示了如何这么做，所以这里将跳过细节，仅提供操作步骤。）
+
+确保您克隆了 GitHub 存储库，然后将代码导入 Eclipse 中作为新的 Maven 项目。
+
+将该项目导入 Eclipse 中后，打开 Project Explorer 视图并展开 src/main/test 节点，直至看到 JUnit5AppTest。要以 JUnit 测试的形式运行它，可以右键单击它，选择 Run As > JUnit Test。
+
+Eclipse 中的 JUnit 5：Eclipse 目前能理解 JUnit 4，但尚未提供对 JUnit 5 的原生支持。幸运的是，这对大部分单元测试而言都不是什么大问题！除非您需要使用 JUnit 4 一些更复杂的特性，否则要编写单元测试来全面检查您的应用程序代码，JUnitPlatform 类就足够了。
+
+##### 实现 App 类，直到单元测试通过检查
+
+App 的单一 add() 方法提供的功能很容易理解，而且在设计上非常简单。我不希望复杂应用程序的业务逻辑阻碍您对 JUnit Jupiter 的学习。
+
+单元测试通过后，您就大功告成了！记住，如果遇到困难，可以在 com.makotojava.learn.hellojunit5.solution 包中查找解决方案。
+
+##### 第 1 部分小结
+
+在 JUnit 5 教程的前半部分中，我介绍了 JUnit 5 的架构和组件，并详细介绍了 JUnit Jupiter API。我们逐个介绍了 JUnit 5 中最常用的注解、断言和前置条件，而且通过一个快速练习演示了如何在 Eclipse、Maven 和 Gradle 中运行测试。
+
+在第 2 部分中，您将了解 JUnit 5 的一些高级特性：
+
+ - JUnit Jupiter 扩展模型
+
+ - 方法参数注入
+
+ - 参数化测试
+
+参考链接：
+
+ - <a href="https://www.ibm.com/developerworks/cn/java/j-introducing-junit5-part1-jupiter-api/index.html" target="_blank">JUnit 5 简介，第 1 部分</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

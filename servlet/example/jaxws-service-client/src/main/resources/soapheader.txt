@@ -1,0 +1,11 @@
+HTTP/1.1 200 OK
+Cache-Control: private, max-age=0
+Content-Type: text/xml; charset=utf-8
+Server: Microsoft-IIS/7.5
+X-AspNet-Version: 2.0.50727
+X-Powered-By: ASP.NET
+Date: Thu, 21 Mar 2019 15:22:19 GMT
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Access-Control-Request-Method: PUT,POST,GET,DELETE,OPTIONS
+Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, t

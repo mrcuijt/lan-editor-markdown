@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>gradle-basic-tutorial-004</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### gradle-basic-tutorial-004
+
+#### Gradle 学习(4) - 构建 Java 项目
+
+##### 认识 plugin
+
+告诉 Gradle 某个项目是特殊的项目。比如 Java 和 Android
+
+##### 定义 Java 项目
+
+```java
+apply plugin: 'java'
+```
+
+就一步就可以定义一个 Java 项目。上面就是告诉 Gradle 我需要你准备 Java 项目所需的组件来满足需求。
+
+##### Java 项目的目录结构
+
+存放 Java 源码的目录：src/main/java
+
+```python
+mkdir -p src/main/java
+```
+
+存放测试源码的目录：src/test/java
+
+```python
+mkdir -p src/test/java
+```
+
+存放 jar 包要包含的其他文件（例如资源文件）的目录：src/main/resources
+
+存放执行case需要的文件的目录：src/test/resources
+
+所有新生成的文件存放目录：build
+
+存放 jar 包目录或者 Java 项目自身压缩后的 jar 包存放的目录：build/libs
+
+##### 构建项目
+
+使用 gradle build 命令
+
+```python
+gradle build
+:compileJava UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+:compileTestJava UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+
+BUILD SUCCESSFUL
+
+Total time: 10.155 secs
+```
+
+项目的根目录下多了 build 目录，build 下多了 libs 和 tmp 两个文件夹。
+
+##### 清除上次的构建
+
+使用命令 gradle clean
+
+```python
+gradle clean
+
+:clean
+
+BUILD SUCCESSFUL
+
+Total time: 3.764 secs
+```
+
+##### 只编译 Java 源码，生成 jar 包。不执行测试
+
+使用命令 gradle assemble
+
+```python
+gradle assemble
+
+:compileJava UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:assemble
+
+BUILD SUCCESSFUL
+
+Total time: 9.968 secs
+```
+
+注意它和 build 的区别在于，执行只到 :assemble 就停止了，生成 build 目录，而 build 还多了以下任务。
+
+```python
+:compileTestJava UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+:build
+```
+
+##### 编译和测试代码
+
+```python
+gradle check
+
+:compileJava UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:compileTestJava UP-TO-DATE
+:processTestResources UP-TO-DATE
+:testClasses UP-TO-DATE
+:test UP-TO-DATE
+:check UP-TO-DATE
+
+BUILD SUCCESSFUL
+
+Total time: 2.854 secs
+```
+
+只进行测试，不生成 build 目录。
+
+##### 扩展依赖 － dependencies
+
+Java 项目一般会依赖外部 jar 包，之前我们都会通过 Maven 获取这些 jar 包。gradle 也是这么做多。使用任务来获取 Maven 中央库。这是项目告诉 Gradle 去什么地方找所需要的 jar 包。具体如下
+
+```java
+apply plugin: 'java'
+
+repositories {
+  mavenCentral()
+}
+```
+
+在 Java 编译的时候，需要一些用到一些jar包。这个时候可以通过 dependencies 任务来指定这些依赖的 jar 包，构建项目的时候，Gradle 会去中央库里下载这些 jar 包到本地 
+
+```java
+apply plugin: 'java'
+
+repositories {
+  mavenCenter()
+}
+
+dependencies {
+  compile group:'commons-collections',name:'commons-collections',version:'3.2'
+  testCompile group:'junit',name:'junit',version:'4.0+'
+}
+```
+
+##### 定制项目
+
+修改 MANIFEST.MF 文件中的内容
+
+```java
+Manifest-Version: 1.0
+```
+
+给该文件添加一些属性
+
+```java
+apply plugin: 'java'
+
+repositories {
+  mavenCenter()
+}
+
+dependencies {
+  compile group:'commons-collections',name:'commons-collections',version:'3.2'
+  testCompile group:'junit',name:'junit',version:'4.0+'
+}
+
+sourceCompatibility = 1.5
+version = '1.0'
+
+jar {
+  manifest {
+    attributes 'Implementation-Title':'Gradle Quickstart',
+               'Implementation-Version':version
+  }
+}
+```
+
+然后该文件的内容会添加 2 个属性。而且生成的 jar 包也会多加了个后缀 
+
+```python
+Manifest-Version: 1.0
+Implementation-Title: Gradle Quickstart
+Implementation-Version: 1.0
+```
+
+jar 包名为：1228_1-1.0.jar
+
+说明我们可以随意的给任务添加属性。
+
+##### 给某一个任务添加一个系统属性
+
+```java
+test {
+  systemProperties 'property':'value'
+}
+```
+
+可以通过命令 gradle properties 来浏览所有的属性
+
+```python
+
+> Configure project :
+ *** hello.txt *** 
+hello world, you are my fired
+
+hello.txt Checksum : 4dca51dc8d9e8b6ab4b5225ef244a8ea
+I'm found of hello.txt
+We build the zip with version = unspecified
+We release now
+
+> Task :properties
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+allprojects: [root project 'gradle-script']
+ant: org.gradle.api.internal.project.DefaultAntBuilder@14a60d36
+antBuilderFactory: org.gradle.api.internal.project.DefaultAntBuilderFactory@31bc9d96
+artifacts: org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler_Decorated@638cd5c0
+asDynamicObject: DynamicObject for root project 'gradle-script'
+baseClassLoaderScope: org.gradle.api.internal.initialization.DefaultClassLoaderScope@f2ded9f
+buildDir: D:\workspace\gradleworkspace\gradle-script\build
+buildFile: D:\workspace\gradleworkspace\gradle-script\build.gradle
+buildPath: :
+buildScriptSource: org.gradle.groovy.scripts.TextResourceScriptSource@2b469ef1
+buildscript: org.gradle.api.internal.initialization.DefaultScriptHandler@7e43f622
+checksum: task ':checksum'
+childProjects: {}
+class: class org.gradle.api.internal.project.DefaultProject_Decorated
+classLoaderScope: org.gradle.api.internal.initialization.DefaultClassLoaderScope@7b641eff
+components: SoftwareComponentInternal set
+configurationActions: org.gradle.configuration.project.DefaultProjectConfigurationActionContainer@1b455519
+configurationTargetIdentifier: org.gradle.configuration.ConfigurationTargetIdentifier$1@46be196
+configurations: configuration container
+convention: org.gradle.internal.extensibility.DefaultConvention@6578f5df
+defaultTasks: []
+deferredProjectConfiguration: org.gradle.api.internal.project.DeferredProjectConfiguration@3e309c69
+dependencies: org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler_Decorated@f6ceb2b
+dependencyLocking: org.gradle.internal.locking.DefaultDependencyLockingHandler_Decorated@5450cc01
+depth: 0
+description: null
+displayName: root project 'gradle-script'
+distribution: task ':distribution'
+ext: org.gradle.internal.extensibility.DefaultExtraPropertiesExtension@76a40d59
+extensions: org.gradle.internal.extensibility.DefaultConvention@6578f5df
+fileOperations: org.gradle.api.internal.file.DefaultFileOperations@4ccd1430
+fileResolver: org.gradle.api.internal.file.BaseDirFileResolver@24109b31
+gradle: build 'gradle-script'
+group: 
+identityPath: :
+inheritedScope: org.gradle.internal.extensibility.ExtensibleDynamicObject$InheritedDynamicObject@76727b76
+layout: org.gradle.api.internal.file.DefaultProjectLayout@206a6e24
+listenerBuildOperationDecorator: org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator@422928d
+loadfile: task ':loadfile'
+loadfile2: task ':loadfile2'
+logger: org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger@58481dcb
+logging: org.gradle.internal.logging.services.DefaultLoggingManager@24cb482b
+model: project :
+modelRegistry: org.gradle.model.internal.registry.DefaultModelRegistry@41072e0f
+modelSchemaStore: org.gradle.model.internal.manage.schema.extract.DefaultModelSchemaStore@56c7fcf9
+module: org.gradle.api.internal.artifacts.ProjectBackedModule@5c5a19fa
+mutationState: project :
+name: gradle-script
+normalization: org.gradle.normalization.internal.DefaultInputNormalizationHandler_Decorated@326f7345
+objects: org.gradle.api.internal.model.DefaultObjectFactory@22c9397f
+parent: null
+parentIdentifier: null
+path: :
+pluginManager: org.gradle.api.internal.plugins.DefaultPluginManager_Decorated@5c3da71d
+plugins: [org.gradle.api.plugins.HelpTasksPlugin@24328dc3, org.gradle.buildinit.plugins.BuildInitPlugin@6d8e275b, org.gradle.buildinit.plugins.WrapperPlugin@6e7e954]
+processOperations: org.gradle.process.internal.DefaultExecActionFactory$DecoratingExecActionFactory@3753a3da
+project: root project 'gradle-script'
+projectConfigurator: org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator@7bf7c66
+projectDir: D:\workspace\gradleworkspace\gradle-script
+projectEvaluationBroadcaster: ProjectEvaluationListener broadcast
+projectEvaluator: org.gradle.configuration.project.LifecycleProjectEvaluator@1b173735
+projectPath: :
+projectRegistry: org.gradle.api.internal.project.DefaultProjectRegistry@2283d04a
+properties: {...}
+providers: org.gradle.api.internal.provider.DefaultProviderFactory@348a0bc1
+release: task ':release'
+repositories: repository container
+resources: org.gradle.api.internal.resources.DefaultResourceHandler@8e4eab3
+rootDir: D:\workspace\gradleworkspace\gradle-script
+rootProject: root project 'gradle-script'
+script: false
+scriptHandlerFactory: org.gradle.api.internal.initialization.DefaultScriptHandlerFactory@7444fb85
+scriptPluginFactory: org.gradle.configuration.ScriptPluginFactorySelector@5648d4a7
+serviceRegistryFactory: org.gradle.internal.service.scopes.ProjectScopeServices$4@6a755fa4
+services: ProjectScopeServices
+standardOutputCapture: org.gradle.internal.logging.services.DefaultLoggingManager@24cb482b
+state: project state 'EXECUTED'
+status: release
+subprojects: []
+tasks: task set
+version: 1.0-SNAPSHOT
+
+BUILD SUCCESSFUL in 4s
+1 actionable task: 1 executed
+```
+
+##### 发布项目
+
+```java
+sourceCompatibility = 1.5
+version = '2.0'
+jar {
+  manifest {
+    attributes 'Implementation-Title':'Gradle Quickstart',
+               'Implementation-Version':version
+  }
+}
+
+test {
+  systemProperties 'property':'value'
+}
+
+uploadArchives {
+  repositories {
+    flatDir {
+      dirs 'repos'
+    }
+  }
+}
+```
+
+执行该 task:
+
+```java
+gradle uploadArchives
+
+:compileJava UP-TO-DATE
+:processResources UP-TO-DATE
+:classes UP-TO-DATE
+:jar
+:uploadArchives
+
+BUILD SUCCESSFUL
+
+Total times: 3.205 secs
+```
+
+在项目根目录下生成 repos 目录，里面生成了可发布的 jar 包和 xml 文件等。
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/qhshiniba/article/details/42214333" target="_blank">Gradle 学习(4) - 构建 Java 项目</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

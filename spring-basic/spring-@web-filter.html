@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>spring-@web-filter</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### spring-@web-filter
+
+#### Filter 简介
+
+Filter 也称之为过滤器，它是 Servlet 技术中最实用的技术，WEB 开发人员通过 Filter 技术，对 web 服务器管理的所有 web 资源：例如 JSP，Servlet，静态图片文件或静态 HTML 文件进行拦截，从而实现一些特殊功能。例如实现 URL 级别的权限控制、过滤敏感词汇、压缩响应信息等一些高级功能。
+
+#### Filter 工作原理
+
+当客户端发出 Web 资源的请求时，Web 服务器根据应用程序配置文件设置的过滤规则进行检查，若客户请求满足过滤规则，则对客户请求／响应进行拦截，对请求头和请求数据进行检查或改动，并依次通过过滤器链，最后把请求／响应交给请求的Web资源处理。请求信息在过滤器链中可以被修改，也可以根据条件让请求不发往资源处理器，并直接向客户机发回一个响应。当资源处理器完成了对资源的处理后，响应信息将逐级逆向返回。同样在这个过程中，用户可以修改响应信息，从而完成一定的任务。
+
+![](images/spring-@web-filter/spring-@web-filter-001.png)
+
+服务器会按照过滤器定义的先后循序组装成一条链，然后一次执行其中的 doFilter() 方法。（注：这一点 Filter 和 Servlet 是不一样的）执行的顺序就如下图所示，执行第一个过滤器的 chain.doFilter() 之前的代码，第二个过滤器的 chain.doFilter() 之前的代码，请求的资源，第二个过滤器的 chain.doFilter() 之后的代码，第一个过滤器的 chain.doFilter() 之后的代码，最后返回响应。
+
+![](images/spring-@web-filter/spring-@web-filter-002.jpg)
+
+#### @WebFilter
+
+@WebFilter 用于将一个类声明为过滤器，该注解将会在部署时被容器处理，容器将根据具体的属性配置将相应的类部署为过滤器。该注解具有下表给出的一些常用属性 ( 以下所有属性均为可选属性，但是 value、urlPatterns、servletNames 三者必需至少包含一个，且 value 和 urlPatterns 不能共存，如果同时指定，通常忽略 value 的取值 )：
+
+<text zoom="8.2">╔═════════════════╤════════════════╤═══════════════════════════════════════════════════════════════════╗
+║ 属性名          │ 类型           │ 描述                                                              ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ filterName      │ String         │ 指定过滤器的 name 属性，等价于 &amp;lt;filter-name&amp;gt;                      ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ value           │ String[]       │ 该属性等价于 urlPatterns 属性。但是两者不应该同时使用。           ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ urlPatterns     │ String[]       │ 指定一组过滤器的 URL 匹配模式。等价于 &amp;lt;url-pattern&amp;gt; 标签。        ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ servletNames    │ String[]       │ 指定过滤器将应用于哪些 Servlet。取值是 @WebServlet 中的 name 属性 ║
+║                 │                │ 的取值，或者是 web.xml 中 &amp;lt;servlet-name&amp;gt; 的取值。                 ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ dispatcherTypes │ DispatcherType │ 指定过滤器的转发模式。具体取值包括：                              ║
+║                 │                │ ASYNC、ERROR、FORWARD、INCLUDE、REQUEST。                         ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ initParams      │ WebInitParam[] │ 指定一组过滤器初始化参数，等价于 &amp;lt;init-param&amp;gt; 标签。              ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ asyncSupported  │ boolean        │ 声明过滤器是否支持异步操作模式，等价于 &amp;lt;async-supported&amp;gt; 标签。   ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ description     │ String         │ 该过滤器的描述信息，等价于 &amp;lt;description&amp;gt; 标签。                   ║
+╟─────────────────┼────────────────┼───────────────────────────────────────────────────────────────────╢
+║ displayName     │ String         │ 该过滤器的显示名，通常配合工具使用，等价于 &amp;lt;display-name&amp;gt; 标签。  ║
+╚═════════════════╧════════════════╧═══════════════════════════════════════════════════════════════════╝</text>
+
+```
+["属性名","类型","描述"],
+["filterName","String","指定过滤器的 name 属性，等价于 <filter-name>"],
+["value","String[]","该属性等价于 urlPatterns 属性。但是两者不应该同时使用。"],
+["urlPatterns","String[]","指定一组过滤器的 URL 匹配模式。等价于 <url-pattern> 标签。"],
+["servletNames","String[]","指定过滤器将应用于哪些 Servlet。取值是 @WebServlet 中的 name 属性\n的取值，或者是 web.xml 中 <servlet-name> 的取值。"],
+["dispatcherTypes","DispatcherType","指定过滤器的转发模式。具体取值包括：\nASYNC、ERROR、FORWARD、INCLUDE、REQUEST。"],
+["initParams","WebInitParam[]","指定一组过滤器初始化参数，等价于 <init-param> 标签。"],
+["asyncSupported","boolean","声明过滤器是否支持异步操作模式，等价于 <async-supported> 标签。"],
+["description","String","该过滤器的描述信息，等价于 <description> 标签。"],
+["displayName","String","该过滤器的显示名，通常配合工具使用，等价于 <display-name> 标签。"]
+```
+
+```java
+@WebFilter(servletNames = {"SimpleServlet"},filterName="SimpleFilter") 
+public class LessThanSixFilter implements Filter{...}
+```
+
+如此配置之后，就可以不必在 web.xml 中配置相应的 `<filter>` 和 `<filter-mapping>` 元素了，容器会在部署时根据指定的属性将该类发布为过滤器。它等价的 web.xml 中的配置形式为：
+
+```xml
+<filter> 
+    <filter-name>SimpleFilter</filter-name> 
+    <filter-class>xxx</filter-class> 
+</filter> 
+<filter-mapping> 
+    <filter-name>SimpleFilter</filter-name> 
+    <servlet-name>SimpleServlet</servlet-name> 
+</filter-mapping>
+```
+
+由上文可知，使用 @WebFilter 相当于配置了 web.xml，现在用 eclipse 自动生成 Filter 时，默认是提供这个注解的，如下所示
+
+```java
+package webcase;
+ 
+import java.io.IOException;
+ 
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
+ 
+/**
+ * Servlet Filter implementation class CountFilter
+ */
+@WebFilter("/CountFilter")
+public class CountFilter implements Filter {
+    private int count;
+    private String param;
+    private FilterConfig fConfig;
+    /**
+     * Default constructor.
+     */
+    /*public CountFilter() {
+        // TODO Auto-generated constructor stub
+    }*/
+ 
+    /**
+     * @see Filter#destroy()
+     */
+```
+
+我们知道，tomcat 根据 `<filter-mapping>` 的顺序初始化 Filter，由于上面的代码包含 `@WebFilter("/CountFilter")`,相当于在 web.xml 中对同一个过滤器CountFilter设置了两次 `<filter>` 和 `<filter-mapping>`,故这个过滤器会初始化两次，故当 `@WebFilter` 设置的过滤器被初始化时，String param = getInitParameter("count") 得到的字符串为空，调用 Integer.parseInt(param) 时引发 NumberFormatException 异常。去掉 `@WebFilter("/CountFilter")` 后则一切正常。
+
+示例
+
+```java
+package com.xc.common.filter;
+
+import java.io.IOException;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+
+/**
+ * @ClassName: FilterDemo01
+ * @Description:filter的三种典型应用： <br/>
+ *                             1、可以在filter中根据条件决定是否调用chain.doFilter(request, response)方法， 即是否让目标资源执行<br/>
+ *                             2、在让目标资源执行之前，可以对request\response作预处理，再让目标资源执行 <br/>
+ *                             3、在目标资源执行之后，可以捕获目标资源的执行结果，从而实现一些特殊的功能 <br/>
+ */
+@WebFilter(filterName = "FilterDemo01", urlPatterns = { "/*" })
+public class FilterDemo01 implements Filter {
+
+  @Override
+  public void init(FilterConfig filterConfig) throws ServletException {
+    System.out.println("----FilterDemo01过滤器初始化----");
+  }
+
+  @Override
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+        throws IOException, ServletException {
+
+    // 对 request 和 response 进行一些预处理
+    request.setCharacterEncoding("UTF-8");
+    response.setCharacterEncoding("UTF-8");
+    response.setContentType("text/html;charset=UTF-8");
+
+    System.out.println("FilterDemo01执行前！！！");
+    chain.doFilter(request, response); // 让目标资源执行，放行
+    System.out.println("FilterDemo01执行后！！！");
+  }
+
+  @Override
+  public void destroy() {
+    System.out.println("----过滤器销毁----");
+  }
+}
+```
+
+##### Filter 的生命周期
+
+ - **Filter 的创建**
+
+ Filter 的创建和销毁由 WEB 服务器负责。 web 应用程序启动时，web 服务器将创建 Filter 的实例对象，并调用其 init 方法，完成对象的初始化功能，从而为后续的用户请求作好拦截的准备工作，filter 对象只会创建一次，init 方法也只会执行一次。通过 init 方法的参数，可获得代表当前 filter 配置信息的 FilterConfig 对象。
+
+ - **Filter 的销毁**
+
+ Web 容器调用 destroy 方法销毁 Filter。destroy 方法在 Filter 的生命周期中仅执行一次。在 destroy 方法中，可以释放过滤器使用的资源。
+
+ - **FilterConfig 接口**
+
+ 用户在配置 filter 时，可以使用为 filter 配置一些初始化参数，当 web 容器实例化 Filter 对象，调用其 init 方法时，会把封装了 filter 初始化参数的 filterConfig 对象传递进来。因此开发人员在编写 filter 时，通过 filterConfig 对象的方法，就可获得：
+
+  - **String getFilterName()**：
+
+     得到 filter 的名称。
+
+  - **String getInitParameter(String name)**：
+
+     返回在部署描述中指定名称的初始化参数的值。如果不存在返回 null.
+
+  - **Enumeration getInitParameterNames()**：
+
+     返回过滤器的所有初始化参数的名字的枚举集合。
+
+  - **public ServletContext getServletContext()**：
+
+     返回 Servlet 上下文对象的引用。
+
+范例：利用 FilterConfig 得到 filter 配置信息
+
+```java
+package com.xc.common.filter;
+
+import java.io.IOException;
+import java.util.Enumeration;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.annotation.WebInitParam;
+
+@WebFilter(filterName = "FilterDemo02", urlPatterns = { "/*" },
+           initParams = { @WebInitParam(name = "name", value = "xc"),
+                          @WebInitParam(name = "like", value = "java") })
+public class FilterDemo02 implements Filter {
+
+  /*
+   * 过滤器初始化
+   * 
+   * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
+   */
+  @Override
+  public void init(FilterConfig filterConfig) throws ServletException {
+    System.out.println("----FilterDemo02过滤器初始化----");
+
+    // <filter>
+    // <filter-name>FilterDemo02</filter-name>
+    // <filter-class>me.gacl.web.filter.FilterDemo02</filter-class>
+    // <!--配置FilterDemo02过滤器的初始化参数-->
+    // <init-param>
+    // <description>配置FilterDemo02过滤器的初始化参数</description>
+    // <param-name>name</param-name>
+    // <param-value>gacl</param-value>
+    // </init-param>
+    // <init-param>
+    // <description>配置FilterDemo02过滤器的初始化参数</description>
+    // <param-name>like</param-name>
+    // <param-value>java</param-value>
+    // </init-param>
+    // </filter>
+    //
+    // <filter-mapping>
+    // <filter-name>FilterDemo02</filter-name>
+    // <!--“/*”表示拦截所有的请求 -->
+    // <url-pattern>/*</url-pattern>
+    // </filter-mapping>
+
+    // 得到过滤器的名字
+    String filterName = filterConfig.getFilterName();
+    // 得到在web.xml文件中配置的初始化参数
+    String initParam1 = filterConfig.getInitParameter("name");
+    String initParam2 = filterConfig.getInitParameter("like");
+    // 返回过滤器的所有初始化参数的名字的枚举集合。
+    Enumeration<String> initParameterNames = filterConfig.getInitParameterNames();
+
+    System.out.println(filterName);
+    System.out.println(initParam1);
+    System.out.println(initParam2);
+    while (initParameterNames.hasMoreElements()) {
+      String paramName = (String) initParameterNames.nextElement();
+      System.out.println(paramName);
+    }
+  }
+
+  @Override
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+    System.out.println("FilterDemo02执行前！！！");
+    chain.doFilter(request, response); // 让目标资源执行，放行
+    System.out.println("FilterDemo02执行后！！！");
+  }
+
+  @Override
+  public void destroy() {
+    System.out.println("----过滤器销毁----");
+  }
+}
+```
+
+#### 在 Spring Boot 中使用 @WebFilter
+
+在 Spring Boot 中有两种方式配置 Filter 过滤器
+
+ - 通过 @WebFilter 注解 + @ServletComponentScan 注解方式实现
+
+ **`@WebFilter`** javax.servlet.annotation.WebFilter
+
+ **`@ServletComponentScan`** org.springframework.boot.web.servlet.ServletComponentScan
+
+ - 通过 @Component 注解以 Bean 方式实现
+
+ **`@Component`** org.springframework.stereotype.Component
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/With_Her/article/details/82627620" target="_blank">SpringBoot 下，利用 @WebFilter 配置使用与注意 Filter</a>
+
+ - <a href="https://www.cnblogs.com/ooo0/p/10360952.html" target="_blank">@WebFilter注解</a>
+
+ - <a href="https://blog.csdn.net/weixin_42114097/article/details/81530628" target="_blank">@WebFilter 的使用</a>
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

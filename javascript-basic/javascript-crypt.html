@@ -449,7 +449,121 @@ public class RSACrypt {
 }
 ```
 
+```js
+// Undo PKCS#1 (type 2, random) padding and, if valid, return the plaintext
+function pkcs1unpad2(d, n) {
+    var b = d.toByteArray();
+    var i = 0;
+    while (i < b.length && b[i] == 0) {
+        ++i;
+    }
+    if (b.length - i != n - 1 || b[i] != 2) {
+        return null;
+    }
+    ++i;
+    while (b[i] != 0) {
+        if (++i >= b.length) {
+            return null;
+        }
+    }
+    var ret = "";
+    while (++i < b.length) {
+        var c = b[i] & 255;
+        if (c < 128) { // utf-8 decode
+            ret += String.fromCharCode(c);
+        }
+        else if ((c > 191) && (c < 224)) {
+            ret += String.fromCharCode(((c & 31) << 6) | (b[i + 1] & 63));
+            ++i;
+        }
+        else {
+            ret += String.fromCharCode(((c & 15) << 12) | ((b[i + 1] & 63) << 6) | (b[i + 2] & 63));
+            i += 2;
+        }
+    }
+    return ret;
+}
+
+
+// PKCS#1 (type 2, random) pad input string s to n bytes, and return a bigint
+function pkcs1pad2(s, n) {
+    if (n < s.length + 11) { // TODO: fix for utf-8
+        console.error("Message too long for RSA");
+        return null;
+    }
+    var ba = [];
+    var i = s.length - 1;
+    while (i >= 0 && n > 0) {
+        var c = s.charCodeAt(i--);
+        if (c < 128) { // encode using utf-8
+            ba[--n] = c;
+        }
+        else if ((c > 127) && (c < 2048)) {
+            ba[--n] = (c & 63) | 128;
+            ba[--n] = (c >> 6) | 192;
+        }
+        else {
+            ba[--n] = (c & 63) | 128;
+            ba[--n] = ((c >> 6) & 63) | 128;
+            ba[--n] = (c >> 12) | 224;
+        }
+    }
+    ba[--n] = 0;
+    var rng = new SecureRandom();
+    var x = [];
+    while (n > 2) { // random non-zero pad
+        x[0] = 0;
+        while (x[0] == 0) {
+            rng.nextBytes(x);
+        }
+        ba[--n] = x[0];
+    }
+    ba[--n] = 2;
+    ba[--n] = 0;
+    return new BigInteger(ba);
+}
+```
+
+```
+31: 96903267
+32: 133601860
+33: 155574706
+34: 141410555
+35: 189915737
+
+249: 0
+250: 228
+251: 189
+252: 160
+253: 229
+254: 165
+255: 189
+
+120: 0
+121: -28 & 255 = 228
+122: -67 
+123: -96
+124: -27 & 255 = 229
+125: -91
+126: -67
+
+248: 0
+249: -28
+250: -67
+251: -96  20320
+
+((228 & 15) &lt&lt 12) | ((189 & 63) &lt&lt 6) | (160 & 63) = 20320 String.fromCharCode(20320); = 你
+
+252: -27
+253: -91
+254: -67  22909
+
+((229 & 15) &lt&lt 12) | ((165 & 63) &lt&lt 6) | (189 & 63) = 22909 String.fromCharCode(22909); = 好
+```
+
 参考资料：
+
+ - <a href="https://etherhack.co.uk/asymmetric/docs/rsa_key_breakdown.html" target="_blank">RSA 512 bit Key Breakdown - JavaScript Crypto Library</a>
 
  - <a href="https://github.com/travist/jsencrypt" target="_blank">jsencrypt</a>
 

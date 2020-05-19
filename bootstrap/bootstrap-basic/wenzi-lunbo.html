@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD> 
+<TITLE> New Document</TITLE>
+<meta charset="utf-8">
+<META NAME="Generator" CONTENT="EditPlus"> 
+<META NAME="Author" CONTENT=""> 
+<META NAME="Keywords" CONTENT=""> 
+<META NAME="Description" CONTENT=""> 
+<style type="text/css">
+<!--
+*{ margin:0px; padding:0px;}
+#box{width:300px; height:24px;overflow:hidden; font-size:12px; background:#efefef;}
+#box li{ list-style:none; line-height:24px;}
+-->
+</style>
+</HEAD> 
+<BODY> 
+  <ul id="box">
+    <li>· 新华每日电讯:音乐版权收费像“一团麻”</li>
+    <li>· 现代快报：人类能否和机器人结婚生孩子?</li>
+    <li>· 环球:美国,一家亿万富翁俱乐部的破产</li>
+    <li>· 现代快报:为让媒体封口倪震欲卖李嘉欣情书</li>
+    <li>· 京华时报:北京航空航天大学学生自制火箭升天</li>
+  </ul> 
+<script type="text/javascript">
+  (function(){
+    var o=document.getElementById('box');
+    window.setInterval(function(){scrollup(o,24,0);},3000);
+  })();
+  function scrollup(o,d,c){
+    if(d==c){
+      var t = getFirstChild(o.firstChild).cloneNode(true);
+      o.removeChild(getFirstChild(o.firstChild));
+      o.appendChild(t);
+      t.style.marginTop="0px";
+    } else {
+      c += 2;
+      getFirstChild(o.firstChild).style.marginTop=-c+"px";
+      window.setTimeout(function(){scrollup(o,d,c)},20);
+    }
+  }
+  function getFirstChild(node){
+    while (node.nodeType!=1){
+      node = node.nextSibling;
+    }
+    return node;
+  }
+</script>
+</BODY>
+</HTML>

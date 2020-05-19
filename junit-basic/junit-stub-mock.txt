@@ -1,0 +1,6 @@
+#### junit-stub-mock
+
+#### Stub 和 mock
+
+Service 调用 Dao，Dao 通常会将数据存储到数据库中。
+

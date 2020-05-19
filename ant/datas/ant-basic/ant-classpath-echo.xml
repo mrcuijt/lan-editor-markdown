@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<project name="Ant-Test" default="main" basedir=".">
+
+    <property name="lib.dir" location="lib" />
+
+    <!-- 定义 classpath 路径 -->
+    <path id="build.classpath">
+        <!-- 定义路径中引入的文件 -->
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <target name="main">
+        <description>Main target</description>
+        <pathconvert property="path.element.value" refid="build.classpath" />
+        <echo message="${path.element.value}" />
+    </target>
+</project>

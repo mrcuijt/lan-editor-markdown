@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ant-basic-build-fat-jar</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### ant-basic-build-fat-jar
+
+使用 Ant 创建 Fat Jar
+
+核心实现
+
+```xml
+<!-- Group all dependencies into a big dependency-all.jar -->
+<target name="copy-dependencies">
+    <mkdir dir="${dist.lib.dir}" />
+    <jar jarfile="${dist.lib.dir}/dependencies-all.jar">
+        <zipgroupfileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </zipgroupfileset>
+    </jar>
+ </target>
+ 
+<!-- Creates the deployable jar file -->
+<target name="fat-jar" depends="compile, copy-dependencies">
+    <jar destfile="${dist.dir}\fat-demo.jar" basedir="${build.dir}">
+        <manifest>
+            <attribute name="Main-Class" value="demo.AntDemo" />
+        </manifest>
+        <zipfileset src="${dist.lib.dir}/dependencies-all.jar" excludes="META-INF/*.SF" />
+    </jar>
+</target>
+```
+
+完整构建文件
+
+```xml
+<?xml version="1.0"?>
+<project name="Ant-Test" default="main" basedir=".">
+
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property name="src.dir" location="src" />
+    <property name="lib.dir" location="lib" />
+    <property name="build.dir" location="bin" />
+    <property name="dist.dir" location="dist" />
+    <property name="dist.lib.dir" location="${dist.dir}/lib" />
+    <property name="docs.dir" location="docs" />
+
+    <!-- Create a classpath container which can be later used in the ant task -->
+    <path id="build.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+    </path>
+
+    <!-- Deletes the existing build, docs and dist directory -->
+    <target name="clean">
+        <delete dir="${build.dir}" />
+        <delete dir="${docs.dir}" />
+        <delete dir="${dist.dir}" />
+    </target>
+
+    <!-- Creates the  build, docs and dist directory -->
+    <target name="makedir">
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${docs.dir}" />
+        <mkdir dir="${dist.dir}" />
+        <mkdir dir="${dist.lib.dir}" />
+    </target>
+
+    <presetdef name="javac">
+        <javac includeantruntime="false" />
+    </presetdef>
+
+    <!-- Compiles the java code (including the usage of library for JUnit -->
+    <target name="compile" depends="clean, makedir">
+        <javac srcdir="${src.dir}" destdir="${build.dir}" classpathref="build.classpath" ></javac>
+        <copy todir="${build.dir}">
+            <fileset dir="${src.dir}" includes="**/*.properties"/>
+        </copy>
+    </target>
+
+    <!-- Creates Javadoc -->
+    <target name="docs" depends="compile">
+        <javadoc packagenames="src" sourcepath="${src.dir}" destdir="${docs.dir}">
+            <!-- Define which files / directory should get included, we include all -->
+             <fileset dir="${src.dir}">
+                <include name="**" />
+             </fileset>
+        </javadoc>
+    </target>
+
+    <!-- Creates the deployable jar file -->
+    <target name="jar" depends="compile">
+        <jar destfile="${dist.dir}\demo.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="demo.AntDemo" />
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Group all dependencies into a big dependency-all.jar -->
+    <target name="copy-dependencies">
+        <mkdir dir="${dist.lib.dir}" />
+        <jar jarfile="${dist.lib.dir}/dependencies-all.jar">
+            <zipgroupfileset dir="${lib.dir}">
+                <include name="**/*.jar" />
+            </zipgroupfileset>
+        </jar>
+     </target>
+
+    <!-- Creates the deployable jar file -->
+    <target name="fat-jar" depends="compile, copy-dependencies">
+        <jar destfile="${dist.dir}\fat-demo.jar" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="demo.AntDemo" />
+            </manifest>
+            <zipfileset src="${dist.lib.dir}/dependencies-all.jar" excludes="META-INF/*.SF" />
+        </jar>
+    </target>
+
+    <target name="run" depends="compile">
+        <java classname="demo.AntDemo" fork="true">
+            <classpath>
+                <path refid="build.classpath" />
+                <path location="${build.dir}/" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="run-jar" depends="jar">
+        <java classname="demo.AntDemo" fork="true">
+            <classpath>
+                <path refid="build.classpath" />
+                <path location="${dist.dir}/demo.jar" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="main" depends="compile, fat-jar">
+        <description>Main target</description>
+    </target>
+
+</project>
+```
+
+构建结果，将所有的依赖文件统一打包到了一个 Jar 里面。
+
+```python
+     0 Thu Sep 26 11:51:14 CST 2019 META-INF/
+   130 Thu Sep 26 11:51:12 CST 2019 META-INF/MANIFEST.MF
+     0 Thu Sep 26 11:51:12 CST 2019 demo/
+   516 Thu Sep 26 11:51:12 CST 2019 demo/AntDemo.class
+   458 Thu Sep 26 11:51:12 CST 2019 log4j.properties
+     0 Sun May 06 13:24:52 CST 2012 META-INF/maven/
+     0 Sun May 06 13:24:52 CST 2012 META-INF/maven/log4j/
+     0 Sun May 06 13:24:52 CST 2012 META-INF/maven/log4j/log4j/
+     0 Sat Aug 10 10:27:22 CST 2019 META-INF/maven/org.slf4j/
+     0 Sat Aug 10 10:27:22 CST 2019 META-INF/maven/org.slf4j/slf4j-api/
+     0 Sat Aug 10 10:28:04 CST 2019 META-INF/maven/org.slf4j/slf4j-log4j12/
+     0 Sun May 06 13:24:52 CST 2012 org/
+     0 Sun May 06 13:24:52 CST 2012 org/apache/
+     0 Sun May 06 13:24:52 CST 2012 org/apache/log4j/
+     0 Sat Aug 10 10:27:20 CST 2019 org/slf4j/
+ 11366 Sun May 06 13:00:24 CST 2012 META-INF/LICENSE
+   160 Sun May 06 13:00:24 CST 2012 META-INF/NOTICE
+   121 Sun May 06 13:24:48 CST 2012 META-INF/maven/log4j/log4j/pom.properties
+ 21745 Sun May 06 13:00:28 CST 2012 META-INF/maven/log4j/log4j/pom.xml
+   110 Sat Aug 10 10:22:38 CST 2019 META-INF/maven/org.slf4j/slf4j-api/pom.properties
+  3835 Sat Aug 10 10:13:52 CST 2019 META-INF/maven/org.slf4j/slf4j-api/pom.xml
+   114 Sat Aug 10 10:22:44 CST 2019 META-INF/maven/org.slf4j/slf4j-log4j12/pom.properties
+  1137 Sat Aug 10 10:13:52 CST 2019 META-INF/maven/org.slf4j/slf4j-log4j12/pom.xml
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

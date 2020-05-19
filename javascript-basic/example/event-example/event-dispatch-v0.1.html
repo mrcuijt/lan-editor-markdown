@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>event-dispatch-v0.1</title>
+    <style rel="stylesheet" type="text/css"></style>
+  </head>
+  <body>
+    
+
+    <script type="text/javascript">
+      //var evt = new Event("build");
+      document.addEventListener("build", function(e){ alert(e.type); }, false);
+      //document.dispatchEvent(evt);
+      var evt = document.createEvent("Event");
+      evt.initEvent("build", true, false);
+      document.dispatchEvent(evt);
+    </script>
+  </body>
+</html>
