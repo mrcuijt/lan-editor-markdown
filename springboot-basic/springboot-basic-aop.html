@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-basic-aop</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-basic-aop
+
+#### Spring AOP + AspectJ 注解实例 
+
+将 AspectJ 注解集成到 Spring AOP 框架。在这个 Spring AOP + AspectJ 示例
+
+常见 AspectJ 的注解： 
+
+ 1. @Before – 方法执行前运行 
+
+ 2. @After – 运行在方法返回结果后 
+
+ 3. @AfterReturning – 运行在方法返回一个结果后，在拦截器返回结果。 
+
+ 4. @AfterThrowing – 运行方法在抛出异常后， 
+
+ 5. @Around – 围绕方法执行运行，结合以上这三个通知。
+
+注意
+
+Spring AOP 中没有 AspectJ 支持。
+
+定义程序接口
+
+```java
+package com.yiibai.customer.bo;
+
+public interface CustomerBo {
+
+  void addCustomer();
+
+  String addCustomerReturnValue();
+
+  void addCustomerThrowException() throws Exception;
+
+  void addCustomerAround(String name);
+}
+```
+
+程序接口实现
+
+```java
+package com.yiibai.customer.bo.impl;
+
+import com.yiibai.customer.bo.CustomerBo;
+
+public class CustomerBoImpl implements CustomerBo {
+
+  public void addCustomer(){
+    System.out.println("addCustomer() is running ");
+  }
+
+  public String addCustomerReturnValue(){
+    System.out.println("addCustomerReturnValue() is running ");
+    return "abc";
+  }
+
+  public void addCustomerThrowException() throws Exception {
+    System.out.println("addCustomerThrowException() is running ");
+    throw new Exception("Generic Error");
+  }
+
+  public void addCustomerAround(String name){
+    System.out.println("addCustomerAround() is running, args : " + name);
+  }
+}
+```
+
+##### 启用 AspectJ 
+
+在 Spring 配置文件，把 `<aop:aspectj-autoproxy />`，并定义 Aspect(拦截)和普通的 bean。 
+
+File : applicationContext.xml 
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+       http://www.springframework.org/schema/aop 
+       http://www.springframework.org/schema/aop/spring-aop-3.0.xsd ">
+
+  <aop:aspectj-autoproxy />
+
+  <bean id="customerBo" class="com.yiibai.customer.bo.impl.CustomerBoImpl" />
+
+  <!-- Aspect -->
+  <bean id="logAspect" class="com.yiibai.aspect.LoggingAspect" />
+
+</beans>
+```
+
+##### AspectJ @Before 
+
+在下面例子中，logBefore() 方法将在 customerBo 接口的 addCustomer() 方法的执行之前被执行。 
+
+AspectJ 的 “切入点” 是用来声明哪种方法将被拦截，应该参考 Spring AOP 切入点指南，支持切入点表达式的完整列表。 
+
+File : LoggingAspect.java 
+
+```java
+package com.yiibai.aspect;
+
+import org.aspectj.lang.JoinYiibai;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+
+@Aspect
+public class LoggingAspect {
+
+  @Before("execution(* com.yiibai.customer.bo.CustomerBo.addCustomer(..))")
+  public void logBefore(JoinYiibai joinYiibai) {
+
+    System.out.println("logBefore() is running!");
+    System.out.println("hijacked : " + joinYiibai.getSignature().getName());
+    System.out.println("******");
+  }
+
+}
+```
+
+运行它 
+
+```java
+CustomerBo customer = (CustomerBo) appContext.getBean("customerBo");
+customer.addCustomer();
+```
+
+输出结果 
+
+```python
+logBefore() is running!
+hijacked : addCustomer
+******
+addCustomer() is running
+```
+
+参考链接：
+
+ - <a href="https://www.yiibai.com/spring/spring-aop-aspectj-annotation-example.html" target="_blank">Spring AOP + AspectJ 注解实例</a>
+
+#### Spring AOP 获取拦截方法的参数名称跟参数值
+
+**注意:这种方式需要JDK1.8版本支持**
+
+aop 配置
+
+```xml
+<aop:aspectj-autoproxy expose-proxy="true" />
+```
+
+ - 注意该配置需要配置在 spring mvc 的配置文件中,因为需要拦截 controller 层方法
+
+ - 或者在必须要配置在 spring 配置文件中的情况下,同时需要拦截 controller 层的方法,可以在 spring 配置文件中加入 controller 层的包扫描
+
+```java
+import org.apache.commons.lang3.ArrayUtils;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * 请求参数拦截校验
+ */
+@Aspect
+public class AopParamVerify {
+    private static Logger log = LoggerFactory.getLogger(AopParamVerify.class);
+
+    @Around(value = "execution(* com.website.controller..*.*(..))")
+    public Object invoke(ProceedingJoinPoint joinPoint) {
+
+        /**
+         * 时间戳校验,超过一分钟,拦截
+         */
+        // 1. 这里获取到所有的参数值的数组
+        Object[] args = joinPoint.getArgs();
+        Signature signature = joinPoint.getSignature();
+        MethodSignature methodSignature = (MethodSignature) signature;
+        // 2. 最关键的一步:通过这获取到方法的所有参数名称的字符串数组
+        String[] parameterNames = methodSignature.getParameterNames();
+
+    }
+}
+```
+
+```java
+import org.apache.commons.lang3.ArrayUtils;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+/**
+ * 请求参数拦截校验
+ */
+@Aspect
+public class AopParamVerify {
+    private static Logger log = LoggerFactory.getLogger(AopParamVerify.class);
+
+    @Around(value = "execution(* com.website.controller..*.*(..))")
+    public Object invoke(ProceedingJoinPoint joinPoint) {
+
+        /**
+         * 时间戳校验,超过一分钟,拦截
+         */
+        // 返回结果封装类
+        HzlqswReqResult rst = new HzlqswReqResult();
+        // 1.这里获取到所有的参数值的数组
+        Object[] args = joinPoint.getArgs();
+        Signature signature = joinPoint.getSignature();
+        MethodSignature methodSignature = (MethodSignature) signature;
+        // 2.最关键的一步:通过这获取到方法的所有参数名称的字符串数组
+        String[] parameterNames = methodSignature.getParameterNames();
+        try {
+	        // 3.通过你需要获取的参数名称的下标获取到对应的值
+            int timeStampIndex = ArrayUtils.indexOf(parameterNames, "timeStamp");
+            if (timeStampIndex != -1) {
+                long timeStamp = (Long) args[timeStampIndex];
+                if (System.currentTimeMillis() - timeStamp > 60000) {
+                    rst.setResultCode(rst.resultCode_hashCode_overdue);
+                    rst.setReturnMsg("时间戳过期");
+                    rst.setReturnObject("时间戳过期");
+                    return rst;
+                }
+            }
+            return joinPoint.proceed();
+        } catch (Throwable throwable) {
+            log.error("时间戳校验异常");
+            throwable.printStackTrace();
+            rst.setResultCode(rst.resultCode_error);
+            rst.setReturnMsg("AOP校验异常");
+            rst.setReturnObject("AOP校验异常");
+            return rst;
+        }
+    }
+}
+```
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/wing7319/p/9592184.html" target="_blank">Spring AOP 获取拦截方法的参数名称跟参数值</a>
+
+#### Spring Boot AOP 拦截器
+
+<a href="https://github.com/asd821300801/Spring-Boot.git" target="_blank">GitHub 地址</a>
+
+pom.xml 文件中添加 AOP 支持
+
+```xml
+<!-- AOP -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-aop</artifactId>
+</dependency>
+```
+
+##### 灵活使用注解进行拦截
+
+###### 自定义元注解
+
+LogAop.java
+
+包所在：com.example.annotate
+
+```java
+package com.example.annotate;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target(ElementType.METHOD)//字段注解 , 用于描述方法
+@Retention(RetentionPolicy.RUNTIME)//在运行期保留注解信息  
+public @interface LogAop {
+    String name() default "Log";
+}
+```
+
+###### AOP 切面类
+
+LogAspect.java
+
+包所在： com.example.aop
+
+```java
+package com.example.aop;
+
+import java.util.Arrays;
+
+
+
+import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.After;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
+
+
+import com.example.annotate.LogAop;
+
+@Component
+@Aspect
+public class LogAspect {
+
+    private static final Logger LOG = LoggerFactory.getLogger(LogAspect.class);
+
+    @Before("@annotation(log)")
+    public void beforeTest(JoinPoint joinPoint, LogAop log) throws Throwable {
+        LOG.info("进入：" + log.name());
+        LOG.info("CLASS_METHOD : " + joinPoint.getSignature().getDeclaringTypeName() + "."
+                + joinPoint.getSignature().getName());
+        LOG.info("参数 : " + Arrays.toString(joinPoint.getArgs()));
+    }
+
+    @After("@annotation(log)")
+    public void afterTest(JoinPoint point, LogAop log) {
+        LOG.info("退出：" + log.name());
+    }
+}
+```
+
+###### 控制器
+
+AopController.java
+
+包所在：com.example.controller
+
+```java
+package com.example.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.annotate.LogAop;
+
+@RestController
+@RequestMapping("/aop")
+public class AopController {
+
+    @LogAop(name="/aop/aop.action") //添加了注解之后才会被拦截
+    @RequestMapping("/aop")
+    public String aop(){  
+        return "hello world!";  
+    }
+
+    @RequestMapping("/noAop")    //这个方法是不会被拦截的
+    public String noAop(){
+        return "hello world!";  
+    }
+}
+```
+
+###### 测试
+
+使用 @LogAop 注解的方法会被 AOP 拦截
+
+http://localhost:8080/aop/aop.action
+
+没有使用 @LogAop 注解的方法则不会被拦截
+
+http://localhost:8080/aop/noAop.action
+
+##### 额外的内容
+
+注意： 
+
+ - 在 application.properties 中也不需要添加 spring.aop.auto=true，因为这个默认就是 true，值为true就是启用 @EnableAspectJAutoProxy 注解了。
+
+
+ - 你不需要手工添加 @EnableAspectJAutoProxy 注解。
+
+
+ - 当你需要使用 CGLIB 来实现AOP的时候，需要配置 spring.aop.proxy-target-class=true，这个默认值是 false，不然默认使用的是标准 Java 的实现。
+
+其实 aspectj 的拦截器会被解析成 AOP 中的 advice，最终被适配成 MethodInterceptor，这些都是 Spring 自动完成的，如果你有兴趣，详细的过程请参考 Spring AOP 的实现。
+
+##### 关于集中拦截方法的区别总结： 
+
+
+ - HandlerInterceptoer 拦截的是请求地址，所以针对请求地址做一些验证、预处理等操作比较合适。
+
+
+ - 当你需要统计请求的响应时间时 MethodInterceptor 将不太容易做到，因为它可能跨越很多方法或者只涉及到已经定义好的方法中一部分代码。
+
+
+ - MethodInterceptor 利用的是 AOP 的实现机制，在本文中只说明了使用方式，关于原理和机制方面介绍的比较少，因为要说清楚这些需要讲出 AOP 的相当一部分内容。
+
+
+ - 在对一些普通的方法上的拦截 HandlerInterceptoer 就无能为力了，这时候只能利用 AOP 的 MethodInterceptor。
+
+
+ - Filter 是 Servlet 规范规定的，不属于 Spring 框架，也是用于请求的拦截。但是它适合更粗粒度的拦截，在请求前后做一些编解码处理、日志记录等。
+
+
+参考：http://blog.csdn.net/catoop/article/details/71541612
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/gfd54gd5f46/article/details/77001551" target="_blank">Spring Boot AOP 拦截器</a>
+
+ - <a href="https://www.cnblogs.com/hongwz/p/5764917.html" target="_blank">Spring AOP 详解</a>
+
+ - <a href="https://www.jianshu.com/p/994027425b44" target="_blank">Spring(4)——面向切面编程（AOP模块）</a>
+
+ - <a href="https://cloud.tencent.com/developer/article/1441626" target="_blank">spring aop （上） aop概念、使用、动态代理原理</a>
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

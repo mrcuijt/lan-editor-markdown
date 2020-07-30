@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-basic-filter</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-basic-filter
+
+
+##### Filter Example 1
+
+```java
+package com.sdcuike.practice.web2;
+
+import java.io.IOException;
+
+import javax.annotation.Resource;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sdcuike.practice.config.CommonConfig;
+
+public class FilterDemo3 implements Filter {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    @Resource
+    private CommonConfig commonConfig;
+
+    @Override
+    public void destroy() {
+        log.info("" + getClass() + " destroy");
+    }
+
+    @Override
+    public void doFilter(ServletRequest arg0, ServletResponse arg1, FilterChain arg2) throws IOException, ServletException {
+        log.info("" + getClass() + " doFilter " + commonConfig);
+        arg2.doFilter(arg0, arg1);
+    }
+
+    @Override
+    public void init(FilterConfig arg0) throws ServletException {
+        log.info("" + getClass() + " init");
+    }
+}
+```
+
+##### Spring Boot Config - FilterRegistrationBean
+
+```java
+package com.sdcuike.practice.web2;
+
+import javax.servlet.Filter;
+
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.sdcuike.spring.extend.web.MvcConfigurerAdapter;
+
+/**
+ * web 组件配置
+ * 
+ * @author sdcuike
+ *         <p>
+ *         Created on 2017-02-10
+ *         <p>
+ *         自定义注入，并支持依赖注入，组件排序
+ */
+@Configuration
+public class WebComponent2Config   {
+
+    @Bean
+    public FilterRegistrationBean filterDemo3Registration() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new FilterDemo3());
+        registration.addUrlPatterns("/*");
+        registration.addInitParameter("paramName", "paramValue");
+        registration.setName("FilterDemo3");
+        registration.setOrder(1);
+        return registration;
+    }
+}
+```
+
+##### Filter Example 2
+
+```java
+package com.sdcuike.practice.web2;
+
+import java.io.IOException;
+
+import javax.annotation.Resource;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
+
+import org.springframework.core.annotation.Order;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sdcuike.practice.config.CommonConfig;
+
+@Order(1)
+@WebFilter(urlPatterns = {"/joker/user/*"},filterName = "loginFilter")
+public class FilterDemo3 implements Filter {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    @Resource
+    private CommonConfig commonConfig;
+
+    @Override
+    public void destroy() {
+        log.info("" + getClass() + " destroy");
+    }
+
+    @Override
+    public void doFilter(ServletRequest arg0, ServletResponse arg1, FilterChain arg2) throws IOException, ServletException {
+        log.info("" + getClass() + " doFilter " + commonConfig);
+        arg2.doFilter(arg0, arg1);
+    }
+
+    @Override
+    public void init(FilterConfig arg0) throws ServletException {
+        log.info("" + getClass() + " init");
+    }
+}
+```
+
+```java
+package com.example.demo;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+
+@ServletComponentScan
+@SpringBootApplication
+public class DemoUserApplication extends SpringBootServletInitializer {
+
+    public static void main(String[] args) {
+        SpringApplication.run(DemoUserApplication.class, args);
+    }
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(DemoUserApplication.class);
+    }
+}
+```
+
+ **加了 `@ServletComponentScan`, 无论过滤器类加不加 `@Componment` 都可以,单使用 `@Component` 会默认过滤 `/*`, 不过你配置的 urlPatterns 将会失效.**
+
+ **添加 @ServletComponentScan 注解, 这时你会发现会过滤你配置的路径, 而且无论你加不加 @Component 都不影响!**
+
+ order 注解不起作用,配置类里配置顺序才可以,这篇博客的博主给出了底层的不生效的原理:https://www.cnblogs.com/okong/p/correct-webfilter.html.
+
+ 还有就是定义类型称的时候按 A-Z 是也可以排序,希望大家一起研究,有更好的方案,希望大家能给出来参考
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

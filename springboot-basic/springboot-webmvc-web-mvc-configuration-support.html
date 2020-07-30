@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-webmvc-web-mvc-configuration-support</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-webmvc-web-mvc-configuration-support
+
+#### Spring Boot 继承 WebMvcConfigurationSupport 后自动配置不生效问题
+
+在 Spring Boot 的自定义配置类继承 WebMvcConfigurationSupport 后，发现自动配置的静态资源路径（classpath:/META/resources/，classpath:/resources/，classpath:/static/，classpath:/public/）不生效。
+
+```java
+/**
+ * {@link EnableAutoConfiguration Auto-configuration} for {@link EnableWebMvc Web MVC}.
+ *
+ * @author Phillip Webb
+ * @author Dave Syer
+ * @author Andy Wilkinson
+ * @author Sébastien Deleuze
+ * @author Eddú Meléndez
+ * @author Stephane Nicoll
+ * @author Kristine Jetzke
+ * @author Bruce Brouwer
+ * @author Artsiom Yudovin
+ * @since 2.0.0
+ */
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnWebApplication(type = Type.SERVLET)
+@ConditionalOnClass({ Servlet.class, DispatcherServlet.class, WebMvcConfigurer.class })
+@ConditionalOnMissingBean(WebMvcConfigurationSupport.class)
+@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE + 10)
+@AutoConfigureAfter({ DispatcherServletAutoConfiguration.class, TaskExecutionAutoConfiguration.class,
+    ValidationAutoConfiguration.class })
+public class WebMvcAutoConfiguration {
+
+  public static final String DEFAULT_PREFIX = "";
+
+  public static final String DEFAULT_SUFFIX = "";
+
+  private static final String[] SERVLET_LOCATIONS = { "/" };
+```
+
+这是因为在 Spring Boot 的 Web 自动配置类 WebMvcAutoConfiguration 上有条件注解 
+
+```java
+@ConditionalOnMissingBean(WebMvcConfigurationSupport.class)
+```
+
+这个注解的意思是在项目类路径中 缺少 `WebMvcConfigurationSupport` 类型的 bean 时改自动配置类才会生效，所以继承 `WebMvcConfigurationSupport` 后需要自己再重写相应的方法。
+
+如果想要使用自动配置生效，又要按自己的需要重写某些方法，比如增加 viewController ，则可以自己的配置类可以继承  WebMvcConfigurerAdapter 这个类。不过在 Spring 5.0 版本后这个类被丢弃了 WebMvcConfigurerAdapter  ，虽然还可以用，但是看起来不好 = =。
+
+```java
+/**
+ * An implementation of {@link WebMvcConfigurer} with empty methods allowing
+ * subclasses to override only the methods they're interested in.
+ *
+ * @author Rossen Stoyanchev
+ * @since 3.1
+ * @deprecated as of 5.0 {@link WebMvcConfigurer} has default methods (made
+ * possible by a Java 8 baseline) and can be implemented directly without the
+ * need for this adapter
+ */
+@Deprecated
+public abstract class WebMvcConfigurerAdapter implements WebMvcConfigurer {
+
+  /**
+   * {@inheritDoc}
+   * <p>This implementation is empty.
+   */
+  @Override
+  public void configurePathMatch(PathMatchConfigurer configurer) {
+  }
+```
+
+这是类上的注释，意思是 Spring 5.0 后要使用 Java8，而在 Java8 中接口是可以有 default 方法的，所以这个类就没必要了。所以我们只需要在自定义配置类中直接实现 `WebMvcConfigurer` 接口就好了。如下：
+
+```java
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.context.annotation.Configuration;
+
+
+import science.mrcuijt.shopping.interceptor.VerifyCodeInterceptor;
+
+@Configuration
+public class WebMvcConfig extends WebMvcConfigurer {
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry){
+    registry.addInterceptor(new VerifyCodeInterceptor())
+      .addPathPatterns("/login")
+      .addPathPatterns("/register")
+      .excludePathPatterns("/static/**");
+  }
+
+  @Override
+  public void addResourceHandlers(ResourceHandlerRegistry registry){
+    registry.addResourceHandler("/static/**").addResourceLocations("classpath:/META-INF/resources/","classpath:/resources/","classpath:/static/","classpath:/public/");
+    super.addResourceHandlers(registry);
+  }
+
+  @Override
+  public void addViewControllers(ViewControllerRegistry registry){
+    registry.addViewController("/hello").setViewName("/helloPage");
+  }
+
+}
+```
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/deng720/p/8989388.html" target="_blank">Spring Boot 继承 WebMvcConfigurationSupport 后自动配置不生效问题</a>
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

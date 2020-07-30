@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-basic-interceptor</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-basic-interceptor
+
+#### Spring MVC 拦截器（Interceptor ）详解
+
+**处理器拦截器简介**
+
+Spring Web MVC的处理器拦截器（如无特殊说明，下文所说的拦截器即处理器拦截器）类似于Servlet开发中的过滤器Filter，用于对处理器进行预处理和后处理。
+
+**常见应用场景**
+
+ - 1、日志记录：记录请求信息的日志，以便进行信息监控、信息统计、计算 PV（Page View）等。
+
+ - 2、权限检查：如登录检测，进入处理器检测检测是否登录，如果没有直接返回到登录页面；
+
+ - 3、性能监控：有时候系统在某段时间莫名其妙的慢，可以通过拦截器在进入处理器之前记录开始时间，在处理完后记录结束时间，从而得到该请求的处理时间（如果有反向代理，如 apache 可以自动记录）；
+
+ - 4、通用行为：读取 cookie 得到用户信息并将用户对象放入请求，从而方便后续流程使用，还有如提取 Locale、Theme 信息等，只要是多个处理器都需要的即可使用拦截器实现。
+
+ - 5、OpenSessionInView：如 Hibernate，在进入处理器打开 Session，在完成后关闭 Session。
+
+…………本质也是 AOP（面向切面编程），也就是说符合横切关注点的所有功能都可以放入拦截器实现。
+
+##### 拦截器接口
+
+```java
+package org.springframework.web.servlet;
+public interface HandlerInterceptor {
+    boolean preHandle(
+            HttpServletRequest request, HttpServletResponse response,
+            Object handler)
+            throws Exception;
+
+    void postHandle(
+            HttpServletRequest request, HttpServletResponse response,
+            Object handler, ModelAndView modelAndView)
+            throws Exception;
+
+    void afterCompletion(
+            HttpServletRequest request, HttpServletResponse response,
+            Object handler, Exception ex)
+            throws Exception;
+}
+```
+
+我们可能注意到拦截器一共有3个回调方法，而一般的过滤器 Filter 才两个，这是怎么回事呢？马上分析。
+
+ - **preHandle**：预处理回调方法，实现处理器的预处理（如登录检查），第三个参数为响应的处理器（如我们上一章的Controller实现）；
+
+ **返回值**：
+
+ **true** 表示继续流程（如调用下一个拦截器或处理器）；
+
+ **false** 表示流程中断（如登录检查失败），不会继续调用其他的拦截器或处理器，此时我们需要通过 response 来产生响应；
+
+ - **postHandle**：后处理回调方法，实现处理器的后处理（但在渲染视图之前），此时我们可以通过 modelAndView（模型和视图对象）对模型数据进行处理或对视图进行处理，modelAndView 也可能为 null。
+
+ - **afterCompletion**：整个请求处理完毕回调方法，即在视图渲染完毕时回调，如性能监控中我们可以在此记录结束时间并输出消耗时间，还可以进行一些资源清理，类似于 try-catch-finally 中的 finally，**`但仅调用处理器执行链中 preHandle 返回 true 的拦截器的 afterCompletion`**。
+
+##### 拦截器适配器
+
+有时候我们可能只需要实现三个回调方法中的某一个，如果实现HandlerInterceptor接口的话，三个方法必须实现，不管你需不需要，此时spring提供了一个HandlerInterceptorAdapter适配器（一种适配器设计模式的实现），允许我们只实现需要的回调方法。
+
+```java
+public abstract class HandlerInterceptorAdapter implements HandlerInterceptor {
+     // 省略代码 此处所以三个回调方法都是空实现，preHandle 返回 true。
+}
+```
+
+##### 运行流程图
+
+**正常流程**
+
+![](images/springboot-basic-interceptor/springboot-basic-interceptor-001.png)
+
+**中断流程**
+
+![](images/springboot-basic-interceptor/springboot-basic-interceptor-002.png)
+
+中断流程中，比如是 HandlerInterceptor2 中断的流程（preHandle 返回 false），此处仅调用它之前拦截器的 preHandle 返回 true 的 afterCompletion 方法。
+
+接下来看一下 DispatcherServlet 内部到底是如何工作的吧：
+
+```java
+// doDispatch方法
+// 1、处理器拦截器的预处理（正序执行）
+HandlerInterceptor[] interceptors = mappedHandler.getInterceptors();
+if (interceptors != null) {
+    for (int i = 0; i < interceptors.length; i++) {
+    HandlerInterceptor interceptor = interceptors[i];
+        if (!interceptor.preHandle(processedRequest, response, mappedHandler.getHandler())) {
+            // 1.1、失败时触发afterCompletion的调用
+            triggerAfterCompletion(mappedHandler, interceptorIndex, processedRequest, response, null);
+            return;
+        }
+        interceptorIndex = i; // 1.2、记录当前预处理成功的索引
+}
+}
+// 2、处理器适配器调用我们的处理器
+mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+// 当我们返回null或没有返回逻辑视图名时的默认视图名翻译（详解4.15.5 RequestToViewNameTranslator）
+if (mv != null && !mv.hasView()) {
+    mv.setViewName(getDefaultViewName(request));
+}
+// 3、处理器拦截器的后处理（逆序）
+if (interceptors != null) {
+for (int i = interceptors.length - 1; i >= 0; i--) {
+      HandlerInterceptor interceptor = interceptors[i];
+      interceptor.postHandle(processedRequest, response, mappedHandler.getHandler(), mv);
+}
+}
+// 4、视图的渲染
+if (mv != null && !mv.wasCleared()) {
+render(mv, processedRequest, response);
+    if (errorView) {
+        WebUtils.clearErrorRequestAttributes(request);
+}
+// 5、触发整个请求处理完毕回调方法 afterCompletion
+triggerAfterCompletion(mappedHandler, interceptorIndex, processedRequest, response, null);
+```
+
+注：以上是流程的简化代码，中间省略了部分代码，不完整。
+
+```java
+    // triggerAfterCompletion 方法
+    private void triggerAfterCompletion(HandlerExecutionChain mappedHandler, int interceptorIndex,
+            HttpServletRequest request, HttpServletResponse response, Exception ex) throws Exception {
+        // 5、触发整个请求处理完毕回调方法afterCompletion （逆序从1.2中的预处理成功的索引处的拦截器执行）
+        if (mappedHandler != null) {
+            HandlerInterceptor[] interceptors = mappedHandler.getInterceptors();
+            if (interceptors != null) {
+                for (int i = interceptorIndex; i >= 0; i--) {
+                    HandlerInterceptor interceptor = interceptors[i];
+                    try {
+                        interceptor.afterCompletion(request, response, mappedHandler.getHandler(), ex);
+                    }
+                    catch (Throwable ex2) {
+                        logger.error("HandlerInterceptor.afterCompletion threw exception", ex2);
+                    }
+                }
+            }
+        }
+    }
+```
+
+##### 拦截方式
+
+可以利用 **`mvc:interceptors`** 标签声明一系列的拦截器，然后它们就可以形成一个拦截器链，拦截器的执行顺序是按声明的先后顺序执行的，先声明的拦截器中的 preHandle 方法会先执行，然而它的 postHandle 方法和 afterCompletion 方法却会后执行。
+
+ - **方式一：总拦截器，拦截所有 url**
+
+直接定义一个 Interceptor 实现类的 bean 对象。使用这种方式声明的 Interceptor 拦截器将会对所有的请求进行拦截。
+
+```java
+<mvc:interceptors>
+    <bean class="com.app.mvc.MyInteceptor" />
+</mvc:interceptors>
+```
+
+ - **方式二：总拦截器， 拦截匹配的URL**
+
+使用 **mvc:interceptor** 标签进行声明。使用这种方式进行声明的 Interceptor 可以通过 mvc:mapping 子标签来定义需要进行拦截的请求路径。
+
+mapping 只能映射某些需要拦截的请求，而 exclude-mapping 用来排除某些特定的请求映射。当我们需要拦截的请求映射是比较通用的，但是其中又包含了某个特殊的请求是不需要使用该拦截器的时候我们就可以把它定义为 exclude-mapping 了。比如像下面示例这样，我们定义的拦截器将拦截所有匹配 **`/user/**`** 模式的请求，但是不能拦截请求 **`/user/b`**，因此它定义为了 exclude-mapping。当定义了 exclude-mapping 时，Spring MVC 将优先判断一个请求是否在 execlude-mapping 定义的范围内，如果在则不进行拦截。 实际上一个 interceptor 下面定义的 mapping 和 exclude-mapping 都是可以有多个的。
+
+另外，exclude-mapping 的定义规则和 mapping 的定义规则是一样的，我们也可以使用一个星号表示任意字符，使用两个星号表示任意层次的任意字符。
+
+```xml
+<mvc:interceptors >
+  <mvc:interceptor>
+        <mvc:mapping path="/user/*" /> <!-- /user/*  -->
+　　　　 <mvc:exclude-mapping path="/user/b" /><!-- 不匹配的 -->
+        <bean class="com.mvc.MyInteceptor"></bean>
+    </mvc:interceptor>
+</mvc:interceptors>
+```
+
+ - 方案三：HandlerMappint 上的拦截器
+
+如果基于 xml 配置使用 Spring MVC，可以利用 SimpleUrlHandlerMapping、BeanNameUrlHandlerMapping 进行Url映射（相当于 struts 的 path 映射）和拦截请求（注入 interceptors），如果基于注解使用 Spring MVC，可以使用 DefaultAnnotationHandlerMapping 注入 interceptors。
+注意无论基于 xml 还是基于注解，Interceptor bean 都是需要在 xml 中配置的。
+
+```xml
+<bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+ <property name="interceptors">
+     <list>
+         <bean class="com.mvc.MyInteceptor"></bean>
+     </list>
+ </property>
+</bean>
+```
+
+如果使用了 `<mvc:annotation-driven />` ， 它会自动注册 DefaultAnnotationHandlerMapping 与 AnnotationMethodHandlerAdapter 这两个 bean,所以就没有机会再给它注入 interceptors 属性，就无法指定拦截器。
+
+当然我们可以通过人工配置上面的两个 Bean，不使用 `<mvc:annotation-driven />`，就可以 给 interceptors 属性 注入拦截器了。
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/junzi2099/p/8260137.html" target="_blank">Spring MVC 拦截器（Interceptor）详解 </a>
+
+#### Spring MVC 拦截器基于 xml 和注解方式的两种配置
+
+首先来看一下 Spring 拦截器和过滤器的所应有的位置:
+
+![](images/springboot-basic-interceptor/springboot-basic-interceptor-003.png)
+
+Filter 过滤器是在到达 DispatcherServlet 之前进行过滤；
+
+Interceptor 拦截器是经过 DispatcherServlet 后进行拦截。
+
+##### 三种拦截器
+
+ - prehandler: 请求通过 DispatcherServlet 后,到达后端 Handler 时进行拦截;
+
+ - postHandler: 后端 Handler 处理完请求返回 DispatcherServlet 前进行拦截;
+
+ - afterHandler: 视图解析器 View 出来完请求返回 DispatcherServlet 前进行拦截;
+
+##### 一、注解方式
+
+定义拦截器类,继承 HandlerInterceptorAdapter:
+
+```java
+public class Interceptor extends HandlerInterceptorAdapter {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
+            Object handler) throws Exception {
+        /*
+         * 这里面写一些到达 Controller 之前需要进行拦截的代码
+         */
+        // true 表示放行, false 表示拦截
+        return true;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, 
+            Object handler, ModelAndView modelAndView) throws Exception {
+        super.postHandle(request, response, handler, modelAndView);
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
+            Object handler, Exception ex) throws Exception {
+        super.afterCompletion(request, response, handler, ex);
+    }
+}
+```
+
+编写 Spring MVC 配置类，将自定义拦截器添加到配置中:
+
+```java
+public class WebMvcConfig extends WebMvcConfigurerAdapter {
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 创建自定义的拦截器
+        Interceptor interceptor = new Interceptor();
+        // 添加拦截器
+        registry.addInterceptor(interceptor)
+                // 添加需要拦截的路径
+                .addPathPatterns("");
+    }
+}
+```
+
+#### 二、xml方式：
+
+
+在 springmvc-config.xml 配置文件中添加如下配置:
+
+```xml
+<mvc:interceptors>
+  <mvc:interceptor>
+    <mvc:mapping path="需要拦截的路径"/>
+    <bean class="自定义interceptor全路径名">
+  </mvc:interceptor>
+</mvc:interceptors>
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/qq_27442469/article/details/98397339" target="_blank">Spring MVC 拦截器基于 xml 和注解方式的两种配置</a>
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

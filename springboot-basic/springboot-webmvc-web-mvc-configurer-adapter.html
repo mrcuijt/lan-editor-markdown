@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-webmvc-web-mvc-configurer-adapter</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-webmvc-web-mvc-configurer-adapter
+
+#### Spring Boot WebMvcConfigurerAdapter 详解
+
+#### 一、WebMvcConfigurerAdapter 是什么
+
+Spring 内部的一种配置方式
+
+采用 JavaBean 的形式来代替传统的xml配置文件形式进行针对框架个性化定制
+
+#### 二、WebMvcConfigurerAdapter 常用的方法
+
+```java
+/** 解决跨域问题 **/
+public void addCorsMappings(CorsRegistry registry) ;
+
+/** 添加拦截器 **/
+void addInterceptors(InterceptorRegistry registry);
+
+/** 这里配置视图解析器 **/
+void configureViewResolvers(ViewResolverRegistry registry);
+
+/** 配置内容裁决的一些选项 **/
+void configureContentNegotiation(ContentNegotiationConfigurer configurer);
+
+/** 视图跳转控制器 **/
+void addViewControllers(ViewControllerRegistry registry);
+
+/** 静态资源处理 **/
+void addResourceHandlers(ResourceHandlerRegistry registry);
+
+/** 默认静态资源处理器 **/
+void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer);
+```
+
+##### 1、addInterceptors：拦截器
+
+ - **addInterceptor**：需要一个实现HandlerInterceptor接口的拦截器实例
+
+ - **addPathPatterns**：用于设置拦截器的过滤路径规则
+
+ - **excludePathPatterns**：用于设置不需要拦截的过滤规则
+
+```java
+@Override
+public void addInterceptors(InterceptorRegistry registry) {
+    super.addInterceptors(registry);
+    registry.addInterceptor(new TestInterceptor()).addPathPatterns("/**");
+}
+```
+
+##### 2、addCorsMappings：跨域
+
+```java
+@Override
+public void addCorsMappings(CorsRegistry registry) {
+    super.addCorsMappings(registry);
+    registry.addMapping("/cors/**")
+            .allowedHeaders("*")
+            .allowedMethods("POST","GET")
+            .allowedOrigins("*");
+}
+```
+
+##### 3、addViewControllers：跳转指定页面
+
+```java
+@Override
+ public void addViewControllers(ViewControllerRegistry registry) {
+     super.addViewControllers(registry);
+     registry.addViewController("/").setViewName("/index");
+     //实现一个请求到视图的映射，而无需书写controller
+     registry.addViewController("/login").setViewName("forward:/index.html");  
+}
+```
+
+##### 4、resourceViewResolver：视图解析器
+
+```java
+/**
+ * 配置请求视图映射
+ * @return
+ */
+@Bean
+public InternalResourceViewResolver resourceViewResolver()
+{
+	InternalResourceViewResolver internalResourceViewResolver = new InternalResourceViewResolver();
+	//请求视图文件的前缀地址
+	internalResourceViewResolver.setPrefix("/WEB-INF/jsp/");
+	//请求视图文件的后缀
+	internalResourceViewResolver.setSuffix(".jsp");
+	return internalResourceViewResolver;
+}
+
+/**
+ * 视图配置
+ * @param registry
+ */
+@Override
+public void configureViewResolvers(ViewResolverRegistry registry) {
+	super.configureViewResolvers(registry);
+	registry.viewResolver(resourceViewResolver());
+	/*registry.jsp("/WEB-INF/jsp/",".jsp");*/
+}
+```
+
+##### 5、configureMessageConverters：信息转换器
+
+```java
+/**
+ * 消息内容转换配置
+ * 配置fastJson返回json转换
+ * @param converters
+ */
+@Override
+public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+    //调用父类的配置
+    super.configureMessageConverters(converters);
+    //创建fastJson消息转换器
+    FastJsonHttpMessageConverter fastConverter = new FastJsonHttpMessageConverter();
+    //创建配置类
+    FastJsonConfig fastJsonConfig = new FastJsonConfig();
+    //修改配置返回内容的过滤
+    fastJsonConfig.setSerializerFeatures(
+            SerializerFeature.DisableCircularReferenceDetect,
+            SerializerFeature.WriteMapNullValue,
+            SerializerFeature.WriteNullStringAsEmpty
+    );
+    fastConverter.setFastJsonConfig(fastJsonConfig);
+    //将fastjson添加到视图消息转换器列表内
+    converters.add(fastConverter);
+
+}
+```
+
+##### 6、addResourceHandlers：静态资源
+
+```java
+@Override
+ public void addResourceHandlers(ResourceHandlerRegistry registry) {
+ 	//处理静态资源的，例如：图片，js，css等
+     registry.addResourceHandler("/resource/**").addResourceLocations("/WEB-INF/static/");
+ }
+```
+
+#### 三、WebMvcConfigurerAdapter 使用方式
+
+##### 1、过时方式：继承 WebMvcConfigurerAdapter
+
+**Spring 5.0 以后 WebMvcConfigurerAdapter 会取消掉 WebMvcConfigurerAdapter 是实现 WebMvcConfigurer 接口**
+
+```java
+@Configuration
+public class WebConfig extends WebMvcConfigurerAdapter {
+	//TODO
+}
+```
+
+##### 2、现用方式
+
+ - 1）实现 WebMvcConfigurer
+
+```java
+@Configuration
+public class WebMvcConfg implements WebMvcConfigurer {
+	//TODO
+}
+```
+
+ - 2）现用方式：继承 WebMvcConfigurationSupport
+
+```java
+@Configuration
+public class WebMvcConfg extends WebMvcConfigurationSupport {
+	//TODO
+}
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/weixin_43453386/article/details/83623242" target="_blank">Spring Boot WebMvcConfigurerAdapter 详解</a>
+
+#### Spring Boot 2.0、Spring 5.0 拦截器配置 WebMvcConfigurerAdapter 过时使用 WebMvcConfigurationSupport 来代替 新坑
+
+在 Spring Boot 2.0 之前 我们都是 继承 WebMvcConfigurerAdapter 来实现拦截器的配置。重写 addInterceptors 方法
+
+```java
+  @Override
+  public void addInterceptors(InterceptorRegistry registry){
+    registry.addInterceptor(new VerifyCodeInterceptor())
+      .addPathPatterns("/login")
+      .addPathPatterns("/register")
+      .excludePathPatterns("/static/**");
+  }
+```
+
+但是已被废弃 我们使用继承 WebMvcConfigurationSupport 来替代(包含了 WebMvcConfigurerAdapter，以及更多的扩展)，使用这个类的时候要注意一些地方：
+
+我们都知道在使用 Spring Boot 映射静态资源路径的时候可以在 application.properties 中添加配置
+
+```java
+spring.mvc.static-path-pattern = /sh/static/**
+```
+
+这种写法在 2.0 之前 也就是在 WebMvcConfigurerAdapter 没有废弃 搭配使用的话是没有问题的(测试过是没有问题的),
+
+但是在项目中我刚刚好用到了 WebMvcConfigurationSupport 类来配置拦截器，这时候启动项目时会发现映射根本没有成功，也就是说 application.properties 中添加配置的映射配置没有启动作用，然后我们会想到重写来进行映射：
+
+```java
+@Override
+protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+    registry.addResourceHandler("/sh/static/**").addResourceLocations("classpath:/static/");
+    super.addResourceHandlers(registry);
+}
+```
+
+用过这种方法来配合 WebMvcConfigurationSupport 配置拦截器和过滤器好像就没有问题了(测试过没有问题)
+
+**`总结：大家在使用 2.0 版本的 Spring Boot 的时候 使用 WebMvcConfigurationSupport 类配置拦截器时一定要重写 addResourceHandlers 来实现静态资源的映射,不要使用 application.properties 中添加配置来实现映射，不然资源会映射不成功导致打开页面资源一直加载不到。`**
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/innovationad/article/details/79959383" target="_blank">Spring Boot 2.0、Spring 5.0 拦截器配置 WebMvcConfigurerAdapter 过时使用 WebMvcConfigurationSupport 来代替 新坑</a>
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
