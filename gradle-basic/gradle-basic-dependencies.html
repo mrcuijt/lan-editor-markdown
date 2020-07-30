@@ -65,6 +65,15 @@ dependencies {
 }
 ```
 
+##### 拷贝依赖到指定目录下
+
+```js
+task copyToLib(type: Copy){
+    into "$buildDir/output/libs"
+    from configurations.compile
+}
+```
+
 ##### 依赖规则： 
 
 例如 
