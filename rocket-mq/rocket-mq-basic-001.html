@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>rocket-mq-basic-001</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### rocket-mq-basic-001
+
+#### RocketMQ 概述
+
+#### MQ 简介
+
+MQ，Message Queue，是一种提 **供消息队列服务** 的中间件，也称为消息中间件，是一套提供了消息生产、存储、消费全过程 API 的软件系统。消息即数据，一般情况下消息的数据体量不会很大。
+
+#### MQ 用途
+
+**限流削峰**
+
+MQ 可以将系统的超量请求暂存其中，以便系统后期可以慢慢进行处理，从而避免了请求的丢失或系统被压块。
+
+如一个应用系统现有的并发处理为 2000/s ，现在有了 5000/s 的访问量。一般系统中都会有一个限流处理，只处理其中的部分请求，多出来的丢弃。
+
+接入 MQ 后，用户请求首先经过 MQ，由 MQ 先将所有的用户请求存储。然后由业务系统以自身可以处理的能力(2000/s)去从 MQ 中将用户请求读取出来进行处理。只要 MQ 中的存储足够大，业务系统就可以慢慢的处理。
+
+由此解决业务系统既不会因为超额的并发请求导致系统的崩溃，也不会导致请求的丢失。
+
+**异步解耦**
+
+上游系统对下游系统的调用若为同步调用，则会大大降低系统的吞吐量与并发度，且系统耦合度太高。而异步调用则会解决这些问题。所以两层志剑若要实现由同步到异步的转化，一般性做法就是，在这两层间添加一个 MQ 层。
+
+在系统交互过程中，一般下游系统会尽最大的方式让本次服务成功完成。如此一来在设计过程中就可以理解为，上游系统在与下游系统交互时必然是成功的。上游系统在完成自身的业务处理后就可以对用户完进行响应。上游系统与下游系统的交互只保证请求完整发送过去即可。而中间（RocketMQ）保证上游系统的请求完整被记录保存即可，后续的操作有下游系统慢慢处理即可。
+
+以此实现上游系统与下游系统的解耦。整个上游下游的系统交互通过 MQ 从 **同步** 转换为 **异步**。
+
+**数据收集**
+
+分布式系统会产生海量级数据流，如：业务日志、监控数据、用户行为等。针对这些数据流进行实时或批量采集汇总，然后对这些数据流进行大数据分析，这是当前互联网平台的必备技术。通过 MQ 完成此类数据收集是最好的选择。
+
+#### 常见 MQ 产品
+
+ - ActiveMQ
+
+  ActiveMQ 是使用 Java 语音开发一款 MQ 产品。早期很多公司与项目中都在使用。但现在的社区活跃度已经很低。现在项目中已经很少使用了。
+
+ - RabbitMQ
+
+  RabbitMQ 是使用 ErLang 语言开发的一款 MQ 产品。其吞吐量交 Kafka 与 RocketMQ 要低，且由于其不是 Java 语言开发，所以公司内部对其实现定制开发年度较大。
+
+ - Kafka
+
+  Kafka 是使用 Scala/Java 语言开发的一款 MQ 产品。其最大的特点就是高吞吐量，常用与大数据领域的实时计算、日志采集等场景。其没有遵循任何常见的 MQ 协议，而是使用的自研协议。使用 Spring-Cloud NetFlix 初版时，仅支持 RabbitMQ 和 Kafka。
+
+ - RocketMQ
+
+  RocketMQ 是使用 Java 语言开发的一款 MQ 产品，经过数年阿里双11的考验，性能与稳定性非常高。其没有遵循任何常见的 MQ 协议，而是使用的自研协议。使用 Spring-Cloud Alibaba 时，其支持 RabbitMQ 和 Kafka，但提倡使用 RocketMQ。
+
+#### MQ 常见协议
+
+一般情况下 MQ 的实现是要遵循一些常规性协议的。常见的协议如下：
+
+ - JMS
+
+  JMS，Java Message Service（Java 消息服务）。是 Java 平台上有关 MOM（Message Orientated Middleware，面向消息的中间件）的技术规范，它便于消息系统中的 Java 应用程序进行消息交换，并且通过提供标准的产生、发送、接收消息的接口，简化企业应用的开发。ActiveMQ 是该协议的典型实现。
+
+ - STOMP
+
+  STOMP，Streaming Text Orientated Message Protocol（面向流文本的消息协议），是一种 MOM 设计的简单文本协议。STOMP 提供一个可互操作的连接格式，允许客户端与任意 STOMP 消息代理进行交互。ActiveMQ 是该协议的典型实现，RabbitMQ 通过插件可以支持该协议。
+
+ - AMQP
+
+  AMQP，Advanced Message Queuing Protocol（高级消息队列协议），一个提供统一消息服务的应用层标准，是应用层协议的一个开放标准，是一种 MOM 设计。基于此协议的客户端与消息中间件可传递消息，并不受到客户端/中间件不同产品，不同开放语言等条件限制。RabbitMQ 是该协议典型的实现。
+
+ - MQTT
+
+  MQTT，Message Queuing Telemetry Transport（消息队列遥测传输），是 IBM 开发的一个即时通讯协议，是一种二进制协议，主要用于服务器和低功耗 loT 设备间的通信。该协议支持所有平台，几乎可以把所有互联网物品和外部链接起来，被用来当做传感器和制动器的通信协议。RabbitMQ通过插件可以支持该协议。
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

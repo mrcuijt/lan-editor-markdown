@@ -75,6 +75,8 @@
 
  - <a href="#013" target="_self">Maven Jetty Plugin</a>
 
+ - <a href="#014" target="_self">Maven Help Plugin</a>
+
 <span id="001">***```Maven Resources 插件```***</span>
 ```xml
 <plugin>
@@ -206,6 +208,8 @@ The Surefire plugin builds the test classpath in the following order:
 ```xml
 <!-- Maven Surefire 测试用例插件环境配置 -->
 <!-- mvn surefire:test -->
+<!-- Maven 打包时跳过测试 -->
+<!-- mvn package -DskipTests -->
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-surefire-plugin</artifactId>
@@ -822,6 +826,35 @@ mvn jetty:run-war
   </configuration>
 </plugin>
 ```
+
+
+<span id="014">***```Maven Help Plugin```***</span>
+
+##### Maven 查看某插件的全部功能
+
+```python
+##
+## 合并整个继承机构所有信息的POM
+mvn help:effective-pom
+
+##
+## 查看某插件的全部功能
+mvn help:describe
+
+##
+## 查看某插件的全部功能 
+## -Ddetail 参数来获取更多的信息。
+mvn help:describe -Dplugin=org.jacoco:jacoco-maven-plugin -Ddetail
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/ziyujiangshi/article/details/84698940" target="_blank">[Maven]查看某插件的全部功能</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
 	</textarea>
 </div>
 

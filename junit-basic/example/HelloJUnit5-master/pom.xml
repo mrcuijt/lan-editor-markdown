@@ -78,8 +78,59 @@
 			</plugin>
 		</plugins>
 	</build>
+    <repositories>
+        <repository>
+			<id>nexus-aliyun</id>
+			<!--  °¢ÀïÔÆµÄ¾µÏñ  -->
+			<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+        </repository>
+        <repository>
+			<id>nexus-aliyung</id>
+			<!--  °¢ÀïÔÆµÄ¾µÏñ  -->
+			<url>https://maven.aliyun.com/repository/google/</url>
+        </repository>
+        <repository>
+			<id>nexus-aliyuna</id>
+			<!--  °¢ÀïÔÆµÄ¾µÏñ  -->
+			<url>https://plugins.gradle.org/m2/</url>
+        </repository>
+    </repositories>
 
 	<dependencies>
+		<!-- https://mvnrepository.com/artifact/androidx.annotation/annotation -->
+		<dependency>
+			<groupId>androidx.annotation</groupId>
+			<artifactId>annotation</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+			<version>7.6.0.RC4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-deploy</artifactId>
+			<version>7.6.0.RC4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>7.6.0.RC4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-client</artifactId>
+			<version>7.6.0.RC4</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.jfrog.bintray.gradle</groupId>
+			<artifactId>gradle-bintray-plugin</artifactId>
+			<version>1.8.5</version>
+			<scope>runtime</scope>
+		</dependency>
 		<dependency>
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
@@ -102,12 +153,12 @@
 			<artifactId>logback-classic</artifactId>
 			<version>${logback.version}</version>
 		</dependency>
-    <dependency>
-      <groupId>org.junit.platform</groupId>
-      <artifactId>junit-platform-console-standalone</artifactId>
-      <version>${junit.platform.version}</version>
-      <scope>test</scope>
-    </dependency>
+		<dependency>
+		  <groupId>org.junit.platform</groupId>
+		  <artifactId>junit-platform-console-standalone</artifactId>
+		  <version>${junit.platform.version}</version>
+		  <scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>rocket-mq-install-001</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### rocket-mq-install-001
+
+RocketMQ <a href="https://rocketmq.apache.org/" target="_blank">官网</a>
+
+准备工作
+
+软硬件需求
+
+ 1. 64位操作系统（Linux/Unix/Mac/Windows）
+
+ 2. 64位 JDK1.8+
+
+ 3. Maven 3.2.x
+
+ 4. Git
+
+ 5. 4g+ 可用硬盘空间
+
+RocketMQ 安装
+
+ - 将 RocketMQ 解压到 /opt/app 目录下
+
+ - 修改 bin/runserver.sh
+
+```bash
+## 编辑启动 Java 虚拟机占用内存
+JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx256m -Xmn128m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+```
+
+  - 修改 bin/runbroker.sh
+
+```bash
+## 编辑启动 Java 虚拟机占用内存
+JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx256m -Xmn128m"
+```
+
+RocketMQ 启动
+
+ - 启动 NameServer
+
+```bash
+## 启动 NameServer
+nohup sh bin/mqnamesrv &
+
+## 查看 NameServer 日志
+tail -f ~/logs/rocketmqlogs/namesrv.log
+
+The Name Server boot success...
+```
+
+ - 启动 Broker
+
+```bash
+## 启动 Broker
+nohup sh bin/mqbroker -n localhost:9876 &
+
+## 查看 Broker 日志
+tail -f ~/logs/rocketmqlogs/broker.log 
+
+The broker[%s, 172.30.30.233:10911] boot success...
+```
+
+RocketMQ 发送/接收消息
+
+```bash
+## 通过环境变量设置 NameServer 地址
+export NAMESRV_ADDR=localhost:9876
+
+## 调用 Producer 生产数据
+sh bin/tools.sh org.apache.rocketmq.example.quickstart.Producer
+
+SendResult [sendStatus=SEND_OK, msgId= ...
+
+## 调用 Consumer 消费数据
+sh bin/tools.sh org.apache.rocketmq.example.quickstart.Consumer
+
+ConsumeMessageThread_%d Receive New Messages: [MessageExt...
+```
+
+RocketMQ 关闭
+
+```bash
+## 关闭 Broker
+sh bin/mqshutdown broker
+
+The mqbroker(36695) is running...
+Send shutdown request to mqbroker(36695) OK
+
+## 关闭 NameServer
+sh bin/mqshutdown namesrv
+
+The mqnamesrv(36664) is running...
+Send shutdown request to mqnamesrv(36664) OK
+```
+
+RocketMQ Web 控制台
+
+RocketMQ 有一个可视化的 dashboard,通过该控制台可以直观的查看到很多数据
+
+rocketmq-console <a href="https://github.com/apache/rocketmq-externals/releases/tag/rocketmq-console-1.0.0" target="_blank">下载</a>
+
+ - 配置 pom.xml
+
+```xml
+<!-- 添加 JAXB 依赖 -->
+<dependency>
+    <groupId>javax.xml.bind</groupId>
+    <artifactId>jaxb-api</artifactId>
+    <version>2.3.0</version>
+</dependency>
+<dependency>
+    <groupId>com.sun.xml.bind</groupId>
+    <artifactId>jaxb-core</artifactId>
+    <version>2.3.0</version>
+</dependency>
+<dependency>
+    <groupId>com.sun.xml.bind</groupId>
+    <artifactId>jaxb-impl</artifactId>
+    <version>2.3.0</version>
+</dependency>
+<dependency>
+    <groupId>javax.activation</groupId>
+    <artifactId>activation</artifactId>
+    <version>1.1.1</version>
+</dependency>
+```
+
+ - 配置 application.properties
+
+```python
+## 配置 rocketmq-console 启动端口
+server.port=7000
+
+## 配置 RocketMQ NameServer 地址
+rocketmq.config.namesrvAddr=192.168.59.129:9876
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
