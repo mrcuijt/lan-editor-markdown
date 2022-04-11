@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>oracle-sga-memory</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### oracle-sga-memory
+
+SGA_TARGET is a database initialization parameter (introduced in Oracle 10g) that can be used for automatic SGA memory sizing.
+
+Parameter description:
+
+```python
+SGA_TARGET
+Property          Description
+Parameter type    Big integer
+Syntax            SGA_TARGET = integer [K | M | G]
+Default value     0 (SGA autotuning is disabled)
+Modifiable        ALTER SYSTEM
+Range of values   64 to operating system-dependent
+Basic             Yes
+```
+
+##### Enable SGA_TARGET 
+
+```sql
+SQL> show parameter sga_target
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+sga_target                           big integer 0
+SQL> show parameter sga_max_size
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+sga_max_size                         big integer 600M
+```
+
+As we can see our automatic SGA tuning is not enabled so we can enable it by setting the SGA_TARGET parameter value.
+
+```sql
+SQL> alter system set sga_target=500m;
+System altered.
+
+SQL> show parameter sga_target
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- -------
+sga_target                           big integer  500M
+```
+
+##### Resize SGA_TARGET
+
+```sql
+SQL> show parameter sga_max_size
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- -----------
+sga_max_size                         big integer 600M
+SQL> show parameter sga_target
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- -----------
+sga_target                           big integer 500M
+```
+
+We can resize it to only 600m if we will try to increase it from 600m we will get error.
+
+```sql
+SQL> alter system set sga_target=605m;
+alter system set sga_target=605m
+*
+ERROR at line 1:
+ORA-02097: parameter cannot be modified because specified value is invalid
+ORA-00823: Specified value of sga_target greater than sga_max_size
+```
+
+For that we must first increase our **SGA_MAX_SIZE** parameter value. But we must restart out instance because its **STATIC** parameter.
+
+```sql
+SQL> alter system set sga_max_size=956m scope=spfile;
+System altered.
+
+SQL> startup force
+ORACLE instance started.
+Total System Global Area 1000189952 bytes
+Fixed Size                  1337492 bytes
+Variable Size             624953196 bytes
+Database Buffers          369098752 bytes
+Redo Buffers                4800512 bytes
+Database mounted.
+Database opened.
+
+SQL> show parameter sga_max_size
+```
+
+##### 相关错误信息
+
+ - ORA-02095: 无法修改指定的初始化参数
+
+  - 1.检查是否 sys 登录
+
+  - 2.在更改语句加上 scope=spfile
+
+```sql
+SQL> alert system set sga_max_size=500m;
+SP2-0734: 未知的命令开头 "alert syst..." - 忽略了剩余的行。
+SQL> alter system set sga_max_size=500m;
+alter system set sga_max_size=500m
+                 *
+第 1 行出现错误:
+ORA-02095: 无法修改指定的初始化参数
+
+
+SQL> alter system set sga_max_size=500m scope=spfile;
+
+系统已更改。
+```
+
+参考链接：
+
+ - <a href="http://www.orafaq.com/wiki/SGA_target" target="_blank">SGA target</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>plsql-connect-oracle</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### plsql-connect-oracle
+
+软件为官网下载，使用注册码激活，自带中文语言包，已经是正式版
+  
+PL/SQL Developer是一个集成开发环境，专门开发面向Oracle数据库的应用。
+
+测试系统：Windows10 ltsc 64Bit
+
+测试版本：PLSQL Developer 14.0.5.1986  64Bit
+
+下载地址：https://www.allroundautomations.com/files/plsqldev1405x64.msi
+               
+注册激活，亲测有效
+
+```python
+product code:   khk3rgp7k4vae9faldmvgj3lyx47tjbz
+serial Number:  131630
+password:        xs374ca
+```
+
+下载地址：https://www.allroundautomations.com/files/plsqldev1404x64.msi
+
+https://pan.baidu.com/s/1RU88sLei2n5rKfc_8wbhdw 提取码：rkf1
+
+注册激活，亲测有效
+
+```python
+product code:   46su4r9e9tslhwt3sqdkxpp7hjwq72x4jv
+serial Number:  195974
+password:        xs374ca
+```
+
+##### OCI 下载
+
+ - 根据要远程的数据库下载版本，这个必须跟数据库位数一致，不然不能用。
+
+ - 32位数据库，使用32位的客户端
+
+ - 64位数据库，使用64位的客户端
+
+##### OCI 配置
+
+下载的工具解压后，在根目录下依次添加 network 文件夹，里面再添加 admin 文件夹，然后再新建一个 tnsnames.ora 文件。
+
+```python
+[10.10.xx.xx]/orcl =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = 10.10.xx.xx)(PORT = 1521))
+    )
+    (CONNECT_DATA =
+      (SERVICE_NAME = orcl)
+    )
+  )
+```
+
+##### PL/SQL 工具配置
+
+在  configure 的 preferenes 里进行配置，配置我们的 oci 信息。
+
+ - OCI Library
+
+参考连接：
+
+ - <a href="https://blog.csdn.net/qq_38161040/article/details/108170206" target="_blank">PL/SQL 工具远程连接Oracle数据库方法，plsql免安装oracle客户端直接配置oci实战演示</a>
+
+ - <a href="https://blog.csdn.net/czh500/article/details/90449467" target="_blank">sqlplus连接oracle数据库(连接本地oracle数据库和连接远程的oracle数据库)</a>
+
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
