@@ -32,7 +32,7 @@
 		<!-- slf4j日志工具包版 -->
 		<org-slf4j.version>1.7.25</org-slf4j.version>
 		<slf4j-log4j12.version>1.7.25</slf4j-log4j12.version>
-		<logback.version>1.2.3</logback.version>
+		<logback.version>1.2.9</logback.version>
 		<!-- 阿里巴巴 JSON解析包版本 -->
 		<com-alibaba.version>1.2.28</com-alibaba.version>
 		<!-- json-lib包版本 -->
