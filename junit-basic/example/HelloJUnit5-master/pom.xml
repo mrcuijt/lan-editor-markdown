@@ -81,17 +81,17 @@
     <repositories>
         <repository>
 			<id>nexus-aliyun</id>
-			<!--  °¢ÀïÔÆµÄ¾µÏñ  -->
+			<!--  é˜¿é‡Œäº‘çš„é•œåƒ  -->
 			<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
         </repository>
         <repository>
 			<id>nexus-aliyung</id>
-			<!--  °¢ÀïÔÆµÄ¾µÏñ  -->
+			<!--  é˜¿é‡Œäº‘çš„é•œåƒ  -->
 			<url>https://maven.aliyun.com/repository/google/</url>
         </repository>
         <repository>
 			<id>nexus-aliyuna</id>
-			<!--  °¢ÀïÔÆµÄ¾µÏñ  -->
+			<!--  é˜¿é‡Œäº‘çš„é•œåƒ  -->
 			<url>https://plugins.gradle.org/m2/</url>
         </repository>
     </repositories>
@@ -116,7 +116,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>7.6.0.RC4</version>
+			<version>9.4.41.v20210516</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
