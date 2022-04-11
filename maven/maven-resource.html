@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>maven-resource</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### maven-resource
+
+##### includes 和 excludes 
+
+ - includes 指定要包含的资源
+
+ - excludes ，过滤 includes 中指定的资源
+
+ - 多个 resource 之间的资源处理（includes / excludes）互不影响
+
+ **`pom.xml`**
+
+```xml
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>mrcuijt.science.redis</groupId>
+	<artifactId>springboot-redis</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>**/*.yml</include>
+				</includes>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+	</build>
+</project>
+```
+
+ **`application.yml`**
+
+```python
+app:
+  version: "@project.version@"
+  version1: '@project.version@'
+  version2: @project.version@
+```
+
+```python
+mvn compile
+```
+
+ **`application.yml`**
+
+```python
+app:
+  version: "0.0.1-SNAPSHOT"
+  version1: '0.0.1-SNAPSHOT'
+  version2: 0.0.1-SNAPSHOT
+```
+
+ **`pom.xml`**
+
+```xml
+<build>
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>**/*.properties</include>
+            </includes>
+            <filtering>true</filtering>
+        </resource>
+        <resource>
+            <directory>src/main/resources</directory>
+        </resource>
+    </resources>
+</build>
+```
+
+ **`application.properties`**
+
+```python
+app.version="@project.version@"
+app.version1='@project.version@'
+app.version2=@project.version@
+```
+
+```python
+mvn compile
+```
+
+ **`application.properties`**
+
+```python
+app.version="0.0.1-SNAPSHOT"
+app.version1='0.0.1-SNAPSHOT'
+app.version2=0.0.1-SNAPSHOT
+```
+
+ **`NewFile.xml`**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<version name="@project.version@"></version>
+```
+
+```python
+mvn compile
+```
+
+ **`NewFile.xml`**
+
+```python
+<?xml version="1.0" encoding="UTF-8"?>
+<version name="0.0.1-SNAPSHOT"></version>
+```
+
+##### 示例一
+
+```xml
+<filters>
+    <filter>../src/filters/${env.name}/datasource.properties</filter>
+    <filter>../src/filters/${env.name}/config.properties</filter>
+    <filter>../src/filters/${env.name}/dubbo.properties</filter>
+</filters>
+<resources>
+    <!-- 保证所有的 resources 下的配置文件能被编译打包，即能够被复制到 classpath 目录下 -->
+    <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+            <include>**/*.*</include>
+        </includes>
+        <filtering>false</filtering>
+    </resource>
+    <!-- 保证 resources 下的所有的配置文件可以被过滤，即可以根据 profile 进行属性替换 -->
+    <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+           <include>**/*.yml</include>
+        </includes>
+        <filtering>true</filtering>
+    </resource>
+</resources>
+```
+
+下面先看一下 maven 的 xsd 中对于这个标签的说明：
+
+```xml
+<xs:element name="filtering" minOccurs="0" type="xs:boolean" default="false">
+  <xs:annotation>
+    <xs:documentation source="version">3.0.0+</xs:documentation>
+    <xs:documentation source="description">
+      Whether resources are filtered to replace tokens with parameterised values or not.
+      The values are taken from the <code>properties</code> element and from the properties in the files listed
+      in the <code>filters</code> element.
+    </xs:documentation>
+  </xs:annotation>
+</xs:element>
+```
+
+翻译过来即表示：filetering 是一个 boolean 变量，标明是否需要根据上面配置的各种 filter 环境所指定的配置文件对这些资源文件里面的占位符进行替换。
+
+##### 示例二
+
+ - 在 pom 文件中增加（使用 maven 渲染 yml）
+
+```xml
+<build>
+   <resources>
+       <resource>
+          <directory>src/main/resources</directory>
+		  <!-- 标明是否需要对这些资源文件里面的占位符进行替换。 -->
+          <filtering>true</filtering>
+       </resource>
+    </resources>
+</build>
+```
+
+在 yml 中获取 pom 中项目版本号：
+
+```python
+app:
+  version: @project.version@
+```
+
+编译后在 classes 下对应的 yml 中 app.version 的值就会替换成 pom 中项目版本号
+
+##### 扩展——在 maven 中获取编译时间戳
+
+在 pom 文件 properties 中添加两个属性
+
+```xml
+<properties>
+    <!-- maven.build.timestamp 保存了 maven 编译时间戳-->
+    <timestamp>${maven.build.timestamp}</timestamp>
+    <!--指定时间格式-->    
+    <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
+</properties>
+```
+
+在 pom 中增加（使用 maven 渲染 yml）
+
+```xml
+<build>
+	<resources>
+		<resource>
+			<directory>src/main/resources</directory>
+			<filtering>true</filtering>
+		</resource>
+	</resources>
+</build>
+```
+
+在 application.yml 中配置
+
+```python
+app:
+  build:
+    time: @timestamp@
+```
+
+同理，在 properties 文件中配置
+
+```python
+app.build.time=@timestamp@
+```
+
+参考链接：
+
+ - <a href="https://www.jianshu.com/p/3d1075de3015" target="_blank">Maven resource 配置中 include 与 exclude 及其 filter 的使用</a>
+
+ - <a href="https://www.jianshu.com/p/16f763024dc6" target="_blank">Maven resources 资源过滤</a>
+
+ - <a href="https://blog.csdn.net/xukun5137/article/details/93527564" target="_blank">SpringBoot 配置文件 yml（或 properties）使用 pom.xml 中的变量</a>
+
+ - <a href="https://blog.csdn.net/lzufeng/article/details/86680306" target="_blank">application.yml 中使用 @ 获取 maven pom.xml properties 运行单元测试报错问题</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

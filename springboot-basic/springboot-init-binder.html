@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-init-binder</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-init-binder
+
+```java
+package com.br.creditapprove.config;
+
+import org.springframework.core.convert.converter.Converter;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class DateConverter implements Converter<String, Date> {
+
+    private static final String dateFormat = "yyyy-MM-dd HH:mm:ss";
+    private static final String shortDateFormat = "yyyy-MM-dd";
+    private static final String timeStampFormat = "^\\d+$";
+
+    @Override
+    public Date convert(String value) {
+
+        if(value == null || value.trim().equals("") || value.equalsIgnoreCase("null")) {
+            return null;
+        }
+
+        value = value.trim();
+
+        try {
+            if (value.contains("-")) {
+                SimpleDateFormat formatter;
+                if (value.contains(":")) {
+                    formatter = new SimpleDateFormat(dateFormat);
+                } else {
+                    formatter = new SimpleDateFormat(shortDateFormat);
+                }
+                return formatter.parse(value);
+            } else if (value.matches(timeStampFormat)) {
+                Long lDate = new Long(value);
+                return new Date(lDate);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("parser %s to Date fail", value));
+        }
+        throw new RuntimeException(String.format("parser %s to Date fail", value));
+    }
+
+}
+```
+
+
+
+```java
+    @InitBinder // 该方法只在本 Controller 中有效！此时会将 String 字符串转为 Date。
+    public void initBinder(WebDataBinder binder) {
+        // 方法1，注册converter
+        GenericConversionService genericConversionService = (GenericConversionService) binder.getConversionService();
+        if (genericConversionService != null) {
+            genericConversionService.addConverter(new DateConverter());
+        }
+        /*
+        // 方法2，定义单格式的日期转换，可以通过替换格式，定义多个dateEditor，代码不够简洁
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        CustomDateEditor dateEditor = new CustomDateEditor(df, true);
+        binder.registerCustomEditor(Date.class, dateEditor);
+
+        // 方法3，同样注册converter
+        binder.registerCustomEditor(Date.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) throws IllegalArgumentException {
+                setValue(new DateConverter().convert(text));
+            }
+        });*/
+
+    }
+```
+
+##### 统一处理所有 Controller 字符串转 Date 类型参数处理
+
+```java
+package com.br.creditapprove.config;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
+
+import java.beans.PropertyEditorSupport;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+@ControllerAdvice // @ControllerAdvice 处理所有 Controller
+public class ControllerHandler {
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        // 方法1，注册converter
+        GenericConversionService genericConversionService = (GenericConversionService) binder.getConversionService();
+        if (genericConversionService != null) {
+            genericConversionService.addConverter(new DateConverter());
+        }
+/*
+        // 方法2，定义单格式的日期转换，可以通过替换格式，定义多个dateEditor，代码不够简洁
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        CustomDateEditor dateEditor = new CustomDateEditor(df, true);
+        binder.registerCustomEditor(Date.class, dateEditor);
+
+        // 方法3，同样注册converter
+        binder.registerCustomEditor(Date.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) throws IllegalArgumentException {
+                setValue(new DateConverter().convert(text));
+            }
+        });*/
+
+    }
+}
+```
+
+ - <a href="https://www.javazhiyin.com/56535.html" target="_blank">SpringBoot 接收时间类型参数完整解决方案</a>
+
+ - <a href="https://zhuanlan.zhihu.com/p/115902823" target="_blank">SpringBoot2 教程 29 整合 SpringMVC 之 @InitBinder 处理请求参数的绑定(一)</a>
+
+ - <a href="https://www.cnblogs.com/jason1990/p/10028262.html" target="_blank">SpringBoot 前后端分离 Instant 时间戳自定义解析</a>
+
+ - <a href="https://blog.csdn.net/pentiumchen/article/details/44026575" target="_blank">Spring PropertyEditor分析</a>
+
+ - <a href="https://blog.csdn.net/weixin_42140851/article/details/102819787" target="_blank">异常：Field error in object 'xxx' on field 'XXX': rejected value [2019-10-15]</a>
+
+ - <a href="https://stackoverflow.com/questions/53615922/field-error-in-object-target-on-field-rejected-value-codes-typemismat" target="_blank">Field error in object 'target' on field '': rejected value []; codes [typeMismatch.target.,typeMismatch.,typeMismatch.java.util.Date,typeMismatch]</a>
+
+ - <a href="https://blog.csdn.net/qq_42937522/article/details/110310826" target="_blank">SpringBoot 配置返回前端时间戳和接收时间戳自动转为LocalDateTime（前后端统一使用时间戳交互）</a>
+
+ - <a href="https://www.cnblogs.com/lcngu/p/5785805.html" target="_blank">SpringMVC对日期类型的转换</a>
+
+ - <a href="https://blog.csdn.net/chenxidong9/article/details/82865786" target="_blank">springboot 处理Date的方案</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

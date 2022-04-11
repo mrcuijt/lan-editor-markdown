@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>rocket-mq-basic-002</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### rocket-mq-basic-002
+
+#### RocketMQ 简介
+
+RocketMQ 是一个统一消息引擎、轻量级数据处理平台。
+
+RocketMQ 是一款阿里巴巴开源的消息中间件。2016年11月28日，阿里巴巴向 Apache 软件基金会捐赠 RocketMQ，成为 Apache 孵化项目。2017年9月25日，Apache 宣布 RocketMQ 孵化成为 Apache 顶级项目（TLP），成为国内首个互联网中间件在 Apache 上的顶级项目。
+
+#### RocketMQ 的安装与启动
+
+#### 一、基本概念
+
+ - 消息（Message）
+
+  消息是指，消息系统所有传输信息的物理载体，生产和消费数据的最小单位，每条消息必须属于一个主题。  
+
+ - 主题（Topic）
+
+  Topic 表示一类消息的集合，每个主题包含若干条消息，每条消息只能属于一个主题，是 RocketMQ 进行消息订阅的基本单位。
+
+  topic:message 1:n / message:topic 1:1
+
+  一个生产者可以同时发送多种 Topic 的消息；而一个消费者只对特定的 Topic 感兴趣，即只可以订阅和消费一种 Topic 的消息。
+
+  producer:topic 1:n / consumer:topic 1:1
+
+ - 标签（Tag）
+
+  为消息设置的标签，用于同一主题下区分不同类型的消息。来自同一业务单元的消息，可以根据不同业务目的在同一主题下设置不同标签。标签能够有效地保持代码的清晰度和连贯性，并优化 RocketMQ 提供的查询系统。消费者可以根据 Tag 实现对不同只主题的不同消费逻辑，实现更好的扩展性。
+
+
+ - 队列（Queue）
+
+  存储消息的物理实体。一个 Topic 中可以包含多个 Queue，每个 Queue 中存放的就是该 Topic 的消息。一个 Topic 的 Queue 也被成为一个 Topic 中消息的分区。
+
+  分区（Partition）这个概念来自 Kafka。
+
+```python
+
+  producerA  |--> topic(Queue) --> consume
+
+
+             |--> topic(Queue1) --> consume
+  producerB  |--> topic(Queue2) --> consume
+             |--> topic(Queue3) --> consume
+
+```
+
+ - 一个分区，只能有一个消费者
+
+ - 多个分区，可以有多个消费者
+
+  一个 Topic 的 Queue 中的消息只能被一个消费者组中的一个消费者消费。
+
+  同一 Topic 有多个队列，就意味着可以配置多个消费者对应每个队列进行消费。
+
+在学习参考其他相关资料时，还会看到一个概念：分片（sharding）。分片不同于分区。在 RocketMQ 中，分片指的是存放相应 Topic 的 Broker。每个分片中会创建出相应数量的分区，即 Queue，每个 Queue 的大小都是相同的。
+
+ - 消息标识（MessageId/Key）
+
+RocketMQ 中每个消息拥有唯一 MessageId，且可以携带具有业务标识的 Key，以方便对消息的查询。不过需要注意的是，MessageId 有两个：在生产者 send() 消息时会自动生成一个 MessageId(msgId)，当消息到达 Broker 后， Broker 也会自动生成一个 MessageId(offsetMsgId)。 msgId、offsetMsgId 与 Key 都成为消息标识。
+
+  - msgId：由 producer 端生成，其生成规则为：
+
+     producerIp + 进程 pid + MessageClientIDSetter 类的 ClassLoader 的 hashCode + 当前时间 + AutomicInteger 自增计数器
+
+  - offsetMsgId：有 broker 端生成，其生成规则为：brokerIp + 物理分区的 offset（Queue 中的偏移量）
+
+  - key：由用户指定的业务相关的唯一标识
+
+#### 二、系统架构
+
+RocketMQ 架构上主要分为四部分构成：
+
+ - Producer
+
+  消息生产者，负责生产消息。Producer 通过 MQ 的负载均衡模块选择相应的 Broker 集群队列进行消息投递，投递的过程支持快速失败并且低延迟。
+
+  - 例如，业务系统产生的日志写入到 MQ 的过程，就是消息生产的过程。
+
+  - 再如，电商平台中用户提交的秒杀请求写入到 MQ 的过程，就是消息生产的过程。
+
+  RocketMQ 中的消息生产者都是以生产者组（Producer Group）的形式出现的。生产者组是同一类生产者的集合，这类 Producer 发送相同的 Topic 类型的消息。
+
+ - Consumer
+
+  消息消费者，负责消费消息。一个消息消费者会从 Broker 服务器中获取到消息，并对消息进行相关业务处理。
+
+  - 例如，QoS 系统从 MQ 中读取日志，并对日志进行解析处理的过程，就是消息消费的过程。
+
+  - 再如，电商平台的业务系统从 MQ 中读取到秒杀请求，并对请求进行处理的过程，就是消息消费的过程。
+
+  RocketMQ 中的消息消费者都是以消费者组（Consumer Group）的形式出现的。消费者组是同一类消费者的集合，这类 Consumer 消费的是同一个 Topic 类型的消息。消费者组使得在消息消费方面，实现 **负载均衡（将一个 Topic 中的不同的 Queue 平均分配给同一个 Consumer Group 的不同的 Consumer，注意不是将消息负载均衡）** 和 **容错（一个 Consumer 挂了，该 Consumer Group 中的其它 Consumer 可以接着消费原 Consumer 消费的 Queue）**的目标变得非常容易。
+
+  消费者组中 Consumer 的数量应小于等于订阅 Topic 的 Queue 数量。如果超出 Queue 数量，则多出的 Consumer 将不能消费消息。
+
+  不过，一个 Topic 类型的消息可以被多个消费者组同时消费。
+
+  - 例如，现有一个 Topic 下包含两个 Queue。现有两个 Consumer Group 消费者组，其中 Consumer Group1 包含三个 Consumer， Consumer Group2 包含两个 Consumer。
+
+     - 则 Consumer Group1 可以使自身中的两个 Consumer 一对一消费 Topic 中的两个 Queue。
+
+     - 则 Consumer Group2 可以使自身中的两个 Consumer 一对一消费 Topic 中的两个 Queue。
+
+     **注意：Consumer Group1 中多出来的第三个 Consumer 不会去进行消息的消费。**
+
+  - 注意：
+
+     - 消费者组只能消费一个 Topic 的消息，不能同时消费多个 Topic 消息。
+
+     - 一个消费者组中的消费者必须订阅完全相同的 Topic。
+
+ - Name Server
+
+  功能介绍，Name Server 是一个 Broker 与 Topic 路由的注册中心，支持 Broker 的动态注册与发现。
+
+  RocketMQ 的思想来自于 Kafka，而 Kafka 是依赖了 Zookeeper 的。所以在 RockerMQ的早期版本，即在 MetaQv1.0 与 v2.0 版本中，依赖的仍是 Zookeeper。从 MetaQv3.0，即 RocketMQ 开始去掉了 Zookeeper 依赖，使用了自己的 NameServer（Nacos）Zookeeper 是强一致性的且是 C 开发的，部署难度较高。
+
+  主要包括两个功能：
+
+  - Broker 管理：接受 Broker 集群的注册信息并且保存下来作为路由信息的基本数据；提供心跳检测机制，检测 Broker 是否还存活。
+
+  - 路由信息管理：每个 Name Server 中都保存着 Broker 集群的整个路由信息和用于客户端查询的队列信息。Producer 和 Consumer 通过 Name Server 可以获取整个 Broker 集群的路由信息，从而进行消息的投递和消费。
+
+  路由注册
+
+  NameServer 通常也是以集群的方式部署，不过，NameServer 是无状态的，即 NameServer 集群中的各个节点时无差异的，各节点相互不进行信息通讯。那各节点中的数据时如何进行数据同步的呢？在 Broker 节点启动时，轮训 NameServer 列表，与每个 NameServer 节点建立长连接，发起注册请求。在 NameServer 内部维护着一个 Broker 列表，用来动态存储 Broker 的信息。
+
+  Broker 节点为了证明自己是活着的，为了维护与 NameServer 间的长连接，会将最新的信息以心跳包的方式上报给 NameServer，每 30 秒发送一次心跳。心跳包中包含 BrokerId、Broker地址、Broker名称、Broker所属集群名称等等。NameServer 在接收到心跳包后，会更新心跳时间戳，记录这个 Broker 的最新存活时间。
+
+  路由剔除
+
+  由于 Broker 关机、宕机或网络抖动等原因，NameServer 没有收到 Broker 的心跳，NameServer 可能会将其从 Broker 列表中剔除。
+
+  NameServer 中有一个定时任务，每隔 10 秒就会扫描一次 Broker 表，查看每一个 Broker 的最新心跳时间戳距离当前时间是否超过 120 秒，如果超过，则会判定 Broker 失效，然后将其从 Broker 列表中剔除。
+
+  - 扩展
+
+     对于 RocketMQ 日常运维工作，例如 Broker 升级，需要停掉 Broker 的工作。OP 需要怎么做？
+
+     OP 需要将 Broker 的读写权限禁用掉。一但 client（Consumer 或 Producer）向 broker 发送请求，都会收到 broker 的 NO_PREMISSION 响应，然后 client 会进行对其它 Broker 的重试。
+
+     当 OP 观察到这个 Broker 没有流量后，再关闭它，实现 Broker 从 NameServer 的移除。
+
+     OP（运维工程师）
+
+     SRE（Site Reliability Engineer，现场可靠性工程师）
+
+  路由发现
+
+  RocketMQ 的路由发现采用的是 Pull 模型。当 Topic 路由信息出现变化时，NameServer 不会主动推送给客户端，而是客户端定时拉去 Topic 最新的路由。默认客户端每 30 秒会拉去一次最新的路由。
+
+  - 扩展
+
+     1）Push 模型：推送模型。（发布订阅模型长连接，实时性较好）
+
+     - 实时性要求较高
+
+     - Client 数量不多，Server 数据变化较频繁
+
+     2）Pull 模型：拉取模型。（实时性较差）
+
+     3）Long Polling 模型：长轮询模型。（Nacos，对 Push 与 Pull 模型的整合，利用了这两种模型的优势）
+
+  客户端 NameServer 选择策略
+
+  客户端在配置时必须要写上 NameServer 集群的地址，那么客户端到底连接的是哪个 NameServer 节点呢？客户端首先会生成一个随机数，然后再与 NameServer 节点数量取模，此时得到的就是所要连接的节点索引，然后就会进行连接。如果连接失败，则会采用 round-robin 策略，逐个尝试着去连接其它节点。
+
+ - Broker
+
+  功能介绍
+
+  消息中转角色，负责存储消息、转发消息。Broker 在 RocketMQ 系统中负责接收并存储生产者发送来的消息，同时为消费者的拉取请求做准备。Broker 同时也存储着消息相关的元数据，包括消费者消费进度偏移 offset、主题、队列等。
+
+  模块构成
+
+  Remoting Module：整个 Broker 的实体，负责处理来自 clients 端的请求。而这个 Broker 实体则由以下模块构造。
+
+  Client Manager：客户端管理器。负责接收、解析客户端（Producer/Consumer）请求，管理客户端。列入，维护 Consumer 的 Topic 订阅信息。
+
+  Store Server：存储服务。提供方便简单的 API 接口，处理 消息存储到物理硬盘 和 消息查询 功能。
+
+  HA Server：高可用服务。提供 Master Broker 和 Slave Broker 之间的数据同步功能。
+
+  Index Server：索引服务。根据特定的 Message Key，对投递到 Broker 的消息进行索引服务，同时也提供根据 Message Key 对消息进行快速查询的功能。
+  
+  为了增强 Broker 性能与吞吐量，Broker 一般都是以集群形式出现的。各集群节点中可能存放着相同 Topic 的不同 Queue，不过，这里有个问题，如果某 Broker 节点宕机，如何保证数据不丢失呢？其解决方案是，将每个 Broker 集群节点进行横向扩展，即将 Broker 节点再建为一个 HA 集群，解决单点问题。
+
+  Broker 节点集群是一个主从集群，即集群中具有 Master 与 Slave 两种角色，Master 负责处理读写操作请求，Slave 负责对 Master 中的数据进行备份。当 Master 挂掉了，Slave 则会自动切换为 Master 去工作。所以这个 Broker 集群是主备集群。一个 Master 可以包含多个Slave，但一个 Slave 只能隶属于一个 Master， Master 与 Slave 的对应关系是通过指定相同的 BrokerName、不同的 Brokerld 来确定的。Brokerld 为 0 表示 Master，非 0 表示 Slave。每个 Broker 与 NameServer 集群的所有节点建立长连接，定时注册 Topic 信息到 所有 NameServer.
+
+  工作流程
+
+  1）启动 NameServer，NameServer 启动后开始监听端口，等待 Broker、Producer、Consumer 连接。 
+
+  2）启动 Broker 时，Broker 会与所有的 NameServer 建立并保持长连接，然后每 30 秒向 NameServer 定时发 送心跳包。
+
+  3）收发消息前，可以先创建 Topic，创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，当然，在创建 Topic 时也会将 Topic 与 Broker 的关系写入到 NameServer 中，不过，这步是可选的，也可以在发送消息时自动创建 Topic.
+
+  4）Producer 发送消息，启动时先跟 NameServer 集群中的其中一台建立长连接，并从 NameServer 中获取 路由信息，即当前发送的 Topic 消息的 Queue 与 Broker 的地址（IP + Port）的映射关系。然后根据算法策略从队选择一个 Queue，与队列所在的 Broker 建立长连接从而向 Broker 发消息。当然，在获取到路信息后，Producer 会首先将路由信息缓存到本地，再每 30 秒从 NameServer 更新一次路由信息。
+
+  5）Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接，获取其所订阅 Topic 的路由信息，然 后根据算法策略从路由信息中获取到其所要消费的 Queue，然后直接跟 Broker 建立长连接，开始消费其中的消息，Consumer 在获取到路由信息后，同样也会每 30 秒从 NameServer 更新一次路由信息，不过不同于 Producer 的是，Consumer 还会向 Broker 发送心跳，以确保 Broker 的存活状态。
+
+  Topic 创建模式
+
+  - 手动创建 Topic 时，有两种模式：
+
+     - 集群模式：该模式下创建的 Topic 在该集群中，所有 Broker 中的 Queue 数量是相同的。
+
+     - Broker 模式：该模式下创建的 Topic 在流集群中，每个 Broker 中的 Queue 数量可以不同。
+
+  - 自动创建 Topic 时，默认采用的是 Broker 模式，会为每个 Broker 默认创建 4 个 Queue．
+
+  读/写队列
+
+  从物理上来讲读/写队列是同一个队列。所以不存在读/写队列数据同步问题。读/写队列是逻辑上进行区分的概念。一般情况下读/写队列的数量是相同的。
+
+  - 例如，创建 Topic 时设置的写队列数量为 8，读队列数量为 4，此时系统会创建 8 个 Queue，分别是 0 1 2 5 4 5 6 7．Producer 会将消息写入到这 8 个队列，但 Consumer 只会消费 0 1 2 3 这 4 个队列中的消息，4 5 6 7 中的消息是不会被消费到的。
+
+  - 再如，创建 Topic 时设置的写队列数量为 4，读队列数量为 8，此时系统会创建 8 个 Queue, 分别是 0 1 2 3 4 5 6 7. Producer 会将消息写入到 0 1 2 5 这 4 个队列，但 Consumer 只会消费 0 1 2 5 4 5 6 7 这 8 个队列中的消息，但是 4 5 6 7 中是没有消息的.此时假设 Consumer Group 中包含两个 Consuer, Consumer1 消费 0 1 2 3, 而 Consumer2 消费 4 5 6 7。但实际情况是，Consumer2 是没有消息可消费的。
+
+  也就是说，当读写队列数量设置不同时，总是有问题的。那么，为什么要这样设计泥？
+
+  - 其这样设计的目的是为了，方便 Topic 的 Queue 的缩容，例如，原来创建的 Topic 中包含 16 个 Queue, 如何能多使其 Queue 缩容为 8 个，还不会丢失消息？
+
+  - 可以动态修改写队列数量为 8，读队列数量不变。此时新的消息只能写入到前 8 个队列，而消费都消费的却是 16 个队列中的数据。当发现后 8 个 Queue 中的消息消费完毕后，就可以再将读队列数量动态设置为 8。整个缩容过程，没有丢失任何消息。
+
+  pem 用于设置对当前创建 Topic 的操作权限：2 表示只写，4 表示只读， 6 表示读写。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

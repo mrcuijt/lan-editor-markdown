@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LanEditorPluginTemplate</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-mybatis-cache
+
+##### 概念介绍
+
+ - 什么是一级缓存
+ 
+ 在日常开发过程中，经常会有相同的 SQL 执行多次查询的情况，Mybatis 提供了一级缓存来优化这些查询，避免多次请求数据库。
+ 
+ 一级缓存在 Mybatis 中默认是开启的并且是 session 级别，它的作用域为一次 SQLSession 回话。
+ 
+ - 什么是二级缓存
+ 
+ 相对于一级缓存，二级缓存的作用域更广泛，它不止局限于一个 SQLSession ，可以在多个 SQLSession 之间共享，事实上，它的作用域是 namespace。
+ 
+ Mybatis 的二级缓存默认也是开启的，但由于他的作用域时 namespace ，所以还需要在 mapper.xml 中开启才能生效。
+ 
+ - 缓存的优先级
+ 
+ 通过 Mybatis 发起的查询，作用顺序为：二级缓存->一级缓存->数据库，其中任意一个环节查到不为空的数据，都将直接返回结果。
+ 
+ - 缓存失效
+ 
+ 当一个缓存作用域中发生了 update、insert、delete 动作后，将会触发缓存失效，下次查询将命中数据库，从而保证不会查到脏数据。
+ 
+##### 代码演示
+
+###### 一级缓存
+
+ 默认情况下， Mybatis 开启并使用了一级缓存。
+
+ 单元测试用例：
+
+```java
+/**
+ * 开启事务，测试一级缓存效果
+ * 缓存命中顺序：二级缓存---> 一级缓存---> 数据库
+ **/
+@Test
+@Transactional(rollbackFor = Throwable.class)
+public void testFistCache(){
+    // 第一次查询，缓存到一级缓存
+    userMapper.selectById(1);
+    // 第二次查询，直接读取一级缓存
+    userMapper.selectById(1);
+ 
+}
+``` 
+
+可以看到，虽然进行了两次查询，但最终只请求了一次数据库，第二次查询命中了一级缓存，直接返回了数据。
+
+这里有两点需要说明一下：
+
+ - 1、为什么开启事务
+ 
+ 由于使用了数据库连接池，默认每次查询之后自动 commit ，这就导致两次查询使用的不是同一个 SQLSession ，根据自己缓存的原理，它将永远不会生效。
+ 
+ 当我们开启了事务，两次查询都在同一个 SQLSession 中，从而让第二次查询命中了一级缓存。
+ 
+ - 2、两种一级缓存模式
+ 
+ 一级缓存的作用域有两种：session （默认）和 statment，可通过设置 local-cache-scope 的值来切换，默认为 session。
+ 
+ 二者的区别在与 session 会将缓存作用于同一个 SQLSession ，而 statment 仅针对一次查询，所以， local-cache-scope: statment 可以理解为关闭一级缓存。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

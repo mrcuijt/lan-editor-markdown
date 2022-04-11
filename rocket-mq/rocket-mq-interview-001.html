@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>rocket-mq-interview-001</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### rocket-mq-interview-001
+
+#### RocketMQ 事务消息
+
+参考链接：
+
+ - <a href="https://www.bilibili.com/video/BV1nM4y1g7ga" target="_blank">【面试】RocketMQ消息中间件消费者专题，大牛30分钟扒光全部细节</a>
+
+ - 分布式事务
+
+  例如，支付宝账户 向 余额宝账户 转账，如果这两个账户不是用的同一个数据库。一个是支付宝账户的数据库，一个是余额宝账户的数据库，那么它必须保证这两个事务都成功，那这个分布式事务才算成功。
+
+  如果任何一个数据库的事务失败，那么就需要将这两个数据库的事务都进行回滚，不然就会出问题（数据一致性问题）。
+
+RocketMQ 它是确保的最终一致性，它确保生产者本地事务完成之后，一定会把消息发送到 Broker 节点。至于事务什么时候被消费，作为生产者端是没有办法控制的。
+
+#### RocketMQ 事务消息应用场景
+
+ - 普通消息
+
+  普通消息可能会出现发送超时本地事务回滚，但同时 Broker 收到了这条消息。最终消息被消费，导致一系列问题。
+
+ - 事务消息
+
+  在使用事务消息时，客户端会先向 RocketMQ 发送一个 Half Message ，RocketMQ 会将该消息状态设置为 prepare 状态，返回 MsgId 和 UniqueId 作为客户端本地事务消息的一个 Key。在完成本地事务后客户端会发送一个 RPC 确认请求给 RocketMQ。RocketMQ 会将之前状态为 prepare 消息查询出来后重新创建保存待消费的消息队列中。如果客户端迟迟没有发送第二次 RPC 确认消息时，RocketMQ 会有一个反向 RPC 的确认消息，去询问所有的客户端这个事务是否完成。这个需要我们去实现一个接口来返回具体的业务逻辑，一般设计一张事务状态表来记录本地事务完成的状态。
+
+#### 消息队列原理
+
+消息队列（Message Queue）是一种进程间通信或同一进程的不同线程间的通信方式。 有些业务不想也不需要立即处理消息。 消息队列提供了异步处理机制，允许用户把一个消息放入队列，但并不立即处理它。 想向队列中放入多少消息就放多少，然后在需要的时候再去处理它们。
+
+参考链接：
+
+ - <a href="https://www.jianshu.com/p/19a94c1c729b" target="_blank">消息队列原理及选型</a>
+
+#### RocketMQ 消息丢失
+
+参考链接：
+
+ - <a href="https://zhuanlan.zhihu.com/p/112681372" target="_blank">消息队列漫谈：关于消息丢失，消息重复，消息积压一些处理方式</a>
+
+关于消息丢失这个问题，现在的这些消息队列中间件只要你正确配置基本都不会丢消息，但是万一出现了这种情况，我们需要知道从哪些地方着手来解决问题。
+
+一般消息丢失我们可以分为两大类：
+
+ - 一类是网络丢失
+
+ - 一类是磁盘丢失
+
+那么我们还是从上面的消息队列三个主要过程来分析：
+
+ 1. 生产者把消息从 Producer 生产出来，经过网络发送给 Broker 端(生产阶段)：在这个阶段我们常用的保障手段就是，当 Broker 收到消息后给 Producer 一个确认响应（就是大家常说的 ACK），如果 Producer 没有收到正确的响应，Producer 直到收到 Broker 的确认响应后才会停止重试消息发送。这里需要注意的点是，根据自己业务场景有时候要对 ACK 做一些处理，消息队列大都提供了自动 ACK，再需要手动确认 ACK 的时候我们需要关闭掉这一默认设置。还有就是需要在我们的代码处做好异常处理，尤其要注意在异步发送的回调中检查发送结果。这一就可以保证消息队列在这个阶段数据不会丢失。
+
+ 2. Broker 收到来自 Producer 的消息，持久化到磁盘（存储阶段）：在这个阶段只要 Broker 正常工作基本上都能序列化正常，但是在集群化的 Broker 中发生概率还是比较高的。因此我们要对刷盘机制根据情况做一些调整，在单节点的情况下，我们可以设置当 Broker 接收到消息后先刷盘，当刷盘成功后再给 Producer 成功响应。这样即使 Broker 宕机，由于消息已经写入磁盘，重启后会继续处理，这里就会引入一个新的问题我们接下来会说到（消息重复）。例如设置 RocketMQ 中 flushDiskType=SYNC_FLUSH（同步刷盘）
+
+ 3. 消费者通过网络，从 Broker 上读取消息（消费阶段）：在这个阶段我们需要注意的一定要当消费者处理完你自身业务逻辑后给 Broker 发送消费确认。否则当你收到消息就给 Broker 确认消费，此时 Broker 认为消费者消费成功，将消息从 Broker 队列中移除，当本地逻辑处理异常时就很有可能丢掉这个消息。
+
+#### 线程池原理及参数
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/Willson_L/article/details/92211727" target="_blank">线程池基础，工作原理与参数设置</a>
+
+ - <a href="https://blog.csdn.net/Carrie_Q/article/details/108696481" target="_blank">线程池原理&常用四大线程池及七大参数</a>
+
+ - 线程池原理
+
+  线程池的工作主要是控制运行的线程的数量，处理过程中将任务放进队列，然后在线程创建后启动这些任务，如果线程数超过了最大数量，超出数量的线程排队等候，等待其他线程执行完毕，在从队列中取出任务来执行。
+
+ - 线程池参数
+
+  - corePoolSize：线程池中的常驻核心线程数
+
+  - maximumPoolSize：线程池能够容纳同时执行的最大线程数，此值必须大于1
+
+  - keepAliveTime：多余的空闲线程存活时间。当前线程数量超过maximumPoolSize时，当空闲时间达到keepAliveTime时，多余空闲线程会被销毁直到只剩下corePoolSize个线程为止。
+
+  - unit：keepAliveTime 的单位
+
+  - workQueue：任务队列，被提交但尚未执行的任务
+
+  - threadFactory：表示生成线程池中工作线程的线程工厂，用于创建线程，一般用默认的即可
+
+  - handler：决绝策略，表示当队列满了并且线程大于线程池的最大线程数（maximumPoolSize）
+
+#### Redis 数据类型
+
+参考链接：
+
+ - <a href="https://www.runoob.com/redis/redis-data-types.html" target="_blank">Redis 数据类型</a>
+
+Redis支持五种数据类型：
+
+ - string（字符串）
+
+ - hash（哈希）
+
+ - list（列表）
+
+ - set（集合）
+
+ - zset(sorted set：有序集合)
+
+#### Redis 功能
+
+ - Redis 是一个高性能的 Key-Value 数据库。
+
+ - 可作为系统缓存数据库使用，对一些不会经常发生更新的数据或是热点数据，在请求时直接从 Redis 获取结果。
+
+ - 可作存储业务系统用户单点登录时的会话标识。
+
+#### b树 和 b+树 区别
+
+参考链接：
+
+ - <a href="https://www.jianshu.com/p/51d9e3fcac5d" target="_blank">B树、B-树、B+树 MySql中的索引</a>
+
+ - <a href="https://www.jianshu.com/p/ace3cd6526c4" target="_blank">B+树和B树的区别</a>
+
+#### 数据结构相关
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/xdyixia/p/9126069.html" target="_blank">数据结构的相关概念</a>
+
+#### MySQL 中的索引用的是什么结构
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/rickiyang/p/13559507.html" target="_blank">MySQL 中的索引用的是什么结构</a>
+
+#### 建索引遵循哪些原则
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/xfcy1990/article/details/90026089" target="_blank">建索引的几大原则</a>
+
+ - <a href="https://blog.csdn.net/weixin_40032967/article/details/105031368" target="_blank">MySQL建索引需要遵循哪些原则呢？</a>
+
+#### spring aop原理，用于解决什么问题
+
+AOP 的原理就是动态代理，通过动态代理可以在函数调用前、调用后做一些增强处理。
+
+可以很好的做到对业务代码非入侵下处理系统层面中一些相同行为的业务。
+如 Service 层在进行数据库操作时需要开启事务的操作。
+如 Controller 层记录每次用户请求的日志
+
+就像是Web系统的中的过滤器，
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

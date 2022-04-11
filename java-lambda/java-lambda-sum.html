@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-lambda-sum</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-lambda-sum
+
+##### List&lt;Integer&gt 求和
+
+想要用流对 `List<Integer>` 进行求和，但查找完资料都是对 `List<Object>` 中 Object 中的某个字段进行求和，就像这样：
+
+```java
+long sum = list.stream().mapToLong(User::getAge).sum();
+```
+
+而我 list 中本身存的就是基本类型的数字，并不适用。后来在 IBM 开发者社区中找答案：
+
+```java
+long sum = list.stream().reduce(Integer::sum).orElse(0);
+```
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/hsz2568952354/article/details/89886743" target="_blank">List Integer 求和</a>
+
+ - <a href="https://www.ibm.com/developerworks/cn/java/j-lo-java8streamapi/index.html" target="_blank">Java 8 中的 Streams API 详解</a>
+
+ - <a href="" target="_blank"></a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

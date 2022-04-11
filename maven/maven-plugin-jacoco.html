@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>maven-plugin-jacoco</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### maven-plugin-jacoco
+
+如题，你能看到本文，说明你应该对本文涉及的框架和组件已经初步了解。
+
+总的来说，本文所述集成方案是对代码的单元测试用例执行覆盖率进行检测统计，主要是用来对开发人员单元测试用例编写程度的一种检测。
+
+其整体过程大概可以分为：
+
+ - 1、使用 jacoco 代理，在 maven 执行之前植入 jacoco 代理。
+
+ - 2、maven 对项目进行编译打包，并自动执行单元测试用例(如 junit)。
+
+ - 3、测试用例执行过程中，jacoco 代理会记录代码执行的所有行信息，生成记录文件 (target/jacoco.exec)。
+
+ - 4、使用 jacoco 命令将记录的代码执行情况文件转换生成为 jacoco 报表 (target/site/jacoco/index.html)。
+
+ - 5、使用 sonar 命令，将代码覆盖率报表推送到 sonarqube 平台中。
+
+ - 6、登录 sonarqube 查看代码覆盖率统计报告(也可以本地访问 jacoco/index.html 直接查看报告)。
+
+本文所涉组件和框架版本信息如下：
+
+ - 1、springboot(2.1.8.RELEASE)
+
+ - 2、sonarqube(docker 版 sonarqube:7.9.1-community)
+
+ - 3、maven(3.6.1)
+
+ - 4、jacoco(springboot 框架内已自带，无需增加配置)
+
+Jacoco 是一个开源的覆盖率工具。Jacoco 可以嵌入到 Ant 、Maven 中，并提供了 EclEmma Eclipse 插件,也可以使用 JavaAgent 技术监控 Java 程序。很多第三方的工具提供了对 Jacoco 的集成，如 sonar、Jenkins 等。之所以在此引入 Jacoco 是因为在使用 Cobertura 的时候，不能完全的适配 Jdk 8  Lambda 表达式，而 Jacoco 可以适配。
+
+官网地址：<a href="http://www.eclemma.org/jacoco/" target="_blank">http://www.eclemma.org/jacoco/</a>
+
+idea 默认自带的插件，统计出来的覆盖率只包含 classes、method、line，不太详细，不能满足我们的要求；所以一般使用 JaCoCo 插件来统计，我们切换成 JaCoCo 插件以后，紧接着在 maven 的 pom 文件中这样配置：
+
+（1）添加依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.2</version>
+    </dependency>
+</dependencies>
+```
+
+（2）配置 plugins
+
+```xml
+<plugins>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <configuration>
+            <forkMode>once</forkMode>
+            <argLine>-Dfile.encoding=UTF-8 ${jacocoArgLine}</argLine>
+            <!--<argLine>@{argLine} -your -extra -arguments -Xmx1024m</argLine>-->
+            <!--<skip>true</skip>-->
+        </configuration>
+    </plugin>
+ 
+    <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.2</version>
+        <configuration>
+            <!-- 由于 jacoco-maven-plugin 与 maven-surefire-plugin 插件均使用 argLine 参数，
+            导致 surefire 覆盖了 jacoco 的参数，而无法生成 jacoco.exec，
+            maven 报错：Skipping JaCoCo execution due to missing execution data file
+            在 jacoco 中加入 propertyName 参数，在 surefire 中的 argLine 中引入 ${jacocoArgLine}，即可解决此问题，pom 配置如下：-->
+            <propertyName>jacocoArgLine</propertyName>
+            <destFile>target/coverage-reports/jacoco-unit.exec</destFile>
+            <dataFile>target/coverage-reports/jacoco-unit.exec</dataFile>
+            <includes>
+                <include>**/service/**</include>
+                <include>**/controller/**</include>
+                <include>**/jacoco/**</include>
+                <!--<include>**/service/impl/*.class</include>-->
+            </includes>
+            <!-- rules里面指定覆盖规则 -->
+            <rules>
+                <rule implementation="org.jacoco.maven.RuleConfiguration">
+                    <element>BUNDLE</element>
+                    <limits>　　
+                        <!-- 指定方法覆盖到50% -->
+                        <limit implementation="org.jacoco.report.check.Limit">
+                            <counter>METHOD</counter>
+                            <value>COVEREDRATIO</value>
+                            <minimum>0.50</minimum>
+                        </limit>
+                        <!-- 指定分支覆盖到50% -->
+                        <limit implementation="org.jacoco.report.check.Limit">
+                            <counter>BRANCH</counter>
+                            <value>COVEREDRATIO</value>
+                            <minimum>0.50</minimum>
+                        </limit>
+                        <!-- 指定类覆盖到100%，不能遗失任何类 -->
+                        <limit implementation="org.jacoco.report.check.Limit">
+                            <counter>CLASS</counter>
+                            <value>MISSEDCOUNT</value>
+                            <maximum>0</maximum>
+                        </limit>
+                    </limits>
+                </rule>
+            </rules>
+        </configuration>
+        <executions>
+            <execution>
+                <id>jacoco-initialize</id>
+                <goals>
+                    <goal>prepare-agent</goal>
+                </goals>
+            </execution>
+            <!--这个check:对代码进行检测，控制项目构建成功还是失败-->
+            <execution>
+                <id>check</id>
+                <goals>
+                    <goal>check</goal>
+                </goals>
+            </execution>
+            <!--这个report:对代码进行检测，然后生成index.html在 target/site/index.html中可以查看检测的详细结果-->
+            <execution>
+                <id>jacoco-site</id>
+                <phase>package</phase>
+                <goals>
+                    <goal>report</goal>
+                </goals>
+            </execution>
+        </executions>
+    </plugin>
+</plugins>
+```
+
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+
+    <groupId>com.hxtz</groupId>
+    <artifactId>hxtz</artifactId>
+    <version>1.0</version>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- 需要生成 jacoco 报告时将此行注释 -->
+		<!-- <jacocoArgLine></jacocoArgLine> -->
+	</properties>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.4.RELEASE</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
+                <configuration>
+                    <forkMode>once</forkMode>
+                    <argLine>-Dfile.encoding=UTF-8 ${jacocoArgLine}</argLine>
+                    <!--<argLine>@{argLine} -your -extra -arguments -Xmx1024m</argLine>-->
+                    <!--<skip>true</skip>-->
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.2</version>
+                <configuration>
+					<!-- 由于 jacoco-maven-plugin 与 maven-surefire-plugin 插件均使用 argLine 参数，
+					导致 surefire 覆盖了 jacoco 的参数，而无法生成 jacoco.exec，
+					maven 报错：Skipping JaCoCo execution due to missing execution data file
+					在 jacoco 中加入 propertyName 参数，在 surefire 中的 argLine 中引入 ${jacocoArgLine}，即可解决此问题，pom 配置如下：-->
+                    <propertyName>jacocoArgLine</propertyName>
+                    <destFile>target/coverage-reports/jacoco-unit.exec</destFile>
+                    <dataFile>target/coverage-reports/jacoco-unit.exec</dataFile>
+                    <includes>
+                        <include>**/service/**</include>
+                        <include>**/controller/**</include>
+                        <include>**/jacoco/**</include>
+                        <!--<include>**/service/impl/*.class</include>-->
+                    </includes>
+                    <!-- rules里面指定覆盖规则 -->
+                    <rules>
+                        <rule implementation="org.jacoco.maven.RuleConfiguration">
+                            <element>BUNDLE</element>
+                            <limits>　　
+                                <!-- 指定方法覆盖到50% -->
+                                <limit implementation="org.jacoco.report.check.Limit">
+                                    <counter>METHOD</counter>
+                                    <value>COVEREDRATIO</value>
+                                    <minimum>0.50</minimum>
+                                </limit>
+                                <!-- 指定分支覆盖到50% -->
+                                <limit implementation="org.jacoco.report.check.Limit">
+                                    <counter>BRANCH</counter>
+                                    <value>COVEREDRATIO</value>
+                                    <minimum>0.50</minimum>
+                                </limit>
+                                <!-- 指定类覆盖到100%，不能遗失任何类 -->
+                                <limit implementation="org.jacoco.report.check.Limit">
+                                    <counter>CLASS</counter>
+                                    <value>MISSEDCOUNT</value>
+                                    <maximum>0</maximum>
+                                </limit>
+                            </limits>
+                        </rule>
+                    </rules>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>jacoco-initialize</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!--这个check:对代码进行检测，控制项目构建成功还是失败-->
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <!--这个report:对代码进行检测，然后生成index.html在 target/site/index.html中可以查看检测的详细结果-->
+                    <execution>
+                        <id>jacoco-site</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+```python
+##
+## 该命令所经历阶段顺序：清理、设置 jacoco 代理、打包、执行测试用例、生成 jacoco 报告、推送报告到 sonarqube
+mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package org.jacoco:jacoco-maven-plugin:report sonar:sonar
+
+
+mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package org.jacoco:jacoco-maven-plugin:report
+
+mvn clean package
+
+mvn jacoco:report
+
+## 查看 jacoco 插件中的所有功能
+mvn help:describe -Dplugin=org.jacoco:jacoco-maven-plugin
+
+## 无法运行测试用例时的解决方法
+## 在 mvn 命令后紧跟 jacoco:prepare-agent 先对其进行初始化
+mvn jacoco:prepare-agent compile test-compile surefire:test jacoco:report
+
+## 执行完测试用例后无覆盖率问题解决方法
+## 原因：
+<plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-surefire-plugin</artifactId>
+	<version>3.0.0-M3</version>
+	<configuration>
+		<forkMode>once</forkMode>
+		<argLine>-Dfile.encoding=UTF-8 ${jacocoArgLine}</argLine>
+	</configuration>
+</plugin>
+```
+
+由于我们在 pom 文件的 plugin 里面配置了 rule 规则和 check 目标，所以在覆盖率不满足的情况下，mvn install 是不会成功的，并且会报错
+
+另一个需要注意的是我在 rule 中配置的规则，有的是 `COVEREDRATIO`，有的是 `MISSEDCOUNT`，这说明有的统计的是覆盖率，有的统计的是丢失率（也即未覆盖到的）
+
+配置 JaCoCo 插件一定注意和JDK版本的对应关系，如果你用的是 jdk1.8，则插件一定要用最新版，要不然会报如下错误：
+
+```python
+Caused by: java.lang.RuntimeException: Class java/util/UUID could not be instrumented.
+    at org.jacoco.agent.rt.internal_5d10cad.core.runtime.ModifiedSystemClassRuntime.createFor(ModifiedSystemClassRuntime.java:138)
+    at org.jacoco.agent.rt.internal_5d10cad.core.runtime.ModifiedSystemClassRuntime.createFor(ModifiedSystemClassRuntime.java:99)
+    at org.jacoco.agent.rt.internal_5d10cad.PreMain.createRuntime(PreMain.java:51)
+    at org.jacoco.agent.rt.internal_5d10cad.PreMain.premain(PreMain.java:43)
+    ... 6 more
+Caused by: java.lang.NoSuchFieldException: $jacocoAccess
+    at java.lang.Class.getField(Class.java:1542)
+    at org.jacoco.agent.rt.internal_5d10cad.core.runtime.ModifiedSystemClassRuntime.createFor(ModifiedSystemClassRuntime.java:136)
+    ... 9 more
+FATAL ERROR in native method: processing of -javaagent failed
+Exception in thread "main" 
+```
+
+参考连接：
+
+ - <a href="https://blog.csdn.net/lvyuan1234/article/details/82836052" target="_blank">在 idea 中使用 JaCoCo 插件统计单元测试覆盖率</a>
+
+ - <a href="https://blog.csdn.net/oschina_41790905/article/details/82627728" target="_blank">Maven 配置 Jacoco 插件，查看代码覆盖率</a>
+
+ - <a href="https://blog.csdn.net/Fung_Daniel/article/details/90700107" target="_blank">Maven 通过 Jacoco 生成单元测试覆盖率数据，无法生成 jacoco.exec</a>
+
+ - <a href="https://blog.csdn.net/weixin_26872803/article/details/112232462" target="_blank">idea 怎么使用 Jacoco 生成报告 jacoco+maven+sonar+springboot 单元测试代码覆盖率统计</a>
+
+ - <a href="https://pleiades.io/help/idea/generating-code-coverage-report.html" target="_blank">generating-code-coverage-report</a>
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

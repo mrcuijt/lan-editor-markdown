@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-mock-jacoco</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot-mock-jacoco
+
+```xml
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.4.RELEASE</version>
+    </parent>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- 需要生成 jacoco 报告时将此行注释 -->
+		<!-- <jacocoArgLine></jacocoArgLine> -->
+	</properties>
+
+    <dependencies>
+        <!-- Junit 单元测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>lib</directory>
+                <targetPath>BOOT-INF/lib/</targetPath>
+                <includes>
+                    <include>**/*.jar</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+        </resources>
+        <!--单元测试时引用src/main/resources下的资源文件-->
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+            <testResource>
+                <directory>src/main/resources</directory>
+            </testResource>
+        </testResources>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
+                <configuration>
+                    <forkMode>once</forkMode>
+                    <argLine>-Dfile.encoding=UTF-8 ${jacocoArgLine}</argLine>
+                    <!--<argLine>@{argLine} -your -extra -arguments -Xmx1024m</argLine>-->
+                    <!--<skip>true</skip>-->
+                </configuration>
+            </plugin>
+            <!--maven 资源文件打包到外面-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <!-- <excludes>
+                         <exclude>**/*.yml</exclude>
+                     </excludes>-->
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.br.creditapprove.RootApplication</mainClass>
+                    <jvmArguments>-Dfile.encoding=UTF-8 -Xdebug
+                        -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
+                    </jvmArguments>
+                    <executable>true</executable>
+                    <fork>false</fork>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--复制jar包到指定目录-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${maven-antrun-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>gen-webadmin</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <copy todir="docker"
+                                      file="target/${project.artifactId}.${project.packaging}"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <jvmTarget>1.8</jvmTarget>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <!-- 替换会被 maven 特别处理的 default-compile -->
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <!-- 替换会被 maven 特别处理的 default-testCompile -->
+                    <execution>
+                        <id>default-testCompile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>testCompile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.2</version>
+                <configuration>
+                    <propertyName>jacocoArgLine</propertyName>
+                    <destFile>target/coverage-reports/jacoco-unit.exec</destFile>
+                    <dataFile>target/coverage-reports/jacoco-unit.exec</dataFile>
+                    <includes>
+                        <include>**/service/**</include>
+                        <include>**/controller/**</include>
+                        <include>**/jacoco/**</include>
+                        <!--<include>**/service/impl/*.class</include>-->
+                    </includes>
+                    <!-- rules里面指定覆盖规则 -->
+                    <rules>
+                        <rule implementation="org.jacoco.maven.RuleConfiguration">
+                            <element>BUNDLE</element>
+                            <limits>　　
+                                <!-- 指定方法覆盖到50% -->
+                                <limit implementation="org.jacoco.report.check.Limit">
+                                    <counter>METHOD</counter>
+                                    <value>COVEREDRATIO</value>
+                                    <minimum>0.50</minimum>
+                                </limit>
+                                <!-- 指定分支覆盖到50% -->
+                                <limit implementation="org.jacoco.report.check.Limit">
+                                    <counter>BRANCH</counter>
+                                    <value>COVEREDRATIO</value>
+                                    <minimum>0.50</minimum>
+                                </limit>
+                                <!-- 指定类覆盖到100%，不能遗失任何类 -->
+                                <limit implementation="org.jacoco.report.check.Limit">
+                                    <counter>CLASS</counter>
+                                    <value>MISSEDCOUNT</value>
+                                    <maximum>0</maximum>
+                                </limit>
+                            </limits>
+                        </rule>
+                    </rules>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>jacoco-initialize</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!--这个check:对代码进行检测，控制项目构建成功还是失败-->
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <!--这个report:对代码进行检测，然后生成index.html在 target/site/index.html中可以查看检测的详细结果-->
+                    <execution>
+                        <id>jacoco-site</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+```
+
+##### 解决 mockmvc 响应结果输出乱码问题
+
+```java
+
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
+import com.alibaba.fastjson.JSON;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.apache.shiro.mgt.SecurityManager;
+
+import javax.annotation.Resource;
+
+import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.Matchers.*;
+import static java.lang.System.setProperty;
+
+    @Test
+    public void showRiskTradeventListTest() throws Exception {
+        /*
+        {
+            "params": {
+                "riskId": ""
+            }
+        }
+        json = JSON.toJSONString(JSON.parse(json));
+        System.out.println(json);
+        */
+        String target = "/riskTradeventList";
+        String json = "{\"params\":{\"riskId\":\"\"}}";
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders
+                .post(target)
+                .header("token", getToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+                .accept(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andReturn();
+    }
+```
+
+ **`.accept(MediaType.APPLICATION_JSON_UTF8_VALUE)`**
+
+##### 解决 junit + SpringMVC 单元测试抛出异常 No SecurityManager accessible to the calling code
+
+原因：应为 mock 是模拟请求，所以并不会加载 web.xml，web.xml 需要配置 shiro，而 spring.xml 容器里要配置 shiroFilter，shiroFilter 中包含 securityManager，所以导致 mock 模拟请求的时候没有找到 SecurityManager ，解决方法：
+
+```java
+import org.apache.shiro.mgt.SecurityManager;
+
+public void securityManager(){
+    String resource = "applicationContext.xml";
+    ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext(resource);
+    SecurityManager securityManager = (SecurityManager)appCtx.getBean("securityManager");
+    SecurityUtils.setSecurityManager(securityManager);
+}
+```
+
+参考链接：
+
+ - <a href="https://www.jb51.net/article/172934.htm" target="_blank">SpringBoot 项目中使用 Mockito 的示例代码</a>
+
+ - <a href="https://blog.csdn.net/cheny1p1ng/article/details/90744493" target="_blank">第一个MOCK DEMO，中文乱码解决</a>
+
+ - <a href="https://blog.csdn.net/u011002997/article/details/80706584" target="_blank">解决moco模拟请求返回中文乱码问题</a>
+
+ - <a href="https://blog.csdn.net/qq_19734597/article/details/86293827" target="_blank">SpringBoot通过Jacoco生成用例覆盖率报告（包括Mockito生成测试用例）</a>
+
+ - <a href="https://cloud.tencent.com/developer/article/1696259" target="_blank">mock测试及jacoco覆盖率</a>
+
+ - <a href="https://stackoverflow.com/questions/41909538/mockitojunitrunner-is-deprecated" target="_blank">mockitojunitrunner-is-deprecated</a>
+
+ - <a href="https://sspai.com/post/48245#!" target="_blank">使用 @MockBean 和 @SpyBean 解决 SpringBoot 单元测试中 Mock 类装配的问题</a>
+
+ - <a href="https://ask.csdn.net/questions/759105" target="_blank">spring boot 使用MockMvc进行单元测试，响应返回一直404</a>
+
+ - <a href="https://blog.csdn.net/coolcoffee168/article/details/88638042" target="_blank">springboot 单元测试 (controller层） 方法 -- MockMvc</a>
+
+ - <a href="https://www.cnblogs.com/treerain/p/mockmvc_mockito.html" target="_blank">MockMvc和Mockito之酷炫使用</a>
+
+ - <a href="https://developer.aliyun.com/article/54061" target="_blank">Spring Boot应用的测试——Mockito</a>
+
+ - <a href="https://stackoverflow.com/questions/31819375/inject-mock-into-spring-mockmvc-webapplicationcontext" target="_blank">inject-mock-into-spring-mockmvc-webapplicationcontext</a>
+
+ - <a href="https://blog.csdn.net/ZYC88888/article/details/88839714" target="_blank">玩转Spring JUnit+mockito+powermock单元测试（使用详解）</a>
+
+ - <a href="https://blog.csdn.net/liuguidongliuguidong/article/details/75136800" target="_blank">Mockito与Spring中@Autowired与@InjectMocks组合</a>
+
+ - <a href="https://blog.csdn.net/a35038438/article/details/50216673" target="_blank">解决junit+springMVC单元测试抛出异常No SecurityManager accessible to the calling code</a>
+
+ - <a href="https://blog.csdn.net/qq_41855420/article/details/104057010" target="_blank">Shiro报错 No SecurityManager accessible to the calling code, either bound to the org.apache.shiro.util</a>
+
+ - <a href="https://www.cnblogs.com/lichking2017/p/9069752.html" target="_blank">junit+mock+spring-test构建后台单元测试</a>
+
+ - <a href="https://www.cnblogs.com/cc-java/p/7238963.html" target="_blank">Junit+Mock单元测试</a>
+
+ - <a href="https://blog.csdn.net/scugxl/article/details/106365282" target="_blank">使用springboottest和h2来构建数据库测试的采坑记录</a>
+
+ - <a href="https://www.jianshu.com/p/c30a7f135b95" target="_blank">基于JUnit和Servlet的Mock对象测试返回的json和xml数据</a>
+
+ - <a href="https://cloud.tencent.com/developer/article/1507694" target="_blank">单元测试不止Junit，会MockMvc才是高手！</a>
+
+ - <a href="http://www.jsjtt.com/java/javaceshi/84.html" target="_blank">junit测试 jsonPath如何获取json数据里面对象的个数大小长度</a>
+
+ - <a href="https://www.jianshu.com/p/c30a7f135b95" target="_blank">基于JUnit和Servlet的Mock对象测试返回的json和xml数据</a>
+
+ - <a href="https://developer.aliyun.com/article/772207" target="_blank">测试开发基础 mvn test | 利用 Maven Surefire Plugin 做测试用例基础执行管理</a>
+
+ - <a href="https://sq.163yun.com/blog/article/173632756223238144" target="_blank">maven-surefire-plugin插件，你真的会用吗？</a>
+
+ - <a href="https://www.codenong.com/23190107/" target="_blank">无法在Maven中一起使用jacoco JVM args和surefire JVM args</a>
+
+ - <a href="https://my.oschina.net/u/1046143/blog/3153021" target="_blank">【Spring Boot 单元测试】3. 使用Mock单元测试Controller</a>
+
+ - <a href="https://www.jianshu.com/p/94e5de3f28c9" target="_blank">Mock介绍以及代码示例</a>
+
+ - <a href="https://blog.csdn.net/qq_42610167/article/details/103259215" target="_blank">Java Mock模拟Get和POST请求</a>
+
+ - <a href="https://stackoverflow.com/questions/40781857/how-to-print-all-interactions-with-a-mock-using-mockito" target="_blank">how-to-print-all-interactions-with-a-mock-using-mockito</a>
+
+ - <a href="https://blog.csdn.net/LetsStudy/article/details/114132492" target="_blank">1.2 命令行执行testng.xml第一种方式</a>
+
+ - <a href="https://stackoverflow.com/questions/61676131/how-to-run-a-selected-suitexmlfile-via-maven-surefire-plugin" target="_blank">how-to-run-a-selected-suitexmlfile-via-maven-surefire-plugin</a>
+
+ - <a href="" target="_blank"></a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
