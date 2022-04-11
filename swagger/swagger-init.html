@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>swagger-init</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### swagger-init
+
+**pom.xml**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>springboot.validate</groupId>
+    <artifactId>springboot-validate</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <!--spring boot 版本-->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.10.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <lombok.version>1.18.4</lombok.version>
+        <swagger.version>2.7.0</swagger.version>
+    </properties>
+
+    <!--maven仓库地址-->
+    <repositories>
+        <repository>
+            <id>public</id>
+            <name>aliyun nexus</name>
+            <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <!--全局依赖-->
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+        </dependency>
+        <!-- swagger2 -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+        <!-- swagger2 ui -->
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>${swagger.version}</version>
+        </dependency>
+    </dependencies>
+
+
+</project>
+```
+
+**application.yml**
+
+```python
+#开发环境配置
+server:
+  #端口
+  port: 8999
+  servlet:
+    context-path: /Swagger
+
+spring:
+  application:
+    name: RootApplication
+
+#swagger开关
+swagger:
+  production: false #部署系统到生产系统,为了接口安全,需要屏蔽所有Swagger的相关资源,此处设置为true即可关闭
+
+```
+
+**SwaggerConfig.java**
+
+```java
+package springboot.validate.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.SecurityReference;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+
+    @Bean
+    public Docket createRestApi() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("springboot.validate"))
+                .paths(PathSelectors.any())
+                .build()
+                .securitySchemes(securitySchemes())
+                .securityContexts(securityContexts());
+    }
+
+    /**
+     * 配置认证模式
+     */
+    private List<ApiKey> securitySchemes() {
+        return new ArrayList(Collections.singletonList(new ApiKey("Authorization", "Authorization", "header")));
+    }
+
+    /**
+     * 配置认证上下文
+     */
+    private List<SecurityContext> securityContexts() {
+        return new ArrayList(Collections.singletonList(SecurityContext.builder()
+                .securityReferences(defaultAuth())
+                .forPaths(PathSelectors.any())
+                .build()));
+    }
+
+    private List<SecurityReference> defaultAuth() {
+        AuthorizationScope authorizationScope = new AuthorizationScope("global", "accessEverything");
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
+        authorizationScopes[0] = authorizationScope;
+        return new ArrayList(Collections.singletonList(new SecurityReference("Authorization", authorizationScopes)));
+    }
+
+    /**
+     * 项目信息
+     */
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("Swagger测试项目 RESTful APIs")
+                .version("1.0")
+                .build();
+    }
+
+}
+```
+
+**ParamValidateController.java**
+
+```java
+package springboot.validate.modules.validate.controller;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
+@Validated
+@Api(value = "参数校验 Api")
+@RestController
+@RequestMapping(value = "/validate")
+@Slf4j
+public class ParamValidateController {
+
+    private final String modulesName = "参数校验";
+
+    private final String success = "Success";
+
+    @ApiOperation(value = "基础类型方法入参校验")
+    @PostMapping("/method/params")
+    public String params(
+            @Valid @NotNull(message = "参数：标签编号，不能为空") String marksCode,
+            @Valid @NotNull(message = "参数：预警等级，不能为空") String warningLevel
+    ){
+        log.info("marksCode:{}, warningLevel:{}", marksCode, warningLevel);
+        return success;
+    }
+
+}
+
+```
+
+**RootApplication.java**
+
+```java
+package springboot.validate;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+/**
+ * @Description: 说明
+ * @Author: 
+ * @CreateDate: 2021-12-24 15:52:55
+ * @UpdateUser: [修改人]
+ * @UpdateDate: [修改时间]
+ * @UpdateRemark: [说明本次修改内容]
+ * @Version: [v1.0]
+ */
+@Slf4j
+@SpringBootApplication
+public class RootApplication {
+
+    public static void main(String[] args) throws UnknownHostException {
+        ConfigurableApplicationContext application = SpringApplication.run(RootApplication.class, args);
+        Environment env = application.getEnvironment();
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        String port = env.getProperty("server.port");
+        String path = env.getProperty("server.servlet.context-path");
+        String applicationName = env.getProperty("spring.application.name");
+        log.info("\n----------------------------------------------------------\n\t" +
+                "Application '" + applicationName + "' is running! Access URLs:\n\t" +
+                "Local: \t\thttp://localhost:" + port + path + "/\n\t" +
+                "External: \thttp://" + ip + ":" + port + path + "/\n\t" +
+                "Monitor: \thttp://" + ip + ":8083/\n\t" +
+                "Druid: \t\thttp://" + ip + ":" + port + path + "/druid/login.html\n\t" +
+                "Swagger-ui: http://" + ip + ":" + port + path + "/swagger-ui.html\n\t" +
+                "Doc: \t\thttp://" + ip + ":" + port + path + "/doc.html?showMenuApi=1&showDes=1&plus=1&cache=1&lang=zh\n" +
+                "----------------------------------------------------------");
+    }
+}
+
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
