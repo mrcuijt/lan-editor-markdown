@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>spring-transaction-level</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### spring-transaction-level
+
+#### 事务隔离级别介绍
+
+&amp;nbsp;&amp;nbsp;两个并发事务同时访问数据库表相同的行时，可能存在以下三个问题：
+
+ - **幻想读**
+
+  事务 T1 读取一条指定 where 条件的语句，返回结果集。此时事务 T2 插入一行新记录，恰好满足 T1 的 where 条件。然后 T1 使用相同的条件再次查询，结果集中可以看到 T2 插入的记录，这条新纪录就是幻想。
+
+  - 事务 T2 已完成事务提交。
+
+  - 事务 T1 读取了事务 T2 已经提交事务的数据。
+
+ - **不可重复读取**
+
+  事务 T1 读取一行记录，紧接着事务 T2 修改了 T1 刚刚读取的记录，然后 T1 再次查询，发现与第一次读取的记录不同，这称为不可重复读。
+
+  - 事务 T2 已完成事务提交。
+
+  - 事务 T1 读取了事务 T2 已经提交事务的数据。
+
+ - **脏读**
+
+  事务 T1 更新了一行记录，还未提交所做的修改，这个 T2 读取了更新后的数据，然后 T1 执行回滚操作，取消刚才的修改，所以 T2 所读取的行就无效，也就是脏数据。
+
+  - 事务 T1 未提交事务。
+
+  - 事务 T2 读取了事务 T1 还未提交事务的数据。
+
+##### 不可重复读和脏读的区别
+
+ - **`脏读是某一事务读取了另一个事务未提交的脏数据。`**
+
+ - **`不可重复读则是读取了前一事务提交的数据。`** 
+ 
+ - **幻读和不可重复读都是读取了另一条已经提交的事务（这点就脏读不同），所不同的是不可重复读查询的都是 同一个数据项 ，而幻读针对的是 一批数据整体 （比如数据的个数）。**
+
+参考链接：
+
+ - <a href="https://www.html.cn/softprog/database/174116.html" target="_blank">ORACLE数据库事务隔离级别介绍</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

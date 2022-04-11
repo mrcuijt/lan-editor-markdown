@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-table-act_ru_execution</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-table-act\_ru\_execution
+
+ACTIVITI ACT\_RU\_EXECUTION 表
+
+ 这个表是工作流程的核心表，流程的驱动都和合格表有密切的关系。
+
+一般来讲一个流程实例都有一条主线。如果流程为直线流程，那么流程实例在这个表中只有一条记录对应。
+
+比如以下流程：
+
+![image](./images/activiti-table-act_ru_execution/activiti-table-act_ru_execution-001.png)
+
+这个对应的 EXECUTION 数据为：
+
+![image](./images/activiti-table-act_ru_execution/activiti-table-act_ru_execution-002.png)
+
+
+ - **ID\_**
+
+  EXECUTION 主键，这个主键有可能和 PROC\_INST\_ID\_ 相同，相同的情况表示这条记录为主实例记录。
+
+ - **REV\_**
+
+  表示数据库表更新次数。
+
+ - **PROC\_INST\_ID\_**
+
+  一个流程实例不管有多少条分支实例，这个 ID 都是一致的。
+
+ - **BUSINESS\_KEY\_**
+
+  这个为业务主键，主流程才会使用业务主键，另外这个业务主键字段在表中有唯一约束。
+
+ - **PARENT\_ID\_**
+
+  这个记录表示父实例ID，如上图，同步节点会产生两条执行记录，这两条记录的父 ID 为主线的ID。
+
+ - **PROC\_DEF\_ID\_**
+
+  流程定义 ID
+
+ - **SUPER\_EXEC**
+
+  这个如果存在表示这个实例记录为一个外部子流程记录，对应主流程的主键ID。
+
+ - **ACT\_ID\_**
+
+  表示流程运行到的节点，如上图主实例运行到 ANDGateway1 节点。
+
+  两个子实例运行到 UserTask1, UserTask2 节点。
+
+ - **IS\_ACTIVE\_**
+
+  是否活动流程实例，比如上图，主流程为非活动实例，下面两个为活动实例，如果 UserTask2 完成，那么这个值将变为 0 即非活动。
+
+ - **IS\_CONCURRENT\_**
+
+  是否并发。上图同步节点后为并发，如果是并发多实例也是为1。
+
+ - **IS\_SCOPE\_**
+
+  这个字段我跟踪了一下不同的流程实例，如会签，子流程，同步等情况，发现主实例的情况这个字段为1，子实例这个字段为0。
+
+ - **TENANT\_ID\_**
+
+  这个字段表示租户 ID。可以应对多租户的设计。
+
+ - **IS\_EVENT\_SCOPE**
+
+  没有使用到事件的情况下，一般都为0。
+
+ - **SUSPENSION\_STATE\_**
+
+  这个表示是否暂停。
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

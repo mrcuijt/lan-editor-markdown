@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-basic-usermanager</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-basic-usermanager
+
+#### Activiti原理分析(三)用户管理
+
+简介： Activiti 原理分析系列文章的第三篇。这篇主要研究 Activiti 内置的用户管理系统，以及受理人，候选人等概念。
+
+&amp;nbsp;&amp;nbsp;Activiti 自带一套用户管理系统，维护了用户和用户组的对应关系，通过 identityService 可以对它们进行增删改查。当你在 UserTask 中指定了用户组时，Activiti 就会使用它维护的这个关系寻找用户了。
+但是这也为 Activiti 的使用带来了困难，因为一般应用都有一套自建的用户管理，不可能去使用 Activiti 这一套，就不得不花一些成本来对接，而且对接方法都比较 hack，个人觉得这是 Activiti 设计得不太好的地方。
+
+#### 受理人(Assignee)与候选人(Candidate)
+
+一个 UserTask 可以设置一个受理人（Assignee），或者多个候选人，受理人就是负责完成该任务的人。在审批场景下就可以理解成审批人，只能有一个，如果要有多个的话则应该使用<a href="https://developer.aliyun.com/article/787043" target="_blank">上一篇文章</a>提到的 **`多实例任务`**。
+
+可以在任务已经分配给指定用户的情况下，通过 taskService.setAssignee(taskId,userId); 重新指定办理人。
+
+**activiti:assignee** 受理人
+
+```xml
+<!--kermit就是受理人的 id-->
+<userTask id="theTask" name="my task" activiti:assignee="kermit" />
+```
+
+候选人可以有一个或者多个，他们都是受理人的 **“候选”**，他们要 **“抢”** 任务，谁先调用了 taskService.claim(taskId, userId);，谁就变成了任务的受理人。
+
+**activiti:candidateUsers** 候选人
+
+```xml
+<!--两个候选人 kermit与gonzo-->
+<userTask id="theTask" name="my task" activiti:candidateUsers="kermit,gonzo"/>
+```
+
+**activiti:candidateGroups** 候选组
+
+```xml
+<!--management用户组的所有用户作为候选人-->
+<userTask id="theTask" name="my task" activiti:candidateGroups="management"/>
+```
+
+#### 内置的用户管理
+
+Activiti 中的用户模型非常简单，就是用户和用户组之间的多对多关系，所以只涉及三张表：
+
+ - ACT\_ID\_USER：用户信息
+
+ - ACT\_ID\_GROUP：用户组信息
+
+ - ACT\_ID\_MEMBERSHIP：存储用户和用户组之间的多对多关联
+
+![title](./images/activiti-basic-usermanager/activiti-basic-usermanager-001.png)
+
+#### 流程运行时用户信息
+
+在应用中一般会调用下面的方法查询某个用户的 task：
+
+```java
+// 查询所有候选 userId 的任务
+List<Task> tasks = taskService.createTaskQuery()
+        .taskCandidateUser(userId).list();
+
+// 查询所有 userId 受理的任务
+List<Task> tasks = taskService.createTaskQuery()
+        .taskAssignee(userId).list();
+
+// 查询所有 userId候选或者受理的任务
+List<Task> tasks = taskService.createTaskQuery()
+        .taskCandidateOrAssigned(userId).list();
+```
+
+#### 受理人查询
+
+在 ACT\_RU\_TASK 表中本来就有一个 ASSIGNEE\_ 字段表示受理人，所有当你使用 taskAssignee(userId) 查询时，直接就是用的 ASSIGNEE\_=userId 去 ACT\_RU\_TASK 表中去查的。
+
+#### 候选人查询
+
+在流程运行时还会有一张 ACT\_RU\_IDENTITYLINK 表，用来记录流程运行时相关的人员信息，比如流程发起人，参与人，Task 的候选人等信息：
+
+![title](./images/activiti-basic-usermanager/activiti-basic-usermanager-002.png)
+
+其中 TYPE_ 有以下几种取值：
+
+ - starter: 流程发起人
+
+ - participant: 流程参与人，当前的受理人就会被记录在这里
+
+ - candidate: Task 对应的候选人或者候选用户组
+
+因为这是一张运行时表，所以里面数据是会随着流程运转不断增删改的。
+
+当你使用 taskCandidateUser(userId) 条件查询时其实就是去这张表里根据 TYPE\_='candidate' AND USER\_ID\_=userId 找到用户候选的 Task
+
+#### 候选用户组
+
+
+假如你将 UserTask 配置成 activiti:candidateGroups="management" ，如果 userId 属于 manangement 用户组，那么使用 taskCandidateUser(userId) 条件查询，也是能查出该 UserTask 的。
+
+此时就需要用到上一小节提到的用户管理相关表了。Activiti 如果会去 ACT\_ID\_MEMBERSHIP 中找到该用户的  groupId，然后去 ACT\_RU\_IDENTITYLINK 中根据 GROUP\_ID\_ 查。
+
+#### Activiti 如何与已有用户管理系统对接？
+
+从上面的分析可以看到，Activiti 只有在你配置了 candidateGroups 才可能去查询内置的用户管理信息，所以个人建议是就不要使用 candidateGroups 配置了，全部使用 candidateUsers 和 assignee，然后在 userId 里加入一些特征区分用户组或者别的业务相关的东西，比如加个前缀 GROUP-groupId，之后就全部用自己业务系统里的 id 去查 Task。不用担心这些ID在 Activiti 内置的用户管理系统中没有，Activiti 根本不会去校验这个。
+
+当然也有人研究过一些更加麻烦的对接方法，列出如下，也可以参考：
+
+ - <a href="https://kafeitu.me/activiti/2012/04/23/synchronize-or-redesign-user-and-role-for-activiti.html?spm=a2c6h.12873639.0.0.6c965657OBGpLB" target="_blank">同步或者重构 Activiti Identify 用户数据的多种方案比较</a>，里面提到了三个方案
+
+  - 往 Activiti 内置的用户表中，同步自己业务的用户数据。个人感觉比较麻烦，而且也容易出各种问题
+
+  - 将 Activiti 用户相关存储类用自己的实现类换掉。听起来很复杂，但是因为 Activiti 6 所采用的可插拔的存储层设计，其实只要替换两类就可以了，后面我有空会再研究一下它的存储层设计。而且如果要搞分库分表的话，存储层本来就是要重新弄的，顺手就可以把用户管理换掉。
+
+  - 用业务用户数据的视图替换掉 Activiti 内置用户管理的这三张表。感觉不一定所有的业务用户数据都可以映射到 Activiti 的用户模型，所有通用性有限
+
+参考链接：
+
+ - <a href="https://developer.aliyun.com/article/787046" target="_blank">Activiti 原理分析(三)用户管理</a>
+
+ - <a href="https://www.activiti.org/userguide/" target="_blank">Activiti UserTask 官方文档</a>
+
+ - <a href="https://kafeitu.me/activiti/2012/04/23/synchronize-or-redesign-user-and-role-for-activiti.html" target="_blank">同步或者重构 Activiti Identify 用户数据的多种方案比较</a>
+
+ - <a href="https://blog.51cto.com/linhongyu/1656515" target="_blank">浅谈 Activiti 工作流引擎用户管理</a>
+
+ - <a href="https://blog.51cto.com/linhongyu/1656596" target="_blank">Activiti 用户任务分配</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
