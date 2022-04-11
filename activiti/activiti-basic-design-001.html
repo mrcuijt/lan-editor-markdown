@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-basic-design-001</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-basic-design-001
+
+#### activiti 流程运行过程代码走读
+
+
+#### 目的
+
+本文将对流程在 activiti 中是怎么运行的，任务是怎样推动的进行讲解。
+
+主要包括以下内容：
+
+ - PVM 中怎么表示流程、任务、连接线，它和 activiti 的 Model 怎样转换的。
+
+  - 启动流程实例，怎么从开始节点流转到下一个节点。
+
+  - 怎样监听流程事件。
+
+#### 主要的 jar 包和 java 类
+
+pvm 的实现在包 org.activiti.engine.impl.pvm 中，我通过源码跟踪、阅读，分析出 PVM 有以下重要的类：
+
+```
+class	                功能
+ProcessDefinitionImpl	流程定义
+ExecutionEntity	      管理流程的运行
+ActivityImpl	         流程节点的定义
+AtomicOperation	      流程运行方法，如：
+　                                    AtomicOperationActivityStart(流程启动)，
+　                                    AtomicOperationActivityEnd(流程结束)
+ActivityBehavior	     委托
+```
+
+#### 在哪定义的
+
+##### ProcessDefinitionImpl
+
+ProcessDefinitionImpl 是 PVM 对整个流程定义。通过 ProcessDefinitionImpl.createProcessInstance 可以得到流程实例管理接口 PvmProcessInstance。ProcessDefinitionImpl 的代码片段如下：
+
+```java
+public class ProcessDefinitionImpl extends ScopeImpl implements PvmProcessDefinition {
+ 
+  private static final long serialVersionUID = 1L;
+ 
+  protected String name;
+  protected String key;
+  protected String description;
+  protected ActivityImpl initial;
+  protected Map<ActivityImpl, List<ActivityImpl>> initialActivityStacks = new HashMap<ActivityImpl, List<ActivityImpl>>();
+  protected List<LaneSet> laneSets;
+  protected ParticipantProcess participantProcess;
+ 
+  public ProcessDefinitionImpl(String id) {
+    super(id, null);
+    processDefinition = this;
+  }
+ 
+  public PvmProcessInstance createProcessInstance() {
+    if(initial == null) {
+      throw new ActivitiException("Process '"+name+"' has no default start activity (e.g. none start event), hence you cannot use 'startProcessInstanceBy...' but have to start it using one of the modeled start events (e.g. message start events).");
+    }
+    return createProcessInstanceForInitial(initial);
+  }
+ 
+  ...  
+}
+```
+
+##### ExecutionEntity
+
+ExecutionEntity 实现了接口 ActivityExecution，ActivityExecution 是流程运行管理接口。ExecutionEntity 提供的功能如下：
+
+ - 启动、结束、销毁流程。
+
+  - 对流程元素ActivityImpl的管理（添加删除修改父节点、实例ID、任务等）。
+
+  - initialize() 里面初始化 task、job、variable、event。
+
+  - start() 是流程启动方法。
+
+  - performOperation() 是流程执行方法，流程的推动都调用 performOperation()。
+
+##### ActivityImpl
+
+ActivityImpl 表示单个流程元素，比如任务、开始节点、连接线、网关等。它的属性包括：variables、activityBehavior、incomingTransitions、outgoingTransitions 以及元素界面位置等。ActivityImpl 的类图如下：
+
+![title](./images/activiti-basic-design-001/activiti-basic-design-001.png)
+
+ - ActivityImpl 是活动节点，在流程图上对应开始节点、结束节点、各种任务节点。
+
+ - TransitionImpl 是连接线。
+
+ - ProcessDefinitionImpl 是整个的定义，类图中未画。类 ProcessElementImpl 里面有 ProcessDefinitionImpl 属性。
+
+##### AtomicOperation
+
+AtomicOperation 是流程执行的接口，比如流程启动，流程结束，任务启动，任务执行，任务结束等。AtomicOperation 中枚举了所有流程执行方法，AtomicOperation 的代码如下：
+
+```java
+public interface AtomicOperation {
+ 
+  AtomicOperation PROCESS_START = new AtomicOperationProcessStart();
+  AtomicOperation PROCESS_START_INITIAL = new AtomicOperationProcessStartInitial();
+  AtomicOperation PROCESS_END = new AtomicOperationProcessEnd();
+  AtomicOperation ACTIVITY_START = new AtomicOperationActivityStart();
+  AtomicOperation ACTIVITY_EXECUTE = new AtomicOperationActivityExecute();
+  AtomicOperation ACTIVITY_END = new AtomicOperationActivityEnd();
+  AtomicOperation TRANSITION_NOTIFY_LISTENER_END = new AtomicOperationTransitionNotifyListenerEnd();
+  AtomicOperation TRANSITION_DESTROY_SCOPE = new AtomicOperationTransitionDestroyScope();
+  AtomicOperation TRANSITION_NOTIFY_LISTENER_TAKE = new AtomicOperationTransitionNotifyListenerTake();
+  AtomicOperation TRANSITION_CREATE_SCOPE = new AtomicOperationTransitionCreateScope();
+  AtomicOperation TRANSITION_NOTIFY_LISTENER_START = new AtomicOperationTransitionNotifyListenerStart();
+ 
+  AtomicOperation DELETE_CASCADE = new AtomicOperationDeleteCascade();
+  AtomicOperation DELETE_CASCADE_FIRE_ACTIVITY_END = new AtomicOperationDeleteCascadeFireActivityEnd();
+ 
+  void execute(InterpretableExecution execution);
+ 
+  boolean isAsync(InterpretableExecution execution);
+}
+```
+
+##### ActivityBehavior
+
+ActivityBehavior 是委托接口。AtomicOperation 执行过程中会调用 ActivityBehavior。ActivityBehavior 定义了 execute 方法，入参类型为 ActivityExecution，ActivityBehavior 的代码如下：
+
+```java
+public interface ActivityBehavior extends Serializable {
+  void execute(ActivityExecution execution) throws Exception;
+}
+```
+
+#### 模块之间调用顺序
+
+下面用 RuntimeServiceImpl.startProcessInstanceById() 启动一个流程，说明 PVM 的调用顺序。流程图如下：
+
+![title](./images/activiti-basic-design-001/activiti-basic-design-002.png)
+
+##### 从 activiti 调用 PVM
+
+RuntimeServiceImpl.startProcessInstanceById() 通过命令模式调用了方法 StartProcessInstanceCmd.execute()，StartProcessInstanceCmd 实现了以下功能：
+
+ - 从数据库获取 ProcessDefinitionEntity（ProcessDefinitionEntity 是流程对应的数据库实体，同时继承 ProcessDefinitionImpl）。
+
+  - 通过方法 ProcessDefinitionEntity.createProcessInstance 获得 ExecutionEntity。
+
+  - 调用 ExecutionEntity.start() 启动流程。
+
+##### ExecutionEntity 调用 AtomicOperation
+
+StartProcessInstanceCmd 调用了 ExecutionEntity.start() 就完了，任务怎么生成的。肯定在 ExecutionEntity.start() 里。ExecutionEntity.start() 的代码如下：
+
+```java
+public void start() {
+  if(startingExecution == null && isProcessInstanceType()) {
+    startingExecution = new StartingExecution(processDefinition.getInitial());
+  }
+  performOperation(AtomicOperation.PROCESS_START);
+}
+```
+
+ExecutionEntity.start() 里面调用了 performOperation，performOperation 又对同步执行和异步执行进行了拆分，这里只看同步执行的代码：
+
+```java
+//  activiti里面到处都是`CommandContext`
+protected void performOperationSync(AtomicOperation executionOperation) {
+  Context
+    .getCommandContext()
+    .performOperation(executionOperation, this);
+}
+```
+
+Context.getCommandContext().performOperation 里面调用了 executionOperation.execute()。Context 里对线程之间的数据进行了隔离，但 performOperation 对并发调用的判断是多余的。一次部署过程需要调用 10 多次 performOperation，很有必要看看代码长什么样，Context.getCommandContext().performOperation 的代码如下：
+
+```java
+public void performOperation(AtomicOperation executionOperation, InterpretableExecution execution) {
+  nextOperations.add(executionOperation);
+  if (nextOperations.size()==1) {
+    try {
+      Context.setExecutionContext(execution);
+      while (!nextOperations.isEmpty()) {
+        AtomicOperation currentOperation = nextOperations.removeFirst();
+        if (log.isTraceEnabled()) {
+          log.trace("AtomicOperation: {} on {}", currentOperation, this);
+        }
+        if (execution.getReplacedBy() == null) {
+          currentOperation.execute(execution);
+        } else {
+          currentOperation.execute(execution.getReplacedBy());
+        }
+      }
+    } finally {
+      Context.removeExecutionContext();
+    }
+  }
+}
+```
+
+##### AtomicOperation 执行顺序
+
+绕了一大圈，ExecutionEntity.start() 真正调用了 AtomicOperation.PROCESS\_START(AtomicOperation.PROCESS\_START = new AtomicOperationProcessStart())。AtomicOperationProcessStart 实现了以下功能：
+
+ - 触发 listener、event。
+
+  - 设置流程运行节点为开始节点。
+
+  - 调用AtomicOperation.PROCESS\_START\_INITIAL
+
+AtomicOperationProcessStart 的代码片段如下：
+
+```java
+@Override
+protected void eventNotificationsCompleted(InterpretableExecution execution) {
+  if(Context.getProcessEngineConfiguration() != null && Context.getProcessEngineConfiguration().getEventDispatcher().isEnabled()) {
+    Map<String, Object> variablesMap = null;
+    try {
+      variablesMap = execution.getVariables();
+    } catch (Throwable t) {
+      // In some rare cases getting the execution variables can fail (JPA entity load failure for example)
+      // We ignore the exception here, because it's only meant to include variables in the initialized event.
+    }
+    Context.getProcessEngineConfiguration().getEventDispatcher().dispatchEvent(
+        ActivitiEventBuilder.createEntityWithVariablesEvent(ActivitiEventType.ENTITY_INITIALIZED,
+            execution, variablesMap, false));
+  }
+ 
+  ProcessDefinitionImpl processDefinition = execution.getProcessDefinition();
+  StartingExecution startingExecution = execution.getStartingExecution();
+  List<ActivityImpl> initialActivityStack = processDefinition.getInitialActivityStack(startingExecution.getInitial());  
+  execution.setActivity(initialActivityStack.get(0));   // 当前流程执行节点就通过execution.setActivity设置了    
+  execution.performOperation(PROCESS_START_INITIAL);    //  当前操作完成之后，进行下个操作就调用execution.performOperation
+}
+```
+
+AtomicOperation.PROCESS\_START\_INITIAL 里面又调用了 AtomicOperation.ACTIVITY_EXECUTE，经过多次调用不同的 AtomicOperation 接口，完成流程实例的创建。
+
+对于示例流程图，从开始节点到用户任务的调用 AtomicOperation 顺序如下：
+
+```python
+PROCESS_START  
+PROCESS_START_INITIAL  
+ACTIVITY_EXECUTE  
+TRANSITION_NOTIFY_LISTENER_END  
+TRANSITION_DESTROY_SCOPE    
+TRANSITION_NOTIFY_LISTENER_TAKE    
+TRANSITION_CREATE_SCOPE    
+TRANSITION_NOTIFY_LISTENER_START   
+ACTIVITY_EXECUTE
+```
+
+##### Task 节点多久持久化到数据库的
+
+用户任务对应的 ActivityImpl 上绑定了 UserTaskActivityBehavior，UserTaskActivityBehavior 中对任务数据进行了持久化处理。
+
+用户任务执行 ACTIVITY_EXECUTE 操作的时候，会触发节点上绑定的 Behavior。
+
+#### 看后感
+
+ - 接口定义到处都是，对于后期扩展是有好处的，关键代码要找好久。
+
+  - PVM 的 AtomicOperation 很适合用命令模式，为什么要用委托的方式。
+
+  - AtomicOperation 的调用栈太深了。
+
+  - CommandContext 到处都是。
+
+
+参考链接：
+
+ - <a href="https://www.jianshu.com/p/f58e0a1f8d3b" target="_blank">activiti 流程运行过程代码走读</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

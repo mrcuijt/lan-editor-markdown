@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-basic-links</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-basic-links
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/sadoshi/article/details/107408233" target="_blank">activiti学习（二十八）——加签</a>
+
+ - <a href="https://destinywang.github.io/blog/tags/Activiti/" target="_blank">Activiti标签</a>
+
+ - <a href="http://jeecg.com/activiti5.21/#bpmnUserTask" target="_blank">Activiti 用户手册</a>
+
+ - <a href="https://developer.aliyun.com/article/787046" target="_blank">Activiti原理分析(三)用户管理</a>
+
+ - <a href="https://aizya.github.io/activiti/2018/03/26/Different-Between-Activiti5-And-Activiti6/" target="_blank">关于Activiti版本6与版本5区别</a>
+
+ - <a href="https://www.activiti.org/migration.html" target="_blank">Activiti 迁移指南：Activiti v5 到 Activiti v6</a>
+
+ - <a href="https://blog.csdn.net/fzuzhanghao1993/article/details/79207731" target="_blank">activiti工作流5.22.0 多人会审功能实现</a>
+
+ - <a href="https://developer.aliyun.com/article/811857" target="_blank">工作流中的流程追溯！Activiti框架的历史组件详细解析</a>
+
+ - <a href="https://www.cnblogs.com/ginb/p/7624820.html" target="_blank">工作流Activiti5.13学习笔记（一）</a>
+
+ - <a href="http://blog.ouyangsihai.cn/activiti-gong-zuo-liu-cong-ru-men-dao-ru-tu-wan-zheng-hello-world-da-bi-pin-activiti-gong-zuo-liu-api-jie-he-shi-li-jiang-jie.html" target="_blank">Activiti工作流从入门到入土：完整Hello World大比拼</a>
+
+ - <a href="https://blog.csdn.net/zhuchunyan_aijia/article/details/101302967" target="_blank">activiti 连线 、指定处理人、网关、监听、任务类型</a>
+
+ - <a href="https://developer.aliyun.com/article/488126" target="_blank">activiti BPMN---顺序流、网关、任务、子流程</a>
+
+ - <a href="https://cxymm.net/article/sdaujsj1/79776172" target="_blank">activiti userGroup</a>
+
+ - <a href="https://www.jianshu.com/p/a29f14e6c7fd" target="_blank">activiti6.0之UserTask任务分配方式</a>
+
+ - <a href="https://www.jianshu.com/p/8d99b48e6381" target="_blank">Activiti6.0 动态改变流程节点类型（普通-> 会签）</a>
+
+ - <a href="https://cloud.tencent.com/developer/article/1187876" target="_blank">工作流引擎之activiti会签功能实现</a>
+
+ - <a href="https://www.cnblogs.com/lizm166/p/8127097.html" target="_blank">Activiti工作流引擎简介</a>
+
+ - <a href="https://lucaslz.gitbooks.io/activiti-5-22/content/" target="_blank">Activiti5.22框架数据库设计说明</a>
+
+ - <a href="https://www.cnblogs.com/furenjian/p/10424620.html" target="_blank">Activiti实现会签功能</a>
+
+ - <a href="https://blog.csdn.net/QCIWYY/article/details/48052771" target="_blank">Activiti值活动节点，排他网关（ExclusiveGateWay）and并行网关(parallelGateWay) （八）</a>
+
+ - <a href="https://blog.csdn.net/simplemurrina/article/details/79295579" target="_blank">Activiti中的人（OWNER_、ASSIGNEE_、cancidate）</a>
+
+ - <a href="https://blog.csdn.net/u011320740/article/details/53018040" target="_blank">activiti 快速入门--组任务（candidate users）分配（6）</a>
+
+ - <a href="https://blog.51cto.com/u_3423936/2769732" target="_blank">activiti 会签多实例任务，设置为候选组或个人任务的总结</a>
+
+ - <a href="https://blog.csdn.net/sdaujsj1/article/details/79776172" target="_blank">activiti（十）组任务Group</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

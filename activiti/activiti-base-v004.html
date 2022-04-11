@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-base-v004</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-base-v004
+
+**获取 Activiti 流程 bpmn 和 png 文件**
+
+ - 查询一次部署对应的流程定义文件名称和对应的输入流（bpmn png）
+
+```java
+/**/
+String basePath = "C:/Users/xxx/Pictures/activiti-5/bpmns/";
+String deploymentId = "5001";
+ProcessEngine engine = SpringUtils.getBean(ProcessEngine.class);
+List<String> deployResources = engine.getRepositoryService().getDeploymentResourceNames(deploymentId);
+for(String res : deployResources){
+    System.out.println(res);
+    InputStream is = engine.getRepositoryService().getResourceAsStream(deploymentId, res);
+    FileUtils.copyInputStreamToFile(is, new File(basePath + res));
+    is.close();
+}
+```
+
+ - 只获得 png 文件的输入流
+
+```java
+/**/
+String basePath = "C:/Users/xxx/Pictures/activiti-5/bpmns/";
+String processDefinitionId = "ACT202202031852240015:3:5004";
+ProcessEngine engine = SpringUtils.getBean(ProcessEngine.class);
+InputStream is = engine.getRepositoryService().getProcessDiagram(processDefinitionId);
+FileUtils.copyInputStreamToFile(is, new File(basePath + "bpmn.png"));
+is.close();
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

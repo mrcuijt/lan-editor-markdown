@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-base-v1</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-base-v1
+
+#### Activiti 流程引擎原理
+
+通过分析 activiti 的底层代码，我们不难发现，其实 activiti 流程引擎就是通过绑定节点显示数据到数据库中的表上来实现动态的根据流程图来更新流程，从而不需要修改业务代码实现流程的即时更新。
+
+#### Activiti 流程引擎的几个核心概念
+
+ - **`Activiti Model` (ACT\_RE\_MODEL) 模型**
+
+  **最先有模型，可基于模型上传 bpmn 文件，创建 deployment**
+
+ - **`Activiti Demployment` (ACT\_RE\_DEPLOYMENT) 部署**
+
+  **根据 bpmn 文件部署流程，将基本的流程都定义好，形成一个部署**
+
+ - **`Activiti PrecessDefinition` (ACT\_RE\_PROCDEF) 流程定义**
+
+  **根据部署创建的流程定义（模板）**
+
+ - **`Activiti ProcessInstance` 流程实例**
+
+  **根据流程定义 id 启动形成流程实例（每启动一个都形成一个新的）**
+
+**`ACT_RE_*`**
+
+  _'RE'表示 repository，RepositoryService接口所操作的表。这个前缀的表包含了流程定义和流程静态资源（图片，规则，等等）。_
+
+
+```sql
+SELECT * FROM ACT_RE_MODEL; 
+SELECT * FROM ACT_RE_DEPLOYMENT;
+SELECT * FROM ACT_RE_PROCDEF;
+```
+
+```sql
+SELECT * FROM ACT_RE_MODEL WHERE DEPLOYMENT_ID_ = '5001';
+SELECT * FROM ACT_RE_DEPLOYMENT WHERE ID_ = '5001';
+SELECT * FROM ACT_RE_PROCDEF WHERE DEPLOYMENT_ID_  = '5001';
+```
+
+#### Activiti 运行相关类
+
+ - **`Execution`**
+
+  **执行对象（用来描述当前活动节点的基本信息）**
+
+ - **`ProcessInstance`**
+
+  **流程实例对象（流程实例永远只想 Execution（root）对象）**
+
+ - **`Task`**
+
+  **任务对象（任务创建时间和办理人）**
+
+**`ACT_RU_*`**
+
+  _'RU'表示 runtime，运行时表-RuntimeService。这些运行时的表，包含流程实例，任务，变量，异步任务，等运行中的数据。 Activiti 只在流程实例执行过程中保存这些数据，在流程结束时就会删除这些记录。 这样运行时表可以一直很小速度很快。_
+
+ - ACT\_RU\_EXECUTION 运行时流程执行实例表
+
+ - ACT\_RU\_IDENTITYLINK 运行时流程人员表
+
+ - ACT\_RU\_TASK 运行时任务节点表
+
+ - ACT\_RU\_VARIABLE 运行时流程变量数据表
+
+ - ACT\_RU\_JOB 运行时定时任务数据表
+
+ - ACT\_RU\_EVENT\_SUBSCR throwEvent、catchEvent时间监听信息表
+```sql
+SELECT * FROM ACT_RU_EXECUTION;
+SELECT * FROM ACT_RU_IDENTITYLINK;
+SELECT * FROM ACT_RU_TASK;
+SELECT * FROM ACT_RU_VARIABLE;
+SELECT * FROM ACT_RU_JOB;
+SELECT * FROM ACT_RU_EVENT_SUBSCR;
+```
+#### Activiti 常用类
+
+ - **`ProcessEngineConfiguration`**
+
+  **流程引擎配置对象（配置数据库连接信息和建表策略）**
+
+ - **`ProcessEngine`**
+
+  **流程引擎的核心对象（检查环境是否正确，管理各种服务）**
+
+ - **`RepositoryService`**
+
+  **仓库服务对象（管理部署信息）**
+
+ - **`RuntimeService`**
+
+  **运行时服务对象（管理流程的启动，流转等操作）**
+
+ - **`TaskService`**
+
+  **任务服务对象（Task 表中的数据是 Exeuction 表的扩展，任务的创建时间和办理人）**
+
+**`ACT_ID_*`**
+
+  _'ID'表示 identity。 'ID' 表示 identity (组织机构)，IdentityService接口所操作的表。用户记录，流程中使用到的用户和组。这些表包含标识的信息，如用户，用户组，等等。_
+
+ - ACT\_ID\_USER 用户信息表
+
+ - ACT\_ID\_INFO 用户扩展信息表
+
+ - ACT\_ID\_GROUP 用户组信息表
+
+ - ACT\_ID\_MEMBERSHIP 用户与用户组关系信息表
+
+```sql
+SELECT * FROM ACT_ID_USER;
+SELECT * FROM ACT_ID_INFO;
+SELECT * FROM ACT_ID_GROUP;
+SELECT * FROM ACT_ID_MEMBERSHIP;
+```
+
+**`ACT_HI_*`**
+
+  _'HI'表示 history，历史数据表，HistoryService。就是这些表包含着流程执行的历史相关数据，如结束的流程实例，变量，任务，等等_
+
+ - ACT\_HI\_PROCINST 历史流程实例表
+
+ - ACT\_HI\_ACTINST 历史节点表
+
+ - ACT\_HI\_TASKINST 历史流程任务表
+
+ - ACT\_HI\_IDENTITYLINK 历史流程人员表
+
+ - ACT\_HI\_VARINST 流程历史变量表
+
+ - ACT\_HI\_ATTACHMENT 历史附件表
+
+ - ACT\_HI\_COMMENT 历史意见表
+
+ - ACT\_HI\_DETAIL 历史详情表
+
+```sql
+SELECT * FROM ACT_HI_PROCINST;
+SELECT * FROM ACT_HI_ACTINST;
+SELECT * FROM ACT_HI_TASKINST;
+SELECT * FROM ACT_HI_IDENTITYLINK;
+SELECT * FROM ACT_HI_VARINST;
+SELECT * FROM ACT_HI_ATTACHMENT;
+SELECT * FROM ACT_HI_COMMENT;
+SELECT * FROM ACT_HI_DETAIL;
+```
+
+**`ACT_GE_*`**
+
+  _全局通用数据及设置，用于不同场景下，如存放资源文件。_
+
+ - ACT\_GE\_BYTEARRAY 二进制数据表
+
+ - ACT\_GE\_PROPERTY 属性数据表
+
+```sql
+SELECT * FROM ACT_GE_BYTEARRAY;
+SELECT * FROM ACT_GE_PROPERTY;
+```
+
+参考链接：
+
+ - <a href="http://lucaslz.com/2016/11/15/java/activiti/activiti-db-5-22/" target="_blank">Activiti 5.22 框架数据库设计说明</a>
+
+ - <a href="http://lucaslz.com/" target="_blank">Lucas Lee's Blog</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

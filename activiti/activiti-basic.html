@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-basic</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-basic
+
+
+#### 一、activiti介绍
+
+**`Activiti5`** 是由 Alfresco 软件在 2010 年 5 月 17 日发布的业务流程管理（BPM）框架，它是覆盖了业务流程管理、工作流、服务协作等领域的一个开源的、灵活的、易扩展的可执行流程语言框架。Activiti 基于 Apache 许可的开源 BPM 平台，创始人 Tom Baeyens 是 JBoss jBPM 的项目架构师，它特色是提供了 eclipse 插件，开发人员可以通过插件直接绘画出业务流程图。
+
+ - 官网：<a href="http://www.activiti.org/" target="_blank">http://www.activiti.org/</a>
+
+ - 下载：<a href="http://www.activiti.org/download.html" target="_blank">http://www.activiti.org/download.html</a>
+
+目前，Activiti5 中的 **`5.22`** 版本是用的最多的一个版本，本次教程也是使用这个版本进行讲解，最新版本到了 **`7.0`** 版本。
+
+在开始教程之前，我们需要先明确下面的一些概念和知识，可以帮助我们更好的理解工作流的开发。
+
+#### 二、工作流引擎
+
+**`ProcessEngine`** 对象，这是 Activiti 工作的 核心。负责生成流程运行时的各种实例及数据、监控和管理流程的运行。
+
+用百度更为通俗的话来说就是：就是一辆汽车的发动机，就好比一辆汽车，外表做得再漂亮，如果发动机有问题就只是一个摆设。应用系统的弹性就好比引擎转速方面的性能，加速到 100 公里需要 1 个小时（业务流程发生变动需要进行半年的程序修改）还能叫好车吗？引擎动不动就熄火（程序因为逻辑的问题陷入死循环）的车还敢开吗？
+
+#### 三、BPMN
+
+在 Activiti 工作流中用到了一个 BPMN 的文件，主要是用来描述业务流程的基本的符号，利用各个组件能够组成一个业务流程图，整个业务也是根据这个图来走的，其实用 xml 格式打开，就是一个 xml 文件。
+
+下面就是 bpmn 组件的示意图
+
+![title](./images/activiti-basic/activiti-basic-001.png)
+
+#### 四、数据库
+
+在我们进行业务流程开发的时候，是会产生很多的数据的，那么这些数据都是放在哪里呢？
+
+是的，其实就是存放在数据库的。
+
+在 Activiti 工作流的后台是有数据库的支持的，所有的表都以 **`ACT_` 开头**，利用这些数据库的表，就能够把整个业务流程的数据保存下来，然后利用这些数据进行不同的业务的开发。
+
+数据库表示意图
+
+![title](./images/activiti-basic/activiti-basic-002.png)
+
+下面对这些表做一些基本的解释， **这些可以先不看，等看完后面的教程后再回过头来看，你会发现其实很简单的。**
+
+ - 资源库流程规则表
+
+  - act\_re\_deployment 部署信息表
+
+  - act\_re\_model 流程设计模型部署表
+
+  - act\_re\_procdef 流程定义数据表
+
+ - 运行时数据库表
+
+  - act\_ru\_execution 运行时流程执行实例表
+
+  - act\_ru\_identitylink 运行时流程人员表
+
+      主要存储任务节点与参与者的相关信息
+
+  - act\_ru\_task 运行时任务节点表
+
+  - act\_ru\_variable 运行时流程变量数据表
+
+ - 历史数据库表
+
+  - act\_hi\_actinst 历史节点表
+
+  - act\_hi\_attachment 历史附件表
+
+  - act\_hi\_comment 历史意见表
+
+  - act\_hi\_identitylink 历史流程人员表
+
+  - act\_hi\_detail 历史详情表，提供历史变量的查询
+
+  - act\_hi\_procinst 历史流程实例表
+
+  - act\_hi\_taskinst 历史任务实例表
+
+  - act\_hi\_varinst 历史变量表
+
+ - 组织机构表
+
+  - act\_id\_group 用户组信息表
+
+  - act\_id\_info 用户扩展信息表
+
+  - act\_id\_membership 用户与用户组对应信息表
+
+  - act\_id\_user 用户信息表
+
+  这些表用的很少，因为我们一般会自己做一个权限管理，所以不会用 activiti 自身所带的表。
+
+ - 通用数据表
+
+  - act\_ge\_bytearray 二进制数据表
+
+  - act\_ge\_property 属性数据表存储整个流程引擎级别的数据
+
+     初始化表结构时，会默认插入三条记录。
+
+  这两张表的数据是不能够随意删除的，删除可能会出问题。
+
+#### Activiti 的 7 大马车
+
+ - **`RepositoryService`**
+
+  _提供一系列管理流程部署和流程定义的API。_
+
+  **Activiti 是不能直接识别 xml 格式的流程图的，流程图文件必须被部署到 Activiti 中才能被 Activiti 识别并使用。而这个过程就是使用 repositoryService 来完成的，流程图被导入后，会放到 `act_re_` 打头的几个表中。repositoryService 提供了若干个接口，既可以部署 xml 文件到数据库中，也可以从数据库检索特定流程图供处理。**
+
+ - **`RuntimeService`**
+
+  _在流程运行时对流程实例进行管理与控制。_
+
+  **Activiti 最重要的一个服务，基本上所有的关于流程的操作都是通过此服务来执行的。例如启动流程、审批、会签等等。**
+
+ - **`TaskService`**
+
+  _对流程任务进行管理，例如任务提醒、任务完成和创建任务等。_
+
+  **任务是 Activiti 的核心功能之一，所有涉及到任务的操作都是通过此服务来完成的。例如任务的查询、分配、认领、完成等。**
+
+ - **`IdentityService`**
+
+  _提供对流程角色数据进行管理的API，这些角色数据包括用户组、用户及它们之间的关系。_
+
+  **Activiti 自带的用于管理自身的组织机构的服务。Activiti 自身的组织机构包括 user 和 group 两大类，而 user、group 以及 user 和 group 的关系都是通过自服务来维护的。因此如果需要使用 Activiti 自身的组织机构的，就会使用到此服务。不过通常情况下我们都是是用的框架中的身份认证和组织机构，所以此服务使用频率也不高。**
+
+ - **`ManagementService`**
+
+  _提供对流程引擎进行管理和维护的服务。_
+
+  **提供对 Activiti 数据库的直接访问，因此通常情况下使用不到此服务。**
+
+ - **`HistoryService`**
+
+  _对流程的历史数据进行操作，包括查询、删除这些历史数据。_
+
+  **所有流程实例的信息都会被保存的历史信息中，当一个流程实例结束之前，它是被保存在 runtime 和 history 两个地方，当它结束后，就只有 history 里了。**
+
+ - **`FormService`**
+
+  _表单服务。_
+
+  **工作流的设计思路之一就是将每个节点需要显示的数据直接绑定到此节点。而 formService 就是专门为此服务的，使用 formService 可以获取某个节点绑定的表单数据。当然，如果没有表单绑定到此节点，此服务就没有任何用处。**
+
+#### Activiti 常用类
+
+ - **`ProcessEngineConfiguration`**
+
+  **流程引擎配置对象（配置数据库连接信息和建表策略）**
+
+ - **`ProcessEngine`**
+
+  **流程引擎的核心对象（检查环境是否正确，管理各种服务）**
+
+ - **`RepositoryService`**
+
+  **仓库服务对象（管理部署信息）**
+
+ - **`RuntimeService`**
+
+  **运行时服务对象（管理流程的启动，流转等操作）**
+
+ - **`TaskService`**
+
+  **任务服务对象（Task 表中的数据是 Exeuction 表的扩展，任务的创建时间和办理人）**
+
+#### Activiti 部署相关类
+
+ - **`DeploymentBuilder`**
+
+  **发布配置对象（发布的规则文件、规则图片和流程显示的别名）**
+
+ - **`ProcessDefinition`**
+
+  **流程定义（用来描述发布流程的整体信息）**
+
+ - **`ActivityImpl`**
+
+  **流程活动（用来描述一个流程中每个活动相关的信息）**
+
+#### Activiti 运行相关类
+
+ - **`Execution`**
+
+  **执行对象（用来描述当前活动节点的基本信息）**
+
+ - **`ProcessInstance`**
+
+  **流程实例对象（流程实例永远只想 Execution（root）对象）**
+
+ - **`Task`**
+
+  **任务对象（任务创建时间和办理人）**
+
+#### Activiti 流程引擎架构图
+
+![title](./images/activiti-basic/activiti-basic-003.jpg)
+
+#### Activiti 流程引擎的五种数据库表
+
+Activiti 的后台是有数据库的支持，所有的表都以 ACT_ 开头。 第二部分是表示表的用途的两个字母标识。用途也和服务的 API 对应。
+
+ - **`ACT_RE_*`**
+
+  _'RE'表示 repository。 这个前缀的表包含了流程定义和流程静态资源（图片，规则，等等）。_
+
+ - **`ACT_RU_*`**
+
+  _'RU'表示 runtime。 这些运行时的表，包含流程实例，任务，变量，异步任务，等运行中的数据。 Activiti 只在流程实例执行过程中保存这些数据，在流程结束时就会删除这些记录。 这样运行时表可以一直很小速度很快。_
+
+ - **`ACT_ID_*`**
+
+  _'ID'表示 identity。 这些表包含身份信息，比如用户，组等等。_
+
+ - **`ACT_HI_*`**
+
+  _'HI'表示 history。 这些表包含历史数据，比如历史流程实例，变量，任务等等。_
+
+ - **`ACT_GE_*`**
+
+  _通用数据，用于不同场景下，如存放资源文件。_
+
+#### 配置文件
+
+ **activiti.cfg.xml** Activiti 核心配置文件，配置流程引擎创建工具的基本参数和数据库连接池参数。
+
+#### Activiti 流程引擎的几个核心概念
+
+ - **`Activiti Model` 模型**
+
+  **最先有模型，可基于模型上传 bpmn 文件，创建 deployment**
+
+ - **`Activiti Demployment` 部署**
+
+  **根据 bpmn 文件部署流程，将基本的流程都定义好，形成一个部署**
+
+ - **`Activiti PrecessDefinition` 流程定义**
+
+  **根据部署创建的流程定义（模板）**
+
+ - **`Activiti ProcessInstance` 流程实例**
+
+  **根据流程定义 id 启动形成流程实例（每启动一个都形成一个新的）**
+
+#### Activiti 流程引擎原理
+
+通过分析 activiti 的底层代码，我们不难发现，其实 activiti 流程引擎就是通过绑定节点显示数据到数据库中的表上来实现动态的根据流程图来更新流程，从而不需要修改业务代码实现流程的即时更新。
+
+
+参考链接:
+
+ - <a href="http://blog.ouyangsihai.cn/activiti-gong-zuo-liu-cong-ru-men-dao-ru-tu-gong-zuo-liu-jian-jie.html" target="_blank">Activiti 介绍</a>
+
+ - <a href="https://blog.csdn.net/sxyandapp/article/details/50634419" target="_blank">Activiti 的几个核心类</a>
+
+ - <a href="http://www.mossle.com/docs/activiti/index.html" target="_blank">Activiti 中文手册</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

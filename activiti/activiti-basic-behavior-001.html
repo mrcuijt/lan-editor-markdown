@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-basic-behavior-001</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-basic-behavior-001
+
+#### Behavior 继承关系
+
+ - EventSubProcessStartEventActivityBehavior.class
+
+![title](./images/activiti-basic-behavior-001/activiti-basic-behavior-001.png)
+
+ - GatewayActivityBehavior.class
+
+![title](./images/activiti-basic-behavior-001/activiti-basic-behavior-002.png)
+
+ - ParallelGatewayActivityBehavior.class
+
+![title](./images/activiti-basic-behavior-001/activiti-basic-behavior-003.png)
+
+ - ParallelMultiInstanceBehavior.class
+
+![title](./images/activiti-basic-behavior-001/activiti-basic-behavior-004.png)
+
+参考链接：
+
+ - <a href="https://vimsky.com/examples/detail/java-method-org.activiti.engine.impl.pvm.delegate.ActivityExecution.executeActivity.html" target="_blank">Java ActivityExecution.executeActivity 方法代码示例</a>
+
+ - <a href="https://www.jianshu.com/p/f58e0a1f8d3b" target="_blank">activiti 流程运行过程代码走读</a>
+
+ - <a href="https://blog.csdn.net/jiankunking/article/details/51225085" target="_blank">Activiti 流程启动及节点流转源码分析</a>
+
+ - <a href="https://blog.csdn.net/sadoshi/article/details/106593665" target="_blank">activiti学习（二十一）——流程虚拟机源码分析（三）——从进入到离开userTask</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

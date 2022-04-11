@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>activiti-basic-design-003</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### activiti-basic-design-003
+
+#### 1. model.Activity 与 model.Task
+
+activiti-bpmn-model-5.22.0.jar
+
+ - org.activiti.bpmn.model.Activity
+
+  - org.activiti.bpmn.model.Task
+
+Activity 是模型时期对象（BPMN 文件中的元素），它有 3 个子类：CallActivity，SubProcess，Task。
+
+ - org.activiti.bpmn.model.CallActivity
+
+ - org.activiti.bpmn.model.SubProcess
+
+ - org.activiti.bpmn.model.Task
+
+启动流程的那个活动可以理解成有一个 StartEventActivity
+
+Task 有 N 个子类：BusinessRuleTask, ManualTask, ReceiveTask, ScriptTask, SendTask, ServiceTask, UserTask
+
+ - org.activiti.bpmn.model.BusinessRuleTask
+
+ - org.activiti.bpmn.model.ManualTask
+
+ - org.activiti.bpmn.model.ReceiveTask
+
+ - org.activiti.bpmn.model.ScriptTask
+
+ - org.activiti.bpmn.model.TaskWithFieldExtensions
+
+  - org.activiti.bpmn.model.SendTask
+
+  - org.activiti.bpmn.model.ServiceTask
+
+ - org.activiti.bpmn.model.UserTask
+
+PvmActivity 是部署时期对象，ActivityImpl 是它的实现类，注意 ActivityImpl 与 Activity 没有关系。
+
+ - org.activiti.engine.impl.pvm.PvmActivity
+
+  - org.activiti.engine.impl.pvm.process.ActivityImpl
+
+获取 ActivityImpl 的方法
+
+```java
+///...
+public static ActivityImpl getActivity(ProcessEngine processEngine, String processDefId, String activityId) {
+    ProcessDefinitionEntity pde = (ProcessDefinitionEntity) ((RepositoryServiceImpl) processEngine
+            .getRepositoryService()).getDeployedProcessDefinition(processDefId);
+    return (ActivityImpl) pde.findActivity(activityId);
+}
+
+///...
+public static ActivityImpl getActivity(ProcessEngine processEngine, String processDefId, String activityId) {
+    RepositoryServiceImpl repositoryService = (RepositoryServiceImpl)processEngine.getRepositoryService();
+    ProcessDefinitionEntity processDefinitionEntity = (ProcessDefinitionEntity)repositoryService.getDeployedProcessDefinition(processDefId);
+    ActivityImpl activity = processDefinitionEntity.findActivity(activityId);
+    return activity;
+}
+```
+
+ActivityImpl.getActivityBehavior() 可以获取到对应的 ActivityBehavior
+
+ActivityBehavior 很显然不是一种模型设计时期的对象
+
+TaskActivityBehavior 是一种类型的 ActivityBehavior
+
+#### 2. task.Task 与 task.TaskDefinition
+
+model.Task 是模型时期的，task.TaskDefinition 是部署时期的，task.Task 是运行时期的 TaskEntity 是 Task 的一个实现类
+
+**模型时期（BPMN）**
+
+ - org.activiti.bpmn.model.Task
+
+  - org.activiti.bpmn.model.UserTask
+
+     List&lt;String&gt; : UserTask.getCandidateGroups()
+
+**部署时期**
+
+ - org.activiti.engine.impl.task.TaskDefinition
+
+ Set&lt;Expression&gt;
+ : TaskDefinition.getCandidateGroupIdExpressions()
+
+**运行时期**
+
+ - org.activiti.engine.task.Task
+
+ TaskDefinition : Task.getTaskDefinition()
+
+  - org.activiti.engine.impl.persistence.entity.TaskEntity
+
+UserTaskParseHandler.executeParse() 方法，它通过解析生成 ActivityImpl 对象和 TaskDefinition 对象
+
+```java
+///...
+public class UserTaskParseHandler extends AbstractActivityBpmnParseHandler<UserTask> {
+    ///...
+    protected void executeParse(BpmnParse bpmnParse, UserTask userTask) {
+        ActivityImpl activity = createActivityOnCurrentScope(bpmnParse, userTask, BpmnXMLConstants.ELEMENT_TASK_USER);
+
+        activity.setAsync(userTask.isAsynchronous());
+        activity.setExclusive(!userTask.isNotExclusive());
+
+        TaskDefinition taskDefinition = parseTaskDefinition(bpmnParse, userTask, userTask.getId(), (ProcessDefinitionEntity) bpmnParse.getCurrentScope().getProcessDefinition());
+        activity.setProperty(PROPERTY_TASK_DEFINITION, taskDefinition);
+        activity.setActivityBehavior(bpmnParse.getActivityBehaviorFactory().createUserTaskActivityBehavior(userTask, taskDefinition));
+    }
+}
+```
+
+#### 3. Expression
+
+Activiti 使用 UEL 处理表达式。表达式可以用在很多场景下，比如 Java 服务任务，执行监听器，任务监听器和条件流。
+
+ExpressionManager.createExpression() 用以生成 Expression
+
+ProcessEngineConfigurationImpl.getExpressionManager()用以返回ExpressionManager
+
+表达式的值（来自于用户手册）
+
+ - Value expression：解析为值。默认，所有流程变量都可以使用。所有 spring bean（Spring 环境中）也可以使用在表达式中。 一些实例：
+
+```java
+${myVar}
+${myBean.myProperty}
+```
+
+ - Method expression：调用一个方法，使用或不使用参数。当调用一个无参数的方法时，记得在方法名后添加空的括号（以区分值表达式）。 传递的参数可以是字符串也可以是表达式，它们会被自动解析。例子：
+
+```java
+${printer.print()}
+${myBean.addNewOrder('orderName')}
+${myBean.doSomething(myVar, execution)}
+```
+
+注意这些表达式支持解析原始类型（包括比较），bean，list，数组和 map。
+
+在所有流程实例中，表达式中还可以使用一些默认对象：
+
+ - execution
+
+ DelegateExecution 提供外出执行的额外信息。
+
+ - task
+
+ DelegateTask 提供当前任务的额外信息。
+
+ 注意，只对任务监听器的表达式有效。
+
+ - authenticatedUserId
+
+ 当前登录的用户 id。
+
+ 如果没有用户登录，这个变量就不可用。
+
+#### 4. task.Task 的实例过程
+
+假设是一个 UserTask，task.Task 的 execute() 会调用它的 activityBehavior.execute(execution);
+
+UserTaskActivityBehavior.execute() 会根据 TaskDefinition 构造 Task 对象。注意这个过程中，会对 Task 的受托人、候选组、候选用户等 Expression 进行 getValue() 的计算。最后，Task 的信息保存入库。
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/bluejoe/p/5115943.html" target="_blank">Activiti 源码浅析：Activity 与 Task </a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
