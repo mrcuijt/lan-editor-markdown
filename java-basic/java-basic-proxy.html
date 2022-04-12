@@ -286,6 +286,8 @@ sudo java -classpath "$JAVA_HOME/lib/sa-jdi.jar" -Dsun.jvm.hotspot.tools.jcore.f
 #### 2. 自己重写一个记录工具
 
  - 用 agent attatch 到进程，然后利用 Instrumentation 和 ClassFileTransformer 就可以获取 到类的字节码了。
+ 
+ - <a href="./datas/java-basic-proxy/classutil-1.0-SNAPSHOT.jar" target="_blank">下载</a>
 
 工具类如下：
 
