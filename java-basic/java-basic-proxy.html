@@ -50,7 +50,505 @@
 </script>
 <body>
 <div id="edit">
-    <textarea id="editor" name="editor"></textarea>
+    <textarea id="editor" name="editor">
+#### java-basic-proxy
+
+#### JDK 动态代理
+
+ - JDK 动态代理只局限于对接口进行代理，在调用 Proxy.newProxyInstance 之前设置 System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true"); 就会在项目根目录生成一个 $Proxy0.class。
+
+  从反编译的源码可以看出 $Proxy0 代理类实例继承了 Proxy 类，并实现了 Sky 接口，在 Java 中只支持单继承，可以实现多个接口，所以 JDK 动态代理只能局限于接口。
+
+  如果同时代理了两个接口，那么这里 implements 后面会跟两个。
+
+  从此类的静态变量和静态初始化块可以看出，它们保存了接口中的方法（rain）和 Object 的三个方法（equals，toString，hashCode）。
+
+  InvocationHandler 子类对象通过构造函数里的 super(var1); 传给了父类的成员变量 h ，每次到了需要真正调用时则执行 super.h.invoke() 。
+
+ - JDK 动态代理需要实现类通过接口定义业务方法来实现，对于没有接口的类，需要实现动态代理该怎么办？
+
+  - 这个时候就需要 Cglib 代理了。
+
+```java
+// 自动生成 $Proxy0 源码
+System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles", "true");
+```
+
+```java
+public final class $Proxy0 extends Proxy  
+    implements Sky
+{ 
+    ......
+}
+```
+
+**Sky.java**
+
+```java
+package science.example.proxy.service;
+
+public interface Sky {
+
+    void rain();
+}
+```
+
+**SkyImpl.java**
+
+```java
+package science.example.proxy.service.impl;
+
+import science.example.proxy.service.Sky;
+
+public class SkyImpl implements Sky {
+
+    @Override
+    public void rain() {
+        System.out.println("it`s raining");
+    }
+
+}
+```
+
+**MyInvocationHandler.java**
+
+```java
+package science.example.proxy.handler;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+public class MyInvocationHandler implements InvocationHandler {
+
+    //目标对象
+    private Object object;
+
+    //获取目标对象的代理对象
+    public Object getProxy(Object o) {
+        object = o;
+        return Proxy.newProxyInstance(object.getClass().getClassLoader(), // 此时应该获取与这个类相关的类加载器，而不是针对于某个接口
+									object.getClass().getInterfaces(), // 获得这个类实现过的所有接口
+									this);
+    }
+
+    //控制执行目标对象的方法
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        System.out.println("目标对象方法执行之前");
+        Object result = method.invoke(object, args);
+        System.out.println("目标对象方法执行之后");
+        return result;
+    }
+
+}
+```
+
+**ProxyTest.java**
+
+```java
+package science.example.proxy.service;
+
+import org.junit.jupiter.api.Test;
+import science.example.proxy.handler.MyInvocationHandler;
+import science.example.proxy.service.impl.SkyImpl;
+
+public class ProxyTest {
+
+    @Test
+    public void proxy() {
+        //实例化InvocationHandler
+        MyInvocationHandler myInvocationHandler = new MyInvocationHandler();
+        //生产代理对象
+        Sky sky = (Sky) myInvocationHandler.getProxy(new SkyImpl());
+        sky.rain();
+    }
+
+}
+```
+
+#### Cglib 动态代理
+
+ - Cglib 采用了非常底层的字节码技术，其原理是通过字节码技术为一个类创建子类，并在子类中采用方法拦截所有分类方法的调用，顺势织入横切逻辑。
+
+ - Cglib 动态代理是创建一个子类来实现的，那么对于继承的定义，final 类是无法进行代理的。
+
+**dependency**
+
+```xml
+<dependencies>
+    <!-- Cglib Proxy -->
+    <dependency>
+        <groupId>net.sourceforge.cglib</groupId>
+        <artifactId>com.springsource.net.sf.cglib</artifactId>
+        <version>2.2.0</version>
+    </dependency>
+</dependencies>
+```
+
+**Color.java**
+
+```java
+package science.example.proxy.cglib;
+
+public class Color {
+
+    public void showColor(){
+        System.out.println("red");
+    }
+}
+```
+
+**MyCglib.java**
+
+```java
+package science.example.proxy.cglib.interceptor;
+
+import java.lang.reflect.Method;
+
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+
+public class MyCglib implements MethodInterceptor {
+
+    //目标对象
+    private Object obj = null;
+
+    public Object getProxy(Object obj){
+        this.obj = obj;
+        Enhancer enhancer = new Enhancer();
+        enhancer.setSuperclass(obj.getClass());
+        // 回调方法
+        enhancer.setCallback(this);
+        // 创建代理对象
+        return enhancer.create();
+
+    }
+
+    @Override
+    public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+        System.out.println("目标对象方法执行之前");
+        Object result = methodProxy.invoke(obj, args);
+        System.out.println("目标对象方法执行之后");
+        return result;
+    }
+}
+```
+
+**CGLibTest.java**
+
+```java
+package science.example.proxy.cglib;
+
+import org.junit.jupiter.api.Test;
+import science.example.proxy.cglib.interceptor.MyCglib;
+
+public class CGLibTest {
+
+    @Test
+    public void example() {
+        MyCglib myCglib = new MyCglib();
+        Color color = (Color) myCglib.getProxy(new Color());
+        color.showColor();
+    }
+}
+```
+
+
+#### 导出当前 JVM 中的 Class
+
+#### 1、使用据说是 jdk 自带包 sa-jdi.jar 里的工具。
+
+ - 其中，不想自己搞，当然就利用下，sa-jdi.jar 里自带的的 sun.jvm.hotspot.tools.jcore.ClassDump 就可以把类的 class 内容 dump 到文件里。
+
+ - ClassDump 里可以设置两个 System properties：
+
+   - sun.jvm.hotspot.tools.jcore.filter 
+
+     Filter 的类名
+
+     sun.jvm.hotspot.tools.jcore.PackageNameFilter 可以指定 Dump 哪些包里的类
+
+     sun.jvm.hotspot.tools.jcore.PackageNameFilter.pkgList 可以指定过滤哪些包（System Property）
+
+   - sun.jvm.hotspot.tools.jcore.outputDir
+
+     输出的目录
+
+所以可以通过这样子的命令来使用：
+
+```python
+## 
+sudo java -classpath "$JAVA_HOME/lib/sa-jdi.jar" -Dsun.jvm.hotspot.tools.jcore.filter=sun.jvm.hotspot.tools.jcore.PackageNameFilter -Dsun.jvm.hotspot.tools.jcore.PackageNameFilter.pkgList=com.test sun.jvm.hotspot.tools.jcore.ClassDump <pid>
+```
+
+#### 2. 自己重写一个记录工具
+
+ - 用 agent attatch 到进程，然后利用 Instrumentation 和 ClassFileTransformer 就可以获取 到类的字节码了。
+
+工具类如下：
+
+```java
+package com.xxx.test;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.lang.instrument.ClassFileTransformer;
+import java.lang.instrument.IllegalClassFormatException;
+import java.lang.instrument.Instrumentation;
+import java.security.ProtectionDomain;
+import java.util.Arrays;
+
+/**
+ * 动态生成类拦截查看工具
+ *
+ * @date 2018/9/15
+ */
+public class ClazzDumpCustomAgent implements ClassFileTransformer {
+
+    /**
+     * 导出过滤表达式，此处为类名前缀， 以 -f 参数指定
+     */
+    private String filterStr;
+
+    /**
+     * 导出文件目录根目录, 以 -d 参数指定
+     */
+    private String exportBaseDir = "/tmp/";
+
+    /**
+     * 是否创建多级目录, 以 -r 参数指定
+     */
+    private boolean packageRecursive;
+
+    public ClazzDumpCustomAgent(String exportBaseDir, String filterStr) {
+        this(exportBaseDir, filterStr, false);
+    }
+
+    public ClazzDumpCustomAgent(String exportBaseDir, String filterStr, boolean packageRecursive) {
+        if(exportBaseDir != null) {
+            this.exportBaseDir = exportBaseDir;
+        }
+        this.packageRecursive = packageRecursive;
+        this.filterStr = filterStr;
+    }
+
+    /**
+     * 入口地址
+     *
+     * @param agentArgs agent参数
+     * @param inst
+     */
+    public static void premain(String agentArgs, Instrumentation inst) {
+        System.out.println("agentArgs: " + agentArgs);
+        String exportDir = null;
+        String filterStr = null;
+        boolean recursiveDir = false;
+        if(agentArgs != null) {
+            if(agentArgs.contains(";")) {
+                String[] args = agentArgs.split(";");
+                for (String param1 : args) {
+                    String[] kv = param1.split("=");
+                    if("-d".equalsIgnoreCase(kv[0])) {
+                        exportDir = kv[1];
+                    }
+                    else if("-f".equalsIgnoreCase(kv[0])) {
+                        filterStr = kv[1];
+                    }
+                    else if("-r".equalsIgnoreCase(kv[0])) {
+                        recursiveDir = true;
+                    }
+                }
+            }
+            else {
+                filterStr = agentArgs;
+            }
+        }
+        inst.addTransformer(new ClazzDumpCustomAgent(exportDir, filterStr, recursiveDir));
+    }
+
+    @Override
+    public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                            ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+        if (needExportClass(className)) {
+            int lastSeparatorIndex = className.lastIndexOf("/") + 1;
+            String fileName = className.substring(lastSeparatorIndex) + ".class";
+            String exportDir = exportBaseDir;
+            if(packageRecursive) {
+                exportDir += className.substring(0, lastSeparatorIndex);
+            }
+            exportClazzToFile(exportDir, fileName, classfileBuffer);         //"D:/server-tool/tmp/bytecode/exported/"
+            System.out.println(className + " --> EXPORTED");
+        }
+        return classfileBuffer;
+    }
+
+    /**
+     * 检测是否需要进行文件导出
+     *
+     * @param className class名,如 com.xx.abc.AooMock
+     * @return y/n
+     */
+    private boolean needExportClass(String className) {
+        if(filterStr != null) {
+            if(className.startsWith(filterStr)) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        if (!className.startsWith("java") && !className.startsWith("sun")) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 执行文件导出写入
+     *
+     * @param dirPath 导出目录
+     * @param fileName 导出文件名
+     * @param data 字节流
+     */
+    private void exportClazzToFile(String dirPath, String fileName, byte[] data) {
+        try {
+            File dir = new File(dirPath);
+            if(!dir.isDirectory()) {
+                dir.mkdirs();
+            }
+            File file = new File(dirPath + fileName);
+            if (!file.exists()) {
+                System.out.println(dirPath + fileName + " is not exist, creating...");
+                file.createNewFile();
+            }
+            else {
+
+//                String os = System.getProperty("os.name");        // 主要针对windows文件不区分大小写问题
+//                if(os.toLowerCase().startsWith("win")){
+//                    // it's win
+//                }
+                try {
+                    int maxLoop = 9999;
+                    int renameSuffixId = 2;
+                    String[] cc = fileName.split("\\.");
+                    do {
+                        Long fileLen = file.length();
+                        byte[] fileContent = new byte[fileLen.intValue()];
+                        FileInputStream in = new FileInputStream(file);
+                        in.read(fileContent);
+                        in.close();
+                        if(!Arrays.equals(fileContent, data)) {
+                            fileName = cc[0] + "_" + renameSuffixId + "." + cc[1];
+                            file = new File(dirPath + fileName);
+                            if (!file.exists()) {
+                                System.out.println("new create file: " + dirPath + fileName);
+                                file.createNewFile();
+                                break;
+                            }
+                        }
+                        else {
+                            break;
+                        }
+                        renameSuffixId++;
+                        maxLoop--;
+                    } while (maxLoop > 0);
+                }
+                catch (Exception e) {
+                    System.err.println("exception in read class file..., path: " + dirPath + fileName);
+                    e.printStackTrace();
+                }
+            }
+            FileOutputStream fos = new FileOutputStream(file);
+            fos.write(data);
+            fos.close();
+        }
+        catch (Exception e) {
+            System.err.println("exception occur while export class.");
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>3.0.0</version>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <transformers>
+                            <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <manifestEntries>
+                                    <!--<Main-Class>com.xueyou.dubboagent.App</Main-Class>-->
+                                    <Premain-Class>science.example.classutil.ClazzDumpCustomAgent</Premain-Class>
+                                </manifestEntries>
+                            </transformer>
+                        </transformers>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+写好工具类后，将其打包为 jar 包文件
+
+MENIFEST.MF 文件内容如下：
+
+```python
+Manifest-Version: 1.0
+Premain-Class: com.youge.api.ClazzDumpCustomAgent
+```
+
+在运行项目时，添加 javaagent，进行代码导出：
+
+```python
+# 在vm参数中，加入该agent
+java -javaagent:D:\tools\classutil-1.0-SNAPSHOT.jar=-d=./tmp/;-f=com/sun/proxy;-r example.xxx
+
+java -cp .;proxy-1.0-SNAPSHOT.jar -javaagent:D:\tools\classutil-1.0-SNAPSHOT.jar=-d=./tmp/;-f=com/sun/proxy;-r science.example.proxy.Run
+```
+
+其中：
+
+ - -d: 设置导出文件的输出目录；
+
+ - -f: 设置需要导出的字节码的前缀；
+
+ - -r: 有该参数代表需要进行包目录的创建，否则生成所有文件到一个目录；
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/yougewe/p/9651555.html" target="_blank">如何获取 java 运行时动态生成的 class 文件？</a>
+
+ - <a href="https://blog.csdn.net/wild46cat/article/details/78908902" target="_blank">maven 插件添加 premain 参数</a>
+
+ - <a href="https://blog.csdn.net/anlian523/article/details/100185710" target="_blank">自动生成的 $Proxy0 源码</a>
+
+ - <a href="https://www.cnblogs.com/kuangdaoyizhimei/p/15964713.html" target="_blank">使用 javassist 运行时动态修改字节码对象</a>
+
+ - <a href="https://www.jb51.net/article/110471.htm" target="_blank">java 中如何获取字节码文件的相关内容</a>
+
+ - <a href="https://www.jb51.net/article/194811.htm" target="_blank">Javassist 如何操作 Java 字节码</a>
+	</textarea>
 </div>
 
 <div id="show"></div>
