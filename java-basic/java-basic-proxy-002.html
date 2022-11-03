@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-proxy-002</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-proxy-002
+
+#### 代理
+
+代理模式的主要作用是为其他对象提供一种代理以控制对这个对象的访问。在某些情况下，一个对象不想或者不能直接引用另一个对象，而代理对象可以在客户端和目标对象之间起到中介的作用。
+代理模式的思想是为了提供额外的处理或者不同的操作而在实际对象与调用者之间插入一个代理对象。这些额外的操作通常需要与实际对象进行通信。
+
+在不修改自身源码的情况下，达到增强功能的效果，这时候就可以使用代理来完成需求。
+
+目标类 A 不能被 用户类 B 直接访问，只能通过中间商 C 来做桥接达到 A 访问 B 的效果。就像现实中的中间商一样，中间商一般不让客户直接联系供货商，如果客户直接联系供货商，中间商就没用了。而通过中间商来作为客户与供货商之间的桥梁，中间商就可以赚差价（增强功能），甚至阻断客户和供货商之间的联系（客户联系中间商，中间商不联系供货商，这样他们之间的联系就断了）。
+
+##### 静态代理
+
+静态代理就是在运行前，代理对象的内容就已经被确定了。
+
+使用条件：代理类和目标类都需要实现统一的接口或者代理类直接继承目标类然后使用 super 来调用目标类方法来达到代理的效果。
+
+```java
+public interface Fruit {
+
+    void sell();
+}
+
+public class Apple implements Fruit {
+
+    @Override
+    public void sell() {
+        System.out.println("卖苹果一斤");
+    }
+}
+
+public class AppleProxy implements Fruit{
+
+    private Apple apple;
+
+    public AppleProxy(Apple apple) {
+
+        this.apple = apple;
+    }
+
+    @Override
+    public void sell() {
+        System.out.println("偷吃一斤苹果");
+        this.apple.sell();
+    }
+}
+
+public class Run {
+
+    public static void main(String[] args) {
+        Fruit fruit = new AppleProxy(new Apple());
+        fruit.sell();
+    }
+}
+```
+
+这里使用的是多态的思想，用户只关心 fruit.sell() 这个结果，不在乎是谁卖的（创建者）。
+
+以上代码达到了 “卖苹果一斤” 的效果，中间商还加了一层 buff “偷吃一斤苹果” ，等于是卖一次少两斤苹果。
+
+不过缺点是如果代理商还想去代理其他水果，就必须新建一个代理类去代理。
+
+##### 动态代理
+
+动态代理解决了静态代理的缺点，也就是代理类内容必须是先确定的。
+
+我们抛开其他工具类为我们提供的生成代理类的方法，自己想一下如果我们自己写一个动态代理需要什么东西。
+
+首先分析一下静态代理，静态代理类实现了接口的所有方法，并且在需要代理的方法中增强了功能，每个方法增强的功能可以不一样，也可以一样。那么首先我们需要动态生成一个代理类，如果我们要为每一个目标方法提供不一样的增强功能，由于方法的不确定性，这个似乎有点难搞，那么我们就为所有需要代理的方法增加统一的增强功能。这时候我们除了生成一个代理类，我们还需要有一个定义增强功能的入口，这样生成代理类的时候为每个需要代理的方法写入增强功能。
+
+接下来我们就来参考一下他们是怎么搞的。
+
+常用的有 JDK 动态代理和 CGLIB 动态代理，我们先来看下 JDK 动态代理。
+
+#### JDK 动态代理
+
+```java
+public interface Fruit {
+
+    void sell();
+
+    void purchase();
+}
+
+public class Apple implements Fruit {
+
+    @Override
+    public void sell() {
+
+        System.out.println("卖苹果一斤");
+    }
+
+    @Override
+    public void purchase() {
+
+        System.out.println("进货一斤苹果");
+    }
+}
+
+public class FruitInvocationHandle<T> implements InvocationHandler {
+
+    private T target;
+
+    public FruitInvocationHandle(T target) {
+
+        this.target = target;
+    }
+
+    /**
+     *
+     * @param proxy 生成的动态代理类
+     * @param method 被代理的方法
+     * @param args 被代理方法传递过来的参数
+     * @return 方法的返回值
+     * @throws Throwable 异常
+     */
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+        System.out.println("偷吃一斤苹果");
+
+        return method.invoke(target, args);
+    }
+
+}
+
+public class Run {
+
+    public static void main(String[] args) {
+
+        Fruit fruit = (Fruit) Proxy.newProxyInstance(Fruit.class.getClassLoader(),
+                new Class[]{Fruit.class},
+                new FruitInvocationHandle<>(new Apple()));
+
+        fruit.purchase();
+        fruit.sell();
+    }
+}
+```
+
+ok，我们跟着源码看看原理是啥。
+
+main 方法代码很少，主要的代码就一句 **Proxy.newProxyInstance**。我们进 Proxy 看看 newProxyInstance 方法。
+
+里面的验证、判断啥的我们不看，主要看这行代码 **`Class<?> cl = getProxyClass0(loader, intfs)`;**，这个是已经返回了代理类的 Class 类型了，我们再点进去看一下（Proxy 的 getProxyClass0）：
+
+```java
+private static Class<?> getProxyClass0(ClassLoader loader,
+                                       Class<?>... interfaces) {
+ 
+    if (interfaces.length > 65535) {
+ 
+        throw new IllegalArgumentException("interface limit exceeded");
+    }
+ 
+    // If the proxy class defined by the given loader implementing
+    // the given interfaces exists, this will simply return the cached copy;
+    // otherwise, it will create the proxy class via the ProxyClassFactory
+    return proxyClassCache.get(loader, interfaces);
+}
+```
+
+没有啥实际的东西，再进去（WeakCache的get）->
+
+主要看这行 **`Object subKey = Objects.requireNonNull(subKeyFactory.apply(key, parameter))`;** 的 **subKeyFactory.apply(key, parameter)**，打个断点发现它走的是 Proxy 的 apply 方法，里面的这行就是生成字节码的实际动作了 **`byte[] proxyClassFile = ProxyGenerator.generateProxyClass(proxyName, interfaces, accessFlags)`;** ,有兴趣的可以研究一下，这里就不细讲了。
+
+那么我们知道 newProxyInstance 是返回一个代理类，因为动态代理类是运行在内存里面的，我们怎么知道它的具体内容呢？有两种方法：
+
+第一种，使用 JDK 自带的 HSDB 调试工具。
+
+找到 JDK 的安装目录，进入 lib 目录下，CMD 运行到当前目录，
+
+运行 
+
+```python
+java -cp .\sa-jdi.jar sun.jvm.hotspot.HSDB
+```
+
+就会出现一个图形化的界面，这个就是 HSDB 了。
+
+找到 Java 程序的进程 ID，先不运行程序，使用 jps 命令打印后台运行程序，然后再运行 Java 程序，多出的就是它的进程了。
+
+依次点击 File -> Attach to Hotspot process。然后输入 Java 程序的进程 ID，如果命令行界面出现报错 Exception in thread "Thread-1" java.lang.UnsatisfiedLinkError: Can't load library: D:\jre\bin\sawindbg.dll，则在 JDK 的安装目录搜索相关文件，复制到文件不存在的目录（D:\jre\bin\）。
+
+如果是正常的，那么工具栏的 Tools 是可以点击的。依次点击 Tools -> Class Browser，输入代理类名称，点击右边的搜索按钮就可以了。那怎么找代理类的名称呢？在 main 方法上打个断点，让断点走到 fruit.purchase();，Alt 按住点击 fruit ，第一行会出现 fruit = {$Proxy0@530} 其中 $Proxy0 就是它的类名称了，当然也可以到 Proxy 的 apply 方法，proxyName 中也有代理类名称。
+
+搜索到类之后，点击这个它就会在 JDK 的安装目录下的 lib 目录根据包名创建相应的 class 文件了。
+
+![title](./images/java-basic-proxy-002/java-basic-proxy-002-001.png)
+
+然后把 class 文件拖到 IDEA 中就可以查看内容了。
+
+第二种就非常简单了，不过只针对于 Proxy 生成的动态代理类。
+
+将 main 方法改成以下内容：
+
+```java
+public static void main(String[] args) {
+ 
+    System.getProperties().put("sun.misc.ProxyGenerator.saveGeneratedFiles","true");
+ 
+    Fruit fruit = (Fruit) Proxy.newProxyInstance(Fruit.class.getClassLoader(),
+            new Class[]{Fruit.class},
+            new FruitInvocationHandle<>(new Apple()));
+ 
+    fruit.purchase();
+    fruit.sell();
+}
+```
+
+运行之后在项目的根目录就能发现出现了个 com 目录，里面就有那个代理类了。
+
+为什么说只针对于 Proxy 呢？看源码 sun.misc 包下的 ProxyGenerator 的 generateProxyClass 方法：
+
+```java
+private static final boolean saveGeneratedFiles = (Boolean)AccessController.doPrivileged(new GetBooleanAction("sun.misc.ProxyGenerator.saveGeneratedFiles"));
+ 
+    if (saveGeneratedFiles) {
+ 
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+ 
+            public Void run() {
+ 
+                try {
+ 
+                    int var1 = var0.lastIndexOf(46);
+ 
+                    Path var2;
+ 
+                    if (var1 > 0) {
+ 
+                        Path var3 = Paths.get(var0.substring(0, var1).replace('.', File.separatorChar));
+ 
+                        Files.createDirectories(var3);
+ 
+                        var2 = var3.resolve(var0.substring(var1 + 1, var0.length()) + ".class");
+ 
+                    } else {
+ 
+                        var2 = Paths.get(var0 + ".class");
+                    }
+ 
+                    Files.write(var2, var4, new OpenOption[0]);
+ 
+                    return null;
+ 
+                } catch (IOException var4x) {
+ 
+                    throw new InternalError("I/O exception saving generated file: " + var4x);
+                }
+            }
+        });
+ 
+    }
+}
+```
+
+当 sun.misc.ProxyGenerator.saveGeneratedFiles 为真时才写文件。
+
+可以发现，它每个方法都是调用的 invoke 方法，super.h -> 找到父类 Proxy 的 h，就是 InvocationHandler h 这个，也就是调用的我们传递的 FruitInvocationHandle。在 FruitInvocationHandle 的 invoke 中 method.invoke(target, args) 是用了反射去调用方法。
+
+从生成的代理类来看，$Proxy0 必须继承 Proxy ，而又因为 Java 是单继承的，所以使用 JDK 动态代理，目标类必须实现接口，不然代理类引用不能替换目标类。
+
+网上一些教程说的 JDK 是基于反射的，那么它说的这个基于反射是什么意思呢？它说的反射是在调用被代理方法时是使用反射去调用被代理方法的，也就是这句 method.invoke(target, args);。
+
+#### CGLIB 动态代理
+
+CGLIB 动态代理和 JDK 动态代理过程差不多相似，差在了 JDK 需要目标类实现接口，而 CGLIB 不用。
+
+```java
+public class Apple{
+
+    public void sell() {
+
+        System.out.println("卖苹果一斤");
+    }
+
+    public void purchase() {
+
+        System.out.println("进货一斤苹果");
+    }
+}
+
+
+public class AppleMethodInterceptor implements MethodInterceptor {
+
+    @Override
+
+    public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+
+        System.out.println("偷吃一斤苹果");
+
+        return methodProxy.invokeSuper(o,objects);
+    }
+}
+
+public class Run {
+
+    public static void main(String[] args) {
+
+        // 在F盘根目录会生成代理类问题
+
+        System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY, "F:\\");
+
+        Enhancer enhancer = new Enhancer();
+
+        enhancer.setSuperclass(Apple.class);
+
+        enhancer.setCallback(new AppleMethodInterceptor());
+
+        Apple apple = (Apple) enhancer.create();
+
+        apple.sell();
+    }
+}
+```
+
+Spring 中也维护了一份 cglib。
+
+cglib 代理也是生成代理类，然后调用相关方法。我们看下生成的代理类，我们看主要的类文件内容：
+
+```java
+public class Apple$$EnhancerByCGLIB$$312f8e2a extends Apple implements Factory {
+
+……
+
+    public final void sell() {
+
+        MethodInterceptor var10000 = this.CGLIB$CALLBACK_0;
+
+        if (var10000 == null) {
+
+            CGLIB$BIND_CALLBACKS(this);
+
+            var10000 = this.CGLIB$CALLBACK_0;
+        }
+
+        if (var10000 != null) {
+
+            var10000.intercept(this, CGLIB$sell$0$Method, CGLIB$emptyArgs, CGLIB$sell$0$Proxy);
+
+        } else {
+
+            super.sell();
+
+        }
+    }
+
+……
+
+}
+```
+
+可以发现也是每个方法都调用了我们配置的 MethodInterceptor 的 intercept 方法，在我们配置的 invoke 方法中为什么要调用 invokeSuper 方法呢？进入源码发现原来它是通过 switch 的方式根据传递过来的下标调用相关的方法。【当然也可以使用 method.invoke 去使用反射调用方法（注意 Object o 这个传递过来的是代理对象，需要通过构造方法或者其他方式将被代理对象传递进来，不然会陷入死循环，因为传递的是代理对象，调用的代理对象的invoke，invoke之后又调用的是代理对象的invoke，之后陷入死循环）但是这样就和 JDK 代理有点相似了。】
+
+```java
+public Object invokeSuper(Object obj, Object[] args) throws Throwable {
+ 
+    try {
+ 
+        this.init();
+ 
+        MethodProxy.FastClassInfo fci = this.fastClassInfo;
+ 
+        return fci.f2.invoke(fci.i2, obj, args);
+ 
+    } catch (InvocationTargetException var4) {
+ 
+        throw var4.getTargetException();
+    }
+}
+```
+
+断点获取 fci.i2 的值，然后在包下会生成三个文件 AppleEnhancerByCGLIBEnhancerByCGLIB312f8e2a.class 、AppleFastClassByCGLIBFastClassByCGLIB197ea049.class 、AppleEnhancerByCGLIBEnhancerByCGLIB312f8e2aFastClassByCGLIBFastClassByCGLIB920bba8b.class。打开他们，查找 invoke 方法，发现 AppleFastClassByCGLIBFastClassByCGLIB197ea049 与 AppleEnhancerByCGLIBEnhancerByCGLIB312f8e2aFastClassByCGLIBFastClassByCGLIB920bba8b 都有 invoke 方法，那么 fci.i2 的值就有用了，对比发现 在 AppleEnhancerByCGLIBEnhancerByCGLIB312f8e2aFastClassByCGLIBFastClassByCGLIB920bba8b.class 里面的 invoke 方法才是和被代理方法相关的调用。
+
+```java
+public Object invoke(int var1, Object var2, Object[] var3) throws InvocationTargetException {
+
+    312f8e2a var10000 = (312f8e2a)var2;
+    int var10001 = var1;
+
+    try {
+
+        switch(var10001) {
+            case 0:
+                return new Boolean(var10000.equals(var3[0]));
+            case 1:
+                return var10000.toString();
+            case 2:
+                return new Integer(var10000.hashCode());
+            case 3:
+                return var10000.newInstance((Class[])var3[0], (Object[])var3[1], (Callback[])var3[2]);
+            case 4:
+                return var10000.newInstance((Callback)var3[0]);
+            case 5:
+                return var10000.newInstance((Callback[])var3[0]);
+            case 6:
+                var10000.setCallback(((Number)var3[0]).intValue(), (Callback)var3[1]);
+                return null;
+            case 7:
+                var10000.sell();
+                return null;
+            case 8:
+                var10000.setCallbacks((Callback[])var3[0]);
+                return null;
+            case 9:
+                312f8e2a.CGLIB$SET_STATIC_CALLBACKS((Callback[])var3[0]);
+                return null;
+            case 10:
+                312f8e2a.CGLIB$SET_THREAD_CALLBACKS((Callback[])var3[0]);
+                return null;
+            case 11:
+                return var10000.getCallback(((Number)var3[0]).intValue());
+            case 12:
+                return var10000.getCallbacks();
+            case 13:
+                var10000.purchase();
+                return null;
+            case 14:
+                return 312f8e2a.CGLIB$findMethodProxy((Signature)var3[0]);
+            case 15:
+                return new Integer(var10000.CGLIB$hashCode$5());
+            case 16:
+                return new Boolean(var10000.CGLIB$equals$3(var3[0]));
+            case 17:
+                return var10000.CGLIB$toString$4();
+            case 18:
+                return var10000.CGLIB$clone$6();
+            case 19:
+                var10000.CGLIB$purchase$1();
+                return null;
+            case 20:
+                var10000.CGLIB$sell$0();
+                return null;
+            case 21:
+                var10000.CGLIB$finalize$2();
+                return null;
+            case 22:
+                312f8e2a.CGLIB$STATICHOOK1();
+                return null;
+            case 23:
+                var10000.wait();
+                return null;
+            case 24:
+                var10000.wait(((Number)var3[0]).longValue(), ((Number)var3[1]).intValue());
+                return null;
+            case 25:
+                var10000.wait(((Number)var3[0]).longValue());
+                return null;
+            case 26:
+                return var10000.getClass();
+            case 27:
+                var10000.notify();
+                return null;
+            case 28:
+                var10000.notifyAll();
+                return null;
+        }
+    } catch (Throwable var4) {
+
+        throw new InvocationTargetException(var4);
+    }
+
+    throw new IllegalArgumentException("Cannot find matching method/constructor");
+}
+```
+
+var10001 的值是 20 ，所以调用的就是 var10000.CGLIB$sell$0();，在 AppleEnhancerByCGLIBEnhancerByCGLIB312f8e2a.class 中找到了这个方法：
+
+```java
+final void CGLIB$sell$0() {
+
+    super.sell();
+}
+```
+
+调用父类也就是 Apple 类的 sell 方法。从这里发现它和 JDK 代理的不一样了，直接调用与反射调用在效率上有些差别。所以说 JDK 代理是创建字节码文件快，执行慢，而 CGLIB 代理是创建字节码文件慢，执行快，不过经过 JDK的版本不断更新，反射的执行效率也逐渐的优化。有兴趣的可以研究一下他们之间的性能差异，我就不说了。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

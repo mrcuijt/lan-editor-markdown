@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>spring-transaction-basic-002</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### spring-transaction-basic-002
+
+#### Spring 事务原理解析
+
+为什么 Spring boot 不需要添加 EnableTransactionManagement 注解就能开启事务？我们找到 spring-boot-autoconfigure-2.4.1.jar 的 META-INF 文件下的 spring.factories 文件。发现 Spring boot 的自动装配已经把 org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration 扫描进去了。点进类里面发现只要符合条件注解就会将事务注解添加上去，所以不用我们自己手动添加。
+
+Spring 事务也是使用 AOP 技术去回滚的，我们可以来看下源码。
+
+AOP 是寻找适配的增强器链，然后按照顺序执行增强器链。
+
+事务代码：
+
+```java
+@Transactional
+public String saveData() {
+
+    int result = baseMapper.insert(new AccountEntity()
+            .setUserName("aj" + LocalDateTime.now()));
+
+    int i = 1/0;
+
+    return "ok";
+}
+
+@Test
+public void contextLoads() {
+
+    System.out.println(accountService);
+
+    accountService.saveData();
+}
+```
+
+然后我们看一下生成的代理类：
+
+```java
+public final String saveData() {
+
+    try {
+
+        MethodInterceptor var10000 = this.CGLIB$CALLBACK_0;
+
+        if (var10000 == null) {
+
+            CGLIB$BIND_CALLBACKS(this);
+
+            var10000 = this.CGLIB$CALLBACK_0;
+
+        }
+
+        return var10000 != null ? (String)var10000.intercept(this, CGLIB$saveData$0$Method, CGLIB$emptyArgs, CGLIB$saveData$0$Proxy) : super.saveData();
+
+    } catch (Error | RuntimeException var1) {
+
+        throw var1;
+
+    } catch (Throwable var2) {
+
+        throw new UndeclaredThrowableException(var2);
+    }
+}
+```
+
+还记得我们找 AOP 代理的开始吗？对，就是 AbstractAutoProxyCreator 的 postProcessAfterInitialization 方法：
+
+```java
+public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
+
+    if (bean != null) {
+
+        Object cacheKey = getCacheKey(bean.getClass(), beanName);
+
+        if (this.earlyProxyReferences.remove(cacheKey) != bean) {
+
+            return wrapIfNecessary(bean, beanName, cacheKey);
+        }
+    }
+
+    return bean;
+}
+```
+
+从这里开始给 Bean 创建代理。接下来就和上面的过程是一样的了，我们直接到增强器链那里。
+
+我们找到 CglibAopProxy 的 DynamicAdvisedInterceptor 的 intercept 方法（直接进 CglibAopProxy 进不去，要先进 AopProxy 接口，然后再找实现类）：
+
+```java
+List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+```
+
+这里拿增强器链拿到了一条数据 TransactionInterceptor。然后去执行 ReflectiveMethodInvocation 的 process 方法，接着执行增强器链的 invoke 方法：
+
+```java
+public Object invoke(MethodInvocation invocation) throws Throwable {
+
+    // Work out the target class: may be {@code null}.
+    // The TransactionAttributeSource should be passed the target class
+    // as well as the method, which may be from an interface.
+
+    Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
+
+    // Adapt to TransactionAspectSupport's invokeWithinTransaction...
+
+    return invokeWithinTransaction(invocation.getMethod(), targetClass, invocation::proceed);
+
+}
+```
+
+进入到 TransactionAspectSupport 的 invokeWithinTransaction 方法，这时候我们到了事务回滚的核心了。
+
+```java
+protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass,
+        final InvocationCallback invocation) throws Throwable {
+
+    // If the transaction attribute is null, the method is non-transactional.
+    TransactionAttributeSource tas = getTransactionAttributeSource();
+
+    // 解析事务注解属性
+    final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+
+    final PlatformTransactionManager tm = determineTransactionManager(txAttr);
+
+    // 被拦截的方法名
+    final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
+
+    if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
+
+        // Standard transaction demarcation with getTransaction and commit/rollback calls.
+
+        TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
+
+        Object retVal;
+
+        try {
+
+            // This is an around advice: Invoke the next interceptor in the chain.
+            // This will normally result in a target object being invoked.
+
+            // 这个方法会走 ReflectiveMethodInvocation 的 proceed 方法去调用目标方法
+
+            retVal = invocation.proceedWithInvocation();
+
+        } catch (Throwable ex) {
+
+            // target invocation exception
+
+            // 如果上面目标方法执行出现异常，这里会捕获异常去回滚
+
+            completeTransactionAfterThrowing(txInfo, ex);
+
+            throw ex;
+
+        } finally {
+
+            cleanupTransactionInfo(txInfo);
+
+        }
+
+        commitTransactionAfterReturning(txInfo);
+
+        return retVal;
+
+    } else {
+
+        final ThrowableHolder throwableHolder = new ThrowableHolder();
+
+        // It's a CallbackPreferringPlatformTransactionManager: pass a TransactionCallback in.
+
+        try {
+
+            Object result = ((CallbackPreferringPlatformTransactionManager) tm).execute(txAttr, status -> {
+
+                TransactionInfo txInfo = prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
+
+                try {
+
+                    return invocation.proceedWithInvocation();
+
+                } catch (Throwable ex) {
+
+                    if (txAttr.rollbackOn(ex)) {
+
+                        // A RuntimeException: will lead to a rollback.
+
+                        if (ex instanceof RuntimeException) {
+
+                            throw (RuntimeException) ex;
+
+                        } else {
+
+                            throw new ThrowableHolderException(ex);
+                        }
+
+                    } else {
+
+                        // A normal return value: will lead to a commit.
+
+                        throwableHolder.throwable = ex;
+
+                        return null;
+
+                    }
+                } finally {
+
+                    cleanupTransactionInfo(txInfo);
+                }
+            });
+
+            // Check result state: It might indicate a Throwable to rethrow.
+
+            if (throwableHolder.throwable != null) {
+
+                throw throwableHolder.throwable;
+            }
+
+            return result;
+
+        } catch (ThrowableHolderException ex) {
+
+            throw ex.getCause();
+
+        } catch (TransactionSystemException ex2) {
+
+            if (throwableHolder.throwable != null) {
+
+                logger.error("Application exception overridden by commit exception", throwableHolder.throwable);
+
+                ex2.initApplicationException(throwableHolder.throwable);
+
+            }
+
+            throw ex2;
+
+        } catch (Throwable ex2) {
+
+            if (throwableHolder.throwable != null) {
+
+                logger.error("Application exception overridden by commit exception", throwableHolder.throwable);
+            }
+
+            throw ex2;
+        }
+    }
+}
+```
+
+completeTransactionAfterThrowing 方法
+
+```java
+protected void completeTransactionAfterThrowing(@Nullable TransactionInfo txInfo, Throwable ex) {
+
+    if (txInfo != null && txInfo.getTransactionStatus() != null) {
+
+        if (logger.isTraceEnabled()) {
+
+            logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
+                    "] after exception: " + ex);
+
+        }
+
+        if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
+
+            try {
+
+                txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());
+
+            } catch (TransactionSystemException ex2) {
+
+                logger.error("Application exception overridden by rollback exception", ex);
+
+                ex2.initApplicationException(ex);
+
+                throw ex2;
+
+            } catch (RuntimeException | Error ex2) {
+
+                logger.error("Application exception overridden by rollback exception", ex);
+
+                throw ex2;
+            }
+
+        } else {
+
+            // We don't roll back on this exception.
+            // Will still roll back if TransactionStatus.isRollbackOnly() is true.
+
+            try {
+
+                txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
+
+            } catch (TransactionSystemException ex2) {
+
+                logger.error("Application exception overridden by commit exception", ex);
+
+                ex2.initApplicationException(ex);
+
+                throw ex2;
+
+            } catch (RuntimeException | Error ex2) {
+
+                logger.error("Application exception overridden by commit exception", ex);
+
+                throw ex2;
+            }
+        }
+    }
+}
+```
+
+rollbackOn 中的异常如果是 RuntimeException 和 Error 是可以正常回滚的，但是除了这两个异常还有 IOException 和 SQLException。
+
+```java
+public boolean rollbackOn(Throwable ex) {
+
+    return (ex instanceof RuntimeException || ex instanceof Error);
+}
+```
+
+AbstractPlatformTransactionManager 的 processRollback 回滚逻辑
+
+```java
+private void processRollback(DefaultTransactionStatus status, boolean unexpected) {
+
+    try {
+
+        boolean unexpectedRollback = unexpected;
+
+        try {
+
+            triggerBeforeCompletion(status);
+
+            if (status.hasSavepoint()) {
+
+                if (status.isDebug()) {
+
+                    logger.debug("Rolling back transaction to savepoint");
+
+                }
+
+                status.rollbackToHeldSavepoint();
+
+            } else if (status.isNewTransaction()) {
+
+                if (status.isDebug()) {
+
+                    logger.debug("Initiating transaction rollback");
+
+                }
+
+                doRollback(status);
+
+            } else {
+
+                // Participating in larger transaction
+
+                if (status.hasTransaction()) {
+
+                    if (status.isLocalRollbackOnly() || isGlobalRollbackOnParticipationFailure()) {
+
+                        if (status.isDebug()) {
+
+                            logger.debug("Participating transaction failed - marking existing transaction as rollback-only");
+
+                        }
+
+                        doSetRollbackOnly(status);
+
+                    } else {
+
+                        if (status.isDebug()) {
+
+                            logger.debug("Participating transaction failed - letting transaction originator decide on rollback");
+
+                        }
+                    }
+
+                } else {
+
+                    logger.debug("Should roll back transaction but cannot - no transaction available");
+                }
+
+                // Unexpected rollback only matters here if we're asked to fail early
+
+                if (!isFailEarlyOnGlobalRollbackOnly()) {
+
+                    unexpectedRollback = false;
+                }
+            }
+        } catch (RuntimeException | Error ex) {
+
+            triggerAfterCompletion(status, TransactionSynchronization.STATUS_UNKNOWN);
+
+            throw ex;
+        }
+
+        triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK);
+
+        // Raise UnexpectedRollbackException if we had a global rollback-only marker
+
+        if (unexpectedRollback) {
+
+            throw new UnexpectedRollbackException(
+                    "Transaction rolled back because it has been marked as rollback-only");
+
+        }
+
+    } finally {
+
+        cleanupAfterCompletion(status);
+    }
+}
+```
+
+我这里走的是 status.isNewTransaction()
+
+然后就是 DataSourceTransactionManager 的 doRollback 方法：
+
+```java
+protected void doRollback(DefaultTransactionStatus status) {
+
+    DataSourceTransactionObject txObject = (DataSourceTransactionObject) status.getTransaction();
+
+    Connection con = txObject.getConnectionHolder().getConnection();
+
+    if (status.isDebug()) {
+
+        logger.debug("Rolling back JDBC transaction on Connection [" + con + "]");
+    }
+
+    try {
+
+        con.rollback();
+
+    } catch (SQLException ex) {
+
+        throw new TransactionSystemException("Could not roll back JDBC transaction", ex);
+    }
+}
+```
+
+接下来我们针对性的说明几个问题。
+
+#### 什么时候时候事务回滚会失效
+
+##### 在方法上未标注 @Transactional
+
+如果在需要事务回滚的方法上未标注 @Transactional 注解，执行出现异常不会进行事务回滚。
+
+假设有 A 方法需要在整个方法执行出现异常的时候进行事务回滚，那么在 A 方法上就必须加上 @Transactional 注解。
+
+我们看一下如果在方法上不加 @Transactional 注解，方法会怎么走。
+
+我们先找到 AbstractAutoProxyCreator 的 postProcessAfterInitialization 发现 AccountServiceImpl 类是被代理了的。
+
+然后找到 CglibAopProxy 的 DynamicAdvisedInterceptor 的 intercept 方法，发现拿到的 chain 是空的，所以是会直接执行目标方法，而不会走 TransactionInterceptor 的增强器，也就不会进行回滚。
+
+TransactionInterceptor 是在 ProxyTransactionManagementConfiguration 中加载的，加载步骤就是从 @EnableTransactionManagement -> TransactionManagementConfigurationSelector -> ProxyTransactionManagementConfiguration。
+
+##### 回滚方法是 private 或者 static 或者 final 修饰
+
+如果采用 CGLIB 动态代理的话，被代理的方法是需要能够被重写的，但 private 、static、final 都不能被重写。
+
+##### 回滚方法抛出的异常被拦截
+
+如果我们在整个方法上加一个 try{}catch(Exception e){} ，并且异常不再抛出，那么这时候如果运行出现异常就不会回滚。回顾上面的源码分析知道，只有在方法执行异常，并且在增强器链上被捕获，那么才会进行事务回滚。
+
+##### 抛出的异常不是 RuntimeException 或者 Error 类型
+
+这个从上面的源码我们可以知道，事务对于非 RuntimeException 或者 Error 类型是不做回滚需要我们自己处理的，并且 Spring 中对于 SQLException 进行了再次封装，所以有时候出现 SQLException 然后被 Spring 包装成了 RuntimeException 然后这个异常就可以被回滚了。
+
+```python
+org.springframework.jdbc.BadSqlGrammarException: 
+
+### Error updating database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'hh' in 'field list'
+### The error may exist in com/rookie/stream/download/mapper/AccountMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: update account set hh = 1 where id = 1
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'hh' in 'field list'
+```
+
+参考链接：
+
+ - <a href="https://mp.weixin.qq.com/s/mcCGq94Xa7_qhK0ditwWEw" target="_blank">Spring 事务源码解析</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
