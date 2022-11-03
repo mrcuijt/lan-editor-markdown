@@ -53,6 +53,38 @@
     <textarea id="editor" name="editor">
 #### springboot-basic-logging
 
+#### 常用帮助
+
+Spring Boot 默认使用 logback 作为日志工具。
+
+Spring Boot 默认的 logback 配置文件 base.xml
+
+```python
+spring-boot-2.3.4.RELEASE.jar
+spring-boot-2.3.4.RELEASE.jar!\org\springframework\boot\logging\logback\base.xml
+
+## 默认控制台输出日志格式
+${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}
+
+## 默认日志文件输出格式
+${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}
+
+spring-boot-autoconfigure-2.3.4.RELEASE.jar
+spring-boot-autoconfigure-2.3.4.RELEASE.jar!/META-INF/spring-configuration-metadata.json
+```
+
+**application.yml**
+
+```python
+spring:
+  mvc:
+    log-request-details: true
+logging:
+  level:
+    ROOT: info
+    org.springframework.web.servlet.DispatcherServlet: trace
+```
+
 #### Spring Boot 日志配置(超详细)
 
 ![title](images/springboot-basic-logging/springboot-basic-logging-001.png)
@@ -230,6 +262,12 @@ logging.config=classpath:logging-config.xml
 参考链接：
 
  - <a href="https://blog.csdn.net/inke88/article/details/75007649" target="_blank">Spring Boot 日志配置(超详细)</a>
+
+ - <a href="https://blog.csdn.net/qq_41884677/article/details/97558592" target="_blank">Spring Boot 与日志</a>
+
+ - <a href="https://juejin.cn/post/6979143477690892295" target="_blank">springboot自定义配置与自动配置共存</a>
+
+ - <a href="https://blog.csdn.net/weixin_41556963/article/details/103089534" target="_blank">WebMvcConfigurationSupport的一些配置问题</a>
 	</textarea>
 </div>
 

@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>spring-aop-3</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### spring-aop-3
+
+#### AOP 原理解析
+
+实现 AOP 常用的方式有两种，第一种是使用 Spring AOP ，第二种是使用 AspectJ。
+
+Spring AOP 采用的是动态代理的方式来实现 AOP 的，使用 JDK 动态代理与 CGLIB 动态代理之间切换，基于 Spring，只能拦截 Spring IOC 容器中的 Bean。
+
+AspectJ 是一种语言型的 AOP 框架，并且采用静态织入的方式，可以代理所有的 Java 类型。但是因为是通过修改源码的方式去实现 AOP ，所以需要使用独有的编译器去处理类。
+
+##### Spring AOP 原理
+
+我们知道 Spring AOP 使用的是动态代理的技术，Bean 在创建的时候返回的就是已经被代理的对象了，接下来我们来跟下源码查看一下具体是如何创建代理的。
+
+测试代码：
+
+```java
+@Aspect
+@Component
+public class AspectTest {
+
+    @Pointcut("execution(* com.rookie.stream.download.test..*.*(..))")
+    public void pointCut(){}
+
+    @Before("pointCut()")
+    public void beforeRun(){
+        System.out.println("我是前置通知");
+    }
+
+    @AfterReturning("pointCut()")
+    public void doAfterReturning() throws Throwable {
+        System.out.println("我是无异常返回通知");
+    }
+
+    @After("pointCut()")
+    public void after(){
+        System.out.println("我是后置通知");
+    }
+
+    @AfterThrowing("pointCut()")
+    public void throwss(JoinPoint jp){
+        System.out.println("我是异常返回通知");
+    }
+
+}
+
+@Component
+public class TestCase {
+    public void testPrint(){
+        System.out.println("我是测试内容");
+    }
+}
+```
+
+```python
+# 执行结果
+
+我是前置通知
+我是测试内容
+我是无异常返回通知
+我是后置通知
+```
+
+其中 AfterThrowing 在方法执行异常时执行，AfterReturning 无异常时执行。
+
+我们找到 AbstractAutoProxyCreator 的 postProcessAfterInitialization（后置处理器） 方法
+
+```java
+public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
+    if (bean != null) {
+        Object cacheKey = getCacheKey(bean.getClass(), beanName);
+        if (this.earlyProxyReferences.remove(cacheKey) != bean) {
+            return wrapIfNecessary(bean, beanName, cacheKey);
+        }
+    }
+    return bean;
+}
+```
+
+spring 生命周期走到这里，通过 wrapIfNecessary 去尝试代理对象。
+
+进到 AbstractAutoProxyCreator 的 wrapIfNecessary方法：
+
+```java
+Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+```
+
+这行代码是获取所有匹配的通知，我们来看一下是如何获取的。
+
+我们进到 AbstractAdvisorAutoProxyCreator 的 getAdvicesAndAdvisorsForBean 方法：
+
+```java
+protected Object[] getAdvicesAndAdvisorsForBean(
+        Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
+
+    // 获取匹配的通知
+    List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
+
+    if (advisors.isEmpty()) {
+
+        return DO_NOT_PROXY;
+    }
+    return advisors.toArray();
+}
+```
+
+我们再进到 AbstractAdvisorAutoProxyCreator 的 findEligibleAdvisors 方法：
+
+```java
+protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
+
+    // 拿到 IOC 容器中所有的 Advisor 类型的 Bean
+    List<Advisor> candidateAdvisors = findCandidateAdvisors();
+
+    //获取匹配的通知
+    List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+    extendAdvisors(eligibleAdvisors);
+
+    if (!eligibleAdvisors.isEmpty()) {
+
+        //给通知排序
+        eligibleAdvisors = sortAdvisors(eligibleAdvisors);
+    }
+
+    return eligibleAdvisors;
+}
+```
+
+进到 AbstractAdvisorAutoProxyCreator findCandidateAdvisors 方法 再到 BeanFactoryAdvisorRetrievalHelper 的 findAdvisorBeans 方法：
+
+```java
+public List<Advisor> findAdvisorBeans() {
+
+    //获取缓存 Advisor Bean 的名称
+    String[] advisorNames = this.cachedAdvisorBeanNames;
+
+    //如果是第一次，缓存就是空的
+    if (advisorNames == null) {
+
+        // Do not initialize FactoryBeans here: We need to leave all regular beans
+        // uninitialized to let the auto-proxy creator apply to them!
+        // 获取 IOC 容器中的 Advisor.class 类型的 Bean，
+        advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
+                this.beanFactory, Advisor.class, true, false);
+
+        this.cachedAdvisorBeanNames = advisorNames;
+    }
+
+    if (advisorNames.length == 0) {
+
+        return new ArrayList<>();
+    }
+
+    List<Advisor> advisors = new ArrayList<>();
+
+    for (String name : advisorNames) {
+
+        // 这里总是返回 true
+        if (isEligibleBean(name)) {
+
+            //过滤掉特殊的 Bean
+            if (this.beanFactory.isCurrentlyInCreation(name)) {
+
+                if (logger.isTraceEnabled()) {
+
+                    logger.trace("Skipping currently created advisor '" + name + "'");
+                }
+
+            } else {
+
+                try {
+
+                    advisors.add(this.beanFactory.getBean(name, Advisor.class));
+
+                } catch (BeanCreationException ex) {
+
+                    Throwable rootCause = ex.getMostSpecificCause();
+
+                    if (rootCause instanceof BeanCurrentlyInCreationException) {
+
+                        BeanCreationException bce = (BeanCreationException) rootCause;
+                        String bceBeanName = bce.getBeanName();
+
+                        if (bceBeanName != null && this.beanFactory.isCurrentlyInCreation(bceBeanName)) {
+
+                            if (logger.isTraceEnabled()) {
+
+                                logger.trace("Skipping advisor '" + name +
+                                        "' with dependency on currently created bean: " + ex.getMessage());
+                            }
+
+                            // Ignore: indicates a reference back to the bean we're trying to advise.
+                            // We want to find advisors other than the currently created bean itself.
+                            continue;
+                        }
+                    }
+
+                    throw ex;
+                }
+            }
+        }
+    }
+    return advisors;
+}
+```
+
+回到 AbstractAdvisorAutoProxyCreator 的 findEligibleAdvisors 方法看一下 findAdvisorsThatCanApply 。
+
+进到 AbstractAdvisorAutoProxyCreator 的 findAdvisorsThatCanApply 方法：
+
+```java
+protected List<Advisor> findAdvisorsThatCanApply(
+        List<Advisor> candidateAdvisors, Class<?> beanClass, String beanName) {
+
+    ProxyCreationContext.setCurrentProxiedBeanName(beanName);
+
+    try {
+
+        // 通过 AOP 工具类去匹配通知
+        return AopUtils.findAdvisorsThatCanApply(candidateAdvisors, beanClass);
+    } finally {
+
+        ProxyCreationContext.setCurrentProxiedBeanName(null);
+    }
+}
+```
+
+进到 AopUtils 的 findAdvisorsThatCanApply 方法：
+
+主要是这些行代码
+
+```java
+if (canApply(candidate, clazz, hasIntroductions)) {
+    eligibleAdvisors.add(candidate);
+}
+```
+
+再走到当前类的 canApply 方法 `public static boolean canApply(Advisor advisor, Class<?> targetClass, boolean hasIntroductions)`。再次走到 `canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions)`，具体规则如下：
+
+```java
+public static boolean canApply(Pointcut pc, Class<?> targetClass, boolean hasIntroductions) {
+
+    Assert.notNull(pc, "Pointcut must not be null");
+
+    // TrueClassFilter 一直返回true
+    if (!pc.getClassFilter().matches(targetClass)) {
+
+        return false;
+    }
+
+    MethodMatcher methodMatcher = pc.getMethodMatcher();
+
+    if (methodMatcher == MethodMatcher.TRUE) {
+
+        // No need to iterate the methods if we're matching any method anyway...
+        return true;
+    }
+
+    IntroductionAwareMethodMatcher introductionAwareMethodMatcher = null;
+
+    if (methodMatcher instanceof IntroductionAwareMethodMatcher) {
+
+        introductionAwareMethodMatcher = (IntroductionAwareMethodMatcher) methodMatcher;
+    }
+
+    Set<Class<?>> classes = new LinkedHashSet<>();
+
+    if (!Proxy.isProxyClass(targetClass)) {
+
+        classes.add(ClassUtils.getUserClass(targetClass));
+    }
+
+    classes.addAll(ClassUtils.getAllInterfacesForClassAsSet(targetClass));
+
+    for (Class<?> clazz : classes) {
+
+        //获取类的所有方法
+        Method[] methods = ReflectionUtils.getAllDeclaredMethods(clazz);
+
+        for (Method method : methods) {
+
+            if (introductionAwareMethodMatcher != null ?
+                    introductionAwareMethodMatcher.matches(method, targetClass, hasIntroductions) :
+                    methodMatcher.matches(method, targetClass)) {
+
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+```
+
+我们分别看下 introductionAwareMethodMatcher（debug 的时候没有） 的 matches 与 methodMatcher 的 matches（这里我加的是 Transactional 通知，下面关于它的我就不写了）
+
+methodMatcher
+
+```java
+public boolean matches(Method method, Class<?> targetClass) {
+
+    if (TransactionalProxy.class.isAssignableFrom(targetClass) ||
+            PlatformTransactionManager.class.isAssignableFrom(targetClass) ||
+            PersistenceExceptionTranslator.class.isAssignableFrom(targetClass)) {
+
+        return false;
+    }
+
+    TransactionAttributeSource tas = getTransactionAttributeSource();
+
+    // 如果能解析出方法上的 Transactional 属性，那么 tas.getTransactionAttribute(method, targetClass) 就不是 null，所以这里只要加了 Transactional 注解就能返回 true
+    return (tas == null || tas.getTransactionAttribute(method, targetClass) != null);
+}
+```
+
+最终我们回到 AbstractAutoProxyCreator 的 wrapIfNecessary 方法，拿到了所有增强器，其中有一个默认类型的 ExposeInvocationInterceptor。走到这行开始正式创建代理对象了 Object proxy = createProxy(bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));。
+
+我们进到 AbstractAutoProxyCreator 的 createProxy 方法，重点在这行 return proxyFactory.getProxy(getProxyClassLoader());，我们进去看看：
+
+进到 ProxyFactory 代理工厂的 getProxy 方法：
+
+```java
+public Object getProxy(@Nullable ClassLoader classLoader) {
+
+    return createAopProxy().getProxy(classLoader);
+}
+```
+
+再进 ProxyCreatorSupport 的 createAopProxy 方法：
+
+```java
+protected final synchronized AopProxy createAopProxy() {
+
+    if (!this.active) {
+
+        activate();
+    }
+
+    // 拿到代理工厂去创建 AOP 代理
+    return getAopProxyFactory().createAopProxy(this);
+
+}
+```
+
+再进 DefaultAopProxyFactory 的 createAopProxy 方法：
+
+```java
+public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
+
+    if (!IN_NATIVE_IMAGE &&
+            (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config))) {
+
+        Class<?> targetClass = config.getTargetClass();
+
+        if (targetClass == null) {
+
+            throw new AopConfigException("TargetSource cannot determine target class: " +
+                    "Either an interface or a target is required for proxy creation.");
+        }
+
+        //如果 targetClass 是接口就用 JDK 动态代理
+        if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
+
+            return new JdkDynamicAopProxy(config);
+        }
+
+        // 否则就用 CGLIB 动态代理
+        return new ObjenesisCglibAopProxy(config);
+    }
+
+    else {
+
+        return new JdkDynamicAopProxy(config);
+    }
+
+}
+```
+
+所以 Spring 在选用代理的时候会自动切换，一般优先看是否适合用 JDK 动态代理。
+
+看完了如何选择代理方式，我们回到 ProxyFactory 的 getProxy 方法，看一下 getProxy 的内容。
+
+进到 CglibAopProxy 的 getProxy 方法
+
+```java
+……
+
+    // Configure CGLIB Enhancer...
+    Enhancer enhancer = createEnhancer();
+
+    if (classLoader != null) {
+
+        enhancer.setClassLoader(classLoader);
+
+        if (classLoader instanceof SmartClassLoader &&
+                ((SmartClassLoader) classLoader).isClassReloadable(proxySuperClass)) {
+
+            enhancer.setUseCache(false);
+        }
+    }
+
+    enhancer.setSuperclass(proxySuperClass);
+    enhancer.setInterfaces(AopProxyUtils.completeProxiedInterfaces(this.advised));
+    enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
+
+……
+```
+
+看到这些代码是不是很熟悉，没错，就是创建 CGLIB 动态代理的过程，好了，我们直接回到 AbstractAutoProxyCreator 的 wrapIfNecessary 方法，这时候的代理对象已经被创建好了，有了代理对象，我们看下 AOP 的这些通知是怎么被执行的。
+
+我们找到 CglibAopProxy 的 DynamicAdvisedInterceptor 的 intercept 方法：
+
+```java
+public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+
+    Object oldProxy = null;
+    boolean setProxyContext = false;
+    Object target = null;
+    TargetSource targetSource = this.advised.getTargetSource();
+
+    try {
+
+        if (this.advised.exposeProxy) {
+
+            // Make invocation available if necessary.
+            oldProxy = AopContext.setCurrentProxy(proxy);
+            setProxyContext = true;
+        }
+
+        // Get as late as possible to minimize the time we "own" the target, in case it comes from a pool...
+        target = targetSource.getTarget();
+        Class<?> targetClass = (target != null ? target.getClass() : null);
+        List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+
+        Object retVal;
+
+        // Check whether we only have one InvokerInterceptor: that is,
+        // no real advice, but just reflective invocation of the target.
+        if (chain.isEmpty() && Modifier.isPublic(method.getModifiers())) {
+
+            // We can skip creating a MethodInvocation: just invoke the target directly.
+            // Note that the final invoker must be an InvokerInterceptor, so we know
+            // it does nothing but a reflective operation on the target, and no hot
+            // swapping or fancy proxying.
+            Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+            retVal = methodProxy.invoke(target, argsToUse);
+
+        } else {
+
+            // We need to create a method invocation...
+            retVal = new CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy).proceed();
+        }
+
+        retVal = processReturnType(proxy, target, method, retVal);
+
+        return retVal;
+
+    } finally {
+
+        if (target != null && !targetSource.isStatic()) {
+
+            targetSource.releaseTarget(target);
+        }
+
+        if (setProxyContext) {
+
+            // Restore old proxy.
+            AopContext.setCurrentProxy(oldProxy);
+        }
+    }
+}
+```
+
+主要看这行代理 `List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass)`;，返回的是被包装的通知。
+
+我们进到 AdvisedSupport 的 getInterceptorsAndDynamicInterceptionAdvice 方法：
+
+```java
+public List<Object> getInterceptorsAndDynamicInterceptionAdvice(Method method, @Nullable Class<?> targetClass) {
+
+    MethodCacheKey cacheKey = new MethodCacheKey(method);
+
+    List<Object> cached = this.methodCache.get(cacheKey);
+
+    if (cached == null) {
+
+        cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(
+                this, method, targetClass);
+
+        this.methodCache.put(cacheKey, cached);
+    }
+
+    return cached;
+}
+```
+
+走到 cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(this, method, targetClass);这行，再进入 DefaultAdvisorChainFactory 的 getInterceptorsAndDynamicInterceptionAdvice 方法，这个方法的作用就是把通知包装成 MethodInterceptor 返回，看到这行 Interceptor[] interceptors = registry.getInterceptors(advisor);，里面有一些通知的适配器将通知包装成 Interceptor 类型。拿到拦截器链之后，我们直接返回 DynamicAdvisedInterceptor 的方法。
+
+```java
+if (chain.isEmpty() && Modifier.isPublic(method.getModifiers())) {
+
+    // We can skip creating a MethodInvocation: just invoke the target directly.
+    // Note that the final invoker must be an InvokerInterceptor, so we know
+    // it does nothing but a reflective operation on the target, and no hot
+    // swapping or fancy proxying.
+
+    Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+
+    retVal = methodProxy.invoke(target, argsToUse);
+
+}
+```
+
+如果链是空的，就直接执行目标方法，如果不是，我们走到这里 retVal = new CglibMethodInvocation(proxy, target, method, args, targetClass, chain, methodProxy).proceed(); proceed 开始执行通知了。
+
+进到 CglibAopProxy 的 CglibMethodInvocation 的 proceed 方法，再进 ReflectiveMethodInvocation 的 proceed 方法：
+
+```java
+public Object proceed() throws Throwable {
+
+    // We start with an index of -1 and increment early.
+
+    if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
+
+        return invokeJoinpoint();
+    }
+
+    Object interceptorOrInterceptionAdvice =
+            this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
+
+    if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
+
+        // Evaluate dynamic method matcher here: static part will already have
+        // been evaluated and found to match.
+
+        InterceptorAndDynamicMethodMatcher dm =
+                (InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
+
+        Class<?> targetClass = (this.targetClass != null ? this.targetClass : this.method.getDeclaringClass());
+
+        if (dm.methodMatcher.matches(this.method, targetClass, this.arguments)) {
+
+            return dm.interceptor.invoke(this);
+
+        }  else {
+
+            // Dynamic matching failed.
+            // Skip this interceptor and invoke the next in the chain.
+
+            return proceed();
+        }
+
+    } else {
+
+        // It's an interceptor, so we just invoke it: The pointcut will have
+        // been evaluated statically before this object was constructed.
+
+        return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
+    }
+
+}
+```
+
+这行代码 this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1 是判断当前的下标是否是最后一个，有两种情况，第一种是没有通知，第二种是走到了最后一个通知。
+
+```java
+protected Object invokeJoinpoint() throws Throwable {
+
+    if (this.methodProxy != null) {
+
+        return this.methodProxy.invoke(this.target, this.arguments);
+
+    } else {
+
+        return super.invokeJoinpoint();
+    }
+}
+```
+
+而最后一个代表着会执行目标方法。
+
+Object interceptorOrInterceptionAdvice = this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex); 会不断的自增去拿数组下的通知。
+
+我们现在有 beforeRun、doAfterReturning、after、throwss 这些通知。
+
+代码走到这行 return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);，第一次走我们拿到了默认的 ExposeInvocationInterceptor
+
+到了 ExposeInvocationInterceptor 的 invoke 方法：
+
+```java
+public Object invoke(MethodInvocation mi) throws Throwable {
+
+    MethodInvocation oldInvocation = invocation.get();
+
+    invocation.set(mi);
+
+    try {
+
+        return mi.proceed();
+
+    } finally {
+
+        invocation.set(oldInvocation);
+    }
+}
+```
+
+走到 return mi.proceed();，然后又倒回了 CglibAopProxy 的 CglibMethodInvocation 的 invoke 方法。再一次的执行 ReflectiveMethodInvocation 的 proceed 方法，这次拿到了前置通知 beforeRun ，进入到MethodBeforeAdviceInterceptor 的 invoke：
+
+```java
+public Object invoke(MethodInvocation mi) throws Throwable {
+
+    this.advice.before(mi.getMethod(), mi.getArguments(), mi.getThis());
+
+    return mi.proceed();
+}
+```
+
+走到 AspectJMethodBeforeAdvice 的 before 方法：
+
+```java
+public void before(Method method, Object[] args, @Nullable Object target) throws Throwable {
+
+    invokeAdviceMethod(getJoinPointMatch(), null, null);
+
+}
+```
+
+之……后走到 AbstractAspectJAdvice 的 invokeAdviceMethodWithGivenArgs 方法，这行 return this.aspectJAdviceMethod.invoke(this.aspectInstanceFactory.getAspectInstance(), actualArgs); 使用反射method.invoke调用了前置通知。然后我们回到 MethodBeforeAdviceInterceptor 的 invoke，执行 return mi.proceed(); 又回到了 CglibAopProxy 的 CglibMethodInvocation 的 proceed 方法，后续的通知都在往复的调用 proceed 方法。
+
+第三次 AspectJAfterAdvice （后置通知）的 invoke
+
+```java
+public Object invoke(MethodInvocation mi) throws Throwable {
+
+    try {
+
+        return mi.proceed();
+
+    } finally {
+
+        invokeAdviceMethod(getJoinPointMatch(), null, null);
+    }
+}
+```
+
+mi.proceed(); 又回去（这个方法还没执行完，待会还会回来执行）。
+
+第四次 AfterReturningAdviceInterceptor （无异常返回通知）的 invoke：
+
+```java
+public Object invoke(MethodInvocation mi) throws Throwable {
+
+    Object retVal = mi.proceed();
+
+    this.advice.afterReturning(retVal, mi.getMethod(), mi.getArguments(), mi.getThis());
+
+    return retVal;
+}
+```
+
+第五次的 AspectJAfterThrowingAdvice （异常返回通知）的 invoke：
+
+```java
+public Object invoke(MethodInvocation mi) throws Throwable {
+
+    try {
+
+        return mi.proceed();
+
+    } catch (Throwable ex) {
+
+        if (shouldInvokeOnThrowing(ex)) {
+
+            invokeAdviceMethod(getJoinPointMatch(), null, ex);
+        }
+
+        throw ex;
+    }
+}
+```
+
+这时候是最后一个通知了，所以执行了 ReflectiveMethodInvocation 的 proceed 方法的 invokeJoinpoint(); 代码，也就是执行了目标方法，现在是打印了前置通知，目标方法。这时候因为几个 invoke 的循环调用，方法开始往回执行了，现在是 AspectJAfterThrowingAdvice，AfterReturningAdviceInterceptor（因为它没有被try包围，如果执行方法的时候出现异常，则会到 AspectJAfterThrowingAdvice 捕捉，然后执行它的异常返回通知）、AspectJAfterAdvice、MethodBeforeAdviceInterceptor、ExposeInvocationInterceptor。
+
+这时候的通知已经全部打印完毕。
+
+参考链接：
+
+ - <a href="https://mp.weixin.qq.com/s/mcCGq94Xa7_qhK0ditwWEw" target="_blank">Spring 事务源码解析</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
