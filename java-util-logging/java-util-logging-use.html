@@ -16,13 +16,9 @@
 <script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
 
 <script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
-<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
 <script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
 
 <script type="text/javascript">
-
-    window.autosize = require("autosize");
-
     $(document).ready(function () {
         //初始化 @textelem:编辑区的id @showelem可以省略
         var lan = LanEditor.init({
@@ -194,7 +190,8 @@ java.util.logging.MemoryHandler.push      =
 java.util.logging.MemoryHandler.target    =
 ```
 
-<text zoom="7.2">╔════════════════════════════════════════════╦═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+```textarea
+╔════════════════════════════════════════════╦═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║                  Property                  ║ Description                                                                                                                                                                                     ║
 ╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
 ║ handlers                                   ║ A white space or comma separated list of handler class names to be added to the root Logger                                                                                                     ║
@@ -270,7 +267,8 @@ java.util.logging.MemoryHandler.target    =
 ║ java.util.logging.MemoryHandler.push       ║ The push level of messages causing the buffer to be pushed to the target Handler. Defaults to SEVERE.                                                                                           ║
 ╠════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
 ║ java.util.logging.MemoryHandler.target     ║ The class name of the target Handler.                                                                                                                                                           ║
-╚════════════════════════════════════════════╩═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝</text>
+╚════════════════════════════════════════════╩═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+```
 	</textarea>
 </div>
 

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SpringMVC Basic Param</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### SpringMVC Controller 参数传递
+
+jsp 页面 String 类型转 Controller 后台 Date 类型
+
+##### 方法1.在实体中加入日期格式化注解
+
+```java
+// 取日期时使用
+@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", timezone="GMT+8")
+// 存日期时使用
+@DateTimeFormat(pattern="yyyy-MM-dd")
+private Date birthday;
+```
+
+##### 方法2.在 Controller 中加入数据绑定代码
+
+**仅支持指定一种 `日期字符串格式` 作为参数转换格式**
+
+&amp;#160; &amp;#160;项目初期构建初始化时如果定义了 BaseController ，所有 Controller 都继承 BaseController 则可以在 BaseController 进行设置。
+
+首先，在我们的 Controller 的 InitBinder 里面，注册 CustomEditor
+
+当发送请求的时候，会根据 Controller 中方法的参数类型，进行类型转换。
+
+**```注意: 如果注册多个 同类型(Class) 的编辑器，仅最后一个注册的有效```**
+
+```java
+package com.fyh.www.pojo.user;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.springframework.beans.propertyeditors.CustomDateEditor;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+
+public class LoginController {
+
+	@InitBinder
+	public void initBinder(WebDataBinder binder) {
+		SimpleDateFormat[] dateFormat = new SimpleDateFormat[] { 
+				new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"),
+				new SimpleDateFormat("yyyy-MM-dd")};
+		// true:允许输入空值，false:不能为空值
+		binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat[0], true));
+		binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat[1], true));
+	}
+}
+```
+
+##### 方法3.注册一个全局日期类型转化器
+
+ 注册全局转化器
+
+```xml
+<mvc:annotation-driven conversion-service="conversionService"/>
+
+<!-- 设置 Converter 转换器 -->
+<bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+    <!-- 设置多个转换器 -->
+    <property name="converters">
+        <list>
+            <bean class="com.fyh.www.common.mvcConverter.CustomTrimConverter"></bean>
+        </list>
+    </property>
+</bean>
+```
+
+具体的实现代码
+
+```java
+public class DateConverter implements Converter<String, Date> {    
+
+@Override    
+public Date convert(String source) {    
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");    
+    dateFormat.setLenient(false);    
+    try {    
+        return dateFormat.parse(source);    
+    } catch (ParseException e) {    
+        e.printStackTrace();    
+    }           
+    return null;    
+}
+```
+
+##### `Formatter<Date>`
+
+&amp;#160; &amp;#160;Formatter 比 Converter 更适合 Converter 是处理任意两类型间的转换，而 Formatter 是处理字符串和另一类型之间的转换的。
+
+```java
+package com.wbg.maven1128.miscellanueous;
+
+import org.springframework.format.Formatter;
+
+import javax.xml.crypto.Data;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+
+public class MDateFormatter implements Formatter<Date> {
+
+    // 日期类型模板：如yyyy-MM-dd   默认
+    private String datePattern="yyyy-MM-dd";
+    // 日期格式化对象
+    private SimpleDateFormat dateFormat;
+    // 构造器，通过依赖注入的日期类型创建日期格式化对象
+    public MDateFormatter(String datePattern){
+        if(datePattern != null){
+            this.datePattern = datePattern;
+        }
+        dateFormat = new SimpleDateFormat(this.datePattern);
+    }
+    @Override
+    public String print(Date data, Locale locale) {
+        dateFormat.setLenient(false);
+        return dateFormat.format(data);
+    }
+    // 解析文本字符串返回一个 Formatter<T> 的 T 类型对象
+    @Override
+    public Date parse(String text, Locale locale) throws ParseException {
+        return dateFormat.parse(text);
+    }
+}
+```
+
+```xml
+<bean name="factoryBean" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+    <property name="formatters">
+        <set>
+            <bean class="com.wbg.maven1128.miscellanueous.MDateFormatter" >
+                <constructor-arg type="java.lang.String" value="yyyy-MM-dd"></constructor-arg>
+            </bean>
+        </set>
+    </property>
+</bean>
+<mvc:annotation-driven conversion-service="factoryBean"/>
+```
+
+#### 后台 date 类型到前台 String 类型
+
+ - JSP 模版引擎方法：
+
+```xml
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>   
+<fmt:formatDate value="${job.jobtime }" pattern="yyyy-MM-dd HH:mm:ss"/>  
+```
+
+ - Freemarker 模版引擎方法：
+
+```xml
+<input id="receiveAppTime" name="receiveAppTime" type="text" value="${(bean.receiveAppTime?string('yyyy-MM-dd'))!}" />  
+```
+
+参考链接:
+
+ - <a href="https://www.cnblogs.com/woms/p/6037902.html" target="_blank">springmvc 日期格式化</a>
+
+ - <a href="https://www.cnblogs.com/weibanggang/p/10037806.html" target="_blank">Spring 时间 (Date) 类型转换+自定义</a>
+ 
+ - <a href="https://www.cnblogs.com/JNUX/p/6848311.html" target="_blank">SpringMVC Date 数据类型绑定</a>
+
+ - <a href="http://www.cnblogs.com/soundcode/p/6519036.html" target="_blank">SpringMVC 注解 @initbinder 解决类型转换问题</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

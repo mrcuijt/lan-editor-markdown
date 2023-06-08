@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring SSH</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### SSH 注入原理
+
+ - sessionFactory 注入给 Dao
+
+ - Dao 注入给 Service
+
+ - Service 的代理对象注入给 Action
+
+ - Service 的代理对象是 Service 的接口类型
+
+ - Service 的真实对象在 代理对象内部 操作数据。
+
+
+![spring-ssh-001](./images/spring-ssh/spring-ssh-001.png)
+
+1、创建动态 web 项目
+
+2、导入 Hibernate 的 jar 包
+
+3、导入 Spring 的 jar 包
+
+4、导入 Struts2 的 jar 包
+
+5、导入 Spring 和 Struts2 的插件包 struts2-spring-plugin-2.3.16.3.jar
+
+6、首先进行 Spring & Hibernate 的集成
+
+&amp;#160; &amp;#160;6.1、保留 hibernate.cfg.xml Hibernate 核心配置文件的方案
+    
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;1）hibernate.cfg.xml 文件配置不变
+        
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;2）在 applicationContext.xml 中配置一个 sessionFactory 的 Bean
+        
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;3）在 sessionFactory Bean 中注入 hibernate.cfg.xml 配置
+
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;4）在 applicationContext.xml 中配置声明式事务
+
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;&amp;#160; &amp;#160;4.1）添加 aop 和 tx 的引用
+
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;&amp;#160; &amp;#160;4.2）配置 事务管理器
+
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;&amp;#160; &amp;#160;4.2）配置 事务通知
+
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;&amp;#160; &amp;#160;4.3）配置 声明式事务的切面
+
+&amp;#160; &amp;#160;6.2、去除 hibernate.cfg.xml 配置文件的配置
+
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;1）需要多配置一个 dataSource
+
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;2）配置 sessionFactory 工厂（注意查看如何在 Spring 的配置文件中配置 Hibernate 配置文件中的属性）（以及，如何引入 Hibernate 配置文件中如何添加 实体类的映射配置文件）
+
+&amp;#160; &amp;#160;&amp;#160; &amp;#160;3）剩下的配置与 保留 hibernate.cfg.xml 配置文件的步骤一致。
+
+7、配置 Spring & Struts2 的集成
+
+&amp;#160; &amp;#160;1）导入 Struts 与 Spring 的插件包
+
+&amp;#160; &amp;#160;2）创建 Action 
+
+&amp;#160; &amp;#160;3）在 Spring 中配置 Action 的 Bean
+
+&amp;#160; &amp;#160;4） Bean 中有 3 个属性 id class scope 
+
+&amp;#160; &amp;#160;5）在 struts.xml 配置文件中配置 Action
+
+&amp;#160; &amp;#160;6）在 web.xml 中配置 Struts2 的拦截器（过滤器，用于初始化 struts 和 拦截请求）
+
+&amp;#160; &amp;#160;7）在 web.xml 配置 Spring 的监听器（用于监听项目的启动和关闭）
+
+&amp;#160; &amp;#160;8）配置项目启动的参数，Spring 的配置文件
+
+***```applicationContext.xml```***
+
+ ``` add scheam tx , aop```
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                xmlns:p="http://www.springframework.org/schema/p"
+                xmlns:tx="http://www.springframework.org/schema/tx" 
+                xmlns:aop="http://www.springframework.org/schema/aop"
+                xsi:schemaLocation="http://www.springframework.org/schema/beans 
+                http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+                http://www.springframework.org/schema/tx 
+                http://www.springframework.org/schema/tx/spring-tx-3.2.xsd 
+                http://www.springframework.org/schema/aop 
+                http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+```
+
+```xml
+<!-- Hibernate Session 工厂 -->
+<bean id="sessionFactory"
+    class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+    <property name="configLocation">
+        <value>classpath:hibernate.cfg.xml</value>
+    </property>
+</bean>
+```
+
+```xml
+<!-- 事务管理器 -->
+<!-- 生成事务控制管理代码的对象 -->
+<bean id="txManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+    <!-- 注入 sessionFactory 因为事务管理器要控制事务 -->
+    <property name="sessionFactory" ref="sessionFactory"></property>
+</bean>
+```
+
+```xml
+<!-- 事务通知 -->
+<!-- 事务控制的方案 -->
+<!-- 事务通知她只是一个元素，不是一个 Bean -->
+<!-- 使用 transaction-manager 属性与事务管理器进行绑定 -->
+<!-- 标明 -->
+<tx:advice id="txAdvice" transaction-manager="txManager">
+    <tx:attributes>
+        <tx:method name="get*" read-only="true"></tx:method>
+        <tx:method name="find*" read-only="true"></tx:method>
+        <tx:method name="query*" read-only="true"></tx:method>
+        <tx:method name="list*" read-only="true"></tx:method>
+        <tx:method name="insert*" propagation="REQUIRED"></tx:method>
+        <tx:method name="add*" propagation="REQUIRED"></tx:method>
+        <tx:method name="submit*" propagation="REQUIRED"></tx:method>
+        <tx:method name="save*" propagation="REQUIRED"></tx:method>
+        <tx:method name="update*" propagation="REQUIRED"></tx:method>
+        <tx:method name="modify*" propagation="REQUIRED"></tx:method>
+        <tx:method name="edit*" propagation="REQUIRED"></tx:method>
+        <tx:method name="del*" propagation="REQUIRED"></tx:method>
+        <tx:method name="remove*" propagation="REQUIRED"></tx:method>
+        <tx:method name="*"></tx:method>
+        </tx:attributes>
+</tx:advice>
+```
+
+```xml
+<!-- AOP -->
+<aop:config>
+    <!-- service 包下面的所有类的所有方法都要织入事务 -->
+    <!-- 所以所有的类都要有一个接口 -->
+    <!-- 每一个方法就是一个事务 -->
+    <aop:pointcut id="serviceMethod" expression="execution(* cn.jbit.jbitoa.service.*.*(..))"></aop:pointcut>
+    <aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod"></aop:advisor>
+</aop:config>
+```
+
+```xml
+<!-- 配置数据库连接数据源 -->
+<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"></property>
+    <property name="url" value="jdbc:oracle:thin:@localhost:1521:orcl"></property>
+    <property name="username" value="jboa"></property>
+    <property name="password" value="1234"></property>
+</bean>
+```
+
+```xml
+<!-- Hibernate Session 工厂 -->
+<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"></property>
+    <property name="hibernateProperties">
+        <props>
+            <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
+            <prop key="hibernate.show_sql">true</prop>
+            <prop key="hibernate.format_sql">true</prop>
+            <!-- <prop key="hibernate.use_second_level_cache">false</prop> -->
+            <!-- <prop key="hibernate.cache.use_query_cache">false</prop> -->
+            <!-- <prop key="hibernate.hbm2ddl.auto">create</prop> --><!-- update -->
+        </props>
+    </property>
+  
+    <!-- 可以使用 mappingResources 属性配置多个 Hibernate 实体映射配置文件 -->
+    <!--
+        <property name="mappingResources">
+            <list>
+                <value>cn/jbit/jbitoa/entity/Account.hbm.xml</value>
+            </list>
+        </property>-->
+  
+    <!-- 也可以使用 mappingDirectoryLocations 属性配置去扫描映射文件所在的包，在这个包的下的所有映射配置文件都会被读取到 -->
+    <property name="mappingDirectoryLocations">
+        <list><!-- 定义扫描的包下的配置文件 -->
+            <value>classpath:cn/jbit/jbitoa/entity</value>
+        </list>
+    </property>
+</bean>
+```
+
+```xml
+<!-- 用户登录的 Action ；scope = prototype 每次发一个请求都会生成一个单独的对象 -->
+<bean id="loginAction" class="cn.jbit.jbitoa.action.LoginAction"
+        scope="prototype">
+    <property name="jbitOAService" ref="jbitOAService"></property>
+</bean>
+```
+
+```xml
+<!-- 用户登录 --> 
+<!-- 注意这时，struts class 配置的不在是 Action 类的全限定类名 -->
+<!-- 而是在 applicationContext.xml Bean 中对应的 id -->
+<action name="login" class="loginAction">
+    <result name="success" type="redirect">/main.jsp?message=${message}</result>
+    <result name="input" type="dispatcher">/login.jsp</result>
+</action>
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+	version="3.1" metadata-complete="true">
+
+	<display-name>Spring Struts2 Demo</display-name>
+
+	<!-- struts2 的核心控制器 -->
+	<filter>
+		<filter-name>struts2</filter-name>
+		<filter-class>org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>struts2</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<!-- Spring 监听器 -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:applicationContext.xml</param-value>
+	</context-param>
+
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+</web-app>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+Regex syntax is a string
+
+1. ^ means starts with
+
+   ^[0-9] means string starts with numeric
+
+   [abc] a,b,or c (simple class)
+
+     capture string include a, b, c single-handed
+
+   [^abc] any character except a,b, or c. (negation)
+
+   [a-zA-Z] a through z or A through Z, inclusive (range)
+
+2. [0-9] means capture numeric from string , only capture onice.
+
+   [0-9]{1,} means for [] content, capture 1 or more

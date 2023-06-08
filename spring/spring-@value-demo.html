@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring @Value Demo</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+
+***```Person.java```***
+
+```java
+public class Person {
+
+	private String name;
+	private int age;
+	private String sex;
+	private Date borndate;
+
+	// getter ... setter ...
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Person [name=" + name + ", age=" + age + ", sex=" + sex + ", borndate=" + borndate + "]";
+	}
+
+}
+```
+
+***```applicationContext.xml```***
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.2.xsd">
+
+	<context:property-placeholder
+		location="classpath:demo1.properties,classpath:demo2.properties" ignore-unresolvable="false" />
+
+	<bean id="dateFormat" class="java.text.SimpleDateFormat">
+		<constructor-arg value="yyyy-MM-dd" />
+	</bean>
+
+	<bean id="demo1" class="science.mrcuijt.domain.Person">
+		<property name="name" value="${demo1.name}"></property>
+		<property name="age" value="${demo1.age}"></property>
+		<property name="sex" value="${demo1.sex}"></property>
+		<property name="borndate">
+			<bean factory-bean="dateFormat" factory-method="parse">
+				<constructor-arg value="${demo1.borndate}" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="demo2" class="science.mrcuijt.domain.Person">
+		<property name="name" value="${demo2.name}"></property>
+		<property name="age" value="${demo2.age}"></property>
+		<property name="sex" value="${demo2.sex}"></property>
+		<property name="borndate">
+			<bean factory-bean="dateFormat" factory-method="parse">
+				<constructor-arg value="${demo2.borndate}" />
+			</bean>
+		</property>
+	</bean>
+
+</beans>
+```
+
+```xml
+<bean id="propertyPlaceholderConfigurer"
+    class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="locations">
+        <list>
+            <value>demo1.properties</value>
+            <value>demo2.properties</value>
+        </list>
+    </property>
+    <!-- typed as a java.util.Properties -->
+    <property name="properties">
+        <value>
+            demo3.name=demo3
+            demo3.age=22
+            demo3.sex=F
+            demo3.borndate=1997-02-21
+        </value>
+    </property>
+</bean>
+```
+
+***```properties```***
+
+```python
+## demo1.properties
+demo1.name=demo1
+demo1.age=21
+demo1.sex=F
+demo1.borndate=1997-02-19
+
+## demo2.properties
+demo2.name=demo2
+demo2.age=22
+demo2.sex=M
+demo2.borndate=1997-02-20
+```
+
+***```PersonTest.java```***
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class) // 使用junit4进行测试
+@ContextConfiguration({ "classpath:applicationContext.xml" }) // 加载配置文件
+public class PersonTest {
+
+	@Autowired
+	@Qualifier("demo1")
+	private Person person1;
+
+	@Autowired
+	@Qualifier("demo2")
+	private Person person2;
+
+	@Test
+	public void PersonDemo() {
+
+		System.out.println(person1);
+		System.out.println(person2);
+	}
+
+}
+```
+
+```textarea
+Person [name=demo1, age=21, sex=F, borndate=Wed Feb 19 00:00:00 CST 1997]
+Person [name=demo2, age=22, sex=M, borndate=Thu Feb 20 00:00:00 CST 1997]
+```
+
+***```Person1Test.java```***
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class) // 使用junit4进行测试
+@ContextConfiguration({ "classpath:applicationContext2.xml" }) // 加载配置文件
+public class Person1Test {
+
+	@Value(value = "${demo1.name}")
+	private String name;
+	@Value(value = "${demo1.age}")
+	private int age;
+	@Value(value = "${demo1.sex}")
+	private String sex;
+	@Value(value = "${demo1.borndate}")
+	private String borndate;
+
+	// getter ... setter ...
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Person1Test [name=" + name + ", age=" + age + ", sex=" + sex + ", borndate=" + borndate + "]";
+	}
+
+	@Test
+	public void test() {
+		System.out.println(this.toString());;
+	}
+}
+```
+
+```textarea
+Person1Test [name=demo1, age=21, sex=F, borndate=1997-02-19]
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

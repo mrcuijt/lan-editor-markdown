@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript addEventListener</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### JavaScript addEventListener
+
+&amp;#160; &amp;#160;addEventListener() 方法用于向指定元素添加事件句柄，它允许给一个事件注册多个监听器。
+
+&amp;#160; &amp;#160;addEventListener() 会去重，每次加入一个新的 fn，都会遍历比较，当前事件在之前是否有绑定过。如果之前绑定过则相同的事件处理函数只会保留一个。
+
+**语法：**
+
+```javascript
+// 语法
+element.addEventListener(event, function, useCapture)
+```
+
+**参数值：**
+
+ - **`event`** : 必须。字符串，指定事件名。
+ 
+  - **注意**: 不要使用 "on" 前缀。 例如，使用 "click" ,而不是使用 "onclick"。
+  
+  - **提示**： 所有 HTML DOM 事件，可以查看我们完整的 HTML DOM Event 对象参考手册。
+ 
+ - **`function`** : 必须。指定要事件触发时执行的函数。 
+ 
+  - 当事件对象会作为第一个参数传入函数。 事件对象的类型取决于特定的事件。例如， "click" 事件属于 MouseEvent (鼠标事件) 对象。
+ 
+ - **`useCapture`** : 可选。布尔值，指定事件是否在捕获或冒泡阶段执行。
+ 
+ 可能值:
+ 
+  - true - 事件句柄在捕获阶段执行
+  
+  - false - 默认。事件句柄在冒泡阶段执行
+
+```javascript
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript addEventListener</title>
+</head>
+<body>
+
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>
+    var oButton = document.createElement("button");
+    oButton.innerText = "demo";
+    oButton.id = "oBtn";
+    document.body.appendChild(oButton);
+
+    oButton.addEventListener("click",event1,false);
+    oButton.removeEventListener("click",event1);
+    oButton.addEventListener("click",event2,false);
+    // 相同事件，对相同的事件处理函数绑定多次无效。
+    // addEventListener() 会对相同的事件处理函数进行去重，只保留一个。
+    oButton.addEventListener("click",event2,false);
+
+    function event1(){
+        var message = "event1";
+        console.info(message );
+        var oP = document.createElement("p");
+        oP.innerText = message ;
+        document.body.appendChild(oP);
+    }
+
+    function event2(){
+        var message = "event2";
+        console.info(message );
+        var oP = document.createElement("p");
+        oP.innerText = message ;
+        document.body.appendChild(oP);
+    }
+</script>
+</body>
+</html>
+```
+
+注意事项：
+
+ - **`addEventListener() 不会重复绑定相同的事件处理函数。`**
+ 
+ - **`通过 removeEventListener() 函数，可以移除已绑定的事件处函数。`**
+
+参考链接：
+
+ - <a href="https://www.runoob.com/jsref/met-element-addeventlistener.html" target="_blank">HTML DOM addEventListener() 方法</a>
+
+ - <a href="https://www.zhihu.com/question/56814906?sort=created" target="_blank">原生 addEventListener 比 jq 的 on 慢了 60 倍, 为什么?</a>
+
+##### JavaScript Bind Event Param
+
+```javascript
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript Bind Event Param</title>
+</head>
+<body>
+ 
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>
+    var oButton = document.createElement("button");
+    oButton.innerText = "demo";
+    oButton.id = "oBtn";
+    document.body.appendChild(oButton);
+ 
+    oButton.addEventListener("click",eventForParam.bind(this,"param"),false);
+    // 通过 bind 方式传递参数，并且进行事件绑定的事件处理函数
+    // 可以对同一个事件处理函数绑定多次
+    oButton.addEventListener("click",eventForParam.bind(this,"param"),false);
+    // 无法通过 removeEventListener 对绑定的事件处理函数移除
+    oButton.removeEventListener("click",eventForParam.bind(this,"param"));
+    // 无效，无法移除绑定的事件处理函数
+    oButton.removeEventListener("click",eventForParam);
+ 
+    function eventForParam(data,event){
+        var message = "event";
+        var oP = document.createElement("p");
+        oP.innerText = message + " : " + event.type + "; param : " +data;
+        document.body.appendChild(oP);
+    }
+</script>
+</body>
+</html>
+```
+
+细节说明
+
+```javascript
+// eventForParam 为事件处理函数
+// 函数定义中第一个参数，param 是在绑定事件触发时传递的参数
+// 函数定义中第二个参数，event 是 event 对象
+// eventForParam(param,event){}
+// 在 bind 中，this 指的是 click 的事件对象
+// 在 bind 中，"param" 指的是对 eventForParam 事件处理函数传递的参数
+oButton.addEventListener("click",eventForParam.bind(this,"param"),false);
+```
+
+注意事项：
+
+ - **`通过 bind 方式传参，绑定的事件处理函数，无法通过 removeEventListener() 移除绑定的事件处理函数。`**
+ 
+ - **`通过 bind 方式传参，绑定的事件处理函数，可以通过 addEventListener() 对相同的事件出来函数绑定多次。`**
+ 
+  - **`addEventListener() 的去重不会生效。`**
+
+参考链接：
+
+ - <a href="https://www.zhihu.com/question/50885333/answer/123148092" target="_blank">JavaScript 中如何使 addEventListener 绑定的函数既能传参还能解绑？</a>
+
+##### 跨浏览器的解决方案
+
+```javascript
+var x = document.getElementById("myBtn");
+//所有主流浏览器，除了 IE 8 及更早 IE 版本
+if (x.addEventListener) {                    
+    x.addEventListener("click", myFunction);
+} else if (x.attachEvent) { // IE 8 及更早 IE 版本
+    x.attachEvent("onclick", myFunction);
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
