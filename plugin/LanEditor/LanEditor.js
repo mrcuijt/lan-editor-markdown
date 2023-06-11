@@ -163,9 +163,16 @@ var LanEditor = {
                 var filename = $(e.target).text();
                 var content = LanEditor.File.GetFileContent(filename);
                 var time;
+                if(localStorage)
                 for (varname in localStorage) {
                     if (varname.split("$")[0].length == 10 && varname.split("$")[1] == filename) {
                         time = varname.split("$")[0];
+                        break;
+                    }
+                }
+                for(field in LanEditor.File.storage){
+                    if (field.split("$")[0].length == 10 && field.split("$")[1] == filename) {
+                        time = field.split("$")[0];
                         break;
                     }
                 }
@@ -183,6 +190,7 @@ var LanEditor = {
             } else if ($(e.target).hasClass("_LEFH")) {
                 var filename = $(e.target).prev().prev().text();
                 var content = LanEditor.File.GetFileContent(filename);
+                content = LanEditor.GetRenderHTML();
                 LanEditor.File.ExportHTML(content);
             // 删除文件
             } else if ($(e.target).hasClass("_LEFD")) {
@@ -349,23 +357,24 @@ var LanEditor = {
     },
     //获取渲染后的HTML
     GetRenderHTML: function() {
-        var html = this.converter.makeHtml(this.TextElem.val());
-        for(var i = 0; i < this.Fn.FnSet.render.length; i++) {
-            html = this.Fn.FnSet.render[i](html) || html;
-        }
-        var VirtualDIV = $("<div></div>");
-        VirtualDIV.html(html);
-        $("pre code", VirtualDIV).each(function(i, block) {
-            // hljs.highlightBlock(block);
-            if ($(block).attr("class")) {
-                $(block).parent().attr("class", "brush: " + $(block).attr("class"));
-                $(block).parent().html($(block).html());
-                SyntaxHighlighter.highlight();
-            } else {
-                hljs.highlightBlock(block);
-            }
-        });
-        html = VirtualDIV.html();
+//        var html = this.converter.makeHtml(this.TextElem.val());
+//        for(var i = 0; i < this.Fn.FnSet.render.length; i++) {
+//            html = this.Fn.FnSet.render[i](html) || html;
+//        }
+//        var VirtualDIV = $("<div></div>");
+//        VirtualDIV.html(html);
+//        $("pre code", VirtualDIV).each(function(i, block) {
+//            // hljs.highlightBlock(block);
+//            if ($(block).attr("class")) {
+//                $(block).parent().attr("class", "brush: " + $(block).attr("class"));
+//                $(block).parent().html($(block).html());
+//                SyntaxHighlighter.highlight();
+//            } else {
+//                hljs.highlightBlock(block);
+//            }
+//        });
+//        html = VirtualDIV.html();
+        var html = $("#" + this.showelem).html();
         return html;
     },
     //设置提示框对象参数
@@ -443,7 +452,7 @@ var LanEditor = {
         var word = "";
         //查找光标前面的单词
         var i = 1;
-        var pchar = TextElem.iGetPosStr(-i).charAt(0);
+        var pchar = 0;//TextElem.iGetPosStr(-i).charAt(0);
         while (pchar != "" && pchar != "(" && pchar != ")" && pchar != ";") {
             if (i > TextElem.val().length) {
                 break;
@@ -554,98 +563,98 @@ var LanEditor = {
         if (LanEditor.SetPara.OpenAutoSymbol == 0) {
             return;
         }
-        var e = event;
-        //按回车缩进和上一行相同的间距
-        if (e.which == 13) {
-            if (LanEditor.SKLPara.show == true) {
-                return;
-            }
-            // 获取上一行的缩进个数
-            var space = TextElem.iGetSpaceNum();
-            //如果是成对{}按回车键，则多加4个空格缩进
-            var isfunc = false;
-            var pre = TextElem.iGetPosStr(-2);
-            if (pre == "{\n") {
-                space += 4;
-                isfunc = true;
-            }
-            for (var i = 0; i < space; ++i) {
-                TextElem.iAddField(" ");
-            }
-            var pos = TextElem.iGetFieldPos();
-            var insertStr = "";
-            if (isfunc) {
-                TextElem.iAddField("\n");
-                for (var i = 0; i < space - 4; ++i) {
-                    insertStr += " ";
-                }
-            }
-            TextElem.iAddField(insertStr);
-            TextElem.iSelectField(pos);
-        } else if (e.shiftKey && e.which == 57) { // ( 左括号自动补全
-            if(TextElem.iGetPosStr(-1) == "("){
-                TextElem.iAddField(")");
-            }else{
-                TextElem.iAddField("）");
-            }
-            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
-        } else if (e.shiftKey && e.which == 48) { // ) 右括号判断是否成对匹配
-            var pre = TextElem.iGetPosStr(-2);
-            var next = TextElem.iGetPosStr(1);
-            if (pre == "()" && next == ")" || pre == "（）" && next == "）") {
-                TextElem.iDelField(1);
-                TextElem.iSelectField(TextElem.iGetFieldPos() + 1);
-            }
-        } else if (e.shiftKey && e.which == 219) { // { 左大括号自动补全
-            TextElem.iAddField("}");
-            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
-        } else if (e.shiftKey && e.which == 221) { // } 右大括号判断是否成对匹配
-            var pre = TextElem.iGetPosStr(-2);
-            var next = TextElem.iGetPosStr(1);
-            if (pre == "{}" && next == "}") {
-                TextElem.iDelField(-1);
-            }
-        } else if (e.which == 219) { // [ 左中括号自动补全
-            if (TextElem.iGetPosStr(-1) == "[") {
-                TextElem.iAddField("]");
-            } else {
-                TextElem.iAddField("】");
-            }
-            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
-        } else if (e.which == 221) { // ] 右中括号判断是否成对匹配
-            var pre = TextElem.iGetPosStr(-2);
-            var next = TextElem.iGetPosStr(1);
-            if ((pre == "[]" || pre == "【】") && (next == "]" || next == "】")) {
-                TextElem.iDelField(-1);
-            }
-        } else if (e.shiftKey && e.which == 188) { // < 左尖括号自动补全
-            if (TextElem.iGetPosStr(-1) == "<") {
-                TextElem.iAddField(">");
-            } else {
-                TextElem.iAddField("》");
-            }
-            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
-        } else if (e.shiftKey && e.which == 190) { // > 右尖括号判断是否成对匹配
-            var pre = TextElem.iGetPosStr(-2);
-            var next = TextElem.iGetPosStr(1);
-            if ((pre == "<>" || pre == "《》") && (next == ">" || next == "》")) {
-                TextElem.iDelField(-1);
-            }
-        } else if (!e.shiftKey && e.which == 222) { // ' 左单引号自动补全
-            if (TextElem.iGetPosStr(-1) == "'") {
-                TextElem.iAddField("'");
-            } else {
-                TextElem.iAddField('’');
-            }
-            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
-        } else if (e.shiftKey && e.which == 222) { // “ 左双引号自动补全
-            if (TextElem.iGetPosStr(-1) == '"') {
-                TextElem.iAddField('"');
-            } else {
-                TextElem.iAddField('”');
-            }
-            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
-        }
+//        var e = event;
+//        //按回车缩进和上一行相同的间距
+//        if (e.which == 13) {
+//            if (LanEditor.SKLPara.show == true) {
+//                return;
+//            }
+//            // 获取上一行的缩进个数
+//            var space = 0;//TextElem.iGetSpaceNum();
+//            //如果是成对{}按回车键，则多加4个空格缩进
+//            var isfunc = false;
+//            var pre = 0;//TextElem.iGetPosStr(-2);
+//            if (pre == "{\n") {
+//                space += 4;
+//                isfunc = true;
+//            }
+//            for (var i = 0; i < space; ++i) {
+//                TextElem.iAddField(" ");
+//            }
+//            var pos = 0;//TextElem.iGetFieldPos();
+//            var insertStr = "";
+//            if (isfunc) {
+//                TextElem.iAddField("\n");
+//                for (var i = 0; i < space - 4; ++i) {
+//                    insertStr += " ";
+//                }
+//            }
+//            //TextElem.iAddField(insertStr);
+//            //TextElem.iSelectField(pos);
+//        } else if (e.shiftKey && e.which == 57) { // ( 左括号自动补全
+//            if(TextElem.iGetPosStr(-1) == "("){
+//                TextElem.iAddField(")");
+//            }else{
+//                TextElem.iAddField("）");
+//            }
+//            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
+//        } else if (e.shiftKey && e.which == 48) { // ) 右括号判断是否成对匹配
+//            var pre = TextElem.iGetPosStr(-2);
+//            var next = TextElem.iGetPosStr(1);
+//            if (pre == "()" && next == ")" || pre == "（）" && next == "）") {
+//                TextElem.iDelField(1);
+//                TextElem.iSelectField(TextElem.iGetFieldPos() + 1);
+//            }
+//        } else if (e.shiftKey && e.which == 219) { // { 左大括号自动补全
+//            TextElem.iAddField("}");
+//            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
+//        } else if (e.shiftKey && e.which == 221) { // } 右大括号判断是否成对匹配
+//            var pre = TextElem.iGetPosStr(-2);
+//            var next = TextElem.iGetPosStr(1);
+//            if (pre == "{}" && next == "}") {
+//                TextElem.iDelField(-1);
+//            }
+//        } else if (e.which == 219) { // [ 左中括号自动补全
+//            if (TextElem.iGetPosStr(-1) == "[") {
+//                TextElem.iAddField("]");
+//            } else {
+//                TextElem.iAddField("】");
+//            }
+//            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
+//        } else if (e.which == 221) { // ] 右中括号判断是否成对匹配
+//            var pre = TextElem.iGetPosStr(-2);
+//            var next = TextElem.iGetPosStr(1);
+//            if ((pre == "[]" || pre == "【】") && (next == "]" || next == "】")) {
+//                TextElem.iDelField(-1);
+//            }
+//        } else if (e.shiftKey && e.which == 188) { // < 左尖括号自动补全
+//            if (TextElem.iGetPosStr(-1) == "<") {
+//                TextElem.iAddField(">");
+//            } else {
+//                TextElem.iAddField("》");
+//            }
+//            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
+//        } else if (e.shiftKey && e.which == 190) { // > 右尖括号判断是否成对匹配
+//            var pre = TextElem.iGetPosStr(-2);
+//            var next = TextElem.iGetPosStr(1);
+//            if ((pre == "<>" || pre == "《》") && (next == ">" || next == "》")) {
+//                TextElem.iDelField(-1);
+//            }
+//        } else if (!e.shiftKey && e.which == 222) { // ' 左单引号自动补全
+//            if (TextElem.iGetPosStr(-1) == "'") {
+//                TextElem.iAddField("'");
+//            } else {
+//                TextElem.iAddField('’');
+//            }
+//            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
+//        } else if (e.shiftKey && e.which == 222) { // “ 左双引号自动补全
+//            if (TextElem.iGetPosStr(-1) == '"') {
+//                TextElem.iAddField('"');
+//            } else {
+//                TextElem.iAddField('”');
+//            }
+//            TextElem.iSelectField(TextElem.iGetFieldPos() - 1);
+//        }
     },
     //重写按键功能，在keydown阶段执行
     KeyRewrite: function(event, TextElem) {
@@ -656,6 +665,7 @@ var LanEditor = {
             TextElem.iAddField("    ");
         //退格键删除多个空格
         } else if (e.which == 8) {
+            return;
             //只有光标前一个字符是空格的时候才要判断是否删除多个空格
             if (TextElem.iGetPosStr(-1) == " ") {
                 e.preventDefault();
@@ -717,6 +727,7 @@ var LanEditor = {
             time: null,
             content: null
         },
+        storage: {},
         // 保存为md文件
         ExportMD: function(md) {
             var fileName = prompt("保存为Markdown文件，请输入文件名", "新建Markdown文件");
@@ -735,7 +746,8 @@ var LanEditor = {
                 return;
             }
             var HTML_temp_content = '<!DOCTYPE html>' +
-                '<html lang="zh-CN">' +
+                //'<html lang="zh-CN">' +
+                '<html lang="en">' +
                 '<head><meta charset="UTF-8">' +
                 '<style type="text/css">' +
                 'h1,h2,h3,h4,h5,h6,p,blockquote{margin:0;padding:0}' +
@@ -748,7 +760,11 @@ var LanEditor = {
                 'blockquote p{font-size:14px;font-weight:300;line-height:18px;margin-bottom:0;font-style:italic}code,pre{font-family:Monaco,Andale Mono,Courier New,monospace}' +
                 'code{background-color:#fee9cc;color:rgba(0,0,0,0.75);padding:1px 3px;font-size:12px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px}' +
                 'pre{display:block;padding:14px;margin:0 0 18px;line-height:16px;font-size:11px;border:1px solid #d9d9d9;white-space:pre-wrap;word-wrap:break-word}' +
-                'pre code{background-color:#fff;color:#737373;font-size:11px;padding:0}@media screen and (min-width:768px){body{width:748px;margin:10px auto}}</style>';
+                'pre code{background-color:#fff;color:#737373;font-size:11px;padding:0}@media screen and (min-width:768px){body{width:748px;margin:10px auto}}' +
+                'body{font-family:Helvetica,Geneva,Arial,sans-serif;font-size:1em;font-style:normal;font-weight:400;color:#333;background-color:#fff;line-height:2em}body.with_sponsor{margin-right:410px}a{color:#5a86e4;text-decoration:none}a:hover{text-decoration:underline}a.external,a[href*="//"]:not([href*="alexgorbatchev.com"]){background:url(external.png) right 50% no-repeat;padding-right:12px}.file-list,code,pre{font-family:Consolas,Monaco,"Bitstream Vera Sans Mono","Courier New",Courier,monospace}table{-moz-border-radius:5px;-webkit-border-radius:5px 5px 5px 5px;border:2px solid #adadad;padding:.5em;width:100%}table td,table th{padding:.3em .5em;vertical-align:top}table th{text-align:left}table tbody>tr:hover{background:#cbe2ff;-moz-border-radius:3px;-webkit-border-radius:3px 3px 3px 3px}table tbody>tr>td:first-child{white-space:nowrap}#clear{clear:both}#title h1{font-weight:700;font-size:4em;color:#adadad;margin:0;line-height:100%}#title h1 #whatsnew{display:inline}#title h1 #whatsnew a{font-size:.5em;color:red}#title h2{font-size:1.45em}#title #forkme{display:block;position:fixed;z-index:5;top:0;left:0;border:0;background:url(forkme.png) no-repeat;width:149px;height:149px;text-indent:-1000px;overflow:hidden}#content .date,#content .version,.badge{-moz-border-radius:3px;-webkit-border-radius:3px 3px 3px 3px;font-size:10px;font-weight:400;padding:3px 5px 4px;line-height:100%;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}#content .sponsor,#theme-example{-moz-border-radius:5px;-webkit-border-radius:5px 5px 5px 5px}#content #news ul{list-style-type:none;margin:0;padding:0}#content #news ul li{position:relative;display:block;padding-left:7em;min-height:22px}#blurb,#content .date,#footer,#meta,.float{position:absolute;width:10em;text-align:right}#content .date{background:#cbe2ff;color:#5a86e4;height:20px;left:0;top:0;padding:6px 5px 0}#content .version{background:#adadad;color:#fff}#content h3{margin:1.5em 0 .5em;font-size:1.45em}#content h2>a[name]{color:#000;text-decoration:none}#content .sponsor{padding:.1em 1em;background:#feffcb;margin-bottom:1em}#footer,#sponsor{-moz-border-radius:3px;-webkit-border-radius:3px 3px 3px 3px}#content li>p:only-child{margin:0}#blurb,#footer,#meta,.float{top:10px;right:10px;padding:1em;line-height:1.1em}#blurb a,#footer a,#meta a,.float a{display:block}.with_sponsor #blurb,.with_sponsor #footer,.with_sponsor #meta,.with_sponsor .float{right:190px}#sponsor{position:fixed;top:10px;right:10px;bottom:10px;background:#6380EA}#sponsor a{padding:0;background:0 0}#meta{z-index:2;font-weight:700;padding-top:7em}#footer{background:#cbe2ff;padding-top:14em;z-index:1}#footer #ad{margin-bottom:.5em}#blurb{text-align:left;z-index:2}#blurb a{display:inline}#blurb em{font-size:80%}#copyright{color:#adadad;font-size:1.2em;margin-top:3em}#theme-example{padding:1em 2em;background-color:#adadad}.code>.container>.line,.code>.container>.line>.java,.code>.container>.line>.js,.code>.container>.line>code,.gutter>.line{height:14px!important;line-height:14px!important;font-size:14px!important;font-family:"courier new"!important}#code_source{border:1px solid #ccc;width:998px;height:200px}#code_type{width:170px;border:1px solid #bbb;height:28px;line-height:28px}.syntaxhighlighter .comments,.syntaxhighlighter .comments a,.syntaxhighlighter .plain,.syntaxhighlighter .plain a,.syntaxhighlighter .string,.syntaxhighlighter .string a{height:14px!important;line-height:14px!important;font-size:14px!important;font-family:"courier new"!important}.syntaxhighlighter .plain,.syntaxhighlighter .plain a{color:#000!important}'+
+                '.syntaxhighlighter a,.syntaxhighlighter code,.syntaxhighlighter div,.syntaxhighlighter table,.syntaxhighlighter table caption,.syntaxhighlighter table tbody,.syntaxhighlighter table td,.syntaxhighlighter table thead,.syntaxhighlighter table tr,.syntaxhighlighter textarea{-moz-border-radius:0!important;-webkit-border-radius:0!important;background:0 0!important;border:0!important;bottom:auto!important;float:none!important;height:auto!important;left:auto!important;line-height:1.1em!important;margin:0!important;outline:0!important;overflow:visible!important;padding:0!important;position:static!important;right:auto!important;text-align:left!important;top:auto!important;vertical-align:baseline!important;width:auto!important;box-sizing:content-box!important;font-family:Consolas,"Bitstream Vera Sans Mono","Courier New",Courier,monospace!important;font-weight:400!important;font-style:normal!important;font-size:1em!important;min-height:inherit!important;min-height:auto!important}.syntaxhighlighter,.syntaxhighlighter table td.code .container{position:relative!important}.syntaxhighlighter,.syntaxhighlighter table,.syntaxhighlighter table td.code{width:100%!important}.syntaxhighlighter .bold,.syntaxhighlighter.printing .script{font-weight:700!important}.syntaxhighlighter{margin:1em 0!important;overflow:auto!important;font-size:1em!important}.syntaxhighlighter.source{overflow:hidden!important}.syntaxhighlighter .italic{font-style:italic!important}.syntaxhighlighter .line{white-space:pre!important}.syntaxhighlighter table caption{text-align:left!important;padding:.5em 0 .5em 1em!important}.syntaxhighlighter table td.code .container textarea{box-sizing:border-box!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;border:none!important;background:#fff!important;padding-left:1em!important;overflow:hidden!important;white-space:pre!important}.syntaxhighlighter table td.gutter .line{text-align:right!important;padding:0 .5em 0 1em!important}.syntaxhighlighter table td.code .line{padding:0 1em!important}.syntaxhighlighter.nogutter td.code .container textarea,.syntaxhighlighter.nogutter td.code .line{padding-left:0!important}.syntaxhighlighter.show{display:block!important}.syntaxhighlighter.collapsed table{display:none!important}.syntaxhighlighter.collapsed .toolbar{padding:.1em .8em 0!important;font-size:1em!important;position:static!important;width:auto!important;height:auto!important}.syntaxhighlighter.collapsed .toolbar span{display:inline!important;margin-right:1em!important}.syntaxhighlighter.collapsed .toolbar span a{padding:0!important;display:none!important}.syntaxhighlighter .toolbar span.title,.syntaxhighlighter.collapsed .toolbar span a.expandSource{display:inline!important}.syntaxhighlighter .toolbar{position:absolute!important;right:1px!important;top:1px!important;width:11px!important;height:11px!important;font-size:10px!important;z-index:10!important}.syntaxhighlighter .toolbar a{display:block!important;text-align:center!important;text-decoration:none!important;padding-top:1px!important}.syntaxhighlighter .toolbar a.expandSource,.syntaxhighlighter.printing .toolbar{display:none!important}.syntaxhighlighter.ie{font-size:.9em!important;padding:1px 0!important}.syntaxhighlighter.ie .toolbar{line-height:8px!important}.syntaxhighlighter.ie .toolbar a{padding-top:0!important}.syntaxhighlighter.printing .line.alt1 .content,.syntaxhighlighter.printing .line.alt2 .content,.syntaxhighlighter.printing .line.highlighted .number,.syntaxhighlighter.printing .line.highlighted.alt1 .content,.syntaxhighlighter.printing .line.highlighted.alt2 .content{background:0 0!important}.syntaxhighlighter.printing .line .number{color:#bbb!important}.syntaxhighlighter.printing .line .content,.syntaxhighlighter.printing .plain,.syntaxhighlighter.printing .plain a{color:#000!important}.syntaxhighlighter.printing a{text-decoration:none!important}.syntaxhighlighter.printing .comments,.syntaxhighlighter.printing .comments a{color:#008200!important}.syntaxhighlighter.printing .string,.syntaxhighlighter.printing .string a{color:#00f!important}.syntaxhighlighter.printing .keyword{color:#069!important;font-weight:700!important}.syntaxhighlighter.printing .preprocessor{color:gray!important}.syntaxhighlighter.printing .variable{color:#a70!important}.syntaxhighlighter.printing .value{color:#090!important}.syntaxhighlighter.printing .functions{color:#ff1493!important}.syntaxhighlighter.printing .constants{color:#06c!important}.syntaxhighlighter.printing .color1,.syntaxhighlighter.printing .color1 a{color:gray!important}.syntaxhighlighter.printing .color2,.syntaxhighlighter.printing .color2 a{color:#ff1493!important}.syntaxhighlighter.printing .color3,.syntaxhighlighter.printing .color3 a{color:red!important}.syntaxhighlighter.printing .break,.syntaxhighlighter.printing .break a{color:#000!important}' +
+                '.syntaxhighlighter a,.syntaxhighlighter code,.syntaxhighlighter div,.syntaxhighlighter table,.syntaxhighlighter table caption,.syntaxhighlighter table tbody,.syntaxhighlighter table td,.syntaxhighlighter table thead,.syntaxhighlighter table tr,.syntaxhighlighter textarea{-moz-border-radius:0!important;-webkit-border-radius:0!important;background:0 0!important;border:0!important;bottom:auto!important;float:none!important;height:auto!important;left:auto!important;line-height:1.1em!important;margin:0!important;outline:0!important;overflow:visible!important;padding:0!important;position:static!important;right:auto!important;text-align:left!important;top:auto!important;vertical-align:baseline!important;width:auto!important;box-sizing:content-box!important;font-family:Consolas,"Bitstream Vera Sans Mono","Courier New",Courier,monospace!important;font-weight:400!important;font-style:normal!important;font-size:1em!important;min-height:inherit!important;min-height:auto!important}.syntaxhighlighter,.syntaxhighlighter table td.code .container{position:relative!important}.syntaxhighlighter,.syntaxhighlighter table,.syntaxhighlighter table td.code{width:100%!important}.syntaxhighlighter .bold,.syntaxhighlighter .keyword,.syntaxhighlighter .script,.syntaxhighlighter.printing .script{font-weight:700!important}.syntaxhighlighter{margin:1em 0!important;overflow:auto!important;font-size:1em!important}.syntaxhighlighter.source{overflow:hidden!important}.syntaxhighlighter .italic{font-style:italic!important}.syntaxhighlighter .line{white-space:pre!important}.syntaxhighlighter table caption{text-align:left!important;padding:.5em 0 .5em 1em!important}.syntaxhighlighter table td.code .container textarea{box-sizing:border-box!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;border:none!important;background:#fff!important;padding-left:1em!important;overflow:hidden!important;white-space:pre!important}.syntaxhighlighter table td.gutter .line{text-align:right!important;padding:0 .5em 0 1em!important}.syntaxhighlighter table td.code .line{padding:0 1em!important}.syntaxhighlighter.nogutter td.code .container textarea,.syntaxhighlighter.nogutter td.code .line{padding-left:0!important}.syntaxhighlighter.show{display:block!important}.syntaxhighlighter.collapsed table{display:none!important}.syntaxhighlighter.collapsed .toolbar{padding:.1em .8em 0!important;font-size:1em!important;position:static!important;width:auto!important;height:auto!important}.syntaxhighlighter.collapsed .toolbar span{display:inline!important;margin-right:1em!important}.syntaxhighlighter.collapsed .toolbar span a{padding:0!important;display:none!important}.syntaxhighlighter .toolbar span.title,.syntaxhighlighter.collapsed .toolbar span a.expandSource{display:inline!important}.syntaxhighlighter .toolbar{position:absolute!important;right:1px!important;top:1px!important;width:11px!important;height:11px!important;font-size:10px!important;z-index:10!important}.syntaxhighlighter .toolbar a{display:block!important;text-align:center!important;text-decoration:none!important;padding-top:1px!important}.syntaxhighlighter .toolbar a.expandSource,.syntaxhighlighter.printing .toolbar{display:none!important}.syntaxhighlighter.ie{font-size:.9em!important;padding:1px 0!important}.syntaxhighlighter.ie .toolbar{line-height:8px!important}.syntaxhighlighter.ie .toolbar a{padding-top:0!important}.syntaxhighlighter.printing .line.alt1 .content,.syntaxhighlighter.printing .line.alt2 .content,.syntaxhighlighter.printing .line.highlighted .number,.syntaxhighlighter.printing .line.highlighted.alt1 .content,.syntaxhighlighter.printing .line.highlighted.alt2 .content{background:0 0!important}.syntaxhighlighter.printing .line .number{color:#bbb!important}.syntaxhighlighter.printing .line .content,.syntaxhighlighter.printing .plain,.syntaxhighlighter.printing .plain a{color:#000!important}.syntaxhighlighter.printing a{text-decoration:none!important}.syntaxhighlighter.printing .comments,.syntaxhighlighter.printing .comments a{color:#008200!important}.syntaxhighlighter.printing .string,.syntaxhighlighter.printing .string a{color:#00f!important}.syntaxhighlighter.printing .keyword{color:#069!important;font-weight:700!important}.syntaxhighlighter.printing .preprocessor{color:gray!important}.syntaxhighlighter.printing .variable{color:#a70!important}.syntaxhighlighter.printing .value{color:#090!important}.syntaxhighlighter.printing .functions{color:#ff1493!important}.syntaxhighlighter.printing .constants{color:#06c!important}.syntaxhighlighter.printing .color1,.syntaxhighlighter.printing .color1 a{color:gray!important}.syntaxhighlighter.printing .color2,.syntaxhighlighter.printing .color2 a{color:#ff1493!important}.syntaxhighlighter.printing .color3,.syntaxhighlighter.printing .color3 a{color:red!important}.syntaxhighlighter .line.highlighted.number,.syntaxhighlighter table caption,.syntaxhighlighter.printing .break,.syntaxhighlighter.printing .break a{color:#000!important}.syntaxhighlighter,.syntaxhighlighter .line.alt1,.syntaxhighlighter .line.alt2{background-color:#fff!important}.syntaxhighlighter .line.highlighted.alt1,.syntaxhighlighter .line.highlighted.alt2{background-color:#e0e0e0!important}.syntaxhighlighter .gutter{color:#afafaf!important}.syntaxhighlighter .gutter .line{border-right:3px solid #6ce26c!important}.syntaxhighlighter .gutter .line.highlighted{background-color:#6ce26c!important;color:#fff!important}.syntaxhighlighter.printing .line .content{border:none!important}.syntaxhighlighter.collapsed{overflow:visible!important}.syntaxhighlighter.collapsed .toolbar{color:#00f!important;background:#fff!important;border:1px solid #6ce26c!important}.syntaxhighlighter.collapsed .toolbar a{color:#00f!important}.syntaxhighlighter.collapsed .toolbar a:hover{color:red!important}.syntaxhighlighter .toolbar{color:#fff!important;background:#6ce26c!important;border:none!important}.syntaxhighlighter .toolbar a{color:#fff!important}.syntaxhighlighter .plain,.syntaxhighlighter .plain a,.syntaxhighlighter .toolbar a:hover{color:#000!important}.syntaxhighlighter .comments,.syntaxhighlighter .comments a{color:#008200!important}.syntaxhighlighter .string,.syntaxhighlighter .string a{color:#00f!important}.syntaxhighlighter .keyword{color:#069!important}.syntaxhighlighter .preprocessor{color:gray!important}.syntaxhighlighter .variable{color:#a70!important}.syntaxhighlighter .value{color:#090!important}.syntaxhighlighter .functions{color:#ff1493!important}.syntaxhighlighter .constants{color:#06c!important}.syntaxhighlighter .script{color:#069!important;background-color:none!important}.syntaxhighlighter .color1,.syntaxhighlighter .color1 a{color:gray!important}.syntaxhighlighter .color2,.syntaxhighlighter .color2 a{color:#ff1493!important}.syntaxhighlighter .color3,.syntaxhighlighter .color3 a{color:red!important}.syntaxhighlighter table{margin:1px 0!important}' +
+                '</style>';
             HTML_temp_content += '<title>' + fileName + '</title>';
             var html = LanEditor.converter.makeHtml(md);
             for(var i = 0; i < LanEditor.Fn.FnSet.render.length; i++) {
@@ -759,39 +775,63 @@ var LanEditor = {
         },
         //创建文件下载
         ExportFile: function(fileName, content) {
-            var aLink = document.createElement('a');
-            var blob = new Blob([content]);
-            var evt = document.createEvent("HTMLEvents");
-            //initEvent 不加后两个参数在FF下会报错, 感谢 Barret Lee 的反馈
-            evt.initEvent("click", false, false);
-            aLink.download = fileName;
-            aLink.href = URL.createObjectURL(blob);
-            aLink.dispatchEvent(evt);
-            aLink.click();
+            // IE10+ : (has Blob, but not a[download] or URL)
+            if (navigator.msSaveBlob) {
+                var blob = new Blob([content]);
+                return navigator.msSaveBlob(blob, fileName);
+            } else {
+                var aLink = document.createElement('a');
+                var blob = new Blob([content]);
+                var evt = document.createEvent("HTMLEvents");
+                //initEvent 不加后两个参数在FF下会报错, 感谢 Barret Lee 的反馈
+                evt.initEvent("click", false, false);
+                aLink.download = fileName;
+                aLink.href = URL.createObjectURL(blob);
+                aLink.dispatchEvent(evt);
+                aLink.click();
+            }
         },
         //存储文件到localstorage
         SaveFileToLocal: function(fileName, content) {
-            if ("undefined" == localStorage) {
-                return "LocalStorage not support";
-            }
+//            if ("undefined" == localStorage) {
+//                return "LocalStorage not support";
+//            }
             if (fileName == null || content == null) {
                 return "param wrong";
             }
             var filename = LanEditor.Time.GetTimestamp() + "$" + fileName;
-            for (varname in localStorage) {
-                if (varname.split("$")[0].length == 10 && varname.split("$")[1] == fileName) {
-                    filename = varname.split("$")[0] + "$" + fileName;
+            if(localStorage){
+                for (varname in localStorage) {
+                    if (varname.split("$")[0].length == 10 && varname.split("$")[1] == fileName) {
+                        filename = varname.split("$")[0] + "$" + fileName;
+                    }
                 }
+                localStorage.setItem(filename, content);
+            } else {
+                for (field in LanEditor.File.storage) {
+                    if (field.split("$")[0].length == 10 && field.split("$")[1] == fileName) {
+                        filename = field.split("$")[0] + "$" + fileName;
+                    }
+                }
+                LanEditor.File.storage[filename] = content;
             }
-            localStorage.setItem(filename, content);
             return "OK";
         },
         // 从localstorage删除文件
         DeleteFileFromLocal: function(fileName) {
-            for (varname in localStorage) {
-                if (varname.split("$")[0].length == 10 && varname.split("$")[1] == fileName) {
-                    localStorage.removeItem(varname);
-                    return true;
+            if(localStorage){
+                for (varname in localStorage) {
+                    if (varname.split("$")[0].length == 10 && varname.split("$")[1] == fileName) {
+                        localStorage.removeItem(varname);
+                        return true;
+                    }
+                }
+            } else {
+                for (field in LanEditor.File.storage) {
+                    if (field.split("$")[0].length == 10 && field.split("$")[1] == fileName) {
+                        delete LanEditor.File.storage[field];
+                        return true;
+                    }
                 }
             }
             return false;
@@ -800,28 +840,58 @@ var LanEditor = {
         GetFileList: function() {
             var filelist = new Array();
             var temp;
-            for (varname in localStorage) {
-                temp = varname.split("$")[0];
-                // 判断当前变量是否是文件名
-                if (temp.length == 10 && !isNaN(temp)) {
-                    filelist.push({
-                        name: varname.split("$")[1],
-                        time: temp
-                    });
-                } else {
-                    continue;
+            if(localStorage){
+                for (varname in localStorage) {
+                    temp = varname.split("$")[0];
+                    // 判断当前变量是否是文件名
+                    if (temp.length == 10 && !isNaN(temp)) {
+                        filelist.push({
+                            name: varname.split("$")[1],
+                            time: temp
+                        });
+                    } else {
+                        continue;
+                    }
+                }
+            } else {
+                for(field in LanEditor.File.storage){
+                    temp = field.split("$")[0];
+                    // 判断当前变量是否是文件名
+                    if (temp.length == 10 && !isNaN(temp)) {
+                        filelist.push({
+                            name: field.split("$")[1],
+                            time: temp
+                        });
+                    } else {
+                        continue;
+                    }
                 }
             }
             return filelist;
         },
+        GetFileName: function(){
+          return document.title;
+        },
+        GetFile: function(fileName){
+          return LanEditor.File.storage[fileName]; // if not exists return undifind
+        },
         // 获取文件
         GetFileContent: function(fileName) {
-            for (varname in localStorage) {
-                if (varname.split("$")[0].length == 10 && varname.split("$")[1] == fileName) {
-                    return localStorage.getItem(varname);
-                }
+            var content = "";
+            if(localStorage){
+              for (varname in localStorage) {
+                  if (varname.split("$")[0].length == 10 && varname.split("$")[1] == fileName) {
+                      content = localStorage.getItem(varname);
+                  }
+              }
+            } else {
+              for (field in LanEditor.File.storage) {
+                  if (field.split("$")[0].length == 10 && field.split("$")[1] == fileName) {
+                      content = LanEditor.File.storage[field];
+                  }
+              }
             }
-            return false;
+            return content;
         },
         // 创建新文件
         NewFile: function(filename) {
@@ -832,9 +902,9 @@ var LanEditor = {
             var result = this.SaveFileToLocal(filename, "");
             if (result == "OK") {
                 return true;
-            } else if (result == "LocalStorage not support") {
-                alert("您的浏览器不支持永久存储，请使用chrome以获得最佳体验");
-                return false;
+//            } else if (result == "LocalStorage not support") {
+//                alert("您的浏览器不支持永久存储，请使用chrome以获得最佳体验");
+//                return false;
             } else if (result == "param wrong") {
                 alert("无效的文件名，请尝试更换文件名");
                 return false;
@@ -850,7 +920,7 @@ var LanEditor = {
             if (LanEditor.File.CurOpenFile.name == null) {
                 var flag = confirm("当前文件未保存,是否保存?");
                 if (flag) {
-                    var filename = prompt("请输入文件名", "新建MD文件");
+                    var filename = prompt("请输入文件名", LanEditor.File.GetFileName());
                     if (filename == null || filename == "") {
                         return;
                     }
@@ -1009,10 +1079,10 @@ var LanEditor = {
         PluginsMode: false,
         //加载设置
         Load: function() {
-            this.OpenSKL = parseInt(localStorage.OpenSKL || 1);
-            this.OpenSKLAni = parseInt(localStorage.OpenSKLAni || 1);
-            this.OpenMenuAni = parseInt(localStorage.OpenMenuAni || 1);
-            this.OpenAutoSymbol = parseInt(localStorage.OpenAutoSymbol || 1);
+            //this.OpenSKL = parseInt(localStorage.OpenSKL || 1);
+            //this.OpenSKLAni = parseInt(localStorage.OpenSKLAni || 1);
+            //this.OpenMenuAni = parseInt(localStorage.OpenMenuAni || 1);
+            //this.OpenAutoSymbol = parseInt(localStorage.OpenAutoSymbol || 1);
         },
         //保存设置
         Save: function() {
@@ -1258,138 +1328,138 @@ var CursorPos = {
     }
 };
 
-/* -----------------------------扩展jquery函数---------------------------------
- *
- * 文本域光标操作（设置光标，选，添，删，取等）
- * 此代码段可单独使用，也可以在引入了LanEditor的页面全局使用
- * 快速开始
- * 1. 引入jquery
- * 2. 把下面的代码单独保存为一个.js文件，在需要的地方引入此文件
- * 3. $(element).iGetFieldPos();//获取光标位置
- *
- * --------------------------------------------------------------------------*/
-(function($) {
-
-    $.fn.extend({
-        /*
-         * 获取光标所在位置
-         */
-        iGetFieldPos: function() {
-            var field = this.get(0);
-            if (document.selection) {
-                //IE
-                $(this).focus();
-                var sel = document.selection;
-                var range = sel.createRange();
-                var dupRange = range.duplicate();
-                dupRange.moveToElementText(field);
-                dupRange.setEndPoint('EndToEnd', range);
-                field.selectionStart = dupRange.text.length - range.text.length;
-                field.selectionEnd = field.selectionStart + range.text.length;
-            }
-            return field.selectionStart;
-        },
-        /*
-         * 选中指定位置内字符 || 设置光标位置
-         * --- 从start起选中(含第start个)，到第end结束（不含第end个）
-         * --- 若不输入end值，即为设置光标的位置（第start字符后）
-         */
-        iSelectField: function(start, end) {
-            var field = this.get(0);
-            //end未定义，则为设置光标位置
-            if (arguments[1] == undefined) {
-                end = start;
-            }
-            if (document.selection) {
-                //IE
-                var range = field.createTextRange();
-                range.moveEnd('character', -$(this).val().length);
-                range.moveEnd('character', end);
-                range.moveStart('character', start);
-                range.select();
-            } else {
-                //非IE
-                field.setSelectionRange(start, end);
-                $(this).focus();
-            }
-        },
-        /*
-         * 选中指定字符串
-         */
-        iSelectStr: function(str) {
-            var field = this.get(0);
-            var i = $(this).val().indexOf(str);
-            i != -1 ? $(this).iSelectField(i, i + str.length) : false;
-        },
-        /*
-         * 在光标之后插入字符串
-         */
-        iAddField: function(str) {
-            var field = this.get(0);
-            var v = $(this).val();
-            var len = $(this).val().length;
-            if (document.selection) {
-                //IE
-                $(this).focus()
-                document.selection.createRange().text = str;
-            } else {
-                //非IE
-                var selPos = field.selectionStart;
-                $(this).val($(this).val().slice(0, field.selectionStart) + str + $(this).val().slice(field.selectionStart, len));
-                this.iSelectField(selPos + str.length);
-            };
-        },
-        /*
-         * 删除光标前面(+)或者后面(-)的n个字符
-         */
-        iDelField: function(n) {
-            var field = this.get(0);
-            var pos = $(this).iGetFieldPos();
-            var v = $(this).val();
-            //大于0则删除后面，小于0则删除前面
-            $(this).val(n > 0 ? v.slice(0, pos - n) + v.slice(pos) : v.slice(0, pos) + v.slice(pos - n));
-            $(this).iSelectField(pos - (n < 0 ? 0 : n));
-        },
-        /*
-         * 获取光标前面 || 后面指定个数字符
-         * n为负数则获取前面n个字符，正数获取后面n个字符
-         */
-        iGetPosStr: function(n) {
-            var field = this.get(0);
-            var pos = $(this).iGetFieldPos();
-            var v = $(this).val();
-            return (n > 0 ? v.slice(pos, pos + n) : v.slice(pos + n, pos));
-        },
-        /*
-         * 获取前一行的空格缩进个数或是本行前面的空格缩进个数
-         * 如果光标前一个字符不是换行\n || \r\n ，则获取本行前面的缩进，否则获取上一行
-         */
-        iGetSpaceNum: function() {
-            var TextElem = $(this);
-            var space = 0;
-            var i = 1;
-            // 如果光标前一个字符是换行，则跳过本行的换行符，查找上一行
-            if (TextElem.iGetPosStr(-1) == "\n" || TextElem.iGetPosStr(-1) == "\r\n") {
-                i = 2;
-            }
-            //计算上一行前面的空格缩进个数
-            while (TextElem.iGetPosStr(-i).charAt(0) != "\n" && TextElem.iGetPosStr(-i).charAt(0) != "\r\n" && TextElem.iGetPosStr(-i).charAt(0) != "") {
-                if (TextElem.iGetPosStr(-i).charAt(0) == " ") {
-                    space++;
-                } else if (TextElem.iGetPosStr(-i).charAt(0) == "\t") {
-                    space += 4;
-                } else {
-                    space = 0;
-                }
-                ++i;
-                if (i > TextElem.val().length) {
-                    break;
-                }
-            }
-            return space;
-        }
-    });
-})(jQuery);
+///* -----------------------------扩展jquery函数---------------------------------
+// *
+// * 文本域光标操作（设置光标，选，添，删，取等）
+// * 此代码段可单独使用，也可以在引入了LanEditor的页面全局使用
+// * 快速开始
+// * 1. 引入jquery
+// * 2. 把下面的代码单独保存为一个.js文件，在需要的地方引入此文件
+// * 3. $(element).iGetFieldPos();//获取光标位置
+// *
+// * --------------------------------------------------------------------------*/
+//(function($) {
+//
+//    $.fn.extend({
+//        /*
+//         * 获取光标所在位置
+//         */
+//        iGetFieldPos: function() {
+//            var field = this.get(0);
+//            if (document.selection) {
+//                //IE
+//                $(this).focus();
+//                var sel = document.selection;
+//                var range = sel.createRange();
+//                var dupRange = range.duplicate();
+//                dupRange.moveToElementText(field);
+//                dupRange.setEndPoint('EndToEnd', range);
+//                field.selectionStart = dupRange.text.length - range.text.length;
+//                field.selectionEnd = field.selectionStart + range.text.length;
+//            }
+//            return field.selectionStart;
+//        },
+//        /*
+//         * 选中指定位置内字符 || 设置光标位置
+//         * --- 从start起选中(含第start个)，到第end结束（不含第end个）
+//         * --- 若不输入end值，即为设置光标的位置（第start字符后）
+//         */
+//        iSelectField: function(start, end) {
+//            var field = this.get(0);
+//            //end未定义，则为设置光标位置
+//            if (arguments[1] == undefined) {
+//                end = start;
+//            }
+//            if (document.selection) {
+//                //IE
+//                var range = field.createTextRange();
+//                range.moveEnd('character', -$(this).val().length);
+//                range.moveEnd('character', end);
+//                range.moveStart('character', start);
+//                range.select();
+//            } else {
+//                //非IE
+//                field.setSelectionRange(start, end);
+//                $(this).focus();
+//            }
+//        },
+//        /*
+//         * 选中指定字符串
+//         */
+//        iSelectStr: function(str) {
+//            var field = this.get(0);
+//            var i = $(this).val().indexOf(str);
+//            i != -1 ? $(this).iSelectField(i, i + str.length) : false;
+//        },
+//        /*
+//         * 在光标之后插入字符串
+//         */
+//        iAddField: function(str) {
+//            var field = this.get(0);
+//            var v = $(this).val();
+//            var len = $(this).val().length;
+//            if (document.selection) {
+//                //IE
+//                $(this).focus()
+//                document.selection.createRange().text = str;
+//            } else {
+//                //非IE
+//                var selPos = field.selectionStart;
+//                $(this).val($(this).val().slice(0, field.selectionStart) + str + $(this).val().slice(field.selectionStart, len));
+//                this.iSelectField(selPos + str.length);
+//            };
+//        },
+//        /*
+//         * 删除光标前面(+)或者后面(-)的n个字符
+//         */
+//        iDelField: function(n) {
+//            var field = this.get(0);
+//            var pos = $(this).iGetFieldPos();
+//            var v = $(this).val();
+//            //大于0则删除后面，小于0则删除前面
+//            $(this).val(n > 0 ? v.slice(0, pos - n) + v.slice(pos) : v.slice(0, pos) + v.slice(pos - n));
+//            $(this).iSelectField(pos - (n < 0 ? 0 : n));
+//        },
+//        /*
+//         * 获取光标前面 || 后面指定个数字符
+//         * n为负数则获取前面n个字符，正数获取后面n个字符
+//         */
+//        iGetPosStr: function(n) {
+//            var field = this.get(0);
+//            var pos = $(this).iGetFieldPos();
+//            var v = $(this).val();
+//            return (n > 0 ? v.slice(pos, pos + n) : v.slice(pos + n, pos));
+//        },
+//        /*
+//         * 获取前一行的空格缩进个数或是本行前面的空格缩进个数
+//         * 如果光标前一个字符不是换行\n || \r\n ，则获取本行前面的缩进，否则获取上一行
+//         */
+//        iGetSpaceNum: function() {
+//            var TextElem = $(this);
+//            var space = 0;
+//            var i = 1;
+//            // 如果光标前一个字符是换行，则跳过本行的换行符，查找上一行
+//            if (TextElem.iGetPosStr(-1) == "\n" || TextElem.iGetPosStr(-1) == "\r\n") {
+//                i = 2;
+//            }
+//            //计算上一行前面的空格缩进个数
+//            while (TextElem.iGetPosStr(-i).charAt(0) != "\n" && TextElem.iGetPosStr(-i).charAt(0) != "\r\n" && TextElem.iGetPosStr(-i).charAt(0) != "") {
+//                if (TextElem.iGetPosStr(-i).charAt(0) == " ") {
+//                    space++;
+//                } else if (TextElem.iGetPosStr(-i).charAt(0) == "\t") {
+//                    space += 4;
+//                } else {
+//                    space = 0;
+//                }
+//                ++i;
+//                if (i > TextElem.val().length) {
+//                    break;
+//                }
+//            }
+//            return space;
+//        }
+//    });
+//})(jQuery);
 
 /* showdown source file 06-01-2015 */
 var Showdown={extensions:{}},forEach=Showdown.forEach=function(a,b){if("function"==typeof a.forEach)a.forEach(b);else{var c,d=a.length;for(c=0;d>c;c++)b(a[c],c,a)}},stdExtName=function(a){return a.replace(/[_-]||\s/g,"").toLowerCase()};Showdown.converter=function(a){var b,c,d,e=0,f=[],g=[];if("undefined"!=typeof module&&"undefined"!=typeof exports&&"undefined"!=typeof require){var h=require("fs");if(h){var i=h.readdirSync((__dirname||".")+"/extensions").filter(function(a){return~a.indexOf(".js")}).map(function(a){return a.replace(/\.js$/,"")});Showdown.forEach(i,function(a){var b=stdExtName(a);Showdown.extensions[b]=require("./extensions/"+a)})}}if(this.makeHtml=function(a){return b={},c={},d=[],a=a.replace(/~/g,"~T"),a=a.replace(/\$/g,"~D"),a=a.replace(/\r\n/g,"\n"),a=a.replace(/\r/g,"\n"),a="\n\n"+a+"\n\n",a=M(a),a=a.replace(/^[ \t]+$/gm,""),Showdown.forEach(f,function(b){a=l(b,a)}),a=z(a),a=n(a),a=m(a),a=p(a),a=K(a),a=a.replace(/~D/g,"$$"),a=a.replace(/~T/g,"~"),Showdown.forEach(g,function(b){a=l(b,a)}),a},a&&a.extensions){var j=this;Showdown.forEach(a.extensions,function(a){if("string"==typeof a&&(a=Showdown.extensions[stdExtName(a)]),"function"!=typeof a)throw"Extension '"+a+"' could not be loaded.  It was either not found or is not a valid extension.";Showdown.forEach(a(j),function(a){a.type?"language"===a.type||"lang"===a.type?f.push(a):("output"===a.type||"html"===a.type)&&g.push(a):g.push(a)})})}var k,l=function(a,b){if(a.regex){var c=new RegExp(a.regex,"g");return b.replace(c,a.replace)}return a.filter?a.filter(b):void 0},m=function(a){return a+="~0",a=a.replace(/^[ ]{0,3}\[(.+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|(?=~0))/gm,function(a,d,e,f,g){return d=d.toLowerCase(),b[d]=G(e),f?f+g:(g&&(c[d]=g.replace(/"/g,"&quot;")),"")}),a=a.replace(/~0/,"")},n=function(a){a=a.replace(/\n/g,"\n\n");return a=a.replace(/^(<(p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del)\b[^\r]*?\n<\/\2>[ \t]*(?=\n+))/gm,o),a=a.replace(/^(<(p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|style|section|header|footer|nav|article|aside)\b[^\r]*?<\/\2>[ \t]*(?=\n+)\n)/gm,o),a=a.replace(/(\n[ ]{0,3}(<(hr)\b([^<>])*?\/?>)[ \t]*(?=\n{2,}))/g,o),a=a.replace(/(\n\n[ ]{0,3}<!(--[^\r]*?--\s*)+>[ \t]*(?=\n{2,}))/g,o),a=a.replace(/(?:\n\n)([ ]{0,3}(?:<([?%])[^\r]*?\2>)[ \t]*(?=\n{2,}))/g,o),a=a.replace(/\n\n/g,"\n")},o=function(a,b){var c=b;return c=c.replace(/\n\n/g,"\n"),c=c.replace(/^\n/,""),c=c.replace(/\n+$/g,""),c="\n\n~K"+(d.push(c)-1)+"K\n\n"},p=function(a){a=w(a);var b=A("<hr />");return a=a.replace(/^[ ]{0,2}([ ]?\*[ ]?){3,}[ \t]*$/gm,b),a=a.replace(/^[ ]{0,2}([ ]?\-[ ]?){3,}[ \t]*$/gm,b),a=a.replace(/^[ ]{0,2}([ ]?\_[ ]?){3,}[ \t]*$/gm,b),a=x(a),a=y(a),a=E(a),a=n(a),a=F(a)},q=function(a){return a=B(a),a=r(a),a=H(a),a=u(a),a=s(a),a=I(a),a=G(a),a=D(a),a=a.replace(/  +\n/g," <br />\n")},r=function(a){var b=/(<[a-z\/!$]("[^"]*"|'[^']*'|[^'">])*>|<!(--.*?--\s*)+>)/gi;return a=a.replace(b,function(a){var b=a.replace(/(.)<\/?code>(?=.)/g,"$1`");return b=N(b,"\\`*_")})},s=function(a){return a=a.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\][ ]?(?:\n[ ]*)?\[(.*?)\])()()()()/g,t),a=a.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?(.*?(?:\(.*?\).*?)?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g,t),a=a.replace(/(\[([^\[\]]+)\])()()()()()/g,t)},t=function(a,d,e,f,g,h,i,j){void 0==j&&(j="");var k=d,l=e,m=f.toLowerCase(),n=g,o=j;if(""==n)if(""==m&&(m=l.toLowerCase().replace(/ ?\n/g," ")),n="#"+m,void 0!=b[m])n=b[m],void 0!=c[m]&&(o=c[m]);else{if(!(k.search(/\(\s*\)$/m)>-1))return k;n=""}n=N(n,"*_");var p='<a href="'+n+'"';return""!=o&&(o=o.replace(/"/g,"&quot;"),o=N(o,"*_"),p+=' title="'+o+'"'),p+=">"+l+"</a>"},u=function(a){return a=a.replace(/(!\[(.*?)\][ ]?(?:\n[ ]*)?\[(.*?)\])()()()()/g,v),a=a.replace(/(!\[(.*?)\]\s?\([ \t]*()<?(\S+?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g,v)},v=function(a,d,e,f,g,h,i,j){var k=d,l=e,m=f.toLowerCase(),n=g,o=j;if(o||(o=""),""==n){if(""==m&&(m=l.toLowerCase().replace(/ ?\n/g," ")),n="#"+m,void 0==b[m])return k;n=b[m],void 0!=c[m]&&(o=c[m])}l=l.replace(/"/g,"&quot;"),n=N(n,"*_");var p='<img src="'+n+'" alt="'+l+'"';return o=o.replace(/"/g,"&quot;"),o=N(o,"*_"),p+=' title="'+o+'"',p+=" />"},w=function(a){function b(a){return a.replace(/[^\w]/g,"").toLowerCase()}return a=a.replace(/^(.+)[ \t]*\n=+[ \t]*\n+/gm,function(a,c){return A('<h1 id="'+b(c)+'">'+q(c)+"</h1>")}),a=a.replace(/^(.+)[ \t]*\n-+[ \t]*\n+/gm,function(a,c){return A('<h2 id="'+b(c)+'">'+q(c)+"</h2>")}),a=a.replace(/^(\#{1,6})[ \t]*(.+?)[ \t]*\#*\n+/gm,function(a,c,d){var e=c.length;return A("<h"+e+' id="'+b(d)+'">'+q(d)+"</h"+e+">")})},x=function(a){a+="~0";var b=/^(([ ]{0,3}([*+-]|\d+[.])[ \t]+)[^\r]+?(~0|\n{2,}(?=\S)(?![ \t]*(?:[*+-]|\d+[.])[ \t]+)))/gm;return e?a=a.replace(b,function(a,b,c){var d=b,e=c.search(/[*+-]/g)>-1?"ul":"ol";d=d.replace(/\n{2,}/g,"\n\n\n");var f=k(d);return f=f.replace(/\s+$/,""),f="<"+e+">"+f+"</"+e+">\n"}):(b=/(\n\n|^\n?)(([ ]{0,3}([*+-]|\d+[.])[ \t]+)[^\r]+?(~0|\n{2,}(?=\S)(?![ \t]*(?:[*+-]|\d+[.])[ \t]+)))/g,a=a.replace(b,function(a,b,c,d){var e=b,f=c,g=d.search(/[*+-]/g)>-1?"ul":"ol",f=f.replace(/\n{2,}/g,"\n\n\n"),h=k(f);return h=e+"<"+g+">\n"+h+"</"+g+">\n"})),a=a.replace(/~0/,"")};k=function(a){return e++,a=a.replace(/\n{2,}$/,"\n"),a+="~0",a=a.replace(/(\n)?(^[ \t]*)([*+-]|\d+[.])[ \t]+([^\r]+?(\n{1,2}))(?=\n*(~0|\2([*+-]|\d+[.])[ \t]+))/gm,function(a,b,c,d,e){var f=e,g=b;return g||f.search(/\n{2,}/)>-1?f=p(L(f)):(f=x(L(f)),f=f.replace(/\n$/,""),f=q(f)),"<li>"+f+"</li>\n"}),a=a.replace(/~0/g,""),e--,a};var y=function(a){return a+="~0",a=a.replace(/(?:\n\n|^)((?:(?:[ ]{4}|\t).*\n+)+)(\n*[ ]{0,3}[^ \t\n]|(?=~0))/g,function(a,b,c){var d=b,e=c;return d=C(L(d)),d=M(d),d=d.replace(/^\n+/g,""),d=d.replace(/\n+$/g,""),d="<pre><code>"+d+"\n</code></pre>",A(d)+e}),a=a.replace(/~0/,"")},z=function(a){return a+="~0",a=a.replace(/(?:^|\n)```(.*)\n([\s\S]*?)\n```/g,function(a,b,c){var d=b,e=c;return e=C(e),e=M(e),e=e.replace(/^\n+/g,""),e=e.replace(/\n+$/g,""),e="<pre><code"+(d?' class="'+d+'"':"")+">"+e+"\n</code></pre>",A(e)}),a=a.replace(/~0/,"")},A=function(a){return a=a.replace(/(^\n+|\n+$)/g,""),"\n\n~K"+(d.push(a)-1)+"K\n\n"},B=function(a){return a=a.replace(/(^|[^\\])(`+)([^\r]*?[^`])\2(?!`)/gm,function(a,b,c,d){var e=d;return e=e.replace(/^([ \t]*)/g,""),e=e.replace(/[ \t]*$/g,""),e=C(e),b+"<code>"+e+"</code>"})},C=function(a){return a=a.replace(/&/g,"&amp;"),a=a.replace(/</g,"&lt;"),a=a.replace(/>/g,"&gt;"),a=N(a,"*_{}[]\\",!1)},D=function(a){return a=a.replace(/(\*\*|__)(?=\S)([^\r]*?\S[*_]*)\1/g,"<strong>$2</strong>"),a=a.replace(/(\*|_)(?=\S)([^\r]*?\S)\1/g,"<em>$2</em>")},E=function(a){return a=a.replace(/((^[ \t]*>[ \t]?.+\n(.+\n)*\n*)+)/gm,function(a,b){var c=b;return c=c.replace(/^[ \t]*>[ \t]?/gm,"~0"),c=c.replace(/~0/g,""),c=c.replace(/^[ \t]+$/gm,""),c=p(c),c=c.replace(/(^|\n)/g,"$1  "),c=c.replace(/(\s*<pre>[^\r]+?<\/pre>)/gm,function(a,b){var c=b;return c=c.replace(/^  /gm,"~0"),c=c.replace(/~0/g,"")}),A("<blockquote>\n"+c+"\n</blockquote>")})},F=function(a){a=a.replace(/^\n+/g,""),a=a.replace(/\n+$/g,"");for(var b=a.split(/\n{2,}/g),c=[],e=b.length,f=0;e>f;f++){var g=b[f];g.search(/~K(\d+)K/g)>=0?c.push(g):g.search(/\S/)>=0&&(g=q(g),g=g.replace(/^([ \t]*)/g,"<p>"),g+="</p>",c.push(g))}e=c.length;for(var f=0;e>f;f++)for(;c[f].search(/~K(\d+)K/)>=0;){var h=d[RegExp.$1];h=h.replace(/\$/g,"$$$$"),c[f]=c[f].replace(/~K\d+K/,h)}return c.join("\n\n")},G=function(a){return a=a.replace(/&(?!#?[xX]?(?:[0-9a-fA-F]+|\w+);)/g,"&amp;"),a=a.replace(/<(?![a-z\/?\$!])/gi,"&lt;")},H=function(a){return a=a.replace(/\\(\\)/g,O),a=a.replace(/\\([`*_{}\[\]()>#+-.!])/g,O)},I=function(a){return a=a.replace(/<((https?|ftp|dict):[^'">\s]+)>/gi,'<a href="$1">$1</a>'),a=a.replace(/<(?:mailto:)?([-.\w]+\@[-a-z0-9]+(\.[-a-z0-9]+)*\.[a-z]+)>/gi,function(a,b){return J(K(b))})},J=function(a){var b=[function(a){return"&#"+a.charCodeAt(0)+";"},function(a){return"&#x"+a.charCodeAt(0).toString(16)+";"},function(a){return a}];return a="mailto:"+a,a=a.replace(/./g,function(a){if("@"==a)a=b[Math.floor(2*Math.random())](a);else if(":"!=a){var c=Math.random();a=c>.9?b[2](a):c>.45?b[1](a):b[0](a)}return a}),a='<a href="'+a+'">'+a+"</a>",a=a.replace(/">.+:/g,'">')},K=function(a){return a=a.replace(/~E(\d+)E/g,function(a,b){var c=parseInt(b);return String.fromCharCode(c)})},L=function(a){return a=a.replace(/^(\t|[ ]{1,4})/gm,"~0"),a=a.replace(/~0/g,"")},M=function(a){return a=a.replace(/\t(?=\t)/g,"    "),a=a.replace(/\t/g,"~A~B"),a=a.replace(/~B(.+?)~A/g,function(a,b){for(var c=b,d=4-c.length%4,e=0;d>e;e++)c+=" ";return c}),a=a.replace(/~A/g,"    "),a=a.replace(/~B/g,"")},N=function(a,b,c){var d="(["+b.replace(/([\[\]\\])/g,"\\$1")+"])";c&&(d="\\\\"+d);var e=new RegExp(d,"g");return a=a.replace(e,O)},O=function(a,b){var c=b.charCodeAt(0);return"~E"+c+"E"}},"undefined"!=typeof module&&(module.exports=Showdown),"function"==typeof define&&define.amd&&define("showdown",function(){return Showdown}),"undefined"!=typeof angular&&"undefined"!=typeof Showdown&&!function(a,b){function c(){function a(){var a=new b.converter(c);this.makeHtml=function(b){return a.makeHtml(b)},this.stripHtml=function(a){return String(a).replace(/<[^>]+>/gm,"")}}var c={extensions:[],stripHtml:!0};this.setOption=function(a,b){return c.key=b,this},this.getOption=function(a){return c.hasOwnProperty(a)?c.key:null},this.loadExtension=function(a){return c.extensions.push(a),this},this.$get=function(){return new a}}function d(a){var b=function(b,c){b.$watch("model",function(b){var d;d="string"==typeof b?a.makeHtml(b):typeof b,c.html(d)})};return{restrict:"A",link:b,scope:{model:"=sdModelToHtml"}}}function e(){return function(a){return String(a).replace(/<[^>]+>/gm,"")}}a.provider("$Showdown",c).directive("sdModelToHtml",["$Showdown",d]).filter("sdStripHtml",e)}(angular.module("Showdown",[]),Showdown);
