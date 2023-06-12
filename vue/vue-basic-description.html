@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-basic-description</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### vue-basic-description
+
+#### Vue 介绍
+
+Vue 是渐进式的 JavaScript 框架
+
+ - 渐进式：Vue 可以自底向上逐层的应用
+
+  - 简单应用：只需要一个轻量小巧的核心库
+
+  - 可以引入各式各样的 Vue 插件
+
+ - 特点：
+
+  - Vue 项目也是一个单页面入口文件 index.html
+
+      Vue 项目是虚拟 DOM 体积小，速度快
+
+  - 设计模式 MVVVM 双向数据绑定   
+
+VueComponent 的实例对象，以后简称 vc（也可以称之为：组件实例对象）。Vue 的实例对象，以后简称 vm。
+
+ - vc 和 vm 的区别
+
+  - vc 的 data 必须是函数，vm 可以是对象|函数
+
+  - vc 不能写 el 配置项
+
+ 一个重要的内置关系：VueComponent.prototype.__proto__ == Vue.prototype
+
+ 为什么要有这个关系：让组件实例对象（vc）可以访问到 Vue 原型上的属性、方法
+
+#### 兼容性
+
+Vue **不支持 IE8 及以下版本**，因为 Vue 使用了 IE8 无法模拟的 ECMAScript 5 特性。但它支持所有兼容 ECMAScript 5 的浏览器。
+
+#### Vue 构建版本的解释
+
+ - vue.js 于 vue.runtime.xxx.js 的区别：
+
+  - vue.js 是完整版的 vue，包含：核心功能 + 模板解析器
+
+  - vue.runtime.xxx.js 是运行版的vue，只包含：核心功能，没有模板解析器（这里引入的 vue 是：vue.runtime.js）
+
+ - 因为 vue.runtime.xxx.js 没有模解析器，所以不能使用 template 配置项，需要使用 render 函数接收到 createElement 函数去指定具体内容
+
+编译器：用来将模板字符串编译成为 JavaScript 渲染函数的代码。
+
+运行时：用来创建 Vue 实例、渲染并处理虚拟 DOM 等的代码。基本上就是除去编译器的其它一切。
+
+说明：
+
+**需要编译器**
+
+```js
+// 需要编译器完整的 vue.js
+new Vue({
+  template: '<div>{{ hi }}</div>'
+})
+```
+
+```js
+// 不需要编译器运行时版 vue.runtime.js
+new Vue({
+  render (h) {
+    return h('div', this.hi)
+  }
+})
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

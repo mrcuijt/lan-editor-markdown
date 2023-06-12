@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-stdlib</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-stdlib
+
+#### 标准库函数
+
+#### apply
+
+ - apply 函数可看作一个丿值函数，你可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供 Lambda 给 apply 函数执行，它会返回配置好的接收者。
+
+ - 可以看到，调用一个函数配置接收者时，变量名就省略掉了，这是因为，在 Lambda 表达式里，apply 能让每个配置函数都作用于接收者，这种行为有时又叫做相关作用域，因为 Lambda 表达式里所有的函数调用都是针对接收者的，或者说，它们是针对接收者的隐式调用。
+
+```js
+package org.example.kotlin.kotlin06
+
+import java.io.File
+
+fun main(args: Array<String>) {
+
+    val file = File("E:/i have a dream_copy.txt")
+    file.setReadable(true)
+    file.setWritable(true)
+    file.setExecutable(false)
+
+    // 使用 apply
+    val block: File.() -> Unit = {
+        setReadable(true)
+        setWritable(true)
+        setExecutable(false)
+    }
+    val file2 = File("E:/i have a dream_copy.txt").apply(block)
+
+    val file3 = File("E:/i have a dream_copy.txt").apply {
+        setReadable(true)
+        setWritable(true)
+        setExecutable(false)
+    }
+}
+```
+
+#### let
+
+ - let 函数能使某个变量作用于其它 Lambda 表达式里，让 it 关键字能引用它。 let 与 apply 比较，let 会把接收者传给 Lambda，而 apply 什么都传，匿名函数执行完，apply 会返回当前接收者，而 let 会返回 Lambda 的最后一行。
+
+```js
+package org.example.kotlin.kotlin06
+
+fun main(args: Array<String>) {
+
+    val result = listOf(3, 2, 1).first().let {
+        it * it
+    }
+    println(result) // 9
+
+    val firstElement = listOf(3, 2, 1).first()
+    val result2 = firstElement * firstElement
+    println(result2) // 9
+
+    println(formatGeeting(null))
+    println(formatGeeting("Jack"))
+
+    println(formatGeeting2(null))
+    println(formatGeeting2("Jack"))
+}
+
+fun formatGeeting(guestName: String?): String {
+    return guestName?.let {
+        "Welcome $it."
+    } ?: "What's your name?"
+}
+
+fun formatGeeting2(gustName: String?): String {
+    return if (gustName != null) {
+        "Welcome $gustName"
+    } else {
+        "What's your name?"
+    }
+}
+```
+
+#### run
+
+ - 光看作用域行为，run 和 apply 差不多，但与 apply 不同，run 函数不返回接收者，run 返回的是 Lambda 结果。
+
+ - run 也能用了执行函数引用
+
+```js
+package org.example.kotlin.kotlin06
+
+fun main(args: Array<String>) {
+
+    val str1 = "E:/i have a dream_copy.txt"
+    val result = str1.run {
+        contains("dream") // 返回 Lambda 结果
+    }
+    println(result)
+}
+```
+
+```js
+package org.example.kotlin.kotlin06
+
+fun main(args: Array<String>) {
+
+    val result = "The people's Republic of China.".run(::isLong)
+
+    println(result)
+
+    val result2 = "The people's Republic of China."
+            .run(::isLong)
+            .run(::showMessage)
+
+    println(result2)
+}
+
+fun isLong(name: String) = name.length >= 10
+
+fun showMessage(isLong: Boolean): String {
+    return if (isLong) {
+        "Name is too long."
+    } else {
+        "Please rename."
+    }
+}
+```
+
+#### with
+
+ - with 函数是 run 的变体，他们的功能行为是一样的，但 with 的调用方式不同，调用 with 时需要值作为其第一个参数传入。
+
+```js
+package org.example.kotlin.kotlin06
+
+fun main(args: Array<String>) {
+
+    val result = "The people's Republic of China.".run {
+        length >= 10
+    }
+
+    val result2 = with("The people's Republic of China.") {
+        length >= 10
+    }
+
+    println(result) // true
+    println(result2) // true
+}
+```
+
+#### also
+
+ - also 函数和 let 函数功能相似，和 let 一样，also 也是把接收者作为值参传给 Lambda，但有一点不同：also 返回接收者对象，而 let 返回 Lambda 结果。因为这个差异，also 尤其适合针对同一原始对象，你用副作用做事，既然 also 返回的是接收者对象，你就可以基于原始接收者对象执行额外的链式调用。
+
+```js
+package org.example.kotlin.kotlin06
+
+import java.io.File
+
+fun main(args: Array<String>) {
+
+    var basePath = "kotlin-demo/target/classes/demo.txt"
+
+    var fileContents: List<String> // 声明未初始化
+    File(basePath)
+            .also {
+                println(it.name)
+            }.also {
+                fileContents = it.readLines()
+            }
+    println(fileContents)
+}
+```
+
+#### takeIf
+
+ - 和其它标准函数有点不一样，takeIf 函数需要判断 Lambda 中提供的条件表达式，给出 true 或 false 结果，如果判断结果是 true，从 takeIf 函数返回接收者对象，如果是 false，则返回 null。如果需要判断某个条件是否满足，再决定是否可以赋值变量或执行某项任务，takeIf 就非常有用，概念上讲，takeIf 函数类似于 if 语句，但它的优势可以直接在对象实例上调用，避免了临时变量赋值的麻烦。
+
+```js
+package org.example.kotlin.kotlin06
+
+import java.io.File
+
+fun main(args: Array<String>) {
+
+    var basePath = "kotlin-demo/target/classes/demo.txt"
+
+    val text = File(basePath).takeIf {
+        it.exists() && it.canRead()
+    }?.readText()
+
+    println(text)
+}
+```
+
+#### takeUnless
+
+ - takeIf 辅助函数 takeUnless，只有判断你给定条件结果是 false 时，takeUnless 才会返回原始接收者对象，否则返回 null。
+
+```js
+package org.example.kotlin.kotlin06
+
+import java.io.File
+
+fun main(args: Array<String>) {
+
+    var basePath = "kotlin-demo/target/classes/demo.txt"
+
+    val text = File(basePath).takeUnless {
+        it.isHidden
+    }?.readText()
+
+    println(text)
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

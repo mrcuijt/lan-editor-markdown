@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-thread-interrupt</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-thread-interrupt
+
+#### jdk 线程中断
+
+在JDK中，线程中断可以通过以下两种方式进行：
+
+ - 1、调用Thread对象的interrupt方法，将中断标志位设置为true。例如：
+
+```java
+Thread thread = new Thread(() -> {
+    while (!Thread.currentThread().isInterrupted()) {
+        // 执行线程任务
+    }
+});
+thread.start();
+// 中断线程
+thread.interrupt();
+```
+
+在线程执行任务时，可以通过检查中断标志位来判断是否需要中断线程并退出任务。在这个例子中，线程会在下一次循环时检查中断标志位，如果已经被设置为true，则退出循环。
+
+ - 2、调用Thread对象的stop方法，强制停止线程。然而，这种方式已被废弃，因为它可能会导致线程在执行任务时被突然终止，从而导致数据不一致或者资源泄漏等问题，不建议使用。
+在使用线程中断时，需要注意以下几点：
+
+  - 中断标志位只是一个标记，线程并不会自动停止，需要在线程任务中检查标志位并做出相应的处理。
+
+  - 如果线程正在等待I/O操作或者网络操作等阻塞调用，那么中断标志位可能不会立即生效，需要使用可中断的阻塞调用，例如带有超时时间的阻塞调用（例如Socket的read方法）或者可中断的阻塞调用（例如Selector的select方法）。
+
+  - 如果线程持有锁或者其他共享资源，那么在中断线程时需要考虑如何释放这些资源，避免死锁或者资源泄漏等问题。
+
+#### 如何保证 jdk 线程的最大执行时间
+
+ - 1、在JDK中，可以通过设置线程的超时时间来保证线程的最大执行时间。具体实现方式可以有以下两种：使用Thread.sleep方法实现。通过在线程中调用Thread.sleep方法，在指定的时间后使线程进入阻塞状态，从而实现线程的超时控制。例如：
+
+```java
+Thread thread = new Thread(() -> {
+    try {
+        // 执行线程任务
+        Thread.sleep(5000); // 休眠5秒
+        // 继续执行任务
+    } catch (InterruptedException e) {
+        // 线程被中断
+    }
+});
+thread.start();
+// 等待线程执行完成或者超时
+thread.join(10000); // 最多等待10秒
+if (thread.isAlive()) {
+    // 线程未执行完成，需要中断
+    thread.interrupt();
+}
+```
+
+在这个例子中，线程会在执行任务5秒后进入阻塞状态，等待10秒后如果线程未执行完成，则中断线程。
+
+ - 2、使用ScheduledExecutorService实现。通过创建ScheduledExecutorService对象，在指定的时间后调用线程的interrupt方法，从而实现线程的超时控制。例如：
+
+```js
+ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+Thread thread = new Thread(() -> {
+    while (!Thread.currentThread().isInterrupted()) {
+        // 执行线程任务
+    }
+});
+thread.start();
+// 等待线程执行完成或者超时
+executor.schedule(() -> {
+    if (thread.isAlive()) {
+        // 线程未执行完成，需要中断
+        thread.interrupt();
+    }
+}, 10, TimeUnit.SECONDS); // 最多等待10秒
+```
+
+在这个例子中，ScheduledExecutorService会在10秒后调用线程的interrupt方法，从而中断线程。需要注意的是，ScheduledExecutorService需要在使用完毕后手动关闭，否则会导致资源泄漏。
+
+#### jdk http 读取超时设置
+
+如果使用JDK中的HttpURLConnection进行HTTP请求，在读取响应时可能会因为网络不稳定或者服务器响应缓慢而导致读取超时。为了避免这种情况，我们可以通过以下两种方式设置读取超时：
+
+ - 1、通过调用HttpURLConnection的setReadTimeout方法设置读取超时时间，单位为毫秒。例如，设置读取超时时间为5秒：
+
+```js
+HttpURLConnection connection = (HttpURLConnection) new URL("http://example.com").openConnection();
+connection.setReadTimeout(5000); // 5秒
+```
+
+ - 2、通过在JVM启动参数中设置全局的读取超时时间。可以通过设置
+
+ `sun.net.client.defaultReadTimeout` 和 `sun.net.client.defaultConnectTimeout` 两个参数来分别设置连接超时和读取超时时间，单位也是毫秒。例如，设置读取超时时间为10秒：
+
+#### pac 代理样例
+
+PAC（Proxy Auto-Config）代理是一种自动代理配置技术，可以根据自定义的规则自动选择代理服务器，并且支持负载均衡和故障转移等功能。在使用PAC代理时，需要编写PAC文件来定义规则，例如：
+
+```js
+function FindProxyForURL(url, host) {
+    // 如果是内网地址，则直接连接
+    if (isPlainHostName(host) ||
+        shExpMatch(host, "*.local") ||
+        isInNet(dnsResolve(host), "10.0.0.0", "255.0.0.0") ||
+        isInNet(dnsResolve(host), "172.16.0.0",  "255.240.0.0") ||
+        isInNet(dnsResolve(host), "192.168.0.0",  "255.255.0.0")) {
+        return "DIRECT";
+    }
+    // 如果是需要代理的网站，则返回代理服务器地址和端口
+    if (dnsDomainIs(host, "example.com") ||
+        dnsDomainIs(host, "example.org") ||
+        shExpMatch(host, "*.example.com") ||
+        shExpMatch(host, "*.example.org")) {
+        // 返回代理服务器地址和端口
+        return "PROXY proxy.example.com:8080";
+    }
+    // 其他情况返回DIRECT，直接连接
+    return "DIRECT";
+}
+```
+
+在这个例子中，PAC文件定义了两个规则：如果访问的是内网地址，则直接连接，否则如果访问的是example.com或example.org域名下的网站，则使用代理服务器proxy.example.com:8080，否则直接连接。可以使用这个PAC文件来配置浏览器或者其他应用程序的代理设置，从而实现自动选择代理服务器的功能。
+
+##### 使用 Highlight 给出一份代码高亮示例
+
+以下是使用Highlight.js对Java代码进行高亮示例：
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Java Code Highlighting Example</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+</head>
+<body>
+    <pre><code class="java">
+public class Hello {
+    public static void main(String[] args) {
+        System.out.println("Hello, world!");
+    }
+}
+    </code></pre>
+</body>
+</html>
+```
+
+在这个例子中，首先引入Highlight.js的CSS和JavaScript文件。然后使用pre和code标签包裹Java代码块，并使用class属性指定代码块的语言类型。最后在JavaScript中调用hljs.highlightAll()方法对页面中的所有代码块进行高亮显示。运行这个HTML文件时，Java代码块就会被Highlight.js进行高亮显示。
+
+#### 给出 Markdown 语法分析器
+
+Markdown语法分析器是一种将Markdown文本转换为HTML或其他格式的工具。以下是几种常用的Markdown语法分析器：
+
+ - 1、Markdown.pl：由John Gruber编写的Perl脚本，是第一个Markdown语法分析器。它支持标准的Markdown语法，并可以生成HTML、LaTeX和XHTML等格式的文档。
+
+ - 2、Pandoc：Pandoc是一个通用的文档转换器，支持Markdown、HTML、LaTeX、DocBook、EPUB等格式的文档转换。它支持标准的Markdown语法，并可以生成多种格式的文档，包括HTML、PDF、EPUB等。
+
+ - 3、CommonMark：CommonMark是一个由John MacFarlane领导的团队开发的Markdown语法规范，旨在解决不同Markdown解析器之间的差异问题。CommonMark规范包括语法规则、解析器和测试套件等部分，可以帮助开发人员实现符合规范的Markdown语法解析器。
+
+ - 4、marked：marked是一个由Christopher Jeffrey开发的JavaScript库，支持标准的Markdown语法和扩展语法，并可以生成HTML格式的文档。它可以在Web浏览器和Node.js环境中使用，是一个轻量级的Markdown语法解析器。
+
+ - 5、Showdown：Showdown是一个由John Otander和Vadim Demedes开发的JavaScript库，支持标准的Markdown语法和扩展语法，并可以生成HTML格式的文档。它可以在Web浏览器和Node.js环境中使用，是一个简单易用的Markdown语法解析器。
+
+这些Markdown语法分析器都有自己的特点和优点，可以根据具体的需求选择使用。
+
+#### 使用 Showdown 对 Markdown 文档进行渲染代码
+
+以下是使用Showdown对Markdown文档进行渲染代码的示例：
+
+```js
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Showdown Code Rendering Example</title>
+  <script src="https://cdn.jsdelivr.net/npm/showdown@1.9.1/dist/showdown.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+</head>
+<body>
+  <div id="markdown"></div>
+  
+  <script>
+    const markdownText = `
+# Heading 1
+This is a paragraph.
+\`\`\`java
+public class Hello {
+    public static void main(String[] args) {
+        System.out.println("Hello, world!");
+    }
+}
+\`\`\`
+`;
+    
+    const converter = new showdown.Converter({
+      extensions: ['highlight'],
+    });
+    const html = converter.makeHtml(markdownText);
+    document.getElementById('markdown').innerHTML = html;
+  </script>
+</body>
+</html>
+```
+
+在这个例子中，我们首先引入Showdown和Highlight.js的JavaScript和CSS文件。然后在HTML页面中定义一个div元素，用于展示Markdown文档的HTML渲染结果。在JavaScript中，我们定义了一个包含Markdown文本的字符串变量markdownText。接着我们创建了一个Showdown.Converter对象，并将highlight扩展添加到extensions选项中，以支持代码高亮。最后我们将Markdown文本转换为HTML，并将HTML结果设置为div元素的innerHTML属性，从而将Markdown文档的HTML渲染结果显示在页面上。
+
+需要注意的是，由于Showdown默认不支持代码高亮，需要通过添加highlight扩展来启用代码高亮功能。在本例中，我们通过引入Highlight.js的JavaScript和CSS文件来实现代码高亮。同时，在页面加载完成后，我们调用hljs.highlightAll()方法对页面中的所有代码块进行高亮显示。
+
+#### Linux 异常重启排查脚本
+
+以下是一份 Linux 异常重启排查脚本的示例：
+
+```bash
+#!/bin/bash
+# 检查 root 权限
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
+# 定义变量
+log_file="/var/log/messages"
+crash_dir="/var/crash"
+crash_count=0
+# 检查崩溃文件夹是否存在
+if [ ! -d "$crash_dir" ]; then
+  echo "Crash directory does not exist"
+  exit 1
+fi
+# 检查是否有崩溃日志
+if [ ! -f "$log_file" ]; then
+  echo "Log file does not exist"
+  exit 1
+fi
+# 找到最近的崩溃事件
+last_crash=$(grep -E "Kernel panic|Oops" $log_file | tail -n 1)
+# 如果没有崩溃事件，则退出
+if [ -z "$last_crash" ]; then
+  echo "No recent crashes found"
+  exit 0
+fi
+# 提取崩溃事件的时间戳和机器名
+crash_timestamp=$(echo $last_crash | awk '{print $3}')
+machine_name=$(uname -n)
+# 在崩溃文件夹中查找最近的崩溃文件
+for crash_file in $(find $crash_dir -type f -name "*$machine_name*$crash_timestamp*"); do
+  echo "Crash file found: $crash_file"
+  crash_count=$((crash_count+1))
+done
+# 如果没有崩溃文件，则退出
+if [ $crash_count -eq 0 ]; then
+  echo "No crash files found"
+  exit 1
+fi
+# 打印崩溃文件的内容
+for crash_file in $(find $crash_dir -type f -name "*$machine_name*$crash_timestamp*"); do
+  echo "Crash file contents: $crash_file"
+  cat $crash_file
+done
+exit 0
+```
+
+#### 解决 wkhtmltppdf 文本截断问题
+
+wkhtmltopdf 是一个常用的将 HTML 页面转换为 PDF 的工具，但有时候在转换 HTML 页面时，文本可能会出现截断的情况。这通常是由于 wkhtmltopdf 默认的页面大小较小所导致的。解决这个问题的方法是修改页面大小或调整样式。
+
+以下是两种解决方案：
+
+ - 1、修改页面大小
+
+您可以通过在 HTML 页面中添加以下 CSS 样式来修改页面大小：
+
+```css
+@page {
+  size: A4; /* 或者其他您需要的尺寸 */
+}
+```
+
+ - 2、调整样式
+
+如果您不想修改页面大小，可以尝试通过调整样式来解决截断问题。例如，您可以尝试增加 line-height 属性或减小字体大小来使文本适合页面。
+
+```js
+p {
+  font-size: 12px;
+  line-height: 1.5;
+}
+```
+
+需要注意的是，调整样式可能会对整个页面产生影响，因此请在调整样式前先备份原始文件。
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

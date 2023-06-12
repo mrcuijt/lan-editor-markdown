@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-collection-list</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-collection-list
+
+#### 集合
+
+ - 集合可以方便你处理一组数据，也可以作为值参传给函数，和我们学过的其他变量类型一样，List、Set 和 Map 类型变量也分为两类，只读和可变。
+
+#### List 集合
+
+#### List 创建于元素获取
+
+ - getOrElse 是一个安全索引取值函数，它需要两个参数，第一个是索引值，第二个是能提供默认值的 Lambda 表达式，如果索引值不存在的话，可用来代替异常。
+
+ - getOrNul 是 Kotlin 提供的另一个安全索引取值函数，它返回 null 结果，而不是抛出异常。
+
+```js
+package org.example.kotlin.kotlin07
+
+fun main(args: Array<String>) {
+
+    val list = listOf("Jason", "Jack", "Jacky")
+
+    // list[4] // java.lang.ArrayIndexOutOfBoundsException: 4
+    println(list.getOrElse(3) { "Unknow" }) // Unknow
+    println(list.getOrNull(3)) // null
+    println(list.getOrNull(3) ?: "Unknow") // Unknow
+
+}
+```
+
+#### 可变列表
+
+ - 在 Kotlin 中，支持内容修改的列表叫可变列表，要创建可变列表，可以使用 mutableListOf 函数。List 还支持使用 toList 和 toMutableList 函数动态实现只读列表和可变列表的相互转换。
+
+```js
+package org.example.kotlin.kotlin07
+
+fun main(args: Array<String>) {
+
+    val mutableList = mutableListOf("Jason", "Jack", "Jacky")
+
+    mutableList.add("Jimmy")
+    mutableList.remove("Jack")
+
+    println(mutableList) // [Jason, Jacky, Jimmy]
+
+    // 不可变列表
+    val toList = mutableList.toList()
+
+    // 可变列表
+    val toMutableList = toList.toMutableList()
+}
+```
+
+#### mutator 函数
+
+ - 能修改可变列表的函数有个统一名字：mutator 函数
+
+ - 添加元素运算符与删除元素运算符（运算符重载）
+
+ - 基于 Lambda 表达式指定的条件删除元素
+
+```js
+package org.example.kotlin.kotlin07
+
+fun main(args: Array<String>) {
+
+    val mutableList = mutableListOf("Jason", "Jack", "Jacky")
+
+    mutableList += "Jimmy"
+    mutableList -= "Jason"
+    mutableList.removeIf { it.contains("Jack") }
+
+    println(mutableList) // [Jimmy]
+
+}
+```
+
+#### 集合遍历
+
+ - for in 遍历
+
+ - forEach 遍历
+
+ - forEachIndexed 遍历时要获取索引
+
+```js
+package org.example.kotlin.kotlin07
+
+fun main(args: Array<String>) {
+
+    val list = listOf("Jason", "Jack", "Jacky")
+
+    list.forEach {
+        println(it)
+    }
+
+    list.forEachIndexed { index, item ->
+        println("$index $item")
+    }
+}
+```
+
+#### 解构
+
+ - 通过 _ 符号过滤不想要的元素
+
+```js
+package org.example.kotlin.kotlin07
+
+fun main(args: Array<String>) {
+
+    val list = listOf("Jason", "Jack", "Jacky")
+
+    var (origin, _, proxy) = list
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

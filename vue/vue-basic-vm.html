@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-basic-vm</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### vue-basic-vm
+
+#### 数组更新检测
+
+ - 说明：数据更新后，希望视图同步更新
+
+ - 变更方法 （修改原数据，视图同步更新）
+
+  - push( )
+
+  - pop( )
+
+  - shift( )
+
+  - unshift( )
+
+  - splice( )
+
+  - sort( ) 
+
+  - reverse( )
+
+#### 对象更新检测
+
+对象更新检测 (Vue.set|vm.$set)
+
+ - 如果修改对象已经存在的属性，是更新视图的
+
+ - 新增对象原来不存在的属性，视图不更新，拼接对象重新赋值
+
+方法1：Object.assign({},obj)
+
+```js
+this.obj = Object.assign({},this.obj);
+```
+
+方法2：...
+
+```js
+this.obj = {...this.obj,eat:'土豆'};
+```
+
+方法3：vue
+
+```js
+import Vue from 'vue';
+Vue.set(target, propertyName/index, value)
+Vue.set(this.obj,'eat','吃什么');
+```
+
+实例方法：
+
+ - 设置：
+
+```js
+vm.$set( target, propertyName/index, value )
+this.$set(this.obj,'eat','吃什么')
+```
+
+ - 删除：
+
+```js
+vm.$delete( target, propertyName/index )
+this.$delete(this.obj,'age');
+```
+
+#### Vue 监视数据的原理
+
+Vue 会监视 data 中所有层次的数据
+
+ - 如何监测【对象】中的数据？
+
+  - 通过 setter 实现监视，且要在 new Vue 时就传入要监测的数据
+
+ - 对象中后追加的属性，Vue默认不做响应式处理
+
+ - 如需给后添加的属性做响应式，请使用如果API：
+
+  - Vue.set(target,propertyName/index,value)
+
+  - vm.$set(target,propertyName/index,value)
+
+ - 如何监测【数组】中的数据？
+
+  - 通过包裹数组更新元素的方法实现，本质就是做了两件事：
+
+    - 调用原生对应的方法对数组进行更新
+
+	- 重新解析模板，进而更新页面
+
+在 Vue 修改数组中的某个元素一定要用如下方法：
+
+ - 使用这些 API：push()、pop()、unshift()、shift()、splice()、sort()、reverse()
+
+ - Vue.set() 或 vm.$set()
+
+特别注意：
+
+ - Vue.set() 和 vm.$set() 不能给vm 或 vm 的根数据对象添加属性！！！
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

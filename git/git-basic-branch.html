@@ -64,7 +64,20 @@ git checkout master
 
 ## 创建名为 branchName 的空白分支
 git checkout --orphan branchName 
+```
 
+#### 创建连接远程分支
+
+```bash
+## 为当前仓库分支指定对应的远程仓库分支
+$ git push --set-upstream origin master
+
+Total 0 (delta 0), reused 0 (delta 0), pack-reused 0
+ * [new branch]      master -> master
+Branch 'master' set up to track remote branch 'master' from 'origin'.
+```
+
+```bash
 ## 为当前仓库分支指定对应的远程仓库分支
 git branch --set-upstream-to=origin/dev
 

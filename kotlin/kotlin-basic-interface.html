@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-interface</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-interface
+
+#### 接口定义
+
+ - Kotlin 规定所有的接口属性和函数实现都要使用 override 关键字，接口中定义的函数并不需要 open 关键字修饰，他们默认就是 open 的。
+
+```js
+package org.example.kotlin.kotlin13
+
+/**
+ * 接口
+ */
+interface Movable {
+    var maxSpeed: Int
+    var wheels: Int
+
+    fun move(movable: Movable): String
+}
+
+class Car(_name: String, override var wheels: Int = 4) : Movable {
+
+    override var maxSpeed: Int
+        get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+        set(value) {}
+
+    override fun move(movable: Movable): String {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
+```
+
+#### 接口的默认实现
+
+ - 只要你愿意，你可以在接口中提供默认属性的 getter 方法和函数实现。
+
+```js
+package org.example.kotlin.kotlin13
+
+/**
+ * 接口的默认实现
+ */
+interface Movable {
+    // 接口中定义的属性的默认实现方法
+    val maxSpeed: Int
+        get() = (1..500).shuffled().last()
+    var wheels: Int
+
+    fun move(movable: Movable): String
+}
+
+class Car(_name: String, override var wheels: Int = 4) : Movable {
+    // 实现接口中的属性和函数时必须使用 override 关键字
+    override var maxSpeed: Int
+    // 属性的 get set 方法都必须要实现
+        get() = super.maxSpeed
+        set(value) {}
+
+    override fun move(movable: Movable): String {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+}
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

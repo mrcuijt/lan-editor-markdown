@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-basic-watch</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### vue-basic-watch
+
+#### watch
+
+watch 侦听器
+
+作用：检测数据是否修改了 如果数据修改了可以做特殊的功能。
+
+ - 当被监视的属性变化时，回调函数自动调用，进行相关操作
+
+ - 监视的属性必须存在，才能进行监视
+
+语法：
+
+```js
+export default {
+  data () {},
+  // 侦听器
+  watch: {
+    val (n, o) {
+      // 参数：n新值 o老值
+      console.log('新值:', n, '老值:', o)
+    },
+    // obj(n,o){
+    //     console.log('对象修改了');
+    //     console.log(n,o);
+    // },
+    // 深度监听
+    obj: {
+      handler (val) {
+        console.log(this.obj)
+        console.log('对象修改了', val)
+      },
+      deep: true
+    }
+  }
+}
+```
+
+监视的两种写法：
+
+ - new Vue 时传入 watch 配置
+
+ - 通过 vm.$watch 监视
+
+  - vm.$watch('监视谁',{配置对象}) 
+
+属性：
+
+ - handler 函数
+
+ - immediate：默认为false 
+
+  - immediate:true 初始化时让 handler 调用一下
+
+ - deep：默认为false  
+
+  - 深度监听 deep:true
+
+      - Vue 中的 watch 默认不监测对象内部值的改变（一层）
+
+	  - 配置 deep:true 可以监测对象内部值改变（多层）
+
+  - 备注：
+
+      - Vue 自身可以监测对象内部值得改变，但 Vue 提供的 watch 默认不可以！
+
+	  - 使用 watch 时根据数据的具体结构，决定是否采用深度监听
+
+用法：检测数据变化
+
+```html
+<!-- 检测对象 -->
+
+<p>obj：{{ obj }}</p>
+<!-- 直接修改对象obj的地址 新的指向对象 -->
+<button @click="obj = { age: 30 }">修改obj</button>
+<!-- 只是修改对象里面的某一个字段值：检测不到 如果想检测到-深度监听 -->
+<button @click="obj.uname = 'vue你好'">深度监听</button>
+```
+
+简写：
+
+watch：只需要 handler 时，可以简写
+
+```js
+// 函数 isHot 作为 handler 被使用
+isHot (newVal, oldVal) {
+  console.log('isHot被修改', newVal, oldVal)
+}
+```
+
+vm.$watch
+
+```js
+vm.$watch('isHot', function (newVal, oldVal) {
+  console.log('isHot被修改了', newVal, oldVal)
+})
+```
+
+#### computed 和 watch 区别
+
+相同：computed 和 watch 都是观察页面的数据变化的。
+
+不同：
+
+ - computed：是计算属性，依赖其它属性值，
+
+  - 支持缓存，只有依赖数据发生改变，才会重新进行计算
+
+  - 不支持异步，当 computed 内有异步操作时无效，无法监听数据的变化
+
+ - watch：没有缓存性，更多的是「观察」的作用，类似于某些数据的监听回调，每当监听的数据变化时都会执行回调进行后续操作；
+
+  - 不支持缓存，数据变，直接会触发相应的操作；
+
+  - watch 支持异步；
+
+说明：
+
+ - computed 能完成的功能，watch 都可以完成
+
+ - watch 能完成的功能，computed 不一定能完成，例如：watch 可以进行异步操作
+
+ - 两个原则：
+
+  - 所有被 Vue 管理的函数，最好写成普通函数，这样 this 的指向才是 vm 或组件实例对象
+
+  - 所有不被 Vue 所管理的函数（定时器的回调函数、ajax 的回调函数、Promise 的回调函数），最好写成箭头函数，这样 this 的指向才是 vm 或组件实例对象
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

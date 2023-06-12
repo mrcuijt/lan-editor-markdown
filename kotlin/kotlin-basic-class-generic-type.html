@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-class-generic-type</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-class-generic-type
+
+#### 泛型类定义
+
+ - 泛型类的构造函数可以接受任何类型。
+
+ - MagicBox 类指定的泛型参数由放在一对 `<>` 里的字母 `T` 表示，T 是个代表 item 类型的占位符。MagicBox 类接受任何类型的 item 作为主构造函数值（item: T），并将 item 值赋给同样是 T 类型的 subject 私有属性。
+
+```js
+package org.example.kotlin.kotlin13
+
+/**
+ * 泛型
+ */
+class MagicBox<T>(item: T) {
+    private var subject: T = item
+
+    fun print() {
+        println(subject)
+    }
+}
+
+class Boy(val name: String, val age: Int) {}
+
+class Dog(val weight: Int) {}
+
+fun main(args: Array<String>) {
+    val box1 = MagicBox(Boy("Jack", 20))
+    val box2 = MagicBox(Dog(20))
+
+    box1.print() // Boy
+    box2.print() // Dog
+}
+```
+
+#### 注意
+
+ - 泛型参数通常用字母 T（代表英文 Type）表示，当然，想用其它字母，甚至是英文单词都是可以的。不过，其它支持泛型的语言都在用这个约定俗成的 T，所以建议你继续用它，这样写出的代码别人更容易理解。
+
+#### 泛型函数
+
+ - 泛型参数也可以用于函数。
+
+ - 定义一个函数用于获取元素，当且仅当 MagicBox 可用时，才能获取元素。
+
+```js
+package org.example.kotlin.kotlin13
+
+/**
+ * 泛型
+ */
+class MagicBox<T>(item: T) {
+    var available = false
+    private var subject: T = item
+
+    fun fetch(): T? {
+        // takeIf 标准函数，表达式结果为 true 返回函数的调用者
+        // 表达式结果为 false 返回 null
+        return subject.takeIf { available }
+    }
+
+    fun print() {
+        println(subject)
+    }
+}
+
+class Boy(val name: String, val age: Int) {}
+
+class Dog(val weight: Int) {}
+
+fun main(args: Array<String>) {
+    val box1 = MagicBox(Boy("Jack", 20))
+    val box2 = MagicBox(Dog(20))
+
+    box1.print() // Boy
+    box2.print() // Dog
+
+    box1.available = true
+    box1.fetch()?.run {
+        println("you find $name")
+    }
+}
+```
+
+#### 多泛型参数
+
+ - 泛型函数或泛型类也可以有多个泛型参数。
+
+```js
+package org.example.kotlin.kotlin13
+
+/**
+ * 泛型
+ */
+class MagicBox<T>(item: T) {
+    var available = false
+    private var subject: T = item
+
+    fun fetch(): T? {
+        // takeIf 标准函数，表达式结果为 true 返回函数的调用者
+        // 表达式结果为 false 返回 null
+        return subject.takeIf { available }
+    }
+
+    /**
+     * return T -> R
+     * 业务，把元素进行修改
+     * 魔盒里面放的是男孩，取出来的时候，我给他改成了一个男人
+     */
+    fun <R> fetch(subjectMethodFunction: (T) -> R): R? {
+        return subjectMethodFunction(subject).takeIf { available }
+    }
+
+    fun print() {
+        println(subject)
+    }
+}
+
+class Boy(val name: String, val age: Int) {}
+
+class Man(val name: String, val age: Int) {}
+
+class Dog(val weight: Int) {}
+
+fun main(args: Array<String>) {
+    val box1 = MagicBox(Boy("Jack", 15))
+    val box2 = MagicBox(Dog(20))
+
+    box1.print() // Boy
+    box2.print() // Dog
+
+    box1.available = true
+    box1.fetch()?.run {
+        println("you find $name")
+    }
+
+    box1.fetch { Man(it.name, it.age.plus(15)) }
+            ?.run { println("you find $name, $age") } // you find Jack, 30
+    box1.fetch({ Man(it.name, it.age.plus(15)) })
+            ?.run { println("you find $name, $age") } // you find Jack, 30
+}
+```
+
+#### 泛型类型约束
+
+ - 如果要确保 MagicBox 里面只能装指定类型的物品，如 Human 类型，怎么办？
+
+```js
+package org.example.kotlin.kotlin13
+
+/**
+ * 泛型
+ */
+class MagicBox<T : Human>(item: T) {
+    var available = false
+    private var subject: T = item
+
+    fun fetch(): T? {
+        // takeIf 标准函数，表达式结果为 true 返回函数的调用者
+        // 表达式结果为 false 返回 null
+        return subject.takeIf { available }
+    }
+
+    /**
+     * return T -> R
+     * 业务，把元素进行修改
+     * 魔盒里面放的是男孩，取出来的时候，我给他改成了一个男人
+     */
+    fun <R> fetch(subjectMethodFunction: (T) -> R): R? {
+        return subjectMethodFunction(subject).takeIf { available }
+    }
+
+    fun print() {
+        println(subject)
+    }
+}
+
+open class Human(val age: Int) {}
+
+class Boy(val name: String, age: Int) : Human(age) {}
+
+class Man(val name: String, age: Int) : Human(age) {}
+
+class Dog(val weight: Int) {}
+
+fun main(args: Array<String>) {
+    val box1 = MagicBox(Boy("Jack", 15))
+
+    // 泛型类型限定不通过
+    //val box2 = MagicBox(Dog(20))
+
+    box1.available = true
+    box1.fetch()?.run {
+        println("you find $name")
+    }
+
+    box1.fetch { Man(it.name, it.age.plus(15)) }
+            ?.run { println("you find $name, $age") } // you find Jack, 30
+    box1.fetch({ Man(it.name, it.age.plus(15)) })
+            ?.run { println("you find $name, $age") } // you find Jack, 30
+}
+```
+
+#### vararg 关键字与 get 函数
+
+ - MagicBox 能存放任何类型的 Human 实例，但一次只能放一个，如果需要放入多个实例呢？
+
+```js
+package org.example.kotlin.kotlin13
+
+/**
+ * 泛型
+ */
+class MagicBox<T : Human>(vararg item: T) {
+    var available = false
+    private var subject: Array<out T> = item
+
+    fun fetch(index: Int): T? {
+        // takeIf 标准函数，表达式结果为 true 返回函数的调用者
+        // 表达式结果为 false 返回 null
+        return subject[index].takeIf { available }
+    }
+
+    /**
+     * return T -> R
+     * 业务，把元素进行修改
+     * 魔盒里面放的是男孩，取出来的时候，我给他改成了一个男人
+     */
+    fun <R> fetch(index: Int, subjectMethodFunction: (T) -> R): R? {
+        return subjectMethodFunction(subject[index]).takeIf { available }
+    }
+
+    fun print() {
+        println(subject)
+    }
+}
+
+open class Human(val age: Int) {}
+
+class Boy(val name: String, age: Int) : Human(age) {}
+
+class Man(val name: String, age: Int) : Human(age) {}
+
+class Dog(val weight: Int) {}
+
+fun main(args: Array<String>) {
+    val box1 = MagicBox(
+            Boy("Jack", 15),
+            Boy("Mack", 15)
+    )
+
+    // 泛型类型限定不通过
+    //val box2 = MagicBox(Dog(20))
+
+    box1.available = true
+    box1.fetch(0)?.run {
+        println("you find $name")
+    }
+
+    box1.fetch(0) { Man(it.name, it.age.plus(15)) }
+            ?.run { println("you find $name, $age") } // you find Jack, 30
+    box1.fetch(1, { Man(it.name, it.age.plus(15)) })
+            ?.run { println("you find $name, $age") } // you find Mack, 30
+}
+```
+
+#### [] 操作符重载
+
+```js
+package org.example.kotlin.kotlin13
+
+/**
+ * 泛型
+ */
+class MagicBox<T : Human>(vararg item: T) {
+    var available = false
+    private var subject: Array<out T> = item
+
+    fun fetch(index: Int): T? {
+        // takeIf 标准函数，表达式结果为 true 返回函数的调用者
+        // 表达式结果为 false 返回 null
+        return subject[index].takeIf { available }
+    }
+
+    /**
+     * return T -> R
+     * 业务，把元素进行修改
+     * 魔盒里面放的是男孩，取出来的时候，我给他改成了一个男人
+     */
+    fun <R> fetch(index: Int, subjectMethodFunction: (T) -> R): R? {
+        return subjectMethodFunction(subject[index]).takeIf { available }
+    }
+
+    operator fun get(index: Int) : T? = subject[index].takeIf { available }
+
+    fun print() {
+        println(subject)
+    }
+}
+
+open class Human(val age: Int) {}
+
+class Boy(val name: String, age: Int) : Human(age) {}
+
+class Man(val name: String, age: Int) : Human(age) {}
+
+class Dog(val weight: Int) {}
+
+fun main(args: Array<String>) {
+    val box1 = MagicBox(
+            Boy("Jack", 15),
+            Boy("Mack", 15)
+    )
+
+    // 泛型类型限定不通过
+    //val box2 = MagicBox(Dog(20))
+
+    box1.available = true
+    box1.fetch(0)?.run {
+        println("you find $name")
+    }
+
+    box1.fetch(0) { Man(it.name, it.age.plus(15)) }
+            ?.run { println("you find $name, $age") } // you find Jack, 30
+    box1.fetch(1, { Man(it.name, it.age.plus(15)) })
+            ?.run { println("you find $name, $age") } // you find Mack, 30
+
+    println("name: ${box1[0]?.name}, age: ${box1[0]?.age}") // name: Jack, age: 15
+    println("name: ${box1[1]?.name}, age: ${box1[1]?.age}") // name: Mack, age: 15
+}
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

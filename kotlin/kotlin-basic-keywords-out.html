@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-keywords-out</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-keywords-out
+
+#### out
+
+ - out（协变），如果泛型类只将泛型类型作为函数的返回（输出），那么使用 out，可以称之为生产类/接口，因为它主要是用来生产（produce）指定的泛型对象。
+
+#### in
+
+ - in（逆变），如果泛型类型作为函数的入参（输入），那么使用 in，可以称之为消费者类/接口，因为它主要是用来消费（consume）指定的泛型对象。
+
+#### invarant
+
+ - invarant（不变），如果泛型类既将泛型类型作为函数参数，又将泛型类型作为函数的输出，那么既不用 out 也不用 in。
+
+#### 为什么使用 in out ？
+
+ - 父类泛型对象可以赋值给子类泛型对象，用 in。
+
+ - 子类泛型对象可以赋值给父类泛型对象，用 out。
+
+```js
+package org.example.kotlin.kotlin14
+
+// out 协变
+interface Production<out T> {
+    fun product(): T
+}
+
+// in 逆变
+interface Consumer<in T> {
+    fun consume(item: T)
+}
+
+// 不变
+interface ProductConsumer<T> {
+    fun product(): T
+    fun consume(item: T)
+}
+
+open class Food {
+    open fun eat() {
+        println("Food")
+    }
+}
+
+open class FastFood : Food() {
+    override fun eat() {
+        println("FastFood")
+    }
+}
+
+class Burger : FastFood() {
+    override fun eat() {
+        println("Burger")
+    }
+}
+
+// 生产者
+class FoodStore : Production<Food> {
+    override fun product(): Food {
+        println("Produce Food.")
+        return Food()
+    }
+}
+
+// 快餐店
+class FastFoodStore : Production<FastFood> {
+    override fun product(): FastFood {
+        println("Produce FastFood.")
+        return FastFood()
+    }
+}
+
+// 汉堡商店
+class BurgerStore : Production<Burger> {
+    override fun product(): Burger {
+        println("Produce Burger.")
+        return Burger()
+    }
+}
+
+// 消费者
+class Everybody : Consumer<Food> {
+    override fun consume(item: Food) {
+        println("Eat Food.")
+        item.eat()
+    }
+}
+
+class ModernPeople : Consumer<FastFood> {
+    override fun consume(item: FastFood) {
+        println("Eat FastFood.")
+        item.eat()
+    }
+}
+
+class American : Consumer<Burger> {
+    override fun consume(item: Burger) {
+        println("Eat Burger.")
+        item.eat()
+    }
+}
+
+fun main(args: Array<String>) {
+    // 赋值
+    // 子类泛型对象可以赋值给父类泛型对象，用 out。
+    val production1: Production<Food> = FoodStore()
+    val production2: Production<Food> = FastFoodStore()
+    val production3: Production<Food> = BurgerStore()
+
+    // 父类泛型对象可以赋值给子类泛型对象，用 in。
+    var consumer1: Consumer<Burger> = Everybody() // Food
+    var consumer2: Consumer<Burger> = ModernPeople() // FastFood
+    var consumer3: Consumer<Burger> = American() // Burger
+
+    var consumer4: Consumer<Food> = Everybody()
+    //var consumer5: Consumer<Food> = ModernPeople() // 子类类型无法赋值给父类类型
+    //var consumer6: Consumer<Food> = American() // 子类类型无法赋值给父类类型
+
+    // Consumer 声明时已明确支持的泛型为 Burger，父类实例无法替换子类实例声明
+    // consumer1.consume(FastFood())
+    consumer1.consume(Burger()) // Eat Food. Burger
+    consumer2.consume(Burger()) // Eat FastFood. Burger
+    consumer3.consume(Burger()) // Eat Burger. Burger
+
+    // Consumer 声明时已明确支持的泛型为 Food，子类实例可以传递父类实例声明
+    consumer4.consume(FastFood()) // Eat Food. FastFood
+}
+```
+
+ - 对比 Java
+
+  - 如果是 ? extends T ，就是定义上届是 T，上届比作最顶层的父类，用父类 T 能接收任意子类的对象。
+
+  - ? super T ，定义下届是 T，下届比作子类，用子类 T 能接收任意父类的对象。
+
+#### reified
+
+ - 有时候，你可能想知道某个泛型参数具体是什么类型，reified 关键字能帮你检测泛型参数类型。Kotlin 不允许对泛型参数 T 做类型检查，因为泛型参数类型会被类型擦除，也就是说，T 的类型信息在运行时是不可知的，Java 也有这样的规则。
+
+```js
+package org.example.kotlin.kotlin14
+
+/**
+ * reified 关键字
+ */
+class MagicBox<T : Human>(vararg item: T) {
+
+    // 随机产生一个对象，如果不是指定类型的对象，就通过 backup 函数生成一个指定类型的对象
+    // 使用 inline reified 关键字，使用内联来限定以及确定 Lambda 表达式中返回的泛型的类型
+    inline fun <reified T> randomOrBackup(backup: () -> T): T {
+        val item = listOf(
+                Boy("Jack", 20),
+                Man("John", 35)
+        )
+        val random = item.shuffled().first();
+        return if (random is T) {
+            random
+        } else {
+            backup()
+        }
+    }
+
+}
+
+open class Human(val age: Int) {}
+class Boy(val name: String, age: Int) : Human(age) {}
+class Man(val name: String, age: Int) : Human(age) {}
+
+fun main(args: Array<String>) {
+
+    val box1 = MagicBox<Human>()
+    val man = box1.randomOrBackup { Man("Jimmy", 38) }
+    println("man name:${man.name}, age:${man.age}")
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-002</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-002
+
+ - 变量常量与类型
+
+  - Kotlin 内置数据类型
+
+  - 只读变量
+
+  - 类型推断
+
+  - 编译时常量
+
+  - 查看 Kotlin 字节码
+
+ - 表达式
+
+  - range 表达式
+
+  - when 表达式
+
+  - String 模板
+
+ - 函数
+
+  - 函数参数
+
+  - Unit 函数
+
+  - Nothing 类型
+
+  - 反引号中的函数名
+
+#### 变量常量与类型
+
+![title](./images/kotlin-basic-002/kotlin-basic-001.png)
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+
+    var a:Int = 5
+
+    var message:String = "Hello World"
+
+    println(message)
+
+}
+```
+
+#### Kotlin 内置数据类型
+
+![title](./images/kotlin-basic-002/kotlin-basic-002.png)
+
+
+#### 只读变量
+
+ - 要声明可修改变量，使用 var 关键字
+
+ - 要使用只读变量， 使用 val 关键字
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    val name:String = "jack"
+    var age:Int = 10;
+    age += 1
+    println(name)
+}
+```
+
+#### 类型推断
+
+ - 类型推断：对于已声明并赋值的变量，它允许你省略类型定义。
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    val name = "jack"
+    var age = 10;
+    age += 1
+    println(name)
+}
+```
+
+#### 编译时常量
+
+ - 只读变量并非绝对只读。
+
+ - 编译时常量只能在函数之外定义，因为编译时常量必须在编译时赋值，而函数都是在运行是才调用，函数内的变量也是在运行时赋值，编译时常量要在这些变量赋值前就已存在。
+
+ - 编译时常量只能是常见的基本数据类型：String、Int、Double、Float、Long、Short、Byte、Char、Boolean。
+
+```js
+package org.example.kotlin.kotlin01;
+
+// 编译时常量
+// public final static I MAX = 200
+const val MAX = 200
+
+fun main(args: Array<String>) {
+    val name:String = "jack"
+    var age:Int = 10;
+    age += 1
+    println(name)
+}
+
+```
+
+#### 查看 Kotlin 字节码
+
+![title](./images/kotlin-basic-002/kotlin-basic-003.png)
+
+ - 查看 Kotlin 编译之后的字节码，有助于我们深入理解 Kotlin 语言
+
+ - 两种方式
+
+  - Shift 键两次，输入 Show Kotlin
+
+  - Tools->Kotlin->Show Kotlin ByteCode
+
+#### Kotlin 的引用类型与基本数据类型
+
+ - Java 有两种数据类型：引用类型与基本数据类型。
+
+ - Kotlin 只提供引用类型这一种数据类型，处于更高性能的要求，Kotlin 编译器会在 Java 字节码中改用基本数据类型。
+
+#### 条件语句
+
+#### 表达式
+
+ - if/else if 表达式
+
+ - range 表达式
+
+  - in A..B, in 关键字用来检查某个值是否在指定范围之内。
+
+ - when 表达式
+
+  - 允许你编写条件式，在某个条件满足时，执行对应的代码
+
+  - 只要代码包含 else if 分支，都建议改用 when 表达式
+
+#### range 表达式
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    val age = 4
+    if(age in 0..3){ // [0, 1, 2, 3]
+        println("婴幼儿")
+    } else if(age in 3..12){ // [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        println("少儿")
+    } else {
+        println("未知")
+    }
+
+    // 不在范围内
+    if(age !in 0..3){ // not in [0, 1, 2, 3]
+        println(age)
+    }
+}
+```
+
+#### when 表达式
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    val school = "A"
+    val level:Any = when (school) {
+        "学前班" -> "幼儿"
+        "小学" -> "少儿"
+        "中学" -> "青少年"
+        else -> {
+            println("未知")
+        }
+    }
+
+    println(level);
+}
+
+// 未知
+// kotlin.Unit
+```
+
+#### String 模板
+
+ - 模板支持在字符串的引号内放入变量值
+
+ - 还支持字符串里计算表达式的值并插入结果，添加在 ${} 中的任何表达式，都会作为字符串的一部分求值。
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    var origin = "Jack"
+    var dest = "Rose"
+    println("$origin love $dest") // Jack love Rose
+
+    var flag = false
+    println("Answer is : ${if(flag) "我可以" else "对不起" }") // Answer is : 对不起
+}
+```
+
+字符串模板可以在简化字符串拼接时的操作以 $ 符号引用作用域中声明的变量。
+
+#### 函数
+
+![title](./images/kotlin-basic-002/kotlin-basic-004.png)
+
+Kotlin 中函数默认修饰符是 public。
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    val doSomething = doSomething(5, false)
+    println(doSomething)
+}
+
+private fun doSomething(age: Int, flag: Boolean): String {
+    return "result"
+}
+```
+
+#### 函数参数
+
+ - 默认值参
+
+  - 如果不打算传入值参，可以预先给参数指定默认值
+
+ - 具名函数参数
+
+  - 如果使用命名值参，就可以不用管值参的顺序
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    fix(age = 4, name = "Jack") // Jack4
+    fix(name = "Jack") // Jack2
+    fix("Jack") // Jack2
+}
+
+fun fix(name: String, age: Int = 2) {
+    println(name + age)
+}
+```
+
+#### Unit 函数
+
+ - 不是所有函数都有返回值，Kotlin 中没有返回值的函数叫 Unit 函数，也就说他们的返回类型是 Unit。在 Kotlin 之前，函数不返回任何东西用 void 描述，意思是“没有返回类型，不会带来什么，忽略它”，也就是说如果函数不返回任何东西，就是忽略类型。但是 void 这种决绝方案无法解析现代语言的一个重要特征，泛型。
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    println(fix2("Jack")) // kotlin.Unit
+}
+
+fun fix2(name: String, age: Int = 2) {
+    println(name + age) // Jack2
+}
+```
+
+#### Nothing 类型
+
+ - TODO 函数的任务就是抛出异常，就是永远别指望它运行成功，返回 Nothing 类型。
+
+![title](./images/kotlin-basic-002/kotlin-basic-005.png)
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    TODO("nothing")
+    println("after nothing")
+}
+```
+
+#### 反引号中的函数名
+
+ - Kotlin 可以使用空格和特殊字符对函数命名，不过函数名要用已对反引号括起来。
+
+ - 为了支持 Kotlin 和 Java 互操作，而 Kotlin 和 Java 各自却有着不同的保留关键字，不能作为函数名，使用反引号括住函数名就能避免任何冲突。
+
+```js
+package org.example.kotlin.kotlin01
+
+fun main(args: Array<String>) {
+    /**
+     * 一个奇怪名字的方法
+     *
+     * 这些带有特殊符号或空格的可以方便的对一些测试用例名称命名
+     */
+    `**~special function with weird name~**`() // I am weird.
+
+    /**
+     * is 是 Kotlin 中的关键字，
+     * 为了保证与 Java 之间的互操作使用 `` 号括住函数名可避 Kotlin 在调用 Java 时的语法冲突。
+     */
+    S1_012_FunName.`is`() // is invoked.
+}
+
+fun `**~special function with weird name~**`() {
+    println("I am weird.")
+}
+```
+
+
+
+
+
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

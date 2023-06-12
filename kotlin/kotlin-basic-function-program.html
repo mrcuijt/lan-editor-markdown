@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-function-program</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-function-program
+
+#### 函数式编程
+
+ - 我们一直在学习面向对象编程范式，另一个较知名的编程范式是诞生于20世纪50年代，基于抽象数学的λ（Lambda）演算发展而来的函数式编程，尽管函数式编程语言更常用在学术而非商业软件领域，但它的一些原则适用于任何编程语言。函数式编程范式主要依赖于高阶函数（以函数为参数或返回函数）返回的数据，这些高阶函数专用于处理各种集合，可方便地联合多个同类函数构建链式操作以创建复杂的计算行为。Kotlin 支持多种编程范式，所以你可以混用面向对象编程和函数式编程范式来解决手头的问题。
+
+#### 函数类别
+
+ - 一个函数式应用通常由三大类函数构成：
+
+  - transform 变换
+
+  - filter 过滤
+
+  - combine 合并。
+
+ 每类函数都针对集合数据类型设计，目标是产生一个最终结果。函数式编程用到的函数生来都是可组合的，也就是说，你可以组合多个简单函数来构建复杂的计算行为。
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

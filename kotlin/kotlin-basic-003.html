@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-003</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-003
+
+ - 
+
+#### 匿名函数
+
+ - 定义时不取名字的函数，我们称之为匿名函数，匿名函数通常整体传递给其它函数，或者从其它函数中返回。
+
+ - 匿名函数对 Kotlin 来说很重要，有了它，我们能够根据需要制定特殊规则，轻松定制标准库里的内置函数。
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+    val total = "Mississippi".count()
+
+    println(total) // 11
+
+    // 通过匿名函数对标准函数制定规则
+    val totals = "Mississippi".count({ letter ->
+        letter == 's'
+    })
+
+    println(totals) // 4
+}
+```
+
+#### 函数类型与隐式返回
+
+ - 匿名函数也有类型，匿名函数可以当做变量赋值给函数类型变量，就像其他变量一样，匿名函数就可以在代码里传递了。变量有类型，变量可以等于函数，函数也会有类型。
+
+  函数的类型，由传入的参数和返回值类型决定。
+
+ - 和具名函数不一样，除了极少数情况外，匿名函数并不需要 return 关键字来返回数据，匿名函数回隐式或自动返回函数体最后一行语句的结果。
+
+**匿名函数变量声明与赋值**
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+
+    // 声明一个函数类型的变量，无输入参数，返回类型为 String
+    val blessingFunction:() -> String
+
+    // 函数类型变量赋值
+    blessingFunction = {
+        val holiday = "New Year."
+        // 匿名函数回隐式或自动返回函数体最后一行语句的结果
+        "Happy $holiday"
+    }
+
+    println(blessingFunction()) // Happy New Year.
+
+    println(blessingFunction) // Function0<java.lang.String>
+}
+```
+
+**匿名函数声明同时赋值**
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+
+    // 声明一个函数类型的变量，无输入参数，返回类型为 String
+    val blessingFunction:() -> String = {
+        val holiday = "New Year."
+        // 匿名函数回隐式或自动返回函数体最后一行语句的结果
+        "Happy $holiday"
+    }
+
+    println(blessingFunction()) // Happy New Year.
+
+    println(blessingFunction) // Function0<java.lang.String>
+}
+```
+
+#### 函数参数
+
+ - 和具名函数一样，匿名函数可以不带参数，也可以带一个或多个任何类型的参数，需要带参数时，参数的类型放在匿名函数的类型定义中，参数名则放在函数定义中
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+
+    // 声明一个函数类型的变量，无输入参数，返回类型为 String
+    val blessingFunction:(String) -> String = { name ->
+        val holiday = "New Year."
+        // 匿名函数回隐式或自动返回函数体最后一行语句的结果
+        "$name, Happy $holiday"
+    }
+
+    println(blessingFunction("Jack")) // Jack, Happy New Year.
+
+    println(blessingFunction) // Function1<java.lang.String, java.lang.String>
+}
+```
+
+#### it 关键字
+
+ - 定义只有一个参数的匿名函数是，可以使用 it 关键字来表示参数名。当你需要传入两个值参， it 关键字就不能用了。
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+
+    // 声明一个函数类型的变量，无输入参数，返回类型为 String
+    val blessingFunction:(String) -> String = {
+        val holiday = "New Year."
+        // 匿名函数回隐式或自动返回函数体最后一行语句的结果
+        "$it, Happy $holiday"
+    }
+
+    println(blessingFunction("Jack")) // Jack, Happy New Year.
+
+    println(blessingFunction) // Function1<java.lang.String, java.lang.String>
+}
+```
+
+#### 类型推断
+
+ - 定义一个变量时，如果已把匿名函数作为变量赋值给它，就不需要显示指明变量类型了。
+
+```js
+// 声明一个函数类型的变量，无输入参数，返回类型为 String
+val blessingFunction:() -> String = {
+    val holiday = "New Year."
+    // 匿名函数回隐式或自动返回函数体最后一行语句的结果
+    "Happy $holiday"
+}
+```
+
+```js
+// 声明一个函数类型的变量，无输入参数，返回类型为 String
+val blessingFunction:() -> {
+    val holiday = "New Year."
+    // 匿名函数回隐式或自动返回函数体最后一行语句的结果
+    "Happy $holiday"
+}
+```
+
+ - 类型推断也支持带参数的匿名函数，但为了帮助编译器更准确地推断变量类型，匿名函数的参数名和参数类型必须有。
+
+```js
+// 声明一个函数类型的变量，无输入参数，返回类型为 String
+val blessingFunction:(String, Int) -> String = { name, year ->
+    val holiday = "New Year."
+    // 匿名函数回隐式或自动返回函数体最后一行语句的结果
+    "$name, Happy $holiday $year"
+}
+```
+
+**参数类型推断**
+
+```js
+// 声明一个函数类型的变量，无输入参数，返回类型为 String
+val blessingFunction = { name:String, year:Int ->
+    val holiday = "New Year."
+    // 匿名函数回隐式或自动返回函数体最后一行语句的结果
+    "$name, Happy $holiday $year"
+}
+```
+
+#### lambda
+
+ - 我们将匿名函数称为 Lambda，将它的定义称为 Lambda 表达式，它返回的数据称为 Lambda 结果。为什么叫 Lambda？Lambda 也可以用希腊字符 λ 表示，是 Lambda 演算的简称，Lambda 演算是一套数理演算逻辑，由数学家 Alonzo Church（阿隆左.丘齐）与 20 世纪 30 年代发明，在定义匿名函数时，使用了 Lambda 演算记法。
+
+#### 定义参数式函数的函数
+
+ - 函数的参数是另外一个函数
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+
+    val getDiscountWords = {goodsName:String, hour:Int ->
+        val currentYear = 2027
+        "${currentYear}年，双11${goodsName}促销倒计时：${hour} 小时"
+    }
+
+    showOnBoard("卫生纸", getDiscountWords)
+}
+
+fun showOnBoard(goodsName:String, getDiscountWords:(String, Int) -> String){
+    val hour = (1..24).shuffled().last()
+    println(getDiscountWords(goodsName, hour))
+}
+```
+
+#### 简略写法
+
+如果一个函数的 Lambda 参数排在最后，或者是唯一的参数，那么括住 Lambda 值参的已对圆括号可以省略。
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+    "Mississippi".count({ it == 's' })
+    "Mississippi".count { it == 's' }
+
+    showOnBoard2("卫生纸", { goodsName: String, hour: Int ->
+        val currentYear = 2027
+        "${currentYear}年，双11${goodsName}促销倒计时：${hour} 小时"
+    })
+
+    showOnBoard2("卫生纸") { goodsName: String, hour: Int ->
+        val currentYear = 2027
+        "${currentYear}年，双11${goodsName}促销倒计时：${hour} 小时"
+    }
+}
+
+fun showOnBoard2(goodsName: String, showDiscount: (String, Int) -> String) {
+    val hour = (1..24).shuffled().last()
+    println(showDiscount(goodsName, hour))
+}
+```
+
+#### 函数内联
+
+ - Lambda 可以让你更灵活地编写应用，但是，灵活也是要付出代价的。
+
+ - 在 JVM 上，你定义的 Lambda 会以对象实例的形式存在，JVM 会为所有的 Lambda 打交道的变量分配内存，这就产生了内存开销。更糟的是，Lambda 的内存开销会带来严重的性能问题。幸运的是，Kotlin 有一种优化机制叫内联，有了内联，JVM 就不需要使用 Lambda 对象实例了，因而避免了变量内存分配。哪里需要使用 Lambda，编译器会就将函数体复制粘贴到哪里。
+
+ - 使用 Lambda 的递归函数无法内联，因为会导致复制粘贴无限循环，编译回发出警告。
+
+#### 函数引用
+
+ - 要把函数作为参数传给其他函数使用，除了传 Lambda 表达式，Kotlin 还提供了其他方法，传递函数引用，函数引用可以把一个具名函数转换成一个值参，使用 Lambda 表达式的地方，都可以使用函数引用。
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+    "Mississippi".count({ it == 's' })
+    "Mississippi".count { it == 's' }
+
+    // 要获得函数引用，使用 :: 操作符，后跟要引用的函数名
+    showOnBoard3("卫生纸", ::showDiscount)
+}
+
+fun showOnBoard3(goodsName: String, showDiscount: (String, Int) -> String) {
+    val hour = (1..24).shuffled().last()
+    println(showDiscount(goodsName, hour))
+}
+
+fun showDiscount(goodsName: String, hour: Int): String {
+    val currentYear = 2027
+    return "${currentYear}年，双11${goodsName}促销倒计时：${hour} 小时"
+}
+```
+
+#### 函数类型作为返回类型
+
+ - 函数类型也是有效的返回类型，也就是说可以定义一个能返回函数的函数
+
+```js
+package org.example.kotlin.kotlin02
+
+fun main(args: Array<String>) {
+    "Mississippi".count({ it == 's' })
+    "Mississippi".count { it == 's' }
+
+    var getDiscountWords = configDiscountWords()
+
+    println(getDiscountWords("沐浴露"))
+}
+
+fun configDiscountWords(): (String) -> String {
+    val currentYear = 2027
+    return { goodsName: String ->
+        val hour = (1..24).shuffled().last()
+        "${currentYear}年，双11${goodsName}促销倒计时：${hour} 小时"
+    };
+}
+```
+
+#### 闭包
+
+ - 在 Kotlin 中，匿名函数能修改并引用定义在自己作用域之外的变量，匿名函数引用着定义自身函数里的变量，Kotlin 中的 Lambda 就是闭包。
+
+ - 能接收函数或者返回函数的函数又叫高级函数，高级函数广泛应用于函数式编程当中。
+
+
+#### Lambda 与 匿名内部类
+
+ - 为什么要在代码中使用函数类型？函数类型能让开发者少写模式化代码，写出更灵活的代码。Java 8 支持面向对象编程和 Lambda 表达式，但不支持函数作为参数传递给另一个函数或变量，不过 Java 的替代方案是匿名内部类。
+
+```java
+package org.example.kotlin.kotlin02;
+
+import java.util.Random;
+
+public class S2_001_AnonymousFunc {
+
+    public static void main(String[] args) {
+        showOnBoard("牙膏", new MyDiscountWords());
+
+        showOnBoard("牙膏", new DiscountWords() {
+            @Override
+            public String getDiscountWords(String goodsName, int hour) {
+                int currentYear = 2027;
+                return String.format("%d年，双11%s促销倒计时：%d 小时", currentYear, goodsName, hour);
+            }
+        });
+
+        showOnBoard("牙膏", (goodsName, hour) -> {
+            int currentYear = 2027;
+            return String.format("%d年，双11%s促销倒计时：%d 小时", currentYear, goodsName, hour);
+        });
+    }
+
+    public interface DiscountWords {
+        String getDiscountWords(String goodsName, int hour);
+    }
+
+    public static void showOnBoard(String goodsName, DiscountWords discountWords) {
+        int hour = new Random().nextInt(24);
+        System.out.println(discountWords.getDiscountWords(goodsName, hour));
+    }
+
+    static class MyDiscountWords implements DiscountWords {
+        @Override
+        public String getDiscountWords(String goodsName, int hour) {
+            int currentYear = 2027;
+            return String.format("%d年，双11%s促销倒计时：%d 小时", currentYear, goodsName, hour);
+        }
+    }
+
+}
+
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

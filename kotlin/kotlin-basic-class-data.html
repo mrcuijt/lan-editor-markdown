@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-class-data</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-class-data
+
+#### 数据类
+
+ - 数据类，是专门设计用来存储数据的类
+
+ - 数据类提供了 toString 的个性化实现
+
+ - == 符号默认情况下，比较对象就是比较它们的引用值，数据类提供了 equals 和 hashCode 的个性化实现。
+
+```js
+package org.example.kotlin.kotlin12
+
+/**
+ * 数据类
+ */
+data class Coordinate(var x: Int, var y: Int) {
+    val isInBounds = x > 0 && y > 0
+}
+
+fun main(args: Array<String>) {
+    println(Coordinate(10, 20)) // Coordinate(x=10, y=20)
+    // == 比较的是内容，equals
+    // === 比较的是引用
+    println(Coordinate(10, 20) == Coordinate(10, 20))
+}
+```
+
+#### copy 函数
+
+ - 除了重写 Any 类的部分函数，提供更好用的默认实例外，数据类还提供了一个函数，它可以用来方便地复制一个对象。假设你想创建一个 Student 实例，除了 name 属性，它拥有和另一个现有 Student 实例完全一样的属性值，如果 Student 是个数据类，那么复制现有 Student 实例就很简单了，只要调用 copy 函数，给想修改的属性传入值参就可以了。
+
+ - 次构造中的属性赋值不会被应用到 copy 后的新对象中，所以需要注意次构造函数中的赋值操作。
+
+```js
+package org.example.kotlin.kotlin12
+
+/**
+ * copy 函数
+ */
+data class Student(val name: String, val age: Int) {
+    private val hobby = "music"
+    val subject: String
+    var score: Int = 0
+
+    init {
+        println("initializing student...")
+        subject = "main"
+    }
+
+    constructor(_name: String) : this(_name, 10) {
+        this.score = 10
+    }
+
+    override fun toString(): String {
+        return "Student(name='$name', age=$age, hobby='$hobby', subject='$subject', score=$score)"
+    }
+
+
+}
+
+fun main(args: Array<String>) {
+    val stu = Student("Jack") // 次构造
+    val copy = stu.copy("Rose") // 主构造
+
+    println(stu) // score : 10 // Student(name='Jack', age=10, hobby='music', subject='main', score=10)
+    println(copy) // score : 0 // Student(name='Rose', age=10, hobby='music', subject='main', score=0)
+}
+```
+
+#### 解构声明
+
+ - 解构声明的后台实现就是声明 component1、component2 等若干个组件函数，让每个函数负责管理你想返回的一个属性数据，如果你定义一个数据类，它会自动为所有定义在主构造函数的属性添加对应的组件函数。
+
+```js
+package org.example.kotlin.kotlin12
+
+/**
+ * 解构语法
+ */
+class PlayerScore(val experience: Int, val level: Int) {
+    // 解构声明
+    operator fun component1() = experience
+
+    operator fun component2() = level
+}
+
+fun main(args: Array<String>) {
+    val (x, y) = PlayerScore(10, 20)
+    println("$x, $y")
+}
+```
+
+ - 数据类自带解构声明
+
+```js
+package org.example.kotlin.kotlin12
+
+/**
+ * 数据类
+ */
+data class Coordinate(var x: Int, var y: Int) {
+    val isInBounds = x > 0 && y > 0
+}
+
+fun main(args: Array<String>) {
+    println(Coordinate(10, 20)) // Coordinate(x=10, y=20)
+    // == 比较的是内容，equals
+    // === 比较的是引用
+    println(Coordinate(10, 20) == Coordinate(10, 20))
+
+    // 数据类自身就带有解构声明
+    val (x, y) = Coordinate(10, 20)
+
+    println("$x, $y")
+}
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-basic-web-storage</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### vue-basic-web-storage
+
+#### WebStorage
+
+存储内容大小一般支持5MB左右（不同浏览器可能还不一样）
+
+ - 浏览器端通过 Window.sessionStorage 和 Window.localStorage 属性来实现本地存储机制
+
+ - 相关 API
+
+  - xxxxxStorage.setItem('key','value');
+
+      该方法接受一个键和值作为参数，会把键值对添加到存储中，如果键名存在，则更新其对应的值；
+
+  - xxxxxStorage.getItem('key');
+
+      该方法接受一个键名作为参数，返回键名对应的值；
+
+  - xxxxxStorage.removeItem('key');
+
+      该方法接受一个键名作为参数，并把该键名从存储中删除；
+
+  - xxxxxStorage.clear();
+
+      该方法会清空存储中的所有数据；
+
+ - 备注：
+
+  - SessionStorage 存储的内容会随着浏览器窗口关闭而消失；
+
+  - LocalStorage 存储的内容，需要手动清除才会消失；
+
+  - xxxxxStorage.getItem('key') 如果对应的 value 获取不到，那么返回值是 null；
+
+  - JSON.parse(null) 的结果依然是 null；
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

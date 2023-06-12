@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kotlin-basic-class-enum</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### kotlin-basic-class-enum
+
+#### 枚举类
+
+ - 枚举类，用来定义常量集合的一种特殊类。
+
+```js
+package org.example.kotlin.kotlin12
+
+/**
+ * 枚举类
+ */
+enum class Direction {
+
+    EAST,
+    WEST,
+    SOUTH,
+    NORTH
+
+}
+
+fun main(args: Array<String>) {
+
+    println(Direction.EAST) // EAST
+    println(Direction.EAST is Direction) // true
+}
+```
+
+ - 枚举类也可以定义函数
+
+```js
+package org.example.kotlin.kotlin12
+
+/**
+ * 枚举类
+ */
+enum class Direction2(private val coordinate: Coordinate) {
+
+    // 因为枚举类的构造函数带参数，所以定义每个枚举常量时，
+    // 需要传入 Coordinate 对象，调用构造函数
+    EAST(Coordinate(1, 0)),
+    WEST(Coordinate(-1, 0)),
+    SOUTH(Coordinate(-1, 0)),
+    NORTH(Coordinate(1, 0));
+
+    fun updateCoordinate(playerCoordinate: Coordinate) =
+            Coordinate(playerCoordinate.x + coordinate.x, playerCoordinate.y + coordinate.y)
+
+}
+
+fun main(args: Array<String>) {
+    println(Direction2.EAST)
+    // 调用函数时，使用的是枚举常量，所以应该这样调用
+    println(Direction2.EAST.updateCoordinate(Coordinate(10, 20)))
+}
+```
+
+#### 代数数据类型
+
+ - 可以用来表示一组子类型的闭集，枚举类就是一种简单的 ADT。
+
+```js
+package org.example.kotlin.kotlin12
+
+/**
+ * 枚举类
+ */
+enum class LicenseStatus {
+
+    UNQUALIFIED,
+    LEARNING,
+    QUALIFIED;
+}
+
+class Driver(var status: LicenseStatus) {
+    fun checkLicense(): String {
+        // 枚举类型作为 when 表达式条件时，可以不使用 else 语句，且编译器会自动帮你检测枚举是否有遗漏
+        // 可以使用 else 语句，跳过编译器的枚举检测
+        return when (status) {
+            LicenseStatus.UNQUALIFIED -> "没资格"
+            LicenseStatus.LEARNING -> "在学"
+            LicenseStatus.QUALIFIED -> "有资格"
+            else -> ""
+        }
+    }
+}
+
+fun main(args: Array<String>) {
+    val driver = Driver(LicenseStatus.QUALIFIED);
+    println(driver.checkLicense())
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

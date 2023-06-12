@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-basic-command</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### vue-basic-command
+
+#### Vue 常用指令
+
+说明：
+
+ - 指令写法：**`<element v-xxx=''/>`** 实现特殊的功能
+
+  - 指令语法1：**`<element v-xxx='JS Expression'/>`**
+
+  - 指令语法2：**`<element v-xxx/>`**
+
+分类：
+
+ - 内置指令（Vue 里面已经定义好的，可以直接使用的）
+
+ - 自定义指令
+
+#### 常用指令
+
+#### v-once
+
+**v-once**
+
+ - **`v-once`** 所在节点在初次动态渲染后，就视为静态内容了
+
+ - 以后数据的改变不会引起 **`v-once`** 所在结构的更新，可以用于优化性能
+
+```html
+<p v-once>我只渲染一次：{{ msg }}</p>
+```
+
+#### v-html
+
+**v-html** 数据绑定渲染 同 **`{{ var }}`** 类似：innerHtml；
+
+ - 作用：向指定节点中渲染包含 html 结构的内容；
+
+ - 与插值语法的区别：
+
+  - **`v-html`** 会替换掉节点中所有的内容，**`{{ var }}`** 则不会；
+
+  - **`v-html`** 可以识别 html 结构；
+
+  - 严重注意：**`v-html`** 有安全性问题
+
+     - 在网站上动态渲染任意 HTML 是非常危险的，容易导致 XSS 攻击；
+
+	 - 一定要在可信的内容上使用 **`v-html`** ，永远不要用在户提交的内容上；
+
+```html
+<!-- 底层：innerHtml -->
+<p v-html="'渲染消息：' + msg"></p> 
+```
+
+#### v-text
+
+**v-text** 更新元素的 textContent 同 **`{{ var }}`** 类似：innerText；
+
+ - 作用：向其所在的节点中渲染文本内容
+
+ - 与插值语法的区别：**`v-text`** 会替换掉节点中的内容，**`{{ var }}`** 不会；
+
+```html
+<p v-text='msg'></p>
+```
+
+#### v-if
+
+**v-if='expression'** 是否显示 `true` 显示，`false` 隐藏
+
+ - 控制元素的创建和销毁控制显示和隐藏的操作
+
+ - 特点：不展示的 DOM 元素直接被移除
+
+ - 注意：**`v-if`** 可以和 **`v-else-if`**、**`v-else`** 一起使用，但要求结构不能被“打断”
+
+ - 备注：**`template`** 只能配合 **`v-if`** 使用，不能配合 **`v-show`** 使用
+
+```html
+<p v-if='flag'>显示：flag:true</p>
+```
+
+#### v-else
+
+**v-else** 和 **v-if** 一起使用，取反的操作，不需要表达式
+
+```html
+<p v-if='flag'>显示：flag:true</p>
+<p v-else>显示：flag:false</p>
+```
+
+#### v-else-if
+
+**v-else-if** 多条件判断
+
+```html
+<div v-if="type==='A'">A</div>
+<div v-else-if="type==='B'">B</div>
+<div v-else-if="type==='C'">C</div>
+<div v-else>Not A/B/C</div>
+```
+
+#### v-show
+
+**v-show='expression'**  是否显示 `true` 显示，`false` 隐藏
+
+ - 原理：控制元素的 CSS 样式 display : none/block
+
+ - 特点：不展示的 DOM 元素未被移除，仅仅是使用样式隐藏掉
+
+ - 注意：
+
+  - **`v-if`** 是"真正"的条件渲染，因为它会确保在切换过程中条件块内的事件监听器和子组件适当的被销毁和重建。**`v-if`** 也是有惰性的：如果在初始渲染时条件为假，则什么也不做，直到条件第一次变为真时，才会开始渲染条件块
+
+  - **`v-show`** 就简单的多，不管初始条件是什么，元素总是会被渲染，并且只是简单地基于 CSS 进行切换
+
+  - 一般来说，**`v-if`** 有更高的切换开销，而 **`v-show`** 有更高的初始渲染开销。因此，如果需要非常频繁地切换，则使用 v-show 较好；如果在运行时条件很少改变，则使用 **`v-if`** 较好。
+
+  - 备注：使用 **`v-if`** 时，元素可能无法获取，而使用 **`v-show`** 一定可以获取到
+
+```html
+<p v-show='flag'>v-show</p>
+```
+
+#### v-for
+
+**v-for='(item,key,index) in arr/obj'**  遍历数组、对象、字符串、指定次数
+
+ - item, key, index  变量任意定义只看位置
+
+遍历数组：
+
+```html
+<li v-for='(item, index) in arr' :key='index'></li>
+```
+
+ - item：数组的每一项元素
+
+ - index：数组的下标
+
+遍历对象：
+
+```html
+<li v-for='(item, key, index) in obj' :key='index'></li>
+```
+
+ - item：对象的键值
+
+ - key：对象的键名
+
+ - index：对象的下标
+
+v-for 与 v-if 一同使用
+
+ - 我们不推荐在同一个元素上使用 v-for 和 v-if
+
+ - 当它们处于同一节点：v-for 的优先级比 v-if 更高，意味着 v-if 将分别重复运行于每个 v-for 循环中
+
+#### key 作用
+
+ - 提高性能，高效的虚拟DOM --> DIFF算法
+
+ - 虚拟 DOM 中 key 的作用
+
+  - key 是虚拟 DOM 对象的标识，当数据发生变化时，Vue 会根据【新对象】生成【新虚拟 DOM】
+
+  - 随后 Vue 进行【新虚拟 DOM】与【旧虚拟 DOM】的差异比较，比较规则如下
+
+  - 对比规则
+
+      旧虚拟 DOM 中找到了与新虚拟 DOM 相同的 key
+
+     - 若虚拟 DOM 中内容没变，直接使用之前的真实 DOM；
+
+     - 若虚拟 DOM 中内容变了，则生成新的真实 DOM，随后替换掉页面中之前的真实 DOM；
+
+      旧虚拟 DOM 中未找到与新虚拟 DOM 相同的 key
+
+	 - 创建新的真实 DOM，随后渲染到页面
+
+用 index 作为 key 可能会引发的问题
+
+ - 若对数据进行：逆序添加、逆序删除等破坏顺序操作
+
+  - 会产生没有必要的真实 DOM 更新 ==> 界面效果没问题，但效率低
+
+ - 如果结构中还包含输入类的 DOM：
+
+  - 会缠身错误的 DOM 更新 ==> 界面有问题
+
+开发中如何选择？
+
+ - 最好使用每条数据的唯一标识作为 key，比如 id、手机号、身份证号、学号等唯一值
+
+ - 如果不存在对数据的逆序添加、逆序删除等破会顺序操作，仅用于渲染列表用于展示，使用 index 作为 key 是没有问题的
+
+#### v-bind
+
+**v-bind**（绑定属性）
+
+ - 说明：**v-bind:key=''** 做位置的唯一标识
+
+  - 单向绑定：数据只能从 data 流向页面
+
+ - 语法：
+
+  - v-bind:属性='表达式简写'
+
+  - 简写  :属性=''
+
+#### v-on
+
+**v-on** 事件处理
+
+ - v-on:click=""
+
+ - 简写：@click=""
+
+ - 事件的回调需要配置在 methods 对象中，最终会在 vm 上
+
+ - 事件里面的 this 指向当前组件实例
+
+  - methods 中配置的函数，不要用箭头函数！否者 this 就不是 vm 了；
+
+  - methods 中配置的函数，都是被 Vue 所管理的函数，this 的指向是 vm 或者组件实例对象；
+
+**页面**
+
+```html
+<div @click='funName'>xxx</div>
+<div v-on:click='funName'>xxx</div>
+<div v-on:click='funName()'>xxx</div>
+```
+
+**函数**
+
+```js
+export default {
+  methods: {
+    funName () {}
+  }
+}
+```
+
+**事件传递参数**
+
+```html
+<button @click='add(1,2)'>事件传递参数</button>
+```
+
+**事件对象获取 event**
+
+ - 事件`无参数传递`，函数第一个参数位置是事件对象
+
+```html
+<button @click='getEvent'>事件对象</button>
+```
+
+ - 事件`有参数传递`，获取事件对象，必须手动传入事件对象$event（传参加括号）
+
+```html
+<button @click='getEvent2(1,$event)'>参数传递--事件对象</button>
+```
+
+#### 事件修饰符
+
+ - **`stop`**：阻止事件冒泡（常用）
+
+```html
+<button @click.stop='child'>子元素</button>
+```
+
+ - **`prevent`**：阻止默认事件（常用）
+
+ - **`once`**：事件只触发一次（常用）
+
+ - **`capture`**：使用事件的捕获模式
+
+ - **`self`**：只有 event.target 是当前操作的元素时才触发事件
+
+ - **`passive`**：事件的默认行为立即执行，无需等待事件回调执行完毕
+
+#### v-model
+
+**v-model**（双向绑定）
+
+ - 双向绑定：数据不仅能从 data 流向页面，还可以从页面流向 data
+
+ - 备注：
+
+  - 双向绑定一般都应用在表单类元素上（如：input、select等）
+
+  - v-model:value 可以简写为 v-model，因为 v-model 默认收集的就是 value 值 
+
+#### v-cloak
+
+**v-cloak**（没有值）
+
+ - 本质是一个特殊属性，Vue 实例创建完毕并接管容器后，会删掉 v-cloak 属性
+
+ - 使用 CSS 配合 v-cloak 可以解决网速慢时页面展示出 {{xxx}} 的问题
+
+```js
+<div id="root">
+  <h2 v-cloak>{{ name }}</h2>
+</div>
+<style>
+[v-cloak] {
+  dispaly: none;
+}
+</style>
+```
+
+#### v-pre
+
+**v-pre**
+
+ - 说明：跳过其所在节点的编译过程
+
+ - 可利用它跳过：没有使用指令语法、没有使用插值语法的节点，会加快编译
+
+#### v-model
+
+v-model 实现原理
+
+ - v-model 只不过是一个语法糖而已，真正的实现靠的还是
+
+  - **v-bind:value=''** 绑定响应式数据
+
+  - 触发 **oninput** 事件并传递数据
+
+```html
+<input v-model="val">
+<!-- 基本等价于，因为内部还有一些其他的处理 -->
+<!-- $event 是事件对象，$event.target.value 表示 input 框中的输入值 -->
+<input :value = "val" @input = "val = $event.target.value">
+```
+
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
