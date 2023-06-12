@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JavaScript Drag Upload</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### 拖拽上传
+
+ - FileList 是只读属性
+ 
+ - input file 无法进行手动赋值或者拖拽赋值（新版本 Chrome 支持）
+
+##### 拖拽上传功能实现
+
+涉及技术
+
+##### 拖拽事件
+
+拖拽事件有下面这些：
+
+ - **`dragstart`**: 当用户开始拖动对象时触发。
+
+ - **`dragenter`**:  当鼠标第一次经过目标元素，且有拖动发生时触发。此事件的监听者应指明在这个位置上是否允许 drop，或者监听者不执行任何操作，那么 drop 默认是不允许的。
+
+ - **`dragover`**: 当鼠标经过一个元素时，且有拖动发生时触发 。
+
+ - **`dragleave`**: 当鼠标离开一个元素，且有拖动在发生时触发。
+
+ - **`drag`**:  当对象被拖动，每次移动鼠标时触发。
+
+ - **`drop`**: 在 drag 操作的最后发生 drop 时，在元素上触发此事件。监听者应该负责检索拖动的数据，并插入 drop 的位置。
+
+ - **`dragend`**:  在拖动对象时放开鼠标按键时触发。
+
+&amp;#160; &amp;#160;从浏览器外拖拽文件到浏览器时，必须要绑定的事件有 dragover 和 drop，其他的都可以不绑定。dragover 和 drop 事件的处理函数内必须调用事件的 preventDefault() 函数，要不然浏览器会进行默认处理，比如文本类型的文件直接打开，非文本的可能弹出一个下载文件框。
+
+##### DataTransfer 对象
+
+拖拽对象用来传递数据的媒介，通过拖拽事件的 event.dataTransfer 获取。
+
+ - **`dataTransfer.dropEffect [ = value ]`**：返回当前选择的操作类型，可以设置新的值来修改已选择的操作。可选的值有： none, copy, link, move 。
+
+ - **`dataTransfer.effectAllowed [ = value ]`**：返回允许的操作类型，可修改。可选的值有：none, copy, copyLink, copyMove, link, linkMove, move, all, uninitialized 。
+
+ - **`dataTransfer.types`**：返回一个 DOMString，列出在 dragstart 事件里设置的所有格式。另外，如果有文件被拖动，那么其中一个类型的字符串将是“Files”。
+
+ - **`dataTransfer.clearData( [ format ] )`**：移除指定格式的数据。如果忽略参数则移除所有数据。
+
+ - **`dataTransfer.setData(format, data)`**：添加指定的数据。
+
+ - **`data = dataTransfer.getData(format)`**：返回指定的数据。如果没有这样的数据，则返回空字符串。
+
+ - **`dataTransfer.files`**：返回被拖拽的FileList，如果有。
+
+ - **`dataTransfer.setDragImage(element, x, y)`**：用指定的元素来更新 drag 反馈，替换之前指定的反馈（feedback）。
+
+ - **`dataTransfer.addElement(element)`**：添加指定元素到用于渲染 drag 反馈的元素列表。
+
+&amp;#160; &amp;#160;在这个用例里，最重要的就是 dataTransfer.files 属性，它是用户拖拽进浏览器的文件列表，是个 FileList 对象，有 length 属性，可以通过下标访问。
+
+##### FormData 对象
+
+&amp;#160; &amp;#160;FormData 代表一个表单，可以通过 append('fieldName', value) 函数往表单里添加参数，参数的只不仅可以是字符串，还可以是 File 对象，甚至二进制数据。
+
+##### XMLHttpRequest level2 
+
+新版本的 XMLHttpRequest 对象，这里说的 XMLHttpRequest 都是指新版的。
+
+&amp;#160; &amp;#160;XMLHttpRequest 可以向不同域名的服务器发出 HTTP 请求。这叫做 “跨域资源共享”（Cross-origin resource sharing，简称 CORS）。
+
+&amp;#160; &amp;#160;浏览器有个著名的同源策略，这里浏览器安全的基础，CORS 除了需要浏览器支持外，还要服务器同意。
+
+&amp;#160; &amp;#160;XMLHttpRequest 支持直接发送 FormData，就像浏览器进行表单提交一样。
+
+&amp;#160; &amp;#160;XMLHttpRequest 还支持进度信息（progress 事件），进度分为上传进度和下载进度，上传进度的事件是在 XMLHttpRequest.upload 对象上，下载进度的事件是在 XMLHttpRequest 对象。每个进度事件都有三个属性：
+
+ - **`lengthComputable`**: 可计算的已上传字节数
+ 
+ - **`total`**: 总的字节数
+ 
+ - **`loaded`**: 到目前为止上传的字节数
+
+除了进度事件，还支持下面五个事件：
+
+ - **`load` 事件**：传输成功完成。
+ 
+ - **`abort` 事件**：传输被用户取消。
+ 
+ - **`error` 事件**：传输中出现错误。
+ 
+ - **`loadstart` 事件**：传输开始。
+ 
+ - **`loadend` 事件**：传输结束，但是不知道成功还是失败。
+
+&amp;#160; &amp;#160;同 progress 事件一样，属于上传操作的事件处理函数绑定在 XMLHttpRequest.upload 对象上，属性下载的直接绑定在 XMLHttpRequest 对象。
+
+```javascript
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Index</title>
+<style type="text/css">
+.container {
+    width: 500px;
+}
+ 
+.content {
+    height: 300px;
+    text-align: center;
+    border: 1px solid #000;
+    box-shadow: 10px 10px 5px #888888;
+}
+ 
+.files {
+    display: none;
+}
+ 
+.file-content-module {
+    display: none;
+}
+</style>
+</head>
+<body>
+    <a href="/webapp">webapp</a>
+    <a href="/list-doc">list-doc</a>
+    <h3>POST 文件表单</h3>
+    <h3>Method POST enctype="multipart/form-data"</h3>
+    <form action="" method="POST" enctype="multipart/form-data">
+        <input name="image" type="file" placeholder="请选择图片" />
+        <button class="btn btn-default" type="submit">提交</button>
+    </form>
+
+    <div class="container">
+        <div class="content">
+            <h3>Drag and drop file here</h3>
+            <p class="message"></p>
+            <div class="files">
+            </div>
+        </div>
+        <div class="file-content-module">
+            <span class="fileName"></span>
+            <input type="file"/>
+            <button></button>
+        </div>
+    </div>
+
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script>
+// 可接受拖拽目标容器
+var oContent = document.getElementsByClassName("content")[0];
+var oMesssage = document.getElementsByClassName("message")[0];
+ 
+// 当拖动的对象或被选择的文本进入有效的放置目标时
+// dragenter 事件被触发。
+oContent.addEventListener("dragenter", function (e) {
+    oMesssage.innerText = "dragenter";
+    stopEvent(e);
+}, false);
+// 当某个被拖动的对象在另一对象容器范围内拖动时
+// dragover 事件被触发。
+oContent.addEventListener("dragover", function (e) {
+    oMesssage.innerText = "dragover";
+    stopEvent(e);
+}, false);
+// 当拖动对象离开可放置目标节点时
+// dragleave 事件被触发。
+oContent.addEventListener("dragleave", function (e) {
+    oMesssage.innerText = "dragleave";
+    stopEvent(e);
+}, false);
+
+/**
+ * 阻止默认事件动作触发
+ */
+function stopEvent(event) {
+    // 阻止事件进一步冒泡
+    event.stopPropagation();
+    // 阻止事件默认动作（如打开一些元素的链接）
+    event.preventDefault();
+}
+
+function dropEvent(event){
+    // 阻止事件进一步冒泡
+    event.stopPropagation();
+    // 阻止事件默认动作（如打开一些元素的链接）
+    event.preventDefault();
+    processFile(event);
+}
+
+// 当对象在一个拖动过程中释放鼠标键时
+// drop 事件被触发。
+oContent.addEventListener("drop", dropEvent, false);
+
+/**
+ * 拖拽文件的回调函数
+ */
+function getDropFileCallBack(dropFiles) {
+    var oFiles = document.querySelector("div.files");
+    var oFileContentModule = document.getElementsByClassName("file-content-module")[0];
+    oFiles.style = "display:block";
+	oFiles.style.display = "block"; /* hack */
+    var oContent = document.createElement("div");
+    oContent.className = "file";
+	// 创建 FormData 表单对象
+	var formData = new FormData();
+    // 循环遍历拖拽文件项
+    dropFiles.forEach(function (item, index, items) {
+		// 往 FormData 表单对象添加 File 对象
+	    formData.append( 'file[' + index + ']' , item);
+        var oSpan = oFileContentModule.getElementsByTagName("span")[0].cloneNode(true);
+        oSpan.innerText = item.name;
+        oContent.appendChild(oSpan);
+        oContent.appendChild(document.createElement("br"));
+    });
+	var oButton = oFileContentModule.getElementsByTagName("button")[0].cloneNode(true);
+    oButton.innerText = "上传";
+    oButton.addEventListener("click", uploadFile.bind(this,formData), false);
+    oContent.appendChild(oButton);
+    oFiles.appendChild(oContent);
+}
+
+function processFile(e){
+    // 从 event 事件中获取 dataTransfer 对象
+    var df = e.dataTransfer;
+    // 所有的文件的数量，给非 Chrome 浏览器使用的变量
+    var allFileLen = df.files.length; 
+ 
+    // 拖拽的文件，会放到这里
+    var dropFiles = [];
+    // 读取文件是个异步的过程，需要记录处理了多少个文件了
+    var dealFileCnt = 0;
+ 
+    // 检测是否已经把所有的文件都遍历过了
+    function checkDropFinish() {
+        if (++dealFileCnt === allFileLen) {
+            // 所有拖拽文件项已经读取完毕，调用处理文件的函数
+            getDropFileCallBack(dropFiles);
+        }
+    }
+
+        // 非 Chrome 拖拽文件逻辑
+        for (var i = 0; i < allFileLen; i++) {
+            // df.files 是 FileList 类型
+            // dropFile 是 File 类型
+            var dropFile = df.files[i];
+ 
+            // 判断拖拽文件类型
+            // 可以识别基本的一些文件类型，如 text/html,image/png 等
+            if (dropFile.type) {
+                // 将读取到的文件放入文件数组中
+                dropFiles.push(dropFile);
+                // 检查所有拖拽文件项是否都已经读取完毕
+                checkDropFinish();
+            } else { // 无法识别的文件类型处理
+                try {
+ 
+                    // 创建 FileReader 对象
+                    var fileReader = new FileReader();
+                    // File.slice(0, 3)，切割文件返回 Blob 对象
+                    // File 类继承自 Blob 类，继承了 Blob 类 slice 分割文件的方法
+                    // Blob.slice(startByte,endByte); startByte 起始读取的字节位置，endByte 结束读取字节位置
+                    fileReader.readAsDataURL(dropFile.slice(0, 3));
+ 
+                    // 添加文件读取完成后的事件处理器
+                    fileReader.addEventListener('load', function (e) {
+                        console.log(e, 'load');
+                        // 文件的前几个 Byte 字节读取没有问题，将该 File 对象放入文件数组中
+                        dropFiles.push(dropFile);
+                        // 检查所有拖拽文件项是否都已经读取完毕
+                        checkDropFinish();
+                    }, false);
+ 
+                    // 添加读取文件发生错误时的事件处理器
+                    fileReader.addEventListener('error', function (e) {
+                        console.log(e, 'error，不可以上传文件夹');
+                        // 检查所有拖拽文件项是否都已经读取完毕
+                        checkDropFinish();
+                    }, false);
+ 
+                } catch (e) {
+                    console.log(e, 'catch error，不可以上传文件夹');
+                    // 检查所有拖拽文件项是否都已经读取完毕
+                    checkDropFinish();
+                }
+            }
+        }
+}
+
+/**
+ * 文件上传函数
+ */
+function uploadFile(formData,event) {
+
+    var host = location.host;
+    var path = "//" + host;
+    var url = path + "/upload"; // //localhost:8080/upload
+
+	// 1. create XMLHttpRequset Object.
+	var xmlhttp;
+	if (window.XMLHttpRequest) {
+		//  IE7+, Firefox, Chrome, Opera, Safari Usage
+		xmlhttp = new XMLHttpRequest();
+	}
+	else {
+		// IE6, IE5 Usage
+		xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+	}
+
+	// 2. add ajax readystatechange event listener.
+	xmlhttp.onreadystatechange = function () {
+		console.info("[readystatechange - begin]");
+		console.info(xmlhttp.status + " " + xmlhttp.readyState);
+		if (xmlhttp.readyState == 4) {
+			if (xmlhttp.status == 200) {
+				if (xmlhttp.responseType == "json") {
+					console.info(xmlhttp.response);
+				} else if(xmlhttp.responseType == "text"){
+					resolve(xmlhttp.responseText);
+				} else if(xmlhttp.responseType == "document"){
+					resolve(xmlhttp.responseXML);
+				} else {
+					console.info("responseText :" + xmlhttp.responseText);
+					console.info("responseXML :" + xmlhttp.responseXML);
+					console.info("[readystatechange - end]");
+					console.info("");
+				}
+			} else {
+				console.info("requset fail");
+				console.info("[readystatechange - end]");
+				console.info("");
+			}
+		}
+	}
+
+	xmlhttp.upload.onload = function() {
+	    console.info("上传完成");
+		oMesssage.innerText = "上传完成";
+	};
+
+	xmlhttp.upload.onerror = function() {
+	    console.info("上传失败");
+		oMesssage.innerText = "上传失败";
+	};
+
+	// 3. set ajax request info
+	//   1) Request Method ["GET","POST","HEAD","PUT","DELETE","CONNECT","TRACE","OPTIONS"]
+	//   2) URL
+	//   3) async
+	xmlhttp.open("POST", url, true);
+
+	// 4. send ajax request
+	xmlhttp.send(formData);
+}
+</script>
+
+</body>
+</html>
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

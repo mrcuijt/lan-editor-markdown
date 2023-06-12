@@ -49,6 +49,18 @@
     <textarea id="editor" name="editor">
 #### DetachedCriteria 离线查询
 
+DetachedCriteria 和 Criteria 功能类似，它实现了 CriteriaSpecification 接口
+
+ - Criteria 是由 Session 对象创建的；
+
+ - DetachedCriteria 创建时不需要 Session 对象；
+
+ - 使用 DetachedCriteria 来构造查询条件可以把 DetachedCriteria 作为方法参数传递给业务层；
+
+ - Criteria 依赖于 Session 所以在创建查询条件的时候必须要在数据访问层编写；
+
+DetachedCriteria 不依赖于 Session 创建就意味着，在设置查询条件的时候可以在业务层，进行编写封装然后将 DetachedCriteria 对象 作为一个参数传入到数据访问层能更好的进行业务分工。
+
 ***```DetachedCriteria```*** 离线查询：
 
 ```java

@@ -1,0 +1,455 @@
+Buildfile: D:\workspace\antworkspace\zip-project\build.xml
+
+run-test:
+     [java] [64, 102, 111, 110, 116, 45, 102, 97, 99, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :@font-face.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 115, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selectors.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 49, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_01.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 50, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_02.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 51, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_03.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 52, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_04.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 53, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_05.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 54, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_06.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 55, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_07.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 56, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_08.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 57, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_09.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 48, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_10.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 49, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_11.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 50, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_12.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 51, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_13.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 52, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_14.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 53, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_15.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 54, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_16.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 55, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_17.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 56, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_18.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 57, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_19.html
+     [java] [97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 50, 48, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :attribute_selector_20.html
+     [java] [98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 45, 99, 108, 105, 112, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :background-clip.html
+     [java] [98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 45, 111, 114, 105, 103, 105, 110, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :background-origin.html
+     [java] [98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 45, 115, 105, 122, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :background-size.html
+     [java] [98, 111, 114, 100, 101, 114, 45, 99, 111, 108, 111, 114, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :border-color.html
+     [java] [98, 111, 114, 100, 101, 114, 45, 105, 109, 97, 103, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :border-image.html
+     [java] [98, 111, 114, 100, 101, 114, 45, 114, 97, 100, 105, 117, 115, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :border-radius.html
+     [java] [98, 111, 120, 45, 115, 104, 97, 100, 111, 119, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :box-shadow.html
+     [java] [98, 111, 120, 45, 115, 105, 122, 105, 110, 103, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :box-sizing.html
+     [java] [67, 72, 84, 79, 67, 95, 99, 115, 115, 51, 46, 48, -78, -50, -65, -68, -54, -42, -78, -31, 46, 104, 116, 109]
+     [java] Probable Charset = UTF-16LE
+     [java] Probable Charset = GB2312
+     [java] Probable Charset = GB18030
+     [java] Probable Charset = Big5
+     [java] Probable Charset = UTF-16BE
+     [java] Probable Charset = windows-1252
+     [java] default charset: ISO-8859-1, entry :CHTOC_css3.0???????á.htm
+     [java] [99, 111, 108, 117, 109, 110, 45, 98, 114, 101, 97, 107, 45, 97, 102, 116, 101, 114, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-break-after.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 98, 114, 101, 97, 107, 45, 98, 101, 102, 111, 114, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-break-before.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 99, 111, 117, 110, 116, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-count.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 102, 105, 108, 108, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-fill.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 103, 97, 112, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-gap.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 114, 117, 108, 101, 45, 99, 111, 108, 111, 114, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-rule-color.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 114, 117, 108, 101, 45, 115, 116, 121, 108, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-rule-style.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 114, 117, 108, 101, 45, 119, 105, 100, 116, 104, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-rule-width.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 114, 117, 108, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-rule.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 115, 112, 97, 110, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-span.html
+     [java] [99, 111, 108, 117, 109, 110, 45, 119, 105, 100, 116, 104, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :column-width.html
+     [java] [99, 111, 108, 117, 109, 110, 115, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :columns.html
+     [java] [99, 111, 110, 116, 101, 110, 116, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :content.html
+     [java] [99, 115, 115, 51, 46, 48, -78, -50, -65, -68, -54, -42, -78, -31, 46, 104, 104, 99]
+     [java] Probable Charset = UTF-16LE
+     [java] Probable Charset = GB2312
+     [java] Probable Charset = GB18030
+     [java] Probable Charset = Big5
+     [java] Probable Charset = UTF-16BE
+     [java] Probable Charset = windows-1252
+     [java] default charset: ISO-8859-1, entry :css3.0???????á.hhc
+     [java] [99, 115, 115, 51, 46, 48, -78, -50, -65, -68, -54, -42, -78, -31, 46, 104, 104, 107]
+     [java] Probable Charset = UTF-16LE
+     [java] Probable Charset = GB2312
+     [java] Probable Charset = GB18030
+     [java] Probable Charset = Big5
+     [java] Probable Charset = UTF-16BE
+     [java] Probable Charset = windows-1252
+     [java] default charset: ISO-8859-1, entry :css3.0???????á.hhk
+     [java] [72, 83, 76, 32, 99, 111, 108, 111, 114, 115, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :HSL colors.html
+     [java] [72, 83, 76, 65, 32, 99, 111, 108, 111, 114, 115, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :HSLA colors.html
+     [java] [105, 109, 103, 47]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/
+     [java] [105, 109, 103, 47, 64, 102, 111, 110, 116, 45, 102, 97, 99, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/@font-face.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 49, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_01.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 50, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_02.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 51, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_03.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 52, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_04.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 53, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_05.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 54, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_06.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 55, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_07.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 56, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_08.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 48, 57, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_09.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 48, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_10.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 49, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_11.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 50, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_12.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 51, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_13.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 52, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_14.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 53, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_15.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 54, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_16.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 55, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_17.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 56, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_18.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 49, 57, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_19.png
+     [java] [105, 109, 103, 47, 97, 116, 116, 114, 105, 98, 117, 116, 101, 95, 115, 101, 108, 101, 99, 116, 111, 114, 95, 50, 48, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/attribute_selector_20.png
+     [java] [105, 109, 103, 47, 98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 45, 99, 108, 105, 112, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/background-clip.png
+     [java] [105, 109, 103, 47, 98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 45, 111, 114, 105, 103, 105, 110, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/background-origin.png
+     [java] [105, 109, 103, 47, 98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 45, 115, 105, 122, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/background-size.png
+     [java] [105, 109, 103, 47, 98, 111, 114, 100, 101, 114, 45, 99, 111, 108, 111, 114, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/border-color.png
+     [java] [105, 109, 103, 47, 98, 111, 114, 100, 101, 114, 45, 105, 109, 97, 103, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/border-image.png
+     [java] [105, 109, 103, 47, 98, 111, 114, 100, 101, 114, 45, 114, 97, 100, 105, 117, 115, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/border-radius.png
+     [java] [105, 109, 103, 47, 98, 111, 120, 45, 115, 104, 97, 100, 111, 119, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/box-shadow.png
+     [java] [105, 109, 103, 47, 98, 111, 120, 45, 115, 105, 122, 105, 110, 103, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/box-sizing.png
+     [java] [105, 109, 103, 47, 98, 116, 95, 98, 108, 117, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/bt_blue.png
+     [java] [105, 109, 103, 47, 67, 104, 114, 111, 109, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/Chrome.png
+     [java] [105, 109, 103, 47, 99, 111, 110, 116, 101, 110, 116, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/content.png
+     [java] [105, 109, 103, 47, 70, 105, 114, 101, 102, 111, 120, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/Firefox.png
+     [java] [105, 109, 103, 47, 72, 83, 76, 65, 99, 111, 108, 111, 114, 115, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/HSLAcolors.png
+     [java] [105, 109, 103, 47, 72, 83, 76, 99, 111, 108, 111, 114, 115, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/HSLcolors.png
+     [java] [105, 109, 103, 47, 73, 69, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/IE.png
+     [java] [105, 109, 103, 47, 109, 117, 108, 116, 105, 112, 108, 101, 45, 98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 115, 95, 100, 101, 109, 111, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/multiple-backgrounds_demo.png
+     [java] [105, 109, 103, 47, 111, 112, 97, 99, 105, 116, 121, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/opacity.png
+     [java] [105, 109, 103, 47, 79, 112, 101, 114, 97, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/Opera.png
+     [java] [105, 109, 103, 47, 111, 117, 116, 108, 105, 110, 101, 45, 99, 111, 108, 111, 114, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/outline-color.png
+     [java] [105, 109, 103, 47, 111, 117, 116, 108, 105, 110, 101, 45, 111, 102, 102, 115, 101, 116, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/outline-offset.png
+     [java] [105, 109, 103, 47, 111, 117, 116, 108, 105, 110, 101, 45, 115, 116, 121, 108, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/outline-style.png
+     [java] [105, 109, 103, 47, 111, 117, 116, 108, 105, 110, 101, 45, 119, 105, 100, 116, 104, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/outline-width.png
+     [java] [105, 109, 103, 47, 111, 117, 116, 108, 105, 110, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/outline.png
+     [java] [105, 109, 103, 47, 111, 118, 101, 114, 102, 108, 111, 119, 45, 120, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/overflow-x.png
+     [java] [105, 109, 103, 47, 111, 118, 101, 114, 102, 108, 111, 119, 45, 121, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/overflow-y.png
+     [java] [105, 109, 103, 47, 111, 118, 101, 114, 102, 108, 111, 119, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/overflow.png
+     [java] [105, 109, 103, 47, 114, 101, 115, 105, 122, 101, 46, 103, 105, 102]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/resize.gif
+     [java] [105, 109, 103, 47, 82, 71, 66, 65, 99, 111, 108, 111, 114, 115, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/RGBAcolors.png
+     [java] [105, 109, 103, 47, 83, 97, 102, 97, 114, 105, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/Safari.png
+     [java] [105, 109, 103, 47, 115, 97, 102, 97, 114, 105, 95, 99, 111, 108, 117, 109, 110, 115, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/safari_columns.png
+     [java] [105, 109, 103, 47, 115, 97, 102, 97, 114, 105, 95, 99, 111, 108, 117, 109, 110, 115, 95, 119, 105, 100, 116, 104, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/safari_columns_width.png
+     [java] [105, 109, 103, 47, 115, 97, 102, 97, 114, 105, 95, 99, 111, 108, 117, 109, 110, 95, 99, 111, 117, 110, 116, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/safari_column_count.png
+     [java] [105, 109, 103, 47, 115, 97, 102, 97, 114, 105, 95, 99, 111, 108, 117, 109, 110, 95, 103, 97, 112, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/safari_column_gap.png
+     [java] [105, 109, 103, 47, 115, 97, 102, 97, 114, 105, 95, 99, 111, 108, 117, 109, 110, 95, 114, 117, 108, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/safari_column_rule.png
+     [java] [105, 109, 103, 47, 115, 97, 102, 97, 114, 105, 95, 99, 111, 108, 117, 109, 110, 95, 114, 117, 108, 101, 95, 99, 111, 108, 111, 114, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/safari_column_rule_color.png
+     [java] [105, 109, 103, 47, 115, 97, 102, 97, 114, 105, 95, 99, 111, 108, 117, 109, 110, 95, 114, 117, 108, 101, 95, 115, 116, 121, 108, 101, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/safari_column_rule_style.png
+     [java] [105, 109, 103, 47, 115, 97, 102, 97, 114, 105, 95, 99, 111, 108, 117, 109, 110, 95, 114, 117, 108, 101, 95, 119, 105, 100, 116, 104, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/safari_column_rule_width.png
+     [java] [105, 109, 103, 47, 116, 101, 120, 116, 45, 111, 118, 101, 114, 102, 108, 111, 119, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/text-overflow.png
+     [java] [105, 109, 103, 47, 116, 101, 120, 116, 45, 115, 104, 97, 100, 111, 119, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/text-shadow.png
+     [java] [105, 109, 103, 47, 119, 111, 114, 100, 45, 119, 114, 97, 112, 46, 112, 110, 103]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :img/word-wrap.png
+     [java] [105, 110, 100, 101, 120, 45, 49, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :index-1.html
+     [java] [105, 110, 100, 101, 120, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :index.html
+     [java] [106, 115, 47]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :js/
+     [java] [106, 115, 47, 99, 111, 109, 109, 111, 110, 46, 106, 115]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :js/common.js
+     [java] [109, 101, 100, 105, 97, 32, 113, 117, 101, 114, 105, 101, 115, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :media queries.html
+     [java] [109, 117, 108, 116, 105, 112, 108, 101, 45, 98, 97, 99, 107, 103, 114, 111, 117, 110, 100, 115, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :multiple-backgrounds.html
+     [java] [110, 97, 118, 45, 100, 111, 119, 110, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :nav-down.html
+     [java] [110, 97, 118, 45, 105, 110, 100, 101, 120, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :nav-index.html
+     [java] [110, 97, 118, 45, 108, 101, 102, 116, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :nav-left.html
+     [java] [110, 97, 118, 45, 114, 105, 103, 104, 116, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :nav-right.html
+     [java] [110, 97, 118, 45, 116, 114, 101, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :nav-tree.html
+     [java] [110, 97, 118, 45, 117, 112, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :nav-up.html
+     [java] [111, 112, 97, 99, 105, 116, 121, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :opacity.html
+     [java] [111, 117, 116, 108, 105, 110, 101, 45, 99, 111, 108, 111, 114, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :outline-color.html
+     [java] [111, 117, 116, 108, 105, 110, 101, 45, 111, 102, 102, 115, 101, 116, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :outline-offset.html
+     [java] [111, 117, 116, 108, 105, 110, 101, 45, 115, 116, 121, 108, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :outline-style.html
+     [java] [111, 117, 116, 108, 105, 110, 101, 45, 119, 105, 100, 116, 104, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :outline-width.html
+     [java] [111, 117, 116, 108, 105, 110, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :outline.html
+     [java] [111, 118, 101, 114, 102, 108, 111, 119, 45, 120, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :overflow-x.html
+     [java] [111, 118, 101, 114, 102, 108, 111, 119, 45, 121, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :overflow-y.html
+     [java] [111, 118, 101, 114, 102, 108, 111, 119, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :overflow.html
+     [java] [114, 101, 115, 105, 122, 101, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :resize.html
+     [java] [82, 71, 66, 65, 32, 99, 111, 108, 111, 114, 115, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :RGBA colors.html
+     [java] [83, 112, 101, 101, 99, 104, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :Speech.html
+     [java] [116, 101, 120, 116, 45, 111, 118, 101, 114, 102, 108, 111, 119, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :text-overflow.html
+     [java] [116, 101, 120, 116, 45, 115, 104, 97, 100, 111, 119, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :text-shadow.html
+     [java] [119, 111, 114, 100, 45, 119, 114, 97, 112, 46, 104, 116, 109, 108]
+     [java] CHARSET = ASCII
+     [java] default charset: ISO-8859-1, entry :word-wrap.html
+     [java] [-58, -28, -53, -5, -60, -93, -65, -23, 40, 79, 116, 104, 101, 114, 32, 109, 111, 100, 117, 108, 101, 115, 41, 46, 104, 116, 109, 108]
+     [java] CHARSET = GB2312
+     [java] charset: GB2312, entry :其他模块(Other modules).html
+     [java] [-60, -38, -56, -35, 40, 71, 101, 110, 101, 114, 97, 116, 101, 100, 32, 67, 111, 110, 116, 101, 110, 116, 41, 46, 104, 116, 109, 108]
+     [java] CHARSET = x-euc-tw
+     [java] charset: x-euc-tw, entry :巾至(Generated Content).html
+     [java] [-69, -7, -76, -95, -70, -48, -60, -93, -48, -51, 40, 66, 97, 115, 105, 99, 32, 98, 111, 120, 32, 109, 111, 100, 101, 108, 41, 46, 104, 116, 109, 108]
+     [java] CHARSET = GB2312
+     [java] charset: GB2312, entry :基础盒模型(Basic box model).html
+     [java] [-54, -12, -48, -44, 40, 112, 114, 111, 112, 101, 114, 116, 105, 101, 115, 41, 46, 104, 116, 109, 108]
+     [java] CHARSET = x-euc-tw
+     [java] charset: x-euc-tw, entry :沒垓(properties).html
+     [java] [-50, -60, -79, -66, 40, 84, 101, 120, 116, 41, 46, 104, 116, 109, 108]
+     [java] default charset: ISO-8859-1, entry :??±?(Text).html
+     [java] [-45, -61, -69, -89, -67, -25, -61, -26, 40, 85, 115, 101, 114, 45, 105, 110, 116, 101, 114, 102, 97, 99, 101, 41, 46, 104, 116, 109, 108]
+     [java] CHARSET = GB2312
+     [java] charset: GB2312, entry :用户界面(User-interface).html
+     [java] [-79, -77, -66, -80, 40, 66, 97, 99, 107, 103, 114, 111, 117, 110, 100, 41, 46, 104, 116, 109, 108]
+     [java] default charset: ISO-8859-1, entry :±??°(Background).html
+     [java] [-79, -33, -65, -14, 40, 66, 111, 114, 100, 101, 114, 41, 46, 104, 116, 109, 108]
+     [java] default charset: ISO-8859-1, entry :±??ò(Border).html
+     [java] [-47, -43, -55, -85, 40, 67, 111, 108, 111, 114, 41, 46, 104, 116, 109, 108]
+     [java] default charset: ISO-8859-1, entry :????(Color).html
+
+BUILD SUCCESSFUL
+Total time: 2 seconds

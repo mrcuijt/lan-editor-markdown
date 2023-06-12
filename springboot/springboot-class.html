@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>springboot-class</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### springboot start
+
+ - starter 让开发变得如此简单
+
+ - starter 原理解密
+
+ - 制作自己的 starter
+
+SpringBoot 对 Spring 平台和第三方库进行了整合，可创建可以运行的、独立的、生产级的基于 Spring 的应用程序。（大多数 SpringBoot 应用程序只需要很少的 Spring 配置）
+
+##### 设计目标
+
+ - 为所有 Spring 开发提供更快且可通用的入门体验
+ 
+ - 开箱即用，可以根据需求快速调整默认值。
+ 
+ - 提供大型项目（流入嵌入式服务器、运行状况检查和统一配置）通用的一系列非功能性功能。
+ 
+ - 绝对没有代码生成，也不需要 XML 配置。
+
+#### 程序入口
+
+程序入口 main 方法
+
+```java
+@SpringBootApplication
+public class Example{
+    public static void main(String[] args){
+        SpringApplication.run(Example.class, args);
+    }
+}
+```
+
+SpringBoot 中通用的约定：
+
+ - 注解扫描的包目录 basePackage 为启动类 Main 函数入口所在的包路径
+ 
+ - 配置文件约定是 classpath 目录下的 application.yml 或者 application.properties
+ 
+ - Web 开发的静态文件放在 classpath ， 访问的顺序依次是：
+ 
+  - /META-INF/resource -> resource -> static -> public
+ 
+ - Web 开发中页面模板，约定放在 classpath 目录， /templates 目录下。
+
+#### SpringBoot 优势快速预览
+
+##### 传统开发方式非 SpringBoot
+
+ - 配置文件
+ 
+ - 外部部署
+ 
+ - 第三方依赖复杂引入
+ 
+##### 快速构建
+
+ - SpringBoot
+ 
+ - 全 Java 代码，少量配置
+ 
+ - 内置服务器容器
+ 
+ - 傻瓜式引入第三方组件
+
+##### 步骤对比
+
+对比：如果不使用 SpringBoot ，搭建一个 SSM 工程需要怎么做？你需要多久？你是否能打起来？
+
+**搭建 SSM 步骤：**
+
+ - 加入相关 Jar 包
+ 
+ - 配置 web.xml ，加载 spring 和 spring mvc
+ 
+ - 配置数据库连接、配置 spring 事务
+ 
+ - 配置加载配置文件的读取，开启注解
+ 
+ - 配置日志文件
+ 
+ - ...
+ 
+ - 配置完成之后部署 Tomcat 调试
+ 
+**搭建 SpringBoot 步骤**
+
+ - 引入 starter
+ 
+ - 启动
+ 
+#### SpringBoot 帮助我们解决了什么问题？
+
+搭建一个 SSM 难点是什么？
+
+**包依赖**
+
+我们需要用到的有
+
+ - spring 包
+ 
+ - mybatis 包
+ 
+ - spring-mybatis 包
+ 
+ - ...
+ 
+这些包好记吗？记得住吗？
+
+**Bean 配置**
+
+我们需要用到的有
+
+ - datasource 的 bean
+ 
+ - spring 的 bean
+ 
+ - mybatis 的 bena
+ 
+ - ...
+ 
+这些 bean 我都知道是什么吗？
+
+##### SpringBoot 是怎么帮我们简化了这些环节的？
+
+ - 通过 starter 自动配置
+
+**pom.xml**
+
+```xml
+<!-- MyBatis 库 -->
+<dependency>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
+    <version>2.0.1</version>
+</dependency>
+```
+
+**mybatis-spring-boot-starter/pom.xml**
+
+```xml
+<dependency>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-autoconfigure</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.mybatis</groupId>
+    <artifactId>mybatis</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.mybatis</groupId>
+    <artifactId>mybatis-spring</artifactId>
+</dependency>
+```
+
+##### 解密 SpringBoot Starter
+
+ - 疑问1：这些 bean 依赖关系是如何自动处理的？
+ 
+  - 如：如果我们没有配置 datasource，那 mybatis 会被加载吗？
+ 
+ - 
+
+Spring Bean 配置常识
+
+在 Spring 中如果我不想使用 xml 去配置 bean ，是否可以通过代码方式配置 bean？
+
+我们可以用 @Configuration 注解表示当前是一个配置类。
+
+```java
+public class Configuration{
+    @Bean // 就可以在容器自动启动时将我们当前的类加载到 Spring 容器中
+    // <bean id="xxx"/>
+    public Bean2 bean2(){
+        return new Bean2();
+    }
+}
+```
+
+##### 这些 Bean 的依赖关系是如何自动处理的？
+
+ - @ConditionalOnClass()
+ 
+  - 项目中包含指定 class 时，启用。
+
+ - @ConditionalOnBean()
+ 
+  - 项目中包含指定 bean 时，启用。
+
+ - @ConditionalOnMissingBean(DataSource.class)
+ 
+  - 项目中不存在某个 Bean 时，启用。
+ 
+ - @ConditionalOnProperty()
+ 
+  - 项目中存在某个属性时，启用。
+
+ - @EnableConfigurationProperties()
+ 
+  - 开启配置属性
+ 
+ - @AutoConfigureAfter()
+ 
+  - 在配置完成之后，启用某些。
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

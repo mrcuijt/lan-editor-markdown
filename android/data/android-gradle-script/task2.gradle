@@ -1,0 +1,60 @@
+import java.time.Clock
+import java.time.Duration;
+
+class TimingsListener implements TaskExecutionListener, BuildListener {
+    private Clock clock
+    private timings = []
+
+    @Override
+    void beforeExecute(Task task) {
+        clock = Clock.systemDefaultZone()
+        if (task.outputs.files.files) {
+            task.project.logger.warn "taskName:${task.name} "
+            task.project.logger.warn "inputs.files.files:-----------start------- "
+            task.inputs.files.files.each {
+                task.project.logger.warn "${it.absolutePath} "
+            }
+            task.project.logger.warn "inputs.files.files: -----------end---------- "
+        }
+    }
+
+    @Override
+    void afterExecute(Task task, TaskState taskState) {
+        def ms = clock.millis() - Clock.systemDefaultZone().millis()
+        timings.add([ms, task.path])
+        task.project.logger.warn "${task.path} took ${ms}ms"
+        if (task.outputs.files.files) {
+            task.project.logger.warn "taskName:${task.name}"
+            task.project.logger.warn "outputs.files.files: ------------start----------------- "
+            task.outputs.files.files.each {
+                task.project.logger.warn "${it.absolutePath} "
+            }
+            task.project.logger.warn "outputs.files.files: ---------------end------------------ "
+        }
+    }
+
+    @Override
+    void buildFinished(BuildResult result) {
+        println "Task timings:"
+        for (timing in timings) {
+            if (timing[0] >= 50) {
+                printf "%7sms  %s\n", timing
+            }
+        }
+    }
+
+    @Override
+    void buildStarted(Gradle gradle) {}
+
+    @Override
+    void projectsEvaluated(Gradle gradle) {}
+
+    @Override
+    void projectsLoaded(Gradle gradle) {}
+
+    @Override
+    void settingsEvaluated(Settings settings) {}
+
+}
+
+gradle.addListener new TimingsListener()

@@ -53,1108 +53,718 @@
     <textarea id="editor" name="editor">
 #### java-basic-jdbc
 
-#### 快速入门使用 JDBC：JAVA 程序与数据库之间的交互。
+**`pom.xml`**
 
-1. JAVA 标准提供 Driver 接口，各大数据库厂商提供了实现。JDBC：JAVA 程序与数据库之间的交互。
-
-2. 对数据库的操作必须建立在数据库连接存在的情况下才可以。
-
-3. 通过 Driver 对象可以获取到数据库的连接：
-
-##### （1）直连：
-
-```java
-Driver driver = null;
-driver = new OracleDriver();
-
-String url = "jdbc:oracle:thin:@localhost:1521:orcl";
-Properties info = new Properties();
-info.setProperty("user", "scott");
-info.setProperty("password", "tiger");
-
-Connection conn = driver.connect(url, info);
-```
-
-##### （2）动态获取连接：
-
-```java
-Class<?> clazz = Class.forName(driverName);
-Driver driver = (Driver) clazz.newInstance();
-Connection conn = driver.connect(url, info);
-```
-
-##### （3）使用字符串形式的参数来获取连接：
-
-```java
-// 获取驱动
-Class<?> clazz = Class.forName(driverClass);
-Driver driver = (Driver) clazz.newInstance();
+```xml
+<!-- 开发项目时 所有用到的项目框架版本号 尽量 统一使用 父项目管理版本号 -->
+<properties>
+    <!-- MySQL 数据库插件包版本号 -->
+    <mysql-connector-java.version>5.1.30</mysql-connector-java.version>
+    <!-- LOG4j 日志文件管理包版本 -->
+    <log4j.version>1.2.17</log4j.version>
+    <!-- SLF4j日志工具包版 -->
+    <org-slf4j.version>1.7.28</org-slf4j.version>
+    <slf4j-log4j12.version>1.7.28</slf4j-log4j12.version>
+</properties>
  
-// 注册驱动
-DriverManager.registerDriver(driver);
+<dependencies>
+    <!-- 引入 MySQL 数据库链接插件 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>${mysql-connector-java.version}</version>
+    </dependency>
+    <!-- 日志工具 -->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>${log4j.version}</version>
+    </dependency>
  
-// 获取连接
-Connection conn = DriverManager.getConnection(url, user, password);
-```
-
-各大数据库厂商已经已经自己是实现了注册驱动这个步骤。我们可以省略。
-
-省略后：
-
-```java
-Class.forName(driverClass);
-Connection conn = DriverManager.getConnection(url, user, password);
-```
-
-##### （4）从配置文件中读取信息
-
-```java
-Properties proper = new Properties();
-proper.load(new FileInputStream("jdbc.properties"));
-String driverClass = proper.getProperty("driverClass");
-String url = proper.getProperty("url");
-String user = proper.getProperty("user");
-String password = proper.getProperty("password");
-```
-
-##### （5）通过数据库连接创建 Statement 对象，向数据库发送命令。
-
-接口中的三个主要方法：
-
- - **execute(String sql)**
-
- - **executeQuery(String sql)**
-
- - **executeUpdate(String sql)**
-
-```java
-conn = JDBCUtils.getConnection();
-statm = conn.createStatement();
-String sql = "select order_id, order_name, order_date from `order`";
-rs = statm.executeQuery(sql);
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${org-slf4j.version}</version>
+    </dependency>
  
-while (rs.next()) {
-    int orderId = rs.getInt("order_id");
-    String orderName = rs.getString("order_name");
-    Date orderDate = rs.getDate("order_date");
-    Order order = new Order(orderId, orderName, orderDate);
-    System.out.println(order);
-}
-```
-
-###### 将查询结果集通过反射设置到对应的实体中：
-
-```java
-conn = JDBCUtils.getConnection();
-statm = conn.createStatement();
-rs = statm.executeQuery(sql);
-ResultSetMetaData rsmd = rs.getMetaData();
-while (rs.next()) {
-    t = clazz.newInstance();
-    int columnCount = rsmd.getColumnCount();
-    for (int i = 1; i <= columnCount; i++) {
-        String columnName = rsmd.getColumnLabel(i);
-        Object cloumnVal = rs.getObject(columnName);
-        Field field = clazz.getDeclaredField(columnName);
-        field.setAccessible(true);
-        field.set(t, cloumnVal);
-    }
-}
-```
-
-Apache：commons-beanutils-1.8.0.jar，commons-logging-1.1.1.jar 提供了通过 getXXX() 和 setXXX() 方法为属性赋值：
-
-```java
-String cloumnName = rsmd.getColumnLabel(i);
-Object cloumnVal = rs.getObject(cloumnName);
-PropertyUtils.setProperty(t, cloumnName, cloumnVal);
-```
-
-##### （6）使用 PreparedStatement 接口
-
-```java
-public <T> List<T> getAll(String sql, Class<T> clazz, Object ... args){
-    List<T> list = new ArrayList<T>();
-    Connection conn = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
-    try {
-        conn = JDBCUtils.getConnection();
-        ps = conn.prepareStatement(sql);
-        for(int i = 0; i < args.length; i++){
-            ps.setObject(i+1, args[i]);
-        }
-        rs = ps.executeQuery();
-        ResultSetMetaData rsmd = rs.getMetaData();
-        int columnNum = rsmd.getColumnCount();
-        while(rs.next()){
-            T t = clazz.newInstance();
-            for(int i = 1; i <= columnNum; i++){
-                String columnName = rsmd.getColumnLabel(i);
-                Object columnVal = rs.getObject(columnName);
-                PropertyUtils.setProperty(t, columnName, columnVal);
-            }
-            list.add(t);
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    } finally {
-        JDBCUtils.close(rs, ps, conn);
-    }
-    return list;
-}
-```
-
-被编译过的语句会被缓存下来，下次调用有相同的预编译语句就不会重新进行编译
-
-##### 使用 PreparedStatement 进行批量处理：
-
-```java
-for (int i = 0; i < 100000; i++) {
-    ps.setInt(1, i + 1);
-    ps.setString(2, "emp" + i);
-    ps.addBatch();
-    if ((i % 250) == 0) {
-        ps.executeBatch();
-        ps.clearBatch();
-    }
-}
-```
-
-##### 事务处理：
-
-```java
-conn.setAutoCommit(false);
-prepareUpdate(conn, sql1, obj1);
-prepareUpdate(conn, sql2, obj2);
-conn.commit();
-```
-
-#### JDBC 就是这么简单
-
-##### 一、JDBC
-
-JAVA Database Connectivity java 数据库连接.
-
-JDBC（Java DataBase Connectivity,java数据库连接）是一种用于执行SQL语句的Java API，可以为多种关系数据库提供统一访问，它由一组用Java语言编写的类和接口组成。JDBC提供了一种基准，据此可以构建更高级的工具和接口，使数据库开发人员能够编写数据库应用程序，同时，JDBC也是个商标名。
-
-##### 二、为什么会出现JDBC
-
-SUN 公司提供的一种数据库访问规则、规范, 由于数据库种类较多，并且 Java 语言使用比较广泛，sun 公司就提供了一种规范，让其他的数据库提供商去实现底层的访问规则。我们的 Java 程序只要使用 sun 公司提供的 JDBC 驱动即可。
-
-##### 三、数据库驱动
-
-我们安装好数据库之后，我们的应用程序也是不能直接使用数据库的，必须要通过相应的数据库驱动程序，通过驱动程序去和数据库打交道。其实也就是数据库厂商的 JDBC 接口实现，即对 Connection 等接口的实现类的 jar 文件。
-
-![title](images/java-basic-jdbc/java-basic-jdbc-001.png)
-
-##### 四、常用接口
-
-
- - 1.Driver 接口
-
-Driver 接口由数据库厂家提供，作为java开发人员，只需要使用 Driver 接口就可以了。在编程中要连接数据库，必须先装载特定厂商的数据库驱动程序，不同的数据库有不同的装载方法。如：
-
-```java
-// 装载 MySQL 驱动
-Class.forName("com.mysql.jdbc.Driver");
-// 装载 Oracle 驱动
-Class.forName("oracle.jdbc.driver.OracleDriver");
-```
-
- - 2.Connection 接口
-
-Connection 与特定数据库的连接（会话），在连接上下文中执行 SQL 语句并返回结果。DriverManager.getConnection(url, user, password) 方法建立在 JDBC URL 中定义的数据库 Connection 连接上。
-
-```java
-// 连接 MySQL 数据库
-Connection conn = DriverManager.getConnection("jdbc:mysql://host:port/database", "user", "password");
-// 连接 Oracle 数据库
-Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@host:port:database", "user", "password");
-// 连接 SQL Server 数据库
-Connection conn = DriverManager.getConnection("jdbc:microsoft:sqlserver://host:port; DatabaseName=database", "user", "password");
-```
-
-常用方法：
-
- - **createStatement()**
-
- **创建向数据库发送 SQL 的 statement 对象。**
-
- - **prepareStatement(sql)**
-
- **创建向数据库发送预编译 SQL 的 PrepareSatement 对象。**
-
- - **prepareCall(sql)**
-
- **创建执行存储过程的 callableStatement 对象。**
-
- - **setAutoCommit(boolean autoCommit)**
-
- **设置事务是否自动提交。**
-
- - **commit()**
-
- **在链接上提交事务。**
-
- - **rollback()**
-
- **在此链接上回滚事务。**
-
- - 3.Statement 接口
-
-用于执行静态 SQL 语句并返回它所生成结果的对象。
-
-三种 Statement 类：
-
- - **Statement**
-
- 由 createStatement 创建，用于发送简单的 SQL 语句（不带参数）。
-
- - **PreparedStatement**
-
- 继承自 Statement 接口，由 preparedStatement 创建，用于发送含有一个或多个参数的 SQL 语句。 PreparedStatement 对象比 Statement 对象的效率更高，并且可以防止 SQL 注入，所以我们一般都使用 PreparedStatement。
-
- - **CallableStatement**
-
- 继承自 PreparedStatement 接口，由方法 prepareCall 创建，用于调用存储过程。
-
-常用 Statement 方法：
-
- - **execute(String sql)**
-
- 运行语句，返回是否有结果集
-
- - **executeQuery(String sql)**
-
- 运行 SELECT 语句，返回 ResultSet 结果集。
-
- - **executeUpdate(String sql)**
-
- 运行 insert/update/delete 操作，返回更新的行数。
-
- - **addBatch(String sql)**
-
- 把多条sql语句放到一个批处理中。
-
- - **executeBatch()**
-
- 向数据库发送一批 SQL 语句执行。
-
- - 4.ResultSet 接口
-
-ResultSet 提供检索不同类型字段的方法，常用的有：
-
-
- - **getString(int index)、getString(String columnName)**
-
- 获得在数据库里是 varchar、char 等类型的数据对象。
-
- - **getFloat(int index)、getFloat(String columnName)**
-
- 获得在数据库里是 Float 类型的数据对象。
-
- - **getDate(int index)、getDate(String columnName)**
-
- 获得在数据库里是 Date 类型的数据。
-
- - **getBoolean(int index)、getBoolean(String columnName)**
-
- 获得在数据库里是 Boolean 类型的数据。
-
- - **getObject(int index)、getObject(String columnName)**
-
- 获取在数据库里任意类型的数据。
-
-ResultSet 还提供了对结果集进行滚动的方法：
-
- - **next()**
-
- 移动到下一行
-
- - **Previous()**
-
- 移动到前一行
-
- - **absolute(int row)**
-
- 移动到指定行
-
- - **beforeFirst()**
-
- 移动 resultSet 的最前面。
-
- - **afterLast()**
-
- 移动到 resultSet 的最后面。
-
-使用后依次关闭对象及连接：ResultSet → Statement → Connection
-
-##### 五、使用 JDBC 的基本步骤
-
- - 1.注册驱动
-
-```java
-DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-```
-
- - 2.建立连接
-
-```java
-// DriverManager.getConnection("jdbc:mysql://localhost/test?user=SIHAI&password=SIHAI");
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${org-slf4j.version}</version>
+    </dependency>
  
-// 2. 建立连接 参数一： 协议 + 访问的数据库 ， 参数二： 用户名 ， 参数三： 密码。
+    <!-- https://mvnrepository.com/artifact/junit/junit -->
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+**`JDBCUtil.java`**
+
+**MySQL URL Parameter**
+
+ - **`logger=Slf4JLogger`**
  
-conn = DriverManager.getConnection("jdbc:mysql://localhost/student", "root", "root");
-```
-
- - 3.创建 Statement
-
-```java
-// 3. 创建statement ， 跟数据库打交道，一定需要这个对象
+  指定 MySQL 驱动使用的日志框架
  
-st = conn.createStatement();
-```
-
- - 4.执行 SQL ，得到  ResultSet
-
-```java
-// 4. 执行查询 ， 得到结果集
+ - **`profileSQL=true`**
  
-String sql = "select * from t_stu";
+  配置输出执行的 SQL 语句
  
-rs = st.executeQuery(sql);
-```
+ - **`rewriteBatchedStatements=true`**
+ 
+  配置对批处理语句执行的优化
+  
+ **logger=Slf4JLogger&profileSQL=true&rewriteBatchedStatements=true**
 
- - 5.遍历结果集
-
-```java
-// 5. 遍历查询每一条记录
-
-while(rs.next()) {
-    int id = rs.getInt("id");
-    String name = rs.getString("name");
-    int age = rs.getInt("age");
-    System.out.println("id = " + id + ", name=" + name + ", age=" + age); // "
-}
-```
-
- - 6.释放资源
+**完整 URL**
 
 ```java
-if(rs != null) {
-  try {
-    rs.close();
-  } catch (SQLException e) {
-  } // ignore
-  rs = null;
-}
+// MySQL URL 
+
+jdbc:mysql://localhost:3306/loh?logger=Slf4JLogger&profileSQL=true&rewriteBatchedStatements=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull
+
+// OR
+
+jdbc:mysql://localhost:3306/loh?logger=com.mysql.jdbc.log.Log4JLogger&profileSQL=true&rewriteBatchedStatements=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull
 ```
 
-##### 六、JDBC 工具类构建
+##### 注意事项
 
- - 1.资源释放工作的整合
+**批处理语句执行完成后，记得清除批出理参数以及批处理**
 
 ```java
+ps.clearParameters();
+ps.clearBatch();
+```
+
+**在使用连接池时，如果关闭了自动事务提交记得将自动提交事务开启**
+
+```java
+conn.setAutoCommit(true);
+```
+
+```java
+package science.mrcuijt.loh.util;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+import org.apache.log4j.Logger;
+
 /**
- * 释放资源
- * 
- * @param conn
- * @param st
- * @param rs
- */
-public static void release(Connection conn, Statement st, ResultSet rs) {
-    closeRs(rs);
-    closeSt(st);
-    closeConn(conn);
-}
-
-private static void closeRs(ResultSet rs) {
-    try {
-        if (rs != null) {
-            rs.close();
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    } finally {
-        rs = null;
-    }
-}
- 
-private static void closeSt(Statement st) {
-    try {
-        if (st != null) {
-            st.close();
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    } finally {
-        st = null;
-    }
-}
-
-private static void closeConn(Connection conn) {
-    try {
-        if (conn != null) {
-            conn.close();
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    } finally {
-        conn = null;
-    }
-}
-```
-
- - 2.驱动防二次注册
-
-```java
-/**
- * 获取连接对象
+ * @author Administrator
  *
- * @return
  */
-public static Connection getConn() {
-    Connection conn = null;
-    try {
-        Class.forName(driverClass);
-        // 静态代码块 ---> 类加载了，就执行。 java.sql.DriverManager.registerDriver(new Driver());
-        // DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-        // DriverManager.getConnection("jdbc:mysql://localhost/test?user=monty&password=greatsqldb");
-        // 2. 建立连接 参数一： 协议 + 访问的数据库 ， 参数二： 用户名 ， 参数三： 密码。
-        conn = DriverManager.getConnection(url, name, password);
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return conn;
-}
-```
-
- - 3.使用 properties 配置文件
-
-在 src 底下声明一个文件 xxx.properties ，里面的内容如下：
-
-```python
-driverClass=com.mysql.jdbc.Driver
-url=jdbc:mysql://localhost/student
-name=root
-password=root
-```
-
-在工具类里面，使用静态代码块，读取属性
-
-```java
-static {
-    try {
-        // 1. 创建一个属性配置对象
-        Properties properties = new Properties();
-        InputStream is = new FileInputStream("jdbc.properties"); // 对应文件位于工程根目录
-        // 使用类加载器，去读取src底下的资源文件。 后面在servlet //对应文件位于src目录底下
-        // InputStream is =
-        // JDBCUtil.class.getClassLoader().getResourceAsStream("jdbc.properties");
-        // 导入输入流。
-        properties.load(is);
-        // 读取属性
-        driverClass = properties.getProperty("driverClass");
-        url = properties.getProperty("url");
-        name = properties.getProperty("name");
-        password = properties.getProperty("password");
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-```
-
-源代码如下：
-
-```java
 public class JDBCUtil {
 
-    static String driverClass = null;
-    static String url = null;
-    static String name = null;
-    static String password= null;
+    private static final Logger LOG = Logger.getLogger(JDBCUtil.class);
 
-    static{
+    private static final String DRVIER = "com.mysql.jdbc.Driver";
+
+    // Oracle 数据库连接 URL: jdbc:oracle:thin:@localhost:1521:orcl
+    // MySQL  数据库连接 URL:
+    private static final String URL = "jdbc:mysql://localhost:3306/loh?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull";
+
+    private static final String USER = "loh";
+
+    private static final String PASSWORD = "loh";
+
+    static {
+        LOG.info("加载 MySQL JDBC 驱动");
         try {
-            //1. 创建一个属性配置对象
-            Properties properties = new Properties();
-            InputStream is = new FileInputStream("jdbc.properties");
-            //使用类加载器，去读取src底下的资源文件。 后面在servlet
-//            InputStream is = JDBCUtil.class.getClassLoader().getResourceAsStream("jdbc.properties");
-            //导入输入流。
-            properties.load(is);
-            //读取属性
-            driverClass = properties.getProperty("driverClass");
-            url = properties.getProperty("url");
-            name = properties.getProperty("name");
-            password = properties.getProperty("password");
+            Class.forName(DRVIER);
         } catch (Exception e) {
+            LOG.info("加载 MySQL JDBC 驱动出现异常", e);
             e.printStackTrace();
         }
     }
 
     /**
-     * 获取连接对象
+     * 获取数据库连接
+     * 
+     * 
+     * 开发时间：2016-6-16 下午8:41:26
+     * 
+     * @author：崔旧涛
      * @return
      */
-    public static Connection getConn(){
-        Connection conn = null;
+    public static Connection getConnection() {
+
+        LOG.info("获取数据库 Connection 连接");
+
         try {
-            Class.forName(driverClass);
-            //静态代码块 ---> 类加载了，就执行。 java.sql.DriverManager.registerDriver(new Driver());
-            //DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-            //DriverManager.getConnection("jdbc:mysql://localhost/test?user=monty&password=greatsqldb");
-            //2. 建立连接 参数一： 协议 + 访问的数据库 ， 参数二： 用户名 ， 参数三： 密码。
-            conn = DriverManager.getConnection(url, name, password);
-        } catch (Exception e) {
+            // 返回函数值
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (SQLException e) {
+            LOG.error("获取数据库 Connection 连接异常", e);
             e.printStackTrace();
         }
-        return conn;
+
+        // 返回函数值
+        return null;
     }
 
     /**
-     * 释放资源
-     * @param conn
-     * @param st
-     * @param rs
+     * 关闭数据库连接
+     * 
+     * 
+     * 开发时间：2016-6-16 下午8:43:19
+     * 
+     * @author：崔旧涛
      */
-    public static void release(Connection conn , Statement st , ResultSet rs){
-        closeRs(rs);
-        closeSt(st);
-        closeConn(conn);
-    }
+    public static void closeAll(ResultSet rs, PreparedStatement ps, Connection conn) {
 
-    private static void closeRs(ResultSet rs){
         try {
-            if(rs != null){
-                rs.close();
-            }
+            if (rs != null) rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally{
-            rs = null;
+        }
+
+        try {
+            if (ps != null) ps.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    private static void closeSt(Statement st){
+    /**
+     * 关闭数据库连接
+     * 
+     * 
+     * 开发时间：2016-6-16 下午8:43:19
+     * 
+     * @author：崔旧涛
+     */
+    public static void closeAll(ResultSet rs, Statement stmt, Connection conn) {
+
         try {
-            if(st != null){
-                st.close();
-            }
+            if (rs != null) rs.close();
         } catch (SQLException e) {
             e.printStackTrace();
-        }finally{
-            st = null;
+        }
+
+        try {
+            if (stmt != null) stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            if (conn != null) conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    private static void closeConn(Connection conn){
+    public static void truncateTable(String sql) {
+
+        Connection conn = getConnection();
+
+        Statement stmt = null;
+
         try {
-            if(conn != null){
-                conn.close();
-            }
+            conn.setAutoCommit(false);
+            stmt = conn.createStatement();
+            stmt.execute(sql);
+            conn.commit();
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
             e.printStackTrace();
-        }finally{
-            conn = null;
+        }finally {
+            JDBCUtil.closeAll(null, stmt, conn);
         }
     }
 }
 ```
 
-##### 七、数据库的 CRUD
+**`LohDaoImpl.java`**
 
- - INSERT 操作
-
-```sql
-INSERT INTO t_stu (NAME , age) VALUES ('wangqiang',28)
+```java
+package science.mrcuijt.loh.dao.impl;
  
-INSERT INTO t_stu VALUES (NULL,'wangqiang2',28)
-```
-
-```java
-// 1. 获取连接对象
-conn = JDBCUtil.getConn();
-// 2. 根据连接对象，得到 statement
-st = conn.createStatement();
-//3. 执行添加
-String sql = "insert into t_stu values(null , 'aobama' , 59)";
-//影响的行数， ，如果大于0 表明操作成功。 否则失败
-int result = st.executeUpdate(sql);
-if(result >0 ){
-    System.out.println("添加成功");
-}else{
-    System.out.println("添加失败");
-}
-```
-
- - DELETE 操作
-
-```sql
-DELETE FROM t_stu WHERE id = 6
-```
-
-```java
-// 1. 获取连接对象
-conn = JDBCUtil.getConn();
-// 2. 根据连接对象，得到statement
-st = conn.createStatement();
-//3. 执行添加
-String sql = "delete from t_stu where name='aobama'";
-//影响的行数， ，如果大于0 表明操作成功。 否则失败
-int result = st.executeUpdate(sql);
-if(result >0 ){
-    System.out.println("删除成功");
-}else{
-    System.out.println("删除失败");
-}
-```
-
- - Query 操作
-
-```java
-SELECT * FROM t_stu
-```
-
-```java
-// 1. 获取连接对象
-conn = JDBCUtil.getConn();
-// 2. 根据连接对象，得到statement
-st = conn.createStatement();
-// 3. 执行sql语句，返回ResultSet
-String sql = "select * from t_stu";
-rs = st.executeQuery(sql);
-// 4. 遍历结果集
-while (rs.next()) {
-    String name = rs.getString("name");
-    int age = rs.getInt("age");
-    System.out.println(name + "   " + age);
-}
-```
-
- - UPDATE 操作
-
-```java
-// 1. 获取连接对象
-conn = JDBCUtil.getConn();
-// 2. 根据连接对象，得到statement
-st = conn.createStatement();
-//3. 执行添加
-String sql = "update t_stu set age = 26 where name ='qyq'";
-//影响的行数， ，如果大于0 表明操作成功。 否则失败
-int result = st.executeUpdate(sql);
-if(result >0 ){
-    System.out.println("更新成功");
-} else {
-    System.out.println("更新失败");
-}
-```
-
-##### 八、使用单元测试，测试代码
-
- 1. 定义一个类， TestXXX , 里面定义方法 testXXX.
-
- 这个命名不一定需要这样，但是这样的命名更容易懂得测试的意思，所以建议命名见名知意。
-
- 2. 添加junit的支持。
-
- 右键工程 --- add Library --- Junit --- Junit4
-
- 3. 在方法的上面加上注解 ， 其实就是一个标记。
-
-```java
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
+ 
+import org.apache.log4j.Logger;
+ 
+import science.mrcuijt.loh.dao.LohDao;
+import science.mrcuijt.loh.entity.LoginInfo;
+import science.mrcuijt.loh.entity.UserInfo;
+import science.mrcuijt.loh.util.JDBCUtil;
+ 
 /**
- * 使用junit执行单元测试
+ * @author Administrator
+ *
  */
-public class TestDemo {
-
-    @Test
-    public void testQuery() {
-        // 查询
-        Connection conn = null;
-        Statement st = null;
-        ResultSet rs = null;
-        try {
-            // 1. 获取连接对象
-            conn = JDBCUtil.getConn();
-            // 2. 根据连接对象，得到statement
-            st = conn.createStatement();
-            // 3. 执行sql语句，返回ResultSet
-            String sql = "select * from t_stu";
-            rs = st.executeQuery(sql);
-            // 4. 遍历结果集
-            while (rs.next()) {
-                String name = rs.getString("name");
-                int age = rs.getInt("age");
-                System.out.println(name + "   " + age);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            JDBCUtil.release(conn, st, rs);
-        }
-    }
-
-    @Test
-    public void testInsert(){
-        // 查询
-        Connection conn = null;
-        Statement st = null;
-        try {
-            // 1. 获取连接对象
-            conn = JDBCUtil.getConn();
-            // 2. 根据连接对象，得到statement
-            st = conn.createStatement();
-            //3. 执行添加
-            String sql = "insert into t_stu values(null , 'aobama' , 59)";
-            //影响的行数， ，如果大于0 表明操作成功。 否则失败
-            int result = st.executeUpdate(sql);
-            if(result >0 ){
-                System.out.println("添加成功");
-            }else{
-                System.out.println("添加失败");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }finally{
-            JDBCUtil.release(conn, st);
-        }
-    }
-
-    @Test
-    public void testDelete(){
-        // 查询
-        Connection conn = null;
-        Statement st = null;
-        try {
-            // 1. 获取连接对象
-            conn = JDBCUtil.getConn();
-            // 2. 根据连接对象，得到statement
-            st = conn.createStatement();
-            //3. 执行添加
-            String sql = "delete from t_stu where name='aobama'";
-            //影响的行数， ，如果大于0 表明操作成功。 否则失败
-            int result = st.executeUpdate(sql);
-            if(result >0 ){
-                System.out.println("删除成功");
-            }else{
-                System.out.println("删除失败");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }finally{
-            JDBCUtil.release(conn, st);
-        }
-    }
-
-    @Test
-    public void testUpdate(){
-        // 查询
-        Connection conn = null;
-        Statement st = null;
-        try {
-            // 1. 获取连接对象
-            conn = JDBCUtil.getConn();
-            // 2. 根据连接对象，得到statement
-            st = conn.createStatement();
-            //3. 执行添加
-            String sql = "update t_stu set age = 26 where name ='qyq'";
-            //影响的行数， ，如果大于0 表明操作成功。 否则失败
-            int result = st.executeUpdate(sql);
-            if(result >0 ){
-                System.out.println("更新成功");
-            }else{
-                System.out.println("更新失败");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }finally{
-            JDBCUtil.release(conn, st);
-        }
-    }
-}
-```
-
-##### 九、Dao 模式
-
-Data Access Object 数据访问对象
-
-DAO(Data Access Object) 数据访问对象是一个面向对象的数据库接口，它显露了 Microsoft Jet 数据库引擎（由 Microsoft Access 所使用），并允许 Visual Basic 开发者通过 ODBC 像直接连接到其他数据库一样，直接连接到 Access 表。DAO 最适用于单系统应用程序或小范围本地分布使用。
-
- - 1.新建一个 Dao 的接口， 里面声明数据库访问规则
-
-```java
-/**
- * 定义操作数据库的方法
- */
-public interface UserDao {
+public class LohDaoImpl implements LohDao {
+ 
+    private static final Logger LOG = Logger.getLogger(LohDaoImpl.class);
+ 
     /**
-     * 查询所有
+     * 保存用户信息和登录信息的方法
+     * 
+     * @param userInfo
+     * @param loginInfo
+     * @return
      */
-    void findAll();
-}
-```
-
- - 2.新建一个 Dao 的实现类，具体实现早前定义的规则
-
-```java
-public class UserDaoImpl implements UserDao {
     @Override
-    public void findAll() {
-        Connection conn = null;
-        Statement st = null;
+    public boolean saveUserInfoAndLoginInfo(UserInfo userInfo, LoginInfo loginInfo) {
+ 
+        boolean result = false;
+ 
+        // 添加用户信息表的 SQL
+        StringBuffer strbAddUserInfoSQL = new StringBuffer();
+        strbAddUserInfoSQL.append(" INSERT INTO user_info ( ");
+        strbAddUserInfoSQL.append(" gmt_create, ");
+        strbAddUserInfoSQL.append(" gmt_modified, ");
+        strbAddUserInfoSQL.append(" user_name, ");
+        strbAddUserInfoSQL.append(" born_date, ");
+        strbAddUserInfoSQL.append(" region_info_id, ");
+        strbAddUserInfoSQL.append(" cell_phone, ");
+        strbAddUserInfoSQL.append(" detailed_information ");
+        strbAddUserInfoSQL.append(" ) ");
+        strbAddUserInfoSQL.append(" VALUES ( ? , ? , ? , ? , ? , ? , ? ) ");
+ 
+        String addUserInfoSQL = strbAddUserInfoSQL.toString();
+ 
+        // 添加登录信息表的 SQL
+        StringBuffer strbAddLoginInfoSQL = new StringBuffer();
+        strbAddLoginInfoSQL.append(" INSERT INTO login_info ( ");
+        strbAddLoginInfoSQL.append(" gmt_create ,");
+        strbAddLoginInfoSQL.append(" gmt_modified ,");
+        strbAddLoginInfoSQL.append(" login_account , ");
+        strbAddLoginInfoSQL.append(" login_password ,");
+        strbAddLoginInfoSQL.append(" user_info_id , ");
+        strbAddLoginInfoSQL.append(" current_login_time , ");
+        strbAddLoginInfoSQL.append(" last_login_time , ");
+        strbAddLoginInfoSQL.append(" login_ip ");
+        strbAddLoginInfoSQL.append(" ) ");
+        strbAddLoginInfoSQL.append(" VALUES ( ? , ? , ? , ? , ? , ? , ? , ? ) ");
+ 
+        String addLoginInfoSQL = strbAddLoginInfoSQL.toString();
+ 
+        Connection conn = JDBCUtil.getConnection();
+        PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            // 1. 获取连接对象
-            conn = JDBCUtil.getConn();
-            // 2. 创建 statement 对象
-            st = conn.createStatement();
-            String sql = "select * from t_user";
-            rs = st.executeQuery(sql);
-            while(rs.next()){
-                String userName = rs.getString("username");
-                String password = rs.getString("password");
-                System.out.println(userName+"="+password);
+             // 设置自动提交 commit 为 false 。相当于 beginTransaction
+            conn.setAutoCommit(false); 
+ 
+            // MySQL 驱动包版本升级到 5.1.17 之后获取自动增长的主键时需要在创建 PrepareStatement 对象是，添加 PreparedStatement.RETURN_GENERATED_KEYS 参数 
+            ps = conn.prepareStatement(addUserInfoSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+ 
+            ps.setTimestamp(1, userInfo.getGmtCreate() != null ? new Timestamp(userInfo.getGmtCreate().getTime()) : null);
+            ps.setTimestamp(2, userInfo.getGmtModified() != null ? new Timestamp(userInfo.getGmtModified().getTime()) : null);
+            ps.setString(3, userInfo.getUserName());
+            ps.setDate(4, userInfo.getBornDate() != null ? new java.sql.Date(userInfo.getBornDate().getTime()) : null);
+            if (userInfo.getRegionInfoId() == null || userInfo.getRegionInfoId() <= 0) {
+                ps.setNull(5, Types.NULL);
+            } else {
+                ps.setInt(5, userInfo.getRegionInfoId());
             }
-        } catch (Exception e) {
+            ps.setString(6, userInfo.getCellPhone());
+            ps.setString(7, userInfo.getDetailedInformation());
+ 
+            Integer addUserInfoResult = ps.executeUpdate();
+ 
+            if (addUserInfoResult > 0) {
+ 
+                // 查询最后一条数据库生成的 id
+                rs = ps.getGeneratedKeys();
+ 
+                while (rs.next()) {
+                    userInfo.setUserInfoId(rs.getInt(1));
+                }
+ 
+                if (userInfo.getUserInfoId() != null && userInfo.getUserInfoId() > 0) {
+ 
+                    // 设置用户 ID
+                    loginInfo.setUserInfoId(userInfo.getUserInfoId());
+ 
+                    ps = conn.prepareStatement(addLoginInfoSQL, PreparedStatement.RETURN_GENERATED_KEYS);
+ 
+                    ps.setTimestamp(1, loginInfo.getGmtCreate() != null ? new Timestamp(loginInfo.getGmtCreate().getTime()) : null);
+                    ps.setTimestamp(2, loginInfo.getGmtModified() != null ? new Timestamp(loginInfo.getGmtModified().getTime()) : null);
+                    ps.setString(3, loginInfo.getLoginAccount());
+                    ps.setString(4, loginInfo.getLoginPassword());
+                    ps.setInt(5, loginInfo.getUserInfoId());
+                    ps.setTimestamp(6, loginInfo.getCurrentLoginTime() != null ? new Timestamp(loginInfo.getCurrentLoginTime().getTime()) : null);
+                    ps.setTimestamp(7, loginInfo.getLastLoginTime() != null ? new Timestamp(loginInfo.getLastLoginTime().getTime()) : null);
+                    ps.setString(8, loginInfo.getLoginIp());
+ 
+                    Integer addLoginInfoResult = ps.executeUpdate();
+ 
+                    if (addLoginInfoResult > 0) {
+ 
+                        // 查询最后一条数据库生成的 id
+                        rs = ps.getGeneratedKeys();
+ 
+                        while (rs.next()) {
+                            loginInfo.setLoginInfoId(rs.getInt(1));
+                        }
+ 
+                        if (loginInfo.getLoginInfoId() == null && loginInfo.getLoginInfoId() <= 0) {
+                            // 查询最后一条添加记录出错，回滚事务
+                            LOG.debug("查询最后一条添加记录出错，回滚事务");
+                            conn.rollback();
+                            return false;
+                        }
+ 
+                        // 提交事务，保存到数据
+                        conn.commit();
+ 
+                        // 设置操作结果为 true
+                        result = true;
+ 
+                    } else {
+                        // 添加用户登录信息记录出错，回滚事务
+                        LOG.debug("添加用户登录信息记录出错，回滚事务");
+                        conn.rollback();
+                        return false;
+                    }
+ 
+                } else {
+                    // 查询最后一条添加记录出错，回滚事务
+                    LOG.debug("查询最后一条添加记录出错，回滚事务");
+                    conn.rollback();
+                    return false;
+                }
+ 
+            } else {
+                // 添加用户信息记录出错，回滚事务
+                LOG.debug("添加用户信息记录出错，回滚事务");
+                conn.rollback();
+                return false;
+            }
+ 
+        } catch (SQLException e) {
+ 
+            LOG.error("science.mrcuijt.loh.util.JDBCUtil.saveUserInfoAndLoginInfo(UserInfo, LoginInfo) error", e);
+ 
+            try {
+ 
+                conn.rollback();
+ 
+            } catch (SQLException e1) {
+ 
+                e1.printStackTrace();
+            }
+ 
+            e.printStackTrace();
+ 
+        } finally {
+            JDBCUtil.closeAll(rs, ps, conn);
+        }
+ 
+        return result;
+    }
+ 
+    /**
+     * 找寻登录信息的方法
+     * 
+     * @param loginName
+     * @param loginPassword
+     * @return
+     */
+    @Override
+    public LoginInfo findLoginInfo(String loginName, String loginPassword) {
+ 
+        LoginInfo loginInfo = null;
+ 
+        StringBuffer strbFindLoginInfo = new StringBuffer();
+        strbFindLoginInfo.append(" SELECT ");
+        strbFindLoginInfo.append(" login_info_id ,");
+        strbFindLoginInfo.append(" gmt_create ,");
+        strbFindLoginInfo.append(" gmt_modified ,");
+        strbFindLoginInfo.append(" login_account , ");
+        strbFindLoginInfo.append(" login_password ,");
+        strbFindLoginInfo.append(" user_info_id , ");
+        strbFindLoginInfo.append(" current_login_time , ");
+        strbFindLoginInfo.append(" last_login_time , ");
+        strbFindLoginInfo.append(" login_ip ");
+        strbFindLoginInfo.append(" FROM login_info ");
+        strbFindLoginInfo.append(" WHERE login_account = ? ");
+        strbFindLoginInfo.append(" AND login_password = ? ");
+ 
+        String findLoginInfoSQL = strbFindLoginInfo.toString();
+ 
+        Connection conn = JDBCUtil.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+ 
+            ps = conn.prepareStatement(findLoginInfoSQL);
+ 
+            ps.setString(1, loginName);
+            ps.setString(2, loginPassword);
+ 
+            rs = ps.executeQuery();
+ 
+            while (rs.next()) {
+ 
+                loginInfo = convertResultSetToLoginInfo(rs);
+                ;
+ 
+            }
+ 
+        } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            JDBCUtil.release(conn, st, rs);
+            JDBCUtil.closeAll(rs, ps, conn);
         }
+ 
+        return loginInfo;
+    }
+ 
+    /**
+     * 
+     * 找寻用户信息的方法
+     * 
+     * @param userInfoId
+     * @return
+     */
+    @Override
+    public UserInfo findUserInfoByPrimaryKey(Integer userInfoId) {
+ 
+        UserInfo userInfo = null;
+ 
+        StringBuffer strbFindUserInfo = new StringBuffer();
+        strbFindUserInfo.append(" SELECT ");
+        strbFindUserInfo.append(" user_info_id , ");
+        strbFindUserInfo.append(" gmt_create, ");
+        strbFindUserInfo.append(" gmt_modified, ");
+        strbFindUserInfo.append(" user_name, ");
+        strbFindUserInfo.append(" born_date, ");
+        strbFindUserInfo.append(" region_info_id, ");
+        strbFindUserInfo.append(" cell_phone, ");
+        strbFindUserInfo.append(" detailed_information ");
+        strbFindUserInfo.append(" FROM user_info ");
+        strbFindUserInfo.append(" WHERE user_info_id = ? ");
+ 
+        String findUserInfoSQL = strbFindUserInfo.toString();
+ 
+        Connection conn = JDBCUtil.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+ 
+            ps = conn.prepareStatement(findUserInfoSQL);
+ 
+            ps.setInt(1, userInfoId);
+ 
+            rs = ps.executeQuery();
+ 
+            while (rs.next()) {
+ 
+                userInfo = new UserInfo();
+ 
+                userInfo.setUserInfoId(rs.getInt("user_info_id"));
+                userInfo.setGmtCreate(rs.getTimestamp("gmt_create"));
+                userInfo.setGmtModified(rs.getTimestamp("gmt_modified"));
+                userInfo.setUserName(rs.getString("user_name"));
+                userInfo.setBornDate(rs.getDate("born_date"));
+                userInfo.setRegionInfoId(rs.getInt("region_info_id"));
+                userInfo.setCellPhone(rs.getString("cell_phone"));
+                userInfo.setDetailedInformation(rs.getString("detailed_information"));
+            }
+ 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtil.closeAll(rs, ps, conn);
+        }
+ 
+        return userInfo;
+    }
+ 
+    /**
+     * 根据 loginName 找寻用户信息的方法
+     * 
+     * @param loginName
+     * @return
+     */
+    @Override
+    public LoginInfo findLoginInfoByLoginName(String loginName) {
+ 
+        LoginInfo loginInfo = null;
+ 
+        StringBuffer strbFindLoginInfo = new StringBuffer();
+        strbFindLoginInfo.append(" SELECT  ");
+        strbFindLoginInfo.append(" login_info_id ,");
+        strbFindLoginInfo.append(" gmt_create ,");
+        strbFindLoginInfo.append(" gmt_modified ,");
+        strbFindLoginInfo.append(" login_account , ");
+        strbFindLoginInfo.append(" login_password ,");
+        strbFindLoginInfo.append(" user_info_id , ");
+        strbFindLoginInfo.append(" current_login_time , ");
+        strbFindLoginInfo.append(" last_login_time , ");
+        strbFindLoginInfo.append(" login_ip ");
+        strbFindLoginInfo.append(" FROM login_info ");
+        strbFindLoginInfo.append(" WHERE login_account = ? ");
+ 
+        String findLoginInfoSQL = strbFindLoginInfo.toString();
+ 
+        Connection conn = JDBCUtil.getConnection();
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+ 
+            ps = conn.prepareStatement(findLoginInfoSQL);
+ 
+            ps.setString(1, loginName);
+ 
+            rs = ps.executeQuery();
+ 
+            while (rs.next()) {
+ 
+                loginInfo = convertResultSetToLoginInfo(rs);
+ 
+            }
+ 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtil.closeAll(rs, ps, conn);
+        }
+ 
+        return loginInfo;
+    }
+ 
+    /**
+     * 转换 ResultSet 为 LoginInfo 的方法
+     * 
+     * @param rs
+     * @return
+     * @throws SQLException
+     */
+    private static LoginInfo convertResultSetToLoginInfo(ResultSet rs) throws SQLException {
+ 
+        LoginInfo loginInfo = new LoginInfo();
+ 
+        loginInfo.setLoginInfoId(rs.getInt("login_info_id"));
+        loginInfo.setGmtCreate(rs.getTimestamp("gmt_create"));
+        loginInfo.setGmtModified(rs.getTimestamp("gmt_modified"));
+        loginInfo.setLoginAccount(rs.getString("login_account"));
+        loginInfo.setLoginPassword(rs.getString("login_password"));
+        loginInfo.setUserInfoId(rs.getInt("user_info_id"));
+        loginInfo.setCurrentLoginTime(rs.getTimestamp("current_login_time"));
+        loginInfo.setLastLoginTime(rs.getTimestamp("last_login_time"));
+        loginInfo.setLoginIp(rs.getString("login_ip"));
+ 
+        return loginInfo;
+    }
+ 
+    /**
+     * 更新 LoginInfo 的方法
+     * 
+     * @param loginInfo
+     * @return
+     */
+    @Override
+    public boolean updateLoginInfo(LoginInfo loginInfo) {
+ 
+        boolean updateResult = false;
+ 
+        StringBuffer strbUpdateLoginInfo = new StringBuffer();
+ 
+        strbUpdateLoginInfo.append(" UPDATE ");
+        strbUpdateLoginInfo.append(" login_info ");
+        strbUpdateLoginInfo.append(" SET ");
+        strbUpdateLoginInfo.append(" gmt_modified = ? , ");
+        strbUpdateLoginInfo.append(" login_account = ? , ");
+        strbUpdateLoginInfo.append(" login_password = ? , ");
+        strbUpdateLoginInfo.append(" user_info_id = ? , ");
+        strbUpdateLoginInfo.append(" current_login_time = ? , ");
+        strbUpdateLoginInfo.append(" last_login_time = ? , ");
+        strbUpdateLoginInfo.append(" login_ip = ? ");
+        strbUpdateLoginInfo.append(" WHERE ");
+        strbUpdateLoginInfo.append(" login_info_id = ? ");
+ 
+        String strbUpdateLoginInfoSQL = strbUpdateLoginInfo.toString();
+ 
+        Connection conn = JDBCUtil.getConnection();
+        PreparedStatement ps = null;
+ 
+        try {
+ 
+            // 设置自动提交 commit 为 false 。相当于 beginTransaction
+            conn.setAutoCommit(false);
+ 
+            ps = conn.prepareStatement(strbUpdateLoginInfoSQL);
+ 
+            ps.setTimestamp(1, new Timestamp(loginInfo.getGmtModified().getTime()));
+            ps.setString(2, loginInfo.getLoginAccount());
+            ps.setString(3, loginInfo.getLoginPassword());
+            ps.setInt(4, loginInfo.getUserInfoId());
+            ps.setTimestamp(5, new Timestamp(loginInfo.getCurrentLoginTime().getTime()));
+            if(loginInfo.getLastLoginTime() == null) {
+                ps.setNull(6, Types.TIMESTAMP);
+            }else {
+                ps.setTimestamp(6, loginInfo.getLastLoginTime() == null ? null : new Timestamp(loginInfo.getLastLoginTime().getTime()));
+            }
+            ps.setString(7, loginInfo.getLoginIp());
+            ps.setInt(8, loginInfo.getLoginInfoId());
+ 
+            int updageResultCount = ps.executeUpdate();
+ 
+            if (updageResultCount > 0) {
+                conn.commit();
+                updateResult = true;
+            }
+ 
+        } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+            e.printStackTrace();
+        } finally {
+            JDBCUtil.closeAll(null, ps, conn);
+        }
+ 
+        // 返回函数值
+        return updateResult;
     }
 }
 ```
 
-- 3.直接使用实现
+参考链接：
 
-```java
-@Test
-public void testFindAll(){
-    UserDao dao = new UserDaoImpl();
-    dao.findAll();
-}
-```
+ - <a href="https://forums.mysql.com/read.php?39,357808,357808#msg-357808" target="_blank">Enable Log4j for Mysql Connector 5.1.11</a>
 
-##### 十、Statement 安全问题
+ - <a href="https://forums.mysql.com/read.php?39,238348,238348#msg-238348" target="_blank">Connector/J 5.1.7 not logging using Log4J</a>
 
- - 1.Statement 执行 ，其实是拼接 SQL 语句的。先拼接 SQL 语句，然后在一起执行。
+ - <a href="https://dev.mysql.com/doc/connector-j/5.1/en/connector-j-logging-slf4j.html" target="_blank">Chapter 10 Using Logging Frameworks with SLF4J</a>
 
-```java
-String sql = "select * from t_user where username='"+ username  +"' and password='"+ password +"'";
-UserDao dao = new UserDaoImpl();
-dao.login("admin", "100234khsdf88' or '1=1");
-// SELECT * FROM t_user WHERE username='admin' AND PASSWORD='100234khsdf88' or '1=1'
-// 前面先拼接 SQL 语句， 如果变量里面带有了 数据库的关键字，那么一并认为是关键字。 不认为是普通的字符串。
-rs = st.executeQuery(sql);
-```
+ - <a href="https://stackoverflow.com/questions/8199448/what-does-if-rs-next-mean" target="_blank">What does “if (rs.next())” mean?</a>
 
-PrepareStatement
+ - <a href="https://docs.oracle.com/javase/6/docs/api/java/sql/ResultSet.html#next%28%29" target="_blank">ResultSet#next()</a>
 
-该对象就是替换前面的 statement 对象。
-
-相比较以前的 statement， 预先处理给定的 SQL 语句，对其执行语法检查。 在 SQL 语句里面使用 ? 占位符来替代后续要传递进来的变量。 后面进来的变量值，将会被看成是字符串，不会产生任何的关键字。
-
-```java
-String sql = "insert into t_user values(null , ? , ?)";
-ps = conn.prepareStatement(sql);
-// 给占位符赋值 从左到右数过来，1 代表第一个问号， 永远你是 1 开始。
-ps.setString(1, userName);
-ps.setString(2, password);
-```
-
-PreparedStatement 与 Statement 比较
-
- - (1) 使用 PreparedStatement，代码的可读性和可维护性比 Statement 高。
-
- - (2) PreparedStatement 能最大可能提高性能。
-
- DBServer 会对预编译语句提供性能优化。因为预编译语句有可能被重复调用，所以语句在被 DBServer 的编译器编译后的执行代码被缓存下来，那么下次调用时只要是相同的预编译语句就不需要编译，只要将参数直接传入编译过的语句执行代码中就会得到执行。
-
- 在 Statement 语句中,即使是相同操作但因为数据内容不一样，所以整个语句本身不能匹配，没有缓存语句的意义。事实是没有数据库会对普通语句编译后的执行代码缓存。这样每执行一次都要对传入的语句编译一次。
-
- - (3) PreparedStatement 能保证安全性，但 Statement 有 SQL 注入等安全问题。
-
-##### 十一、数据库事务
-
- 1. 概述
-
- 在数据库中,所谓事务是指一组逻辑操作单元,使数据从一种状态变换到另一种状态。
-
- 为确保数据库中数据的一致性,数据的操纵应当是离散的成组的逻辑单元:当它全部完成时,数据的一致性可以保持,而当这个单元中的一部分操作失败,整个事务应全部视为错误,所有从起始点以后的操作应全部回退到开始状态。
-
- 事务的操作:先定义开始一个事务,然后对数据作修改操作,这时如果提交(COMMIT),这些修改就永久地保存下来,如果回退(ROLLBACK),数据库管理系统将放弃您所作的所有修改而回到开始事务时的状态。
-
- 2. 事务的 ACID 属性
-
-  2.1 **原子性（Atomicity）**
-
-     原子性是指事务是一个不可分割的工作单位，事务中的操作要么都发生，要么都不发生。
-
-  2.2 **一致性（Consistency）**
-
-     事务必须使数据库从一个一致性状态变换到另外一个一致性状态。(数据不被破坏)
-
-  2.3 **隔离性（Isolation）**
-
-      事务的隔离性是指一个事务的执行不能被其他事务干扰，即一个事务内部的操作及使用的数据对并发的其他事务是隔离的，并发执行的各个事务之间不能互相干扰。
-
-  2.4 **持久性（Durability）**
-
-     持久性是指一个事务一旦被提交，它对数据库中数据的改变就是永久性的，接下来的其他操作和数据库故障不应该对其有任何影响。
-
- 3. JDBC 事务处理
-
- 在 JDBC 中，事务默认是自动提交的，每次执行一个 SQL 语句时，如果执行成功，就会向数据库自动提交，而不能回滚。
-
-为了让多个 SQL 语句作为一个事务执行，需调用 Connection 对象的 setAutoCommit(false); 以取消自动提交事务：
-
-```java
-conn.setAutoCommit(false);
-```
-
-在所有的 SQL 语句都成功执行后，调用 commit(); 方法提交事务
-
-```java
-conn.commit();
-```
-
-在出现异常时，调用 rollback(); 方法回滚事务，一般再 catch 模块中执行回滚操作。
-
-```java
-conn.rollback();
-```
-
-可以通过 Connection 的 getAutoCommit()方法来获得当前事务的提交方式。
-
-**注意：在MySQL中的数据库存储引擎 InnoDB 支持事务，MyISAM 不支持事务。**
-
-##### 十二、批量处理 JDBC 语句
-
- - 1.概述
-
- 当需要批量插入或者更新记录时。可以采用 Java 的批量更新机制，这一机制允许多条语句一次性提交给数据库批量处理。通常情况下比单独提交处理更有效率。
-
-JDBC的批量处理语句包括下面两个方法：
-
- - **addBatch(String)**
-
- 添加需要批量处理的 SQL 语句或是参数；
-
- - **executeBatch()**
-
- 执行批量处理语句；
-
-通常我们会遇到两种批量执行 SQL 语句的情况：
-
- - 多条 SQL 语句的批量处理；
-
- - 一个 SQL 语句的批量传参；  
-
- - 2.Statement 批量处理
-
-```java
-Statement sm = conn.createStatement();
-sm.addBatch(sql1);
-sm.addBatch(sql2);
-...
-//批量处理
-sm.executeBatch()
-//清除sm中积攒的参数列表
-sm.clearBatch();
-```
-
- - 3.PreparedStatement 批量传参
-
-```java
-PreparedStatement ps = conn.preparedStatement(sql);
-for(int i = 1;i < 100000; i++){
-    ps.setInt(1, i);
-    ps.setString(2, "name"+i);
-    ps.setString(3, "email"+i);
-    ps.addBatch();
-    if((i + 1) % 1000 == 0){
-        // 批量处理
-        ps.executeBatch();
-        // 清空 ps 中积攒的 SQL
-        ps.clearBatch();
-    }
-}
-```
-
-**注意：MySQL 不支持批量处理。**
-
-批量处理应该设置一个上限，当批量处理列表中的 SQL 累积到一定数量后，就应该执行，并在执行完成后，清空批量列表。
-
-一般在 Excel 导入数据的时候会用到批处理。
-
-##### 十三、使用 JDBC 处理元数据
-
- 1. 概述
-
- Java 通过 JDBC 获得连接以后，得到一个 Connection 对象，可以从这个对象获得有关数据库管理系统的各种信息，包括数据库中的各个表，表中的各个列，数据类型，触发器，存储过程等各方面的信息。根据这些信息，JDBC 可以访问一个实现事先并不了解的数据库。
-
- 获取这些信息的方法都是在 DatabaseMetaData 类的对象上实现的，而 DataBaseMetaData 对象是在 Connection 对象上获得的。
-
- 2. 获取数据库元数据
-
- DatabaseMetaData 类中提供了许多方法用于获得数据源的各种信息，通过这些方法可以非常详细的了解数据库的信息：
-
-  - **getURL()**
-
-     返回一个 String 类对象，代表数据库的 URL。
-
-  - **getUserName()**
-
-     返回连接当前数据库管理系统的用户名。
-
-  - **isReadOnly()**
-
-     返回一个boolean值，指示数据库是否只允许读操作。
-
-  - **getDatabaseProductName()**
-
-     返回数据库的产品名称。
-
-  - **getDatabaseProductVersion()**
-
-     返回数据库的版本号。
-
-  - **getDriverName()**
-
-     返回驱动驱动程序的名称。
-
-  - **getDriverVersion()**
-
-     返回驱动程序的版本号。
-
- 3. ResultSetMetaData
-
- 可用于获取关于 ResultSet 对象中列的类型和属性信息的对象：
-
-  - **getColumnName(int column)**
-
-     获取指定列的名称
-
-  - **getColumnCount()**
-
-     返回当前 ResultSet 对象中的列数。  
-
-  - **getColumnTypeName(int column)**
-
-     检索指定列的数据库特定的类型名称。  
-
-  - **getColumnDisplaySize(int column)**
-
-     指示指定列的最大标准宽度，以字符为单位。  
-
-  - **isNullable(int column)**
-
-     指示指定列中的值是否可以为 null。  
-
-  - **isAutoIncrement(int column)**
-
-     指示是否自动为指定列进行编号，这样这些列仍然是只读的。
+ - <a href="https://docs.oracle.com/javase/tutorial/jdbc/basics/prepared.html" target="_blank">Using Prepared Statements</a>
 	</textarea>
 </div>
 

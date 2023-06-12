@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>android-tools</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+```python
+https://androidsdkmanager.azurewebsites.net/SDKPlatform
+https://dl.google.com/android/repository/android-2.3.3_r02.zip
+https://dl.google.com/android/repository/android-3.0_r02.zip
+https://dl.google.com/android/repository/android-3.1_r03.zip
+https://dl.google.com/android/repository/android-3.2_r01.zip
+https://dl.google.com/android/repository/android-14_r04.zip
+https://dl.google.com/android/repository/android-15_r05.zip
+https://dl.google.com/android/repository/android-16_r05.zip
+https://dl.google.com/android/repository/android-17_r03.zip
+https://dl.google.com/android/repository/android-18_r03.zip
+https://dl.google.com/android/repository/android-19_r04.zip
+https://dl.google.com/android/repository/android-20_r02.zip
+https://dl.google.com/android/repository/android-21_r02.zip
+https://dl.google.com/android/repository/android-22_r02.zip
+https://dl.google.com/android/repository/platform-23_r03.zip
+https://dl.google.com/android/repository/platform-24_r02.zip
+https://dl.google.com/android/repository/platform-25_r03.zip
+https://dl.google.com/android/repository/platform-26_r02.zip
+https://dl.google.com/android/repository/platform-27_r03.zip
+https://dl.google.com/android/repository/platform-28_r06.zip
+https://dl.google.com/android/repository/platform-29_r01.zip
+https://dl.google.com/android/repository/platform-29_r03.zip
+https://dl.google.com/android/repository/platform-29_r04.zip
+https://dl.google.com/android/repository/platform-29_r05.zip
+https://dl.google.com/android/repository/platform-30_r01.zip
+https://dl.google.com/android/repository/platform-30_r03.zip
+https://dl.google.com/android/repository/android-2.1_r03.zip
+https://dl.google.com/android/repository/android-2.2_r03.zip
+https://dl.google.com/android/repository/android-2.3.1_r02.zip
+https://dl.google.com/android/repository/android-1.1_r1-linux.zip
+https://dl.google.com/android/repository/android-1.5_r04-linux.zip
+https://dl.google.com/android/repository/android-1.6_r03-linux.zip
+https://dl.google.com/android/repository/android-2.0_r01-linux.zip
+https://dl.google.com/android/repository/android-2.0.1_r01-linux.zip
+
+http://dl.google.com/android/repository/06319b1a74f3821c6f6150b611cffbc53c90720b.build-tools_r31-rc1-windows.zip
+
+http://dl.google.com/android/repository/build-tools_r27.0.3-windows.zip
+
+Checking the license for package Android SDK Build-Tools 29.0.2 in E:\Android\dev\sdk\android-sdk-windows\licenses
+License for package Android SDK Build-Tools 29.0.2 accepted.
+Preparing "Install Android SDK Build-Tools 29.0.2 (revision: 29.0.2)".
+"Install Android SDK Build-Tools 29.0.2 (revision: 29.0.2)" ready.
+Installing Android SDK Build-Tools 29.0.2 in E:\Android\dev\sdk\android-sdk-windows\build-tools\29.0.2
+"Install Android SDK Build-Tools 29.0.2 (revision: 29.0.2)" complete.
+"Install Android SDK Build-Tools 29.0.2 (revision: 29.0.2)" finished.
+Observed package id 'platforms;android-21' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-5.0.1' (Expected 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-21')
+Observed package id 'platforms;android-22' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-5.1.1' (Expected 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-22')
+Observed package id 'platforms;android-23' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-6.0' (Expected 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-23')
+Observed package id 'platforms;android-24' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-7.0' (Expected 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-24')
+Observed package id 'platforms;android-25' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-7.1.1' (Expected 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-25')
+Observed package id 'platforms;android-26' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-8.0.0' (Expected 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-26')
+Observed package id 'platforms;android-27' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-8.1.0' (Expected 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-27')
+Observed package id 'platforms;android-28' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-9' (Expected 'E:\Android\dev\sdk\android-sdk-windows\platforms\android-28')
+Observed package id 'system-images;android-14;default;armeabi-v7a' in inconsistent location 'E:\Android\dev\sdk\android-sdk-windows\system-images\android-14\armeabi-v7a' (Expected 'E:\Android\dev\sdk\android-sdk-windows\system-images\android-14\default\armeabi-v7a')
+
+
+
+Packages to install: 
+- Android SDK Platform 28 (platforms;android-28)
+- Android SDK Platform 27 (platforms;android-27)
+- Android SDK Platform 26 (platforms;android-26)
+
+Preparing "Install Android SDK Platform 28 (revision: 6)".
+Downloading http://dl.google.com/android/repository/platform-28_r06.zip
+"Install Android SDK Platform 28 (revision: 6)" ready.
+Preparing "Install Android SDK Platform 27 (revision: 3)".
+Downloading http://dl.google.com/android/repository/platform-27_r03.zip
+"Install Android SDK Platform 27 (revision: 3)" ready.
+Preparing "Install Android SDK Platform 26 (revision: 2)".
+Downloading http://dl.google.com/android/repository/platform-26_r02.zip
+"Install Android SDK Platform 26 (revision: 2)" ready.
+Installing Android SDK Platform 28 in E:\Android\dev\sdk\android-sdk-windows\platforms\android-28
+"Install Android SDK Platform 28 (revision: 6)" complete.
+"Install Android SDK Platform 28 (revision: 6)" finished.
+Installing Android SDK Platform 27 in E:\Android\dev\sdk\android-sdk-windows\platforms\android-27
+"Install Android SDK Platform 27 (revision: 3)" complete.
+"Install Android SDK Platform 27 (revision: 3)" finished.
+Installing Android SDK Platform 26 in E:\Android\dev\sdk\android-sdk-windows\platforms\android-26
+"Install Android SDK Platform 26 (revision: 2)" complete.
+"Install Android SDK Platform 26 (revision: 2)" finished.
+
+Packages to install: 
+- Android SDK Platform 29 (platforms;android-29)
+- Sources for Android 29 (sources;android-29)
+
+Preparing "Install Android SDK Platform 29 (revision: 5)".
+Downloading http://dl.google.com/android/repository/platform-29_r05.zip
+"Install Android SDK Platform 29 (revision: 5)" ready.
+Preparing "Install Sources for Android 29 (revision: 1)".
+Downloading http://dl.google.com/android/repository/sources-29_r01.zip
+"Install Sources for Android 29 (revision: 1)" ready.
+Installing Android SDK Platform 29 in E:\Android\dev\sdk\android-sdk-windows\platforms\android-29
+"Install Android SDK Platform 29 (revision: 5)" complete.
+"Install Android SDK Platform 29 (revision: 5)" finished.
+Installing Sources for Android 29 in E:\Android\dev\sdk\android-sdk-windows\sources\android-29
+"Install Sources for Android 29 (revision: 1)" complete.
+"Install Sources for Android 29 (revision: 1)" finished.
+
+
+Packages to install: 
+- Android SDK Build-Tools 28.0.3 (build-tools;28.0.3)
+
+Preparing "Install Android SDK Build-Tools 28.0.3 (revision: 28.0.3)".
+Downloading http://dl.google.com/android/repository/build-tools_r28.0.3-windows.zip
+```
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

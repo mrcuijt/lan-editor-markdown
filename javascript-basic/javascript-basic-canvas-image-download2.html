@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-canvas-image-download2</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-canvas-image-download2
+
+MAX 268850 2~20
+MAX 220980 10
+
+```js
+var $body = document.createElement("body");
+document.body = $body;
+var $wrapper = document.createElement("div");
+$wrapper.id = "wrapper";
+document.body.appendChild($wrapper);
+function loadScript(){
+  var $wrapper = document.getElementById("wrapper");
+  var $script = document.createElement("script");
+  $script.src = "https://127.0.0.1:8443/jquery.js";
+  $wrapper.appendChild($script);
+}
+loadScript();
+
+var basePath = "https://18comic.vip/media/photos/##/";
+//var basePath = "https://cdn-msp.18comic.org/media/photos/##/";
+function init(){
+  /* $btnOne */
+  var $btnOne = document.createElement("button");
+  $btnOne.id = "btnOne";
+  $btnOne.innerText = "First";
+
+  /* $btnPre */
+  var $btnPre = document.createElement("button");
+  $btnPre.id = "btnPre";
+  $btnPre.innerText = "Preview";
+
+  /* $btnNex */
+  var $btnNex = document.createElement("button");
+  $btnNex.id = "btnNex";
+  $btnNex.innerText = "Next";
+
+  /* $btnDown */
+  var $btnDown = document.createElement("button");
+  $btnDown.id = "btnDown";
+  $btnDown.innerText = "Download";
+
+  /* $tips */
+  var $tips = document.createElement("div");
+  $tips.id = "tips";
+  $tips.innerText = "TIPS:";
+
+  /* $img */
+  var $img = document.createElement("img");
+  $img.onload = function(e){
+    console.info(e);
+    console.info(e.target);
+    drawCanvas();
+  }
+
+  /* $canvas */
+  var $canvas = document.createElement("canvas");
+
+  /* $a */
+  var $a = document.createElement("a");
+  $a.innerText = "aaaa";
+
+  /* TOOLS INIT */
+  $("#wrapper").prepend($img);
+  $("#wrapper").prepend($canvas);
+  $("#wrapper").prepend($tips);
+  $("#wrapper").prepend($a);
+  $("#wrapper").prepend($btnDown);
+  $("#wrapper").prepend($btnNex);
+  $("#wrapper").prepend($btnPre);
+  $("#wrapper").prepend($btnOne);
+
+  window.$a=$a;
+  window.$img=$img;
+  window.$canvas=$canvas;
+  window.$tips=$tips;
+  window.$btnDown=$btnDown;
+  window.$btnNex=$btnNex;
+  window.$btnPre=$btnPre;
+  window.$btnOne=$btnOne;
+
+}
+
+function loadImage(blobURL){
+  try{
+    window.URL.revokeObjectURL(blobURL);
+  } catch(e){
+    console.info(e.message)
+  }
+  if(index + 1 > arrys.length) return;
+  $($img).attr("src", path(aid) + arrys[index][1]).attr("num", arrys[index][2]);
+  index++;
+}
+
+function drawCanvas(){
+  $canvas.width = $img.width;
+  $canvas.height = $img.height;
+  var tempctx;
+  if(!window.tempctx)
+    tempctx = $canvas.getContext("2d");
+  else
+    tempctx = window.tempctx;
+  tempctx.clearRect(0, 0, $img.width,$img.height);
+  var s_w=$img.width;
+  var w=$img.naturalWidth;
+  var h=$img.naturalHeight;
+  if(s_w>$img.parentNode.offsetWidth||s_w==0){
+    s_w=$img.parentNode.offsetWidth;
+  }
+  var num=$img.getAttribute("num");
+  var remainder=parseInt(h%num);
+  var copyW=w;
+  for(var i=0; i < num;i++){
+    var copyH=Math.floor(h/num);
+    var py=copyH*(i);
+    var y=h-(copyH*(i+1))-remainder;
+    if(i==0){
+      copyH=copyH+remainder;
+    }else{
+      py=py+remainder;
+    }
+    tempctx.drawImage($img,0,y,copyW,copyH,0,py,copyW,copyH);
+  }
+  var obj = {};
+  var cblobUrl = $canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
+  obj.name = getFileName($img.src);
+  obj.url = cblobUrl;
+  $($a).attr("href", obj.url).attr("download", obj.name).html("aaaaa" + obj.name);
+  $($a)[0].click();
+  window.tempctx=tempctx;
+  setTimeout(function(){ loadImage(cblobUrl); }, "800");
+}
+
+function path(aid){
+  return window.basePath.replace("##", aid);
+}
+
+function getFileName(url){
+  if(!url) return "NULL";
+  if(url.lastIndexOf("?") > 0) url = url.substring(0, url.lastIndexOf("?"));
+  if(url.endsWith("/")) url = url.substring(0, url.length - 1);
+  var fileName = url.substring(url.lastIndexOf("/") + 1);
+  fileName = fileName.substring(0, fileName.lastIndexOf("."));
+  fileName += ".jpg";
+  return fileName;
+}
+init();
+function loadImage(blobURL){
+  try{
+    window.URL.revokeObjectURL(blobURL);
+  } catch(e){
+    console.info(e.message)
+  }
+  if(index + 1 > arrys.length) return;
+  $($img).attr("src", path(aid) + arrys[index][1]).attr("num", arrys[index][2]);
+  index++;
+}
+
+function drawCanvas(){
+  $canvas.width = $img.width;
+  $canvas.height = $img.height;
+  var tempctx;
+  if(!window.tempctx)
+    tempctx = $canvas.getContext("2d");
+  else
+    tempctx = window.tempctx;
+  tempctx.clearRect(0, 0, $img.width,$img.height);
+  var s_w=$img.width;
+  var w=$img.naturalWidth;
+  var h=$img.naturalHeight;
+  if(s_w>$img.parentNode.offsetWidth||s_w==0){
+    s_w=$img.parentNode.offsetWidth;
+  }
+  var num=$img.getAttribute("num");
+  var remainder=parseInt(h%num);
+  var copyW=w;
+  for(var i=0; i < num;i++){
+    var copyH=Math.floor(h/num);
+    var py=copyH*(i);
+    var y=h-(copyH*(i+1))-remainder;
+    if(i==0){
+      copyH=copyH+remainder;
+    }else{
+      py=py+remainder;
+    }
+    tempctx.drawImage($img,0,y,copyW,copyH,0,py,copyW,copyH);
+  }
+  var name = getFileName($img.src);
+  $($a).html("aaaaa" + name);
+  $canvas.toBlob(function(blob){
+    var f = new File([blob], name, {type:blob.type});
+    console.info(f);
+
+    var form = new FormData();
+    form.append("file", f);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("post", "https://127.0.0.1:8443/upload", true);
+    xhr.onload = function(){
+      console.info("---end");
+      setTimeout(function(){ loadImage(); }, "800");
+    }
+    xhr.send(form);
+  }, "image/jpeg");
+  window.tempctx=tempctx;
+  //setTimeout(function(){ loadImage(cblobUrl); }, "800");
+}
+```
+
+
+**注：仅允许同源请求图片和支持跨域资源共享图片**
+
+##### 公共函数定义
+
+ - 加载 JQuery
+
+```js
+function loadScript(){
+  var $wrapper = document.getElementById("wrapper");
+  var $script = document.createElement("script");
+  $script.src = "https://127.0.0.1:8443/jquery.js";
+  $wrapper.appendChild($script);
+}
+loadScript();
+```
+
+```js
+var $body = document.createElement("body");
+document.body = $body;
+```
+
+```js
+var $wrapper = document.createElement("div");
+$wrapper.id = "wrapper";
+document.body.appendChild($wrapper);
+```
+
+
+```js
+var basePath = "https://18comic.vip/media/photos/##/";
+//var basePath = "https://cdn-msp.18comic.org/media/photos/##/";
+function init(){
+  /* $btnOne */
+  var $btnOne = document.createElement("button");
+  $btnOne.id = "btnOne";
+  $btnOne.innerText = "First";
+
+  /* $btnPre */
+  var $btnPre = document.createElement("button");
+  $btnPre.id = "btnPre";
+  $btnPre.innerText = "Preview";
+
+  /* $btnNex */
+  var $btnNex = document.createElement("button");
+  $btnNex.id = "btnNex";
+  $btnNex.innerText = "Next";
+
+  /* $btnDown */
+  var $btnDown = document.createElement("button");
+  $btnDown.id = "btnDown";
+  $btnDown.innerText = "Download";
+
+  /* $tips */
+  var $tips = document.createElement("div");
+  $tips.id = "tips";
+  $tips.innerText = "TIPS:";
+
+  /* $img */
+  var $img = document.createElement("img");
+  $img.onload = function(e){
+    console.info(e);
+    console.info(e.target);
+    drawCanvas();
+  }
+
+  /* $canvas */
+  var $canvas = document.createElement("canvas");
+
+  /* $a */
+  var $a = document.createElement("a");
+  $a.innerText = "aaaa";
+
+  /* TOOLS INIT */
+  $("#wrapper").prepend($img);
+  $("#wrapper").prepend($canvas);
+  $("#wrapper").prepend($tips);
+  $("#wrapper").prepend($a);
+  $("#wrapper").prepend($btnDown);
+  $("#wrapper").prepend($btnNex);
+  $("#wrapper").prepend($btnPre);
+  $("#wrapper").prepend($btnOne);
+
+  window.$a=$a;
+  window.$img=$img;
+  window.$canvas=$canvas;
+  window.$tips=$tips;
+  window.$btnDown=$btnDown;
+  window.$btnNex=$btnNex;
+  window.$btnPre=$btnPre;
+  window.$btnOne=$btnOne;
+
+}
+
+function loadImage(blobURL){
+  try{
+    window.URL.revokeObjectURL(blobURL);
+  } catch(e){
+    console.info(e.message)
+  }
+  if(index + 1 > arrys.length) return;
+  $($img).attr("src", path(aid) + arrys[index][1]).attr("num", arrys[index][2]);
+  index++;
+}
+
+function drawCanvas(){
+  $canvas.width = $img.width;
+  $canvas.height = $img.height;
+  var tempctx;
+  if(!window.tempctx)
+    tempctx = $canvas.getContext("2d");
+  else
+    tempctx = window.tempctx;
+  tempctx.clearRect(0, 0, $img.width,$img.height);
+  var s_w=$img.width;
+  var w=$img.naturalWidth;
+  var h=$img.naturalHeight;
+  if(s_w>$img.parentNode.offsetWidth||s_w==0){
+    s_w=$img.parentNode.offsetWidth;
+  }
+  var num=$img.getAttribute("num");
+  var remainder=parseInt(h%num);
+  var copyW=w;
+  for(var i=0; i < num;i++){
+    var copyH=Math.floor(h/num);
+    var py=copyH*(i);
+    var y=h-(copyH*(i+1))-remainder;
+    if(i==0){
+      copyH=copyH+remainder;
+    }else{
+      py=py+remainder;
+    }
+    tempctx.drawImage($img,0,y,copyW,copyH,0,py,copyW,copyH);
+  }
+  var obj = {};
+  var cblobUrl = $canvas.toDataURL("image/jpeg").replace("image/jpeg", "image/octet-stream");
+  obj.name = getFileName($img.src);
+  obj.url = cblobUrl;
+  $($a).attr("href", obj.url).attr("download", obj.name).html("aaaaa" + obj.name);
+  $($a)[0].click();
+  window.tempctx=tempctx;
+  setTimeout(function(){ loadImage(cblobUrl); }, "800");
+}
+
+function path(aid){
+  return window.basePath.replace("##", aid);
+}
+
+function getFileName(url){
+  if(!url) return "NULL";
+  if(url.lastIndexOf("?") > 0) url = url.substring(0, url.lastIndexOf("?"));
+  if(url.endsWith("/")) url = url.substring(0, url.length - 1);
+  var fileName = url.substring(url.lastIndexOf("/") + 1);
+  return fileName;
+}
+init();
+```
+
+```js
+var index = 0;
+var aid = "342917";
+var arrys = [{0:'00001',1:'00001.jpg',2:'18'}];
+```
+
+```js
+var index = 0;
+var aid = "265123";
+var arrys = [{0:'00001',1:'00001.jpg',2:'20'},{0:'00002',1:'00002.jpg',2:'18'}]
+loadImage();
+```
+
+```js
+function loadImage(blobURL){
+  try{
+    window.URL.revokeObjectURL(blobURL);
+  } catch(e){
+    console.info(e.message)
+  }
+  if(index + 1 > arrys.length) return;
+  $($img).attr("src", path(aid) + arrys[index][1]).attr("num", arrys[index][2]);
+  index++;
+}
+
+function drawCanvas(){
+  $canvas.width = $img.width;
+  $canvas.height = $img.height;
+  var tempctx;
+  if(!window.tempctx)
+    tempctx = $canvas.getContext("2d");
+  else
+    tempctx = window.tempctx;
+  tempctx.clearRect(0, 0, $img.width,$img.height);
+  var s_w=$img.width;
+  var w=$img.naturalWidth;
+  var h=$img.naturalHeight;
+  if(s_w>$img.parentNode.offsetWidth||s_w==0){
+    s_w=$img.parentNode.offsetWidth;
+  }
+  var num=$img.getAttribute("num");
+  var remainder=parseInt(h%num);
+  var copyW=w;
+  for(var i=0; i < num;i++){
+    var copyH=Math.floor(h/num);
+    var py=copyH*(i);
+    var y=h-(copyH*(i+1))-remainder;
+    if(i==0){
+      copyH=copyH+remainder;
+    }else{
+      py=py+remainder;
+    }
+    tempctx.drawImage($img,0,y,copyW,copyH,0,py,copyW,copyH);
+  }
+  var name = getFileName($img.src);
+  $($a).html("aaaaa" + name);
+  $canvas.toBlob(function(blob){
+    name = name.replace(".webp", ".jpg");
+    var f = new File([blob], name, {type:blob.type});
+    console.info(f);
+
+    var form = new FormData();
+    form.append("file", f);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("post", "https://127.0.0.1:8443/upload", true);
+    xhr.onload = function(){
+      console.info("---end");
+      setTimeout(function(){ loadImage(); }, "800");
+    }
+    xhr.send(form);
+  }, "image/jpeg");
+  window.tempctx=tempctx;
+  //setTimeout(function(){ loadImage(cblobUrl); }, "800");
+}
+```
+
+```js
+function loadImage(blobURL){
+  try{
+    window.URL.revokeObjectURL(blobURL);
+  } catch(e){
+    console.info(e.message)
+  }
+  if(index + 1 > arrys.length) return;
+  $($img).attr("src", path(aid) + arrys[index][1]).attr("num", arrys[index][2]);
+  index++;
+}
+
+function drawCanvas(){
+  $canvas.width = $img.width;
+  $canvas.height = $img.height;
+  var tempctx;
+  if(!window.tempctx)
+    tempctx = $canvas.getContext("2d");
+  else
+    tempctx = window.tempctx;
+  tempctx.clearRect(0, 0, $img.width,$img.height);
+  tempctx.drawImage($img, 0, 0, $img.width, $img.height);
+  var name = getFileName($img.src);
+  $($a).html("aaaaa" + name);
+  $canvas.toBlob(function(blob){
+    name = name.replace(".webp", ".jpg");
+    var f = new File([blob], name, {type:blob.type});
+    console.info(f);
+
+    var form = new FormData();
+    form.append("file", f);
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("post", "https://127.0.0.1:8443/upload", true);
+    xhr.onload = function(){
+      console.info("---end");
+      setTimeout(function(){ loadImage(); }, "800");
+    }
+    xhr.send(form);
+  }, "image/jpeg");
+  window.tempctx=tempctx;
+}
+```
+
+```js
+var temps = [];
+var errors = [33];
+function ers(errors, arrys){
+  var c1 = 1;
+  var ers = [];
+  for(var i = 0; i < errors.length; i++){
+    ers[i] = arrys[errors[i] - c1];
+  }
+  console.info(ers);
+  return ers;
+}
+var result = ers(errors, arrys);
+temps = arrys;
+arrys = result;
+
+loadImage();
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+
+		body {
+			margin: 0;
+			padding: 0;
+			font-family: Verdana,Arial,Helvetica,sans-serif;
+			background: #d5e9ed;
+			color: #545454;
+			font-size: 14px;
+			line-height: 1.428571429;
+		}
+
+		#body_left_content {
+			width: 728px;
+			margin: 10px 0 0 40px;
+		}
+
+		.post {
+			width: 100%;
+			margin: 0 0 40px 0;
+		}
+
+		.entry {
+			line-height: 20px;
+			font-size: 13px;
+			margin: 10px 0 0 0;
+			min-height: 300px;
+			height: auto!important;
+			height: 300px;
+		}
+
+		.cdiv {
+			font-size: 14px;
+			padding: 10px 10px 10px 10px;
+			border: 1px solid #BBB;
+			width: 680px;
+			line-height: 2;
+			color: #333;
+			margin-bottom: 10px;
+			table-layout: fixed;
+			word-wrap: break-word;
+		}
+
+		.btn {
+			display: inline-block;
+			padding: 6px 12px;
+			margin-bottom: 0;
+			font-size: 14px;
+			font-weight: normal;
+			line-height: 1.428571429;
+			text-align: center;
+			white-space: nowrap;
+			vertical-align: middle;
+			cursor: pointer;
+			background-image: none;
+			border: 1px solid transparent;
+			border-radius: 4px;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			-o-user-select: none;
+			user-select: none;
+		}
+
+		.form-group {
+			margin-bottom: 15px;
+		}
+
+		.form-control {
+			display: block;
+			height: 34px;
+			padding: 6px 12px;
+			font-size: 14px;
+			line-height: 1.428571429;
+			color: #555;
+			vertical-align: middle;
+			background-color: #fff;
+			background-image: none;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+			box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+			-webkit-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+			transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+		}
+
+		textarea.form-control {
+			height: auto;
+		}
+
+		#body input[type=text], #body select, #body textarea, #body.short {
+			background-color: #f4f9fb;
+		}
+
+		input, button, select, textarea {
+			font-family: inherit;
+			overflow: auto;
+			text-rendering: auto;
+			margin: 0;
+			-webkit-rtl-ordering: logical;
+			flex-direction: column;
+			resize: auto;
+			cursor: text;
+			white-space: pre-wrap;
+			overflow-wrap: break-word;
+			letter-spacing: normal;
+			word-spacing: normal;
+			text-transform: none;
+			text-indent: 0px;
+			text-shadow: none;
+			-webkit-writing-mode: horizontal-tb !important;
+		}
+
+		textarea {
+			width:628px;
+		}
+
+		.text-center {
+			text-align: center;
+		}
+
+		button, html input[type="button"], input[type="reset"], input[type="submit"] {
+			cursor: pointer;
+			-webkit-appearance: button;
+		}
+
+		.btn-danger {
+			color: #fff;
+			background-color: #d9534f;
+			border-color: #d43f3a;
+		}
+
+		.btn-primary {
+			color: #fff;
+			background-color: #428bca;
+			border-color: #357ebd;
+		}
+
+		.btn {
+			display: inline-block;
+			padding: 6px 12px;
+			margin-bottom: 0;
+			font-size: 14px;
+			font-weight: normal;
+			line-height: 1.428571429;
+			text-align: center;
+			white-space: nowrap;
+			vertical-align: middle;
+			cursor: pointer;
+			background-image: none;
+			border: 1px solid transparent;
+			border-radius: 4px;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			-ms-user-select: none;
+			-o-user-select: none;
+			user-select: none;
+		}
+    </style>
+</head>
+<body>
+  <div id="body_left_content"> 
+   <div id="content" class="narrowcolumn"> 
+    <div class="post"> 
+     <div class="post-top"> 
+      <div class="post-title"> 
+       <h2> <a href="/"> <img border="0" src="https://img.supfree.net/ico/base64.png" /> </a>BASE64加密解密 </h2> 
+      </div> 
+     </div> 
+     <div class="entry"> 
+      <div class="csense" id="c001"></div> 
+      <div class="cdiv"> 
+       <form name="code"> 
+        <div class="form-group"> 
+         <span>请将要加密或解密的内容复制到以下区域</span> 
+         <textarea id="contents" rows="10" class="form-control">这里是要加密的内容！</textarea> 
+        </div> 
+        <div class="text-center"> 
+         <input type="button" class="btn btn-primary" onclick="contents.value=encode64(contents.value);" value="BASE64加密" /> 
+         <input type="button" class="btn btn-danger" onclick="contents.value=decode64(contents.value);" value="BASE64密" /> 
+        </div> 
+       </form> 
+      </div> 
+     </div> 
+    </div> 
+   </div> 
+  </div>
+<script type="text/javascript">
+
+var keyStr = "ABCDEFGHIJKLMNOP" +
+    "QRSTUVWXYZabcdef" +
+    "ghijklmnopqrstuv" +
+    "wxyz0123456789+/" +
+    "=";
+
+function encode64(input) {
+    input = escape(input);
+    var output = "";
+    var chr1, chr2, chr3 = "";
+    var enc1, enc2, enc3, enc4 = "";
+    var i = 0;
+    do {
+        chr1 = input.charCodeAt(i++);
+        chr2 = input.charCodeAt(i++);
+        chr3 = input.charCodeAt(i++);
+        enc1 = chr1 >> 2;
+        enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+        enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+        enc4 = chr3 & 63;
+        if (isNaN(chr2)) {
+            enc3 = enc4 = 64;
+        } else if (isNaN(chr3)) {
+            enc4 = 64;
+        }
+        output = output +
+            keyStr.charAt(enc1) +
+            keyStr.charAt(enc2) +
+            keyStr.charAt(enc3) +
+            keyStr.charAt(enc4);
+        chr1 = chr2 = chr3 = "";
+        enc1 = enc2 = enc3 = enc4 = "";
+    } while (i < input.length);
+    return output;
+}
+
+function decode64(input) {
+    var output = "";
+    var chr1, chr2, chr3 = "";
+    var enc1, enc2, enc3, enc4 = "";
+    var i = 0;
+    // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
+    var base64test = /[^A-Za-z0-9\+\/\=]/g;
+    if (base64test.exec(input)) {
+        alert("There were invalid base64 characters in the input text.\n" +
+            "Valid base64 characters are A-Z, a-z, 0-9, '+', '/', and '='\n" +
+            "Expect errors in decoding.");
+    }
+    input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+    do {
+        enc1 = keyStr.indexOf(input.charAt(i++));
+        enc2 = keyStr.indexOf(input.charAt(i++));
+        enc3 = keyStr.indexOf(input.charAt(i++));
+        enc4 = keyStr.indexOf(input.charAt(i++));
+        chr1 = (enc1 << 2) | (enc2 >> 4);
+        chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+        chr3 = ((enc3 & 3) << 6) | enc4;
+        output = output + String.fromCharCode(chr1);
+        if (enc3 != 64) {
+            output = output + String.fromCharCode(chr2);
+        }
+        if (enc4 != 64) {
+            output = output + String.fromCharCode(chr3);
+        }
+        chr1 = chr2 = chr3 = "";
+        enc1 = enc2 = enc3 = enc4 = "";
+    } while (i < input.length);
+    return unescape(output);
+}
+</script>
+</body>
+</html>

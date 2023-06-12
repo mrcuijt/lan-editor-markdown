@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring AOP</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### Aop 扩展——2
+
+#### 实现 ```ThrowsAdvice``` 接口完成 ```异常抛出增强```
+
+面向切面编程的核心思想：解决一个问题，让你可以专心做事的一个问题，如何才能专心做事？
+
+&amp;#160; &amp;#160;比如说我们来上课需要先吃早餐，不吃早餐不行，吃早餐，有需要自己先做饭，做好了吃完之后，才能去上课。然而我们主要的目的是去上课，在吃早餐时，浪费了不必要的时间和精力，但是不吃早餐又不行。（每天我都要吃早餐，才能去上课。现在我不做早餐了，我去外面的早餐店吃里面已经做好的现成的。省去了做早餐那一部分的时间和精力，让我能够专心的去上课）这就是面向切面编程的核心思想，让她来把这些不可或缺的，很繁杂的，重复的，相同的，但是又不是特别重要的事情，来进行完成。
+
+&amp;#160; &amp;#160;面向切面的编程，将一些，很繁杂的，重复的，相同的，但是又是不可或缺的这一部分集中起来，进行增强型处理。
+
+之前第一章，学习了，前置增强 和 后置增强
+
+异常抛出增强：
+
+如果你的程序，需要异常处理，我们使用 异常抛出增强 处理。
+
+&amp;#160; &amp;#160;特点：异常抛出增强的贴点是在目标方法抛出异常时织入增强处理。
+
+&amp;#160; &amp;#160;意思：如果你想要在一代码的外围，使用 try - catch 进行异常处理，你不要去写，我们通过配置文件，给代码织入。
+
+织入组件的 JavaBean 如何编写？
+
+ 1. 必须要实现 ThrowsAdvice 接口
+
+ 2. 使用规范
+ 
+&amp;#160; &amp;#160;ThrowsAdvice 接口中并没有定义任何方法，但是我们在定义异常抛出的增强方法时必须遵守以下方法签名：
+
+```java
+void afterThrowing
+        ( [Method method, Object[] arguments, Object target,] Throwable ex )
+```
+
+&amp;#160; &amp;#160;整个中括号中的参数可以有也可以没有，但是有的话都要有，没有有的话就都没有。
+
+注意：
+
+方法名必须是 ```afterThrowing```。方法的入参只有最后一个是必须的，前三个入参是可选的，但是前三个参数要么都提供，要么一个也不提供。
+
+正确的声明方法举例：
+
+```java
+-
+ - afterThrowing(Method method, Object[] args, Object target, SQLException ex)
+ 
+ - afterThrowing(SQLException ex)
+ 
+ - afterThrowing(RuntimeException ex)
+```
+
+错误的声明方法举例：
+
+```java
+-
+ - catchThrowing(RuntimeException ex)：方法名错误
+ 
+ - afterThrowing(Method method, RuntimeException ex)：参数列表错误
+```
+
+&amp;#160; &amp;#160;异常抛出增强：的原理就是在你指定的方法外面，使用 try - catch 包围起来，在 catche 中执行我们编写的异常抛出增强的代码。
+
+#### 实现 ```MethodInterceptor``` 完成 ```环绕增强```
+
+定义：
+
+ - 环绕增强在目标方法的前后都可以织入增强处理。
+
+ - 环绕增强是功能最强大的增强处理，Spring 把目标方法的控制权全部交给了它。
+
+ - 在环绕增强处理中，可以获取或修改目标方法的参数、返回值，可以对它进行异常处理，甚至可以决定目标方法是否执行。
+ 
+理解：
+
+ 1. 环绕增强，就是将这个方法执行的权利交给了这个组件。
+
+ 2. 这个组件说执行这个方法，就执行这个方法，组件说不能执行这个方法，这个方法就不会被运行。还可以获取或修改```目标方法```的```参数```、```返回值```，可以对它进行异常处理。
+
+ 3. 要不要执行真实对象的这个方法，由这个组件来决定。
+
+环绕增强组件的 JavaBean 如何编写？
+
+ 1. 一定要实现 ```MethodInterceptor```
+ 
+ 2. 类中只有一个方法
+ 
+ 3. 方法必须是 ```public``` 返回值必须是 ```Object``` 方法名称必须为 ```invoke``` 方法的参数必须为 ```MethodInvocation``` 抛出异常为 ```Throwable```。
+ 
+```java
+public class AroundLogger implements MethodInterceptor {
+    private static final Logger log = Logger.getLogger(AroundLogger.class);
+    public Object invoke(MethodInvocation arg0) throws Throwable {
+        Object target = arg0.getThis(); // 获取被代理对象
+        Method method = arg0.getMethod(); // 获取被代理方法
+        Object[] args = arg0.getArguments(); // 获取方法参数
+        log.info("调用 " + target + " 的 " + method.getName() + " 方法。方法入参：" 
+            + Arrays.toString(args));
+        try {  
+            Object result = arg0.proceed(); // 调用目标方法，获取目标方法返回值
+            // 如果不调用这个方法，那就代表不执行，真实对象中的这个业务方法。
+            // 这个方法的返回值就是，真实对象中这个方法的返回值。
+            log.info("调用 " + target + " 的 " + method.getName() + " 方法。 "
+                + "方法返回值：" + result);
+            return result;  // 返回这个业务方法的返回值
+        } catch (Throwable e) {
+            log.error(method.getName() + " 方法发生异常：" + e);        throw e;
+        }
+    }   
+}
+```
+
+#### 使用 Schema 配置切面 2-1
+
+&amp;#160; &amp;#160;除了使用接口和注解定义增强处理，还可以在 Spring 配置文件中**通过 aop 命名空间将一个普通的 JavaBean 中的方法声明为增强处理**。
+
+```java
+public class UserBizLogger {
+    private static final Logger log = Logger.getLogger(UserBizLogger.class);
+    public void before(JoinPoint  jp) {
+        log.info("调用 " + jp.getTarget() + " 的 " + jp.getSignature().getName() 
+            + " 方法。方法入参：" + Arrays.toString(jp.getArgs()));
+    }
+    public void afterReturning(JoinPoint  jp, Object  result) {
+        log.info("调用 " + jp.getTarget() + " 的 " + jp.getSignature().getName() 
+            + " 方法。方法返回值：" + result);
+    }
+}
+```
+
+&amp;#160; &amp;#160;```UserBizLogger``` 是一个普通的 JavaBean，没有实现任何接口，也没有添加任何注解。
+
+```xml
+<bean id="dao" class="dao.impl.UserDao"></bean>
+<bean id="biz" class="biz.impl.UserBiz"> 
+    <property name="dao" ref="dao"></property>
+</bean>
+<!-- 定义增强方法的 Bean -->
+<bean id="theLogger" class="aop.UserBizLogger"></bean>
+<aop:config>
+    <!-- AOP 方法切入点 -->
+    <aop:pointcut id="pointcut" expression="execution(* biz.IUserBiz.*(..))" />
+    <!-- 引用包含增强方法的 Bean -->
+    <aop:aspect ref="theLogger"> 
+        <!-- 将 before() 方法定义为前置增强 -->
+        <aop:before method="before" pointcut-ref="pointcut" /> 
+        <!-- 将 afterReturning() 方法定义为后置增强，并通过 returning 属性为名称为 result 的参数注入返回值 -->
+        <aop:after-returning method="afterReturning" pointcut-ref="pointcut"
+               returning="result" />
+    </aop:aspect>
+</aop:config>
+```
+
+##### 学员操作——使用 Schema 配置切面
+
+&amp;#160; &amp;#160;使用 Schema 方式定义前置增强（包含连接点信息）和后置增强（包含连接点信息和返回值），对业务方法的执行过程进行日志记录
+
+##### 使用 Schema 定义其他增强类型 - 异常抛出增强
+
+定义最终增强
+
+定义包含增强方法的 JavaBean
+
+```java
+public class ErrorLogger {
+    public void afterThrowing(JoinPoint  jp,  RuntimeException  e) { … }
+}
+```
+
+在 Spring 配置文件中进行定义
+
+```xml
+<!-- 定义增强方法的 Bean -->
+<bean id="theLogger" class="aop.ErrorLogger"></bean>
+<aop:config>
+    <!-- AOP 方法切入点 -->
+    <aop:pointcut id="pointcut" expression="execution(* biz.IUserBiz.*(..))" />
+    <!-- 引用包含增强方法的 Bean -->
+    <aop:aspect ref="theLogger">
+        <!-- 将 afterThrowing() 方法定义为异常抛出增强 -->
+        <aop:after-throwing method="afterThrowing" 
+            pointcut-ref="pointcut" throwing="e" />
+    </aop:aspect>
+</aop:config>
+```
+
+#### 使用 Schema 定义其他增强类型 - ```环绕增强```
+
+定义最终增强
+
+定义包含增强方法的 JavaBean
+
+```java
+public class AroundLogger {
+    public Object aroundLogger(ProceedingJoinPoint jp) throws Throwable { … } 
+}
+```
+
+在 Spring 配置文件中进行定义
+
+```xml
+<!-- 定义增强方法的 Bean -->
+<bean id="theLogger" class="aop. AroundLogger"></bean>
+<aop:config>
+    <!-- AOP 方法切入点 -->
+    <aop:pointcut id="pointcut" expression="execution(* biz.IUserBiz.*(..))" />
+    <!-- 引用包含增强方法的 Bean -->
+    <aop:aspect ref="theLogger">
+        <!-- 将 aroundLogger() 方法定义为异常抛出增强 -->
+        <aop:around method="aroundLogger"  pointcut-ref="pointcut" />
+    </aop:aspect>
+</aop:config>
+```
+
+#### 使用 Schema 定义其他增强类型 - ```定义最终增强```
+
+定义最终增强
+
+定义包含增强方法的 JavaBean
+
+```java
+public class AfterLogger {
+    public void afterLogger(JoinPoint  jp) { … }
+}
+```
+
+在 Spring 配置文件中进行定义
+
+```xml
+<bean id="theLogger" class="aop. AroundLogger"></bean>
+<aop:config>
+    <!-- AOP 方法切入点 -->
+    <aop:pointcut id="pointcut" expression="execution(* biz.IUserBiz.*(..))" />
+    <!-- 引用包含增强方法的 Bean -->
+    <aop:aspect ref="theLogger">
+        <!-- 将 afterLogger() 方法定义为最终增强 -->
+        <aop:after method="afterLogger" pointcut-ref="pointcut" />
+    </aop:aspect>
+</aop:config>
+```
+
+小结
+
+可以通过 Schema 形式将 POJO 的方法配置成切面。
+
+&amp;#160; &amp;#160;所用标签包括 ```<aop:aspect>、<aop:before>、<aop:after-returning>、<aop:around>、<aop:after-throwing>、<aop:after>``` 等。
+
+Spring 在定义切面时提供了多种选择，应根据项目的具体情况做出选择：
+
+ 1. 通过接口实现增强处理是```较低版本 Spring AOP``` 的做法，如果在一个使用低版本 Spring AOP 开发的项目上进行升级，可以考虑使用 ```<aop:advisor>``` 复用已经存在的增强类；
+ 
+ 2. 如果项目采用 ```JDK 5.0``` 或以上版本，可以考虑使用 ```@AspectJ``` 注解方式，减少配置的工作量；
+ 
+ 3. 如果不愿意使用注解或项目采用的 JDK 版本较低无法使用注解，则可以选择使用 ```<aop:aspect>``` 配合普通 JavaBean 的形式。
+
+#### 使用注解定义增强 3-1
+
+&amp;#160; &amp;#160;```AspectJ``` 是一个面向切面的框架，它扩展了 Java 语言，定义了 AOP 语法，能够在编译期提供代码的织入。
+
+&amp;#160; &amp;#160;```@AspectJ``` 是 ```AspectJ 5``` 新增的功能，使用 ```JDK 5.0``` 注解技术和正规的 ```AspectJ``` 切点表达式语言描述切面
+
+&amp;#160; &amp;#160;Spring 通过集成 ```AspectJ``` 实现了以注解的方式定义增强类，大大减少了配置文件中的工作量。
+
+ - 使用 ```@AspectJ``` ，首先要保证所用的 ```JDK 是 5.0``` 或以上版本
+
+ - 将 Spring 的 ```asm 模块```添加到类路径中，以处理 ```@AspectJ``` 中所描述的方法参数名
+
+<br/>
+
+ 1. 在项目中添加 Spring AOP 相关的 jar 文件。
+ 
+ 2. 使用注解定义前置增强和后置增强实现日志功能。
+ 
+ 3. 编写 Spring 配置文件，织入注解定义的增强。
+ 
+```java
+@Aspect
+public class UserBizLogger {
+    private static final Logger log = Logger.getLogger(UserBizLogger.class);
+    // 定义前置增强（可以在一个类中编写多个前置增强）
+    @Before("execution(* biz.IUserBiz.*(..))")
+    public void before() { … }
+    // 定义后置增强（可以在一个类中编写多个后置增强，切面表达式要不同）
+    @AfterReturning("execution(* biz.IUserBiz.*(..))")
+    public void afterReturning() { … }
+}
+```
+
+```xml
+<bean id="dao" class="dao.impl.UserDao"></bean>
+<bean id="biz" class="biz.impl.UserBiz">
+    <property name="dao" ref="dao"></property>
+</bean>
+<!-- 定义包含注解的增强类的实例 -->
+<!-- 切面组件的 JavaBean 一定要在 Spring 容器 中生成 Bean -->
+<bean class="aop.UserBizLogger"></bean>
+<!-- 织入使用注解定义的增强，需要引入aop命名空间 -->
+<!-- 表示可以使用注解的方式配置增强 -->
+<aop:aspectj-autoproxy />
+```
+
+#### 使用注解定义增强 3-2
+
+```java
+@Aspect
+public class UserBizLogger {
+    private static final Logger log = Logger.getLogger(UserBizLogger.class);
+    @Before("execution(* biz.IUserBiz.*(..))")
+    public void before(JoinPoint  jp) {
+        log.info("调用 " + jp.getTarget() + " 的 " + jp.getSignature().getName() 
+            + " 方法。方法入参：" + Arrays.toString(jp.getArgs()));
+    }
+    @AfterReturning(pointcut = "execution(* biz.IUserBiz.*(..))", returning = "returnValue") // returnValue 要与方法中返回值的参数一致。
+    public void afterReturning(JoinPoint jp, Object  returnValue) {
+        log.info("调用 " + jp.getTarget() + " 的 " + jp.getSignature().getName() 
+            + " 方法。方法返回值：" + returnValue);
+    }
+}
+```
+
+&amp;#160; &amp;#160;我们可以为这个方法设置一个参数 ***```JoinPoint jp```*** 通过这个参数我们可以获得真实对象中这个方法的相关的信息，比如方法名，参数，以及真实对象的类名。
+
+&amp;#160; &amp;#160;如果是后置增强我们还可以定义， Object returnValue 参数，来获取这个方法的返回值。
+
+&amp;#160; &amp;#160;后置增强获取真实对象方法的返回值配置时要注意，在注解中需要配置 ```returning``` 属性值要与编写的```方法的参数名相同```。
+
+#### 使用注解完成其他增强类型 - ```异常抛出增强```
+
+在方法上使用注解 ```@AfterThrowing``` 配置
+
+```java
+@AfterThrowing(pointcut="execution(* biz.IUser.*(..))",throwing = "e")
+@Aspect
+public class ErrorLogger {
+    private static final Logger log = Logger.getLogger(ErrorLogger.class);
+  
+    @AfterThrowing(pointcut = "execution(* biz.IUserBiz.*(..))", throwing = "e")
+    public void afterThrowing(JoinPoint jp, RuntimeException e) {
+        log.error(jp.getSignature().getName() + " 方法发生异常：" + e);
+    }
+}
+```
+
+注意：
+
+ - 使用注解 ```@AfterThrowing``` 配置
+
+ - 注解中 ```thowing``` 属性的值，要与```方法中异常类型的参数名相同```。
+ 
+#### 使用注解完成其他增强类型 - ```定义环绕增强```
+
+```java
+@Aspect
+public class AroundLogger {
+    private static final Logger log = Logger.getLogger(AroundLogger.class);
+    @Around("execution(* biz.IUserBiz.*(..))") // 类型变成了 ProceedingJoinPoint 
+    public Object aroundLogger(ProceedingJoinPoint jp) throws Throwable {
+        log.info("调用 " + jp.getTarget() + " 的 " + jp.getSignature().getName() 
+                + " 方法。方法入参：" + Arrays.toString(jp.getArgs()));
+        try {  Object result = jp.proceed();
+            log.info("调用 " + jp.getTarget() + " 的 " 
+            + jp.getSignature().getName() + " 方法。方法返回值：" + result);
+            return result;
+        } catch (Throwable e) {
+    log.error(jp.getSignature().getName() + " 方法发生异常：" + e);
+    throw e; }
+    }   
+}
+```
+
+***```注意：```*** ```ProceedingJoinPoint``` 是 ```JoinPoint``` 的子接口，它的 ```proceed()``` 方法可以调用真正的目标方法。
+
+#### 使用注解完成其他增强类型 - ```定义最终增强```
+
+定义最终增强
+
+&amp;#160; &amp;#160;```@AspectJ``` 还提供了一种最终增强类型，无论方法抛出异常还是正常退出，该增强都会得到执行，类似于异常处理机制中 ```finally 块``` 的作用，一般用于释放资源。
+
+```java
+@Aspect
+public class AfterLogger {
+    private static final Logger log = Logger.getLogger(AfterLogger.class);
+    @After("execution(* biz.IUserBiz.*(..))")
+    public void afterLogger(JoinPoint jp) {
+        log.info(jp.getSignature().getName() + " 方法结束执行。");
+    }
+}
+```
+
+#### 小结
+
+使用注解方式定义切面可以简化配置工作量
+
+ - 常用注解有 ```@Aspect、@Before、@AfterReturning、@Around、@AfterThrowing、@After``` 等。
+
+ - 通过在配置文件中添加 ```<aop:aspectj-autoproxy />``` 元素，就可以启用对于 ```@AspectJ``` 注解的支持。
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

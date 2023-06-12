@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>junit-index</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### junit-index
+
+常规开发流程
+
+ - 1、从 SVN 中将代码检出到本地。
+
+ - 2、马上运行 Junit 单元，查看项目运行是否存在问题。
+
+ - 3、没有问题就进行今天任务的开发。
+
+ - 4、开发完成后，编写相应的单元测试。然后运行单元测试查看是否存在问题。
+
+ - 5、没有问题将代码提交到 SCM 。
+
+#### 单元测试
+
+ - 针对某一个模块的测试。
+
+ - 如何看待 Junit？如何判断测试结果？
+
+  - Junit 就是一个拥有多个 main 方法的函数类库。
+
+  - 每一个测试结果都是我们看的。
+
+  - 输入 3 个值后输出 3 个值，然后我们主观的判断输出的这 3 个值是否正确。
+
+课程大纲
+
+ - 1、自动化测试
+
+ - 2、基于测试开发的方式和优点
+
+ - 3、stub 和 mock
+
+ - 4、在容器中测试
+
+  - 4.1、jetty
+
+  - 4.2、catcus
+
+ - 5、dbunit (如何隔离数据库做测试)
+
+##### 自动化测试
+
+如何进行自动化测试？
+
+ - 也就是需要 Junit 需要能够判断，运行的测试结果是正确的还是错误的。
+
+ 需要 Junit 判断输出的结果是否满足要求。
+
+单元测试都是通过断言(Assert)的方式来确定结果是否正确。
+
+ - **Junit 的安装和测试原则**
+
+  - 引入 Junit 的依赖，不建议直接使用 Eclipse 中所提供的包。
+
+  - 在 src 下编写我们的程序代码。
+
+  - 创建测试类（基本原则）
+
+     - 在 Eclipse 创建一个 src folder 命名为 test
+     
+     - 创建一个测试类所在的包，包的名称和被测试的类的包一致。
+
+     - 测试类名为 Test + 被测试类名
+
+Junit3 和 Junit4 两者之间的区别
+
+ - 在 Junit3 中，如果某个类需要是测试类，必须将其继承于 TestCase，如果某个方法需要是测试方法，必须让这个方法通过 testXXX 开头，在 Junit3 中，如果希望指定某个测试方法之前运行某个初始化方法，这个方法的名称必须是 setUp ，如果希望在某个测试方法运行之后运行某个释放资源的方法，这个方法的名称必须是 tearDown 。
+
+ - 在 Junit4 中，一个 POJO 类就是一个测试类，测试方法通过 @Test 注解来标识，初始化方法通过 @Before，释放资源的方法通过 @After 来标注。但是为了让 Junit4 中的测试类在 Junit3 中也可以使用，习惯于把初始化方法命名为 setUp ，释放资源的方法命名为 tearDown ，测试方法也同样以 test 开头。
+
+如何使用断言
+
+ - Junit4 中提供了一个 Assert 类，这个类中有大量的方法进行断言的处理，在 Junit3 中由于继承了 TestCase ，这个 TestCase 中提供了大量的 assert 的方法。
+
+静态导入 Assert 中的方法
+
+为了兼容 Junit3 ，我们在编写单元测试的时候可以静态导入 Assert 中的所有方法。
+
+```java
+// 静态导入 Assert 中的 assertEquals 方法
+import static org.junit.Assert.assertEquals;
+// 静态导入 Assert 中的所有静态方法
+import static org.junit.Assert.*;
+
+public class TestMessageUtil {
+  @Test
+  public void testPrintMessage(){
+    System.out.println("Inside testPrintMessage()");
+    // Assert.assertEquals("Hi!", "Hi!");
+    // 直接使用导入的静态方法
+    assertEquals("Hi!", "Hi!");
+  }
+}
+```
+
+异常抛出测试
+
+```java
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class TestMessageUtil {
+  @Test(expected=ArithmeticException.class)
+  public void testDivideException(){
+    int rel = 10 / 0;
+  }
+}
+```
+
+性能测试
+
+```java
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+public class TestMessageUtil {
+  @Test(timeout=300)
+  public void testTime(){
+    try {
+      Thread.sleep(500);
+    } catch(InterruptedException e){
+      e.printStackTrace();
+    }
+    System.out.println("time");
+  }
+}
+```
+
+#### 集成测试
+
+ - 将开发的完整项目提交到服务器，在服务器上做集成测试。
+
+ - 项目在将你的代码加入进去后有没有问题。
+
+#### 验收测试
+
+#### 压力测试
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

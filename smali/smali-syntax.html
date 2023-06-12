@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>smali-syntax</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### smali-syntax
+
+##### 数据类型
+
+<text zoom="">
+╔═══════════╤═════════════════════╤═════════════╗
+║ smali类型 │ java类型            │ Description ║
+╟───────────┼─────────────────────┼─────────────╢
+║ V         │ void (用于返回类型) │ -           ║
+╟───────────┼─────────────────────┼─────────────╢
+║ Z         │ boolean             │ 不同        ║
+╟───────────┼─────────────────────┼─────────────╢
+║ B         │ byte                │ -           ║
+╟───────────┼─────────────────────┼─────────────╢
+║ S         │ short               │ -           ║
+╟───────────┼─────────────────────┼─────────────╢
+║ C         │ char                │ -           ║
+╟───────────┼─────────────────────┼─────────────╢
+║ I         │ int                 │ -           ║
+╟───────────┼─────────────────────┼─────────────╢
+║ J         │ long (64 bits)      │ 不同        ║
+╟───────────┼─────────────────────┼─────────────╢
+║ F         │ float               │ -           ║
+╟───────────┼─────────────────────┼─────────────╢
+║ D         │ double (64 bits)    │ -           ║
+╚═══════════╧═════════════════════╧═════════════╝</text>
+
+```java
+["smali类型","java类型","Description"],
+["V","void (用于返回类型)","-"],
+["Z","boolean","不同"],
+["B","byte","-"],
+["S","short","-"],
+["C","char","-"],
+["I","int","-"],
+["J","long (64 bits)","不同"],
+["F","float","-"],
+["D","double (64 bits)","-"]
+```
+
+##### 类名
+
+smali类名写法要注意, 最前面L开头, 最后;结尾
+
+<text zoom="">
+╔════════════════════╤══════════════════╗
+║ smali类名          │ java类名         ║
+╟────────────────────┼──────────────────╢
+║ Ljava/lang/String; │ java.lang.String ║
+╟────────────────────┼──────────────────╢
+║ Ljava/lang/Object; │ java.lang.Object ║
+╟────────────────────┼──────────────────╢
+║ L全/类/名;         │ 全.类.名         ║
+╚════════════════════╧══════════════════╝</zoom>
+
+```java
+["smali类名","java类名"],
+["Ljava/lang/String;","java.lang.String"],
+["Ljava/lang/Object;","java.lang.Object"],
+["L全/类/名;","全.类.名"]
+```
+
+##### 数组
+
+smali数组在类型左侧加[号, 几维就加几个, 最多255维.
+
+<text zoom="">
+╔═════════════════════╤══════════╗
+║ smali数组           │ Java数组 ║
+╟─────────────────────┼──────────╢
+║ [I                  │ int[]    ║
+╟─────────────────────┼──────────╢
+║ [[I                 │ int[][]  ║
+╟─────────────────────┼──────────╢
+║ [Ljava/lang/String; │ String[] ║
+╟─────────────────────┼──────────╢
+║ …                   │ …        ║
+╚═════════════════════╧══════════╝</text>
+
+```java
+["smali数组","Java数组"],
+["[I","int[]"],
+["[[I","int[][]"],
+["[Ljava/lang/String;","String[]"],
+["…","…"]
+```
+
+##### 类的定义
+
+Java代码
+
+```java
+public class BaseData {
+    public int add(int x, int y){
+        return x * y;
+    }
+}
+```
+
+Smali代码
+
+```java
+.class public Lme/luzhuo/smalidemo/BaseData; // 本类
+.super Ljava/lang/Object; // 父类
+.source "BaseData.java" // 文件名
+
+
+# direct methods
+// 构造方法, 方法名为<init>
+.method public constructor <init>()V
+    .locals 0
+
+    .line 20
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    return-void
+.end method
+
+
+# virtual methods
+// 普通方法 / add:方法名 / II:返回类型 / I:返回类型
+.method public add(II)I
+    .locals 1
+    .param p1, "x"    # I  // 参数
+    .param p2, "y"    # I
+
+    .line 26 // 该函数在原.source中的位置(含注释)
+    mul-int v0, p1, p2
+
+    return v0
+.end method
+```
+
+类的定义: 本类 / 父类 / 文件名
+
+```java
+.class public Lme/luzhuo/smalidemo/BaseData; // 本类
+.super Ljava/lang/Object; // 父类
+.source "BaseData.java" // 文件名
+```
+
+属性的定义: 属性名 / 属性类型
+
+```java
+# static fields
+// 属性: .field 修饰符 属性名:属性类型
+.field private static final TAG:Ljava/lang/String; = "PropActivity"
+```
+
+方法的定义: 方法名 / 参数类型 / 参数名 / 返回类型 / 返回值
+
+```java
+// 方法: .method 修饰符 方法名(参数类型)返回类型
+.method public add(II)I
+    .locals 1
+    .param p1, "x"    # I  // 参数名
+    .param p2, "y"    # I
+
+    return v0  // 返回值
+.end method
+```
+
+<text>
+╔══════════════════╤════════════════════╗
+║ 返回指令         │ Description        ║
+╟──────────────────┼────────────────────╢
+║ return-void      │ 直接返回           ║
+╟──────────────────┼────────────────────╢
+║ return v0        │ 返回v0             ║
+╟──────────────────┼────────────────────╢
+║ return-object v0 │ 返回v0(对象)       ║
+╟──────────────────┼────────────────────╢
+║ return-wide v0   │ 给v0(双寄存器的值) ║
+╚══════════════════╧════════════════════╝</text>
+
+```java
+["返回指令","Description"],
+["return-void","直接返回"],
+["return v0","返回v0"],
+["return-object v0","返回v0(对象)"],
+["return-wide v0","给v0(双寄存器的值)"]
+```
+
+特殊的方法:
+
+```java
+// 构造方法
+.method public constructor <init>()V
+.end method
+
+// 静态方法
+.method public static final constructor <clinit>()V
+.end method
+```
+
+调用方法:
+
+<text zoom="8.2">
+╔══════════════════╤══════════════════════╤══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ 调用指令         │ Description          │ 案例                                                                                                                                     ║
+╟──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ invoke-virtual   │ 调用一般方法         │ invoke-virtual {p0, v0, v1}, Lme/luzhuo/smalidemo/BaseData;->add(II)I                                                                    ║
+╟──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ invoke-super     │ 调用父类方法         │ invoke-super {p0, p1}, Landroid/support/v7/app/AppCompatActivity;->onCreate(Landroid/os/Bundle;)V // super.onCreate(savedInstanceState); ║
+╟──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ invoke-direct    │ 调用private/构造方法 │ invoke-direct {p0}, Ljava/lang/Object;-><init>()V                                                                                        ║
+╟──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ invoke-static    │ 调用静态方法         │ invoke-static {}, Lme/luzhuo/smalidemo/BaseData;->aaa()V                                                                                 ║
+╟──────────────────┼──────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║ invoke-interface │ 调用interface方法    │ invoke-interface {v0}, Lme/luzhuo/smalidemo/Inter;->mul()V                                                                               ║
+╚══════════════════╧══════════════════════╧══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝<text>
+
+```java
+["调用指令","Description","案例"],
+["invoke-virtual","调用一般方法","invoke-virtual {p0, v0, v1}, Lme/luzhuo/smalidemo/BaseData;->add(II)I"],
+["invoke-super","调用父类方法","invoke-super {p0, p1}, Landroid/support/v7/app/AppCompatActivity;->onCreate(Landroid/os/Bundle;)V // super.onCreate(savedInstanceState);"],
+["invoke-direct","调用private/构造方法","invoke-direct {p0}, Ljava/lang/Object;-><init>()V"],
+["invoke-static","调用静态方法","invoke-static {}, Lme/luzhuo/smalidemo/BaseData;->aaa()V"],
+["invoke-interface","调用interface方法","invoke-interface {v0}, Lme/luzhuo/smalidemo/Inter;->mul()V"]
+```
+
+##### 插入 smali 弹框
+
+smali 注入的过程
+
+ - 1、修改 onCreate 方法中的本地寄存器的个数，这点非常重要！因为smali是基于寄存器的，所有的操作都要经过寄存器，所以在进行smali代码注入时首先要适当修改寄存器的个数。因为构造和显示Toast函数至少需要3个寄存器，所以我们应该先将onCreate方法中的.locals值由7修改为10。
+
+```java
+    .locals 10 // .locals 7 -> .locals 10
+```
+
+ - 3、在“invoke-super{p0,p1},Lcom/baidu/tbadk/BaseActivity;->onCreate(Landroid/os/Bundle;)V ” 这条语句后面添加构造和显示Toast的代码。
+
+```java
+    invoke-super{p0,p1},Lcom/baidu/tbadk/BaseActivity;->onCreate(Landroid/os/Bundle;)V
+    
+    const-string v7, "Hello! this is smali injection!!!" // 构造toast显示的字符串
+    
+    const/4 v8, 0x1 // 构造Toast的显示时间，0表示Toast.LENGTH_SHORT,1表示Toast.LENGTH_LONG
+    
+    // 调用Toast.makeText()方法
+    invoke-static {p0, v7, v8}, Landroid/widget/Toast;->makeText(Landroid/context/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast
+    
+    move-result-object v9 // 将前面Toast.makeText方法的返回值保持到v9寄存器中。
+    
+    invoke-virtual {v9}, Landroid/widget/Toast;->show()V // 调用Toast.show方法弹出Toast
+```
+
+```java
+// 这里是要弹出v1的值
+
+    invoke-static {p0, v1, v3}, Landroid/widget/Toast;->makeText(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;
+
+    move-result-object v1   
+
+    invoke-virtual {v1}, Landroid/widget/Toast;->show()V
+```
+
+##### 寄存器
+
+Java中变量都是存放在内存中的，Android为了提高性能，变量都是存放在寄存器中的，寄存器为32位，可以支持任何类型。
+为什么寄存器比内存快，可以参考这篇文章：http://www.ruanyifeng.com/blog/2013/10/register.html
+
+寄存器分为如下两类：
+
+ - 1、本地寄存器（local register，非参寄存器）
+
+ 用v开头数字结尾的符号来表示，v0, v1, v2,...。
+
+ 只在一个方法内有效，但不常用，一般使用registers即可。
+
+ - 2、参数寄存器（parameter register）
+
+ 用p开头数字结尾的符号来表示，p0,p1,p2,...
+
+ **.registers** 用来标明方法中寄存器的总数，即参数寄存器和非参寄存器的总数。
+
+注意：
+
+ - **.registers** 不用声明
+
+ **.locals** 要声明；
+
+ - 有参数, 用p表示第几个参数所占的寄存器, 从1开始；
+
+ - 在非static方法中，p0代指this，p1为方法的第一个参数；
+
+ - 在static方法中，p0为方法的第一个参数；
+
+ - 方法内部先声明寄存器数量, 然后再写代码；
+
+```java
+.method public add(II)I
+    .locals 1
+    .param p1, "x"    # I
+    .param p2, "y"    # I
+
+    // 先完成上面部分的声明, 然后在这些代码
+    .line 26
+    mul-int v0, p1, p2
+
+    return v0
+.end method
+```
+
+寄存器的声明方式
+
+```java
+.locals 0  // 声明不算参数, 需要加几个寄存器
+.registers 0  // 声明算上参数, 一共需要几个寄存器
+```
+
+寄存器命名规则
+
+```java
+v0 v1 v2 v... // .locals 寄存器的命名
+p0 p1 p2 p... // .registers 寄存器的命名
+```
+
+给寄存器赋值:
+
+```java
+const/4 v0, 0x3
+const-string v0, "\u4f60\u88ab\u6211\u53cd\u7f16\u8bd1\u5566\u002c\u0020\u54c8\u54c8\u54c8\u54c8"
+```
+
+
+##### 成员变量
+
+成员变量定义格式为：
+
+```java
+.field public/private [static][final] varName:<类型>
+```
+
+##### 常量指令
+
+<text zoom="8.2">
+╔════════════════════════════════════╤═════════════════════════════════════════════════════════════════╤════════════════════════════════════╗
+║ 常量指令                           │ Description                                                     │ 案例                               ║
+╟────────────────────────────────────┼─────────────────────────────────────────────────────────────────┼────────────────────────────────────╢
+║ const(/4, /16, ,/high16) vx, num   │ 把nun赋给vx寄存器, num为(4bit, 16bit, 32bit(int), 16bit(float)) │ const v0, 0x3                      ║
+╟────────────────────────────────────┼─────────────────────────────────────────────────────────────────┼────────────────────────────────────╢
+║ const-wide(/16, ,/high16) vx, num  │ 把num赋给vx和vx+, num为(?, 64bit(long), 64bit(double))          │ const-wide v0, 0x123456L           ║
+╟────────────────────────────────────┼─────────────────────────────────────────────────────────────────┼────────────────────────────────────╢
+║ const-string( , -jumbo) vx, string │ Unicode字符串赋给vx (一般, 过长)                                │ const-string v0, "你被..."         ║
+╟────────────────────────────────────┼─────────────────────────────────────────────────────────────────┼────────────────────────────────────╢
+║ const-class vx, class              │ 将Class赋值给vx                                                 │ const-class v0, LJava/lang/String; ║
+╚════════════════════════════════════╧═════════════════════════════════════════════════════════════════╧════════════════════════════════════╝</text>
+
+```java
+["常量指令","Description","案例"],
+["const(/4, /16, ,/high16) vx, num","把nun赋给vx寄存器, num为(4bit, 16bit, 32bit(int), 16bit(float))","const v0, 0x3"],
+["const-wide(/16, ,/high16) vx, num","把num赋给vx和vx+, num为(?, 64bit(long), 64bit(double))","const-wide v0, 0x123456L"],
+["const-string( , -jumbo) vx, string",""Unicode"字符串赋给vx (一般, 过长)","const-string v0, "\u4f60\u88ab...""],
+["const-class vx, class","将Class赋值给vx","const-class v0, LJava/lang/String;"]
+```
+
+##### 指令
+
+获取指令
+iget, sget, iget-boolean, sget-boolean, iget-object, sget-object
+
+操作指令
+iput, sput, iput-boolean, sput-boolean, iput-object, sput-object
+
+array的操作是aget和aput
+
+指令解析
+
+```java
+sget-object v0,Lcom/aaa;->ID:Ljava/lang/String;
+```
+
+获取Lcom/aaa类中名为ID类型为String的成员变量并放到v0这个寄存器中
+
+```java
+iget-object v0,p0,Lcom/aaa;->view:Lcom/aaa/view;
+```
+
+iget-object比sget-object多一个参数p0，这个参数代表变量所在类的实例。这里p0就是this
+
+</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

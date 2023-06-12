@@ -401,30 +401,6 @@ app.set('view engine', 'ejs');
 &amp;#160; &amp;#160;而这两个参数在 index.ejs 中可以使用，那么加上 ejs 的部分，就会返回最终生成的页面展现！
 
 &amp;#160; &amp;#160;***```提示：关于express，还是有必要去看看API，application、request、response、router、middleware还提供了很多方法！```***
-
-##### Express Cors
-
-```js
-let options = {
-  setHeaders: function(res, path, stat){
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('Access-Control-Allow-Methods', 'GET');
-    res.set('Access-Control-Allow-Headers', 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type');
-    res.set('Access-Control-Allow-Origin', '*');
-    res.set('X-Cache', 'HIT from zd-5-zzjd-1');
-    res.set('X-Cache', 'HIT from zd-5-9');
-    res.set('Cache-Control', 'max-age=2592000');
-  }
-}
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'static')));
-app.use(express.static(path.join(__dirname, 'stream'), options));
-```
 	</textarea>
 </div>
 

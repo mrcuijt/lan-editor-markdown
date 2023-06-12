@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>android-studio-smali-debug</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### android studio 反编译插件安装,Android Studio 3.6 调试 smali的全过程
+
+Android Studio 3.6 正式版终于发布了
+
+#### 简介
+
+Smali 是用于 Dalvik (Android 虚拟机) 的反汇编程序实现，汇编工具(将 Smali 代码汇编为 dex 文件)为 smali.jar，与之对应的 baksmali.jar 则是反汇编程序(下载地址)，官方所说的基于 Jasmin/dedexer 语法，实际根不知道是什么鬼……
+
+Smali 支持注解、调试信息、行数信息等基本 Java 的基本特性，可以说是很接近 Java 编译在 JVM 上的中间语言了，一般用来做 Android 程序的逆向工程，还可以。。搞搞小名堂
+
+个人认为Smali只是用于做反汇编的一种语言实现，如果可以，自己也能定义一套这样的语言，实现反汇编的效果
+
+好了，下面看下正文。
+
+以前在 Android Studio 中调试 smali 还是非常麻烦的时候，配置不好就是
+
+Error running Smali: Unable to open debugger port (localhost:8700): java.io.IOException "handshake failed - connection prematurally closed
+
+目前最新版的 Android Studio 利用附加功能调试 smali 非常方便 ，操作步骤如下：
+
+文中会用到工具及下载地址：
+
+①、apktool.jar (目前最新版 v2.4.1)，用于反编译 smali，
+
+②、Android Studio (目前最新版本 3.6)用于 Android 开发调试 IDE，
+
+③、smalidea-0.05.zip (目前最新版 0.05)，AS 插件，用来给 smali 下断点，单步调试，
+
+ - 1.先配置好Android Studio开发环境，这步就略去2. Android Studio 中安装 smalidea 插件，先从官网下载 smalidea zip 包，然后在 Android 中依次选择：
+
+    File   -->  Setting   将会弹出设置对话框
+
+![title](./images/android-studio-smali-debug-001.jpg)
+
+然后在设置对话框依次选择：  Plugins   -->    --> Install Plugin from Disk...
+
+![title](./images/android-studio-smali-debug-002.jpg)
+
+在弹出选择对话框中，找到下载好的 smalidea 压缩包，选择 ok 即可
+
+![title](./images/android-studio-smali-debug-003.jpg)
+
+至此，插件安装就完成了，关闭 Android Studio
+
+ - 3.用 apktool 反编译 apk
+
+```python
+# 使用命令 ：
+
+java.exe -jar apktool.jar d -f -o
+```
+
+也可以直接使用 ApkTool 集成环境(如果反编译失败可以替换其中的 apktool.jar 至最新版)：
+
+![title](./images/android-studio-smali-debug-004.jpg)
+
+在 反编译出来的 `AndroidManifest.xml` 的 `application` 节点添加 `android:debuggable="true"`
+
+然后在 主 `Activity` 中加入  `invoke-static {},Landroid/os/Debug;->waitForDebugger()V`
+
+```python
+## Main Activity
+
+invoke-static {},Landroid/os/Debug;->waitForDebugger()V
+```
+
+![title](./images/android-studio-smali-debug-005.jpg)
+
+重建且签名 apk
+
+![title](./images/android-studio-smali-debug-006.jpg)
+
+安装 重建后的 apk 到手机
+
+(这步如果重新打包失败，可以安装原始包，把手机 root 配置 `/default.prop` 的 `ro.debuggable=1` 开启全局调试。
+
+然后用命令启动 Activiry ：
+
+```python
+## adb shell
+
+adb shell am start -D -n package属性的值/android:name属性的值
+```
+
+ - 4.将反编译工程导入到 Android Studio
+
+![title](./images/android-studio-smali-debug-007.jpg)
+
+默认选择 **Create project from existing sources** ，一路 **next** ，最后点击 **Finish** 即可
+
+用 **Project** 视图，在项目目录右键  --> **Mark Directory as ... --> Sources root**
+
+![title](./images/android-studio-smali-debug-008.jpg)
+
+ - 5.展开 `smali` 目录选择刚才添加 `waitForDebugger` 代码的 **smali** 文件下一行下断点
+
+![title](./images/android-studio-smali-debug-009.jpg)
+
+ - 6.运行手机上安装的 apk (apk 会假死停在 **`waitForDebugger`** 代码处，等待调试器)。
+
+ - 7.在 Android Studio 选择附加
+
+![title](./images/android-studio-smali-debug-010.jpg)
+
+此时，已经 **Attach** 到进程中，可以快乐的调试了
+
+![title](./images/android-studio-smali-debug-011.jpg)
+
+#### 总结
+
+到此这篇关于 Android Studio 3.6 调试 smali 的全过程的文章就介绍到这了,更多相关 Android Studio 3.6 调试 smali 内容请搜索脚本之家以前的文章或继续浏览下面的相关文章希望大家以后多多支持脚本之家！
+
+参考链接：
+
+ - <a href="https://blog.csdn.net/weixin_35643153/article/details/117342353" target="_blank">Android反编译利器一步搞定_androidstudio反编译apk,android...</a>
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

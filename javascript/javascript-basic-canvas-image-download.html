@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-canvas-image-download</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-canvas-image-download
+
+**注：仅允许同源请求图片和支持跨域资源共享图片**
+
+##### 公共函数定义
+
+```js
+let i = 0;
+function download(){
+  i = 0
+  for(;;){
+    if(i == 10){
+      break;
+    }
+    if(arraya.length == 0){
+      // 清除自动下载设置
+	  if(status) clearInterval(status);
+	  console.info("download finished.");
+      break;
+    }
+    arraya.splice(0,1)[0].click();
+    i++;
+  }
+}
+
+function getFileName(url){
+  if(!url) return "NULL";
+  if(url.lastIndexOf("?") > 0) url = url.substring(0, url.lastIndexOf("?"));
+  if(url.endsWith("/")) url = url.substring(0, url.length - 1);
+  var fileName = url.substring(url.lastIndexOf("/") + 1);
+  return fileName;
+}
+
+var panel = $("<div/>").attr("id","imgspanel")
+$("body").append(panel);
+var linkPanel = $("<div/>").attr("id","linkspanel");
+$("body").append(linkPanel);
+
+function draw(index){
+  var obj = {};
+  try{
+    var tempimg = imgs[index].img;
+    var tempcanvasel = imgs[index].canvas;
+    var tempcanvas = tempcanvasel[0];
+    var tempctx = tempcanvas.getContext("2d");
+    tempctx.clearRect(0, 0, tempcanvas.width,tempcanvas.height);
+    tempctx.fillStyle = "orange";
+    tempctx.fillRect(0,0,tempcanvas.width,tempcanvas.height);
+    tempctx.drawImage(tempimg, 0, 0, tempcanvas.width, tempcanvas.height);
+    let blobUrl = tempcanvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+    obj.name = getFileName(tempimg.src);
+    obj.url = blobUrl;
+  }catch(e){
+    console.info(e.message);
+  }
+  return obj;
+}
+```
+
+##### 定义 img 元素选择器
+
+```js
+var selector = ".container .row img";
+
+var selector = "img[width=40]";
+```
+
+##### 获取指定图片元素，并为其创建对应的 canvas 元素
+
+```js
+var imgs = [];
+$("#imgspanel").html("");
+$("#imgspanel").attr("style","overflow:auto;position:fixed;width:500px;height:300px;top:70px;");
+$(selector).each(function(index, item){
+  let img = item;
+  // 移除 img 宽高的 css 样式设置，避免一些失帧现象
+  $(img).removeClass("img-fluid");
+  $(img).attr("style","");
+  let imgcanvas = $("<canvas/>").attr("id",getFileName(img.src));
+  imgcanvas.attr("height", $(img).height());
+  imgcanvas.attr("width", $(img).width());
+  panel.append(imgcanvas);
+  var obj = {};
+  obj.img = img;
+  obj.canvas = imgcanvas;
+  imgs.push(obj);
+});
+```
+
+##### 单张图片绘制测试
+
+```js
+var tempimg = imgs[0].img;
+var tempcanvasel = imgs[0].canvas;
+var tempcanvas = tempcanvasel[0];
+var tempctx = tempcanvas.getContext("2d");
+tempctx.clearRect(0, 0, tempcanvas.width,tempcanvas.height);
+tempctx.fillStyle = "orange";
+tempctx.fillRect(0,0,tempcanvas.width,tempcanvas.height);
+tempctx.drawImage(tempimg, 0, 0, tempcanvas.width, tempcanvas.height);
+```
+
+##### 读取 img 元素并使用 canvas 将绘制图片
+
+```js
+var dataURLs = [];
+imgs.forEach(function(item, index){
+  try {
+    dataURLs.push(draw(index));
+  } catch(e){
+    console.info(e.message)
+  }
+});
+```
+
+##### 创建下载 canvas 图片的 Blob 连接，并将其添加到 linkPanel 面板中
+
+```js
+$(linkPanel).html("");
+dataURLs.forEach(function(item, index){
+  try{
+    let downloada = $("<a/>").attr("href", item.url);
+    downloada.attr("download", item.name);
+    $(linkPanel).append(downloada);
+  } catch(e){
+    console.info(e.message)
+  }
+})
+```
+
+##### 获取所有的下载连接以每 3 秒开启下载 10 个文件连接的下载速度进行下载
+
+```js
+var arraya = $(linkPanel).find("a");
+// 先下载 10 个图片，之后每 3 秒下载 10 个文件
+download();
+// Chrome 浏览器同时最多只允许下载 10 个文件
+var status = setInterval(download, 3000);
+```
+
+##### 清除浏览器为 Blob 连接创建的资源
+
+```js
+$(linkPanel).find("a").each(function(index, item){
+  window.URL.revokeObjectURL(item.href);
+});
+// 清除循环下载函数
+clearInterval(status);
+
+// 清除创建的连接面板
+linkPanel.remove();
+
+// 清除创建的图片面板
+panel.remove();
+```
+
+参考链接：
+
+ - <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toDataURL" target="_blank">HTMLCanvasElement.toDataURL()</a>
+
+ - <a href="https://stackoverflow.com/questions/6011378/how-to-add-image-to-canvas" target="_blank">How to add image to canvas</a>
+
+ - <a href="https://weworkweplay.com/play/saving-html5-canvas-as-image/" target="_blank">https://weworkweplay.com/play/saving-html5-canvas-as-image/</a>
+
+ - <a href="https://www.w3schools.com/tags/canvas_drawimage.asp" target="_blank">HTML canvas drawImage() Method</a>
+
+ - <a href="https://www.cnblogs.com/JamKong/p/4987163.html" target="_blank">Canvas设置width与height 的问题！</a>
+
+ - <a href="https://stackoverflow.com/questions/11969031/save-canvas-image-as-image-file-and-force-download-fail-to-open-download-dialo?noredirect=1" target="_blank">Save canvas image as image file and force download - fail to open download dialog</a>
+
+ - <a href="https://stackoverflow.com/questions/8126623/downloading-canvas-element-to-an-image" target="_blank">Downloading Canvas element to an image</a>
+
+ - <a href="http://rembound.com/articles/how-to-load-and-draw-images-with-html5-canvas" target="_blank">How To Load And Draw Images With HTML5 Canvas</a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

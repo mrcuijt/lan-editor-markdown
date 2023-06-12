@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>XML Formatter Tools</title>
+    <style type="text/css">
+
+.textarea {
+    width: 98%;
+    border: 1px solid #eb8f00;
+    height: 220px;
+    resize: vertical;
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    padding: 5px 10px;
+}
+
+textarea {
+    font-family: monospace;
+    border-color: rgb(169, 169, 169);
+}
+
+textarea {
+    -webkit-appearance: textarea;
+    background-color: white;
+    -webkit-rtl-ordering: logical;
+    flex-direction: column;
+    resize: auto;
+    cursor: text;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    border-width: 1px;
+    border-style: solid;
+    border-color: initial;
+    border-image: initial;
+    padding: 2px;
+}
+
+textarea {
+    text-rendering: auto;
+    color: initial;
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: start;
+    margin: 0em;
+    font: 400 13.3333px Arial;
+}
+
+textarea {
+    -webkit-writing-mode: horizontal-tb !important;
+}
+
+body, h1, h2, h3, h4, h5, h6, hr, p, blockquote, dl, dt, dd, ul, ol, li, pre, form, fieldset, legend, input, label, textarea {
+    margin: 0;
+    padding: 0;
+}
+
+
+
+    </style>
+</head>
+<body>
+
+<textarea name="formatxmls" id="formatxmls" class="textarea" drag="text"></textarea>
+
+<div class="tc">
+<input type="button" value="XML格式化&amp;美化" class="btn f14" id="formatxml">
+&nbsp;&nbsp;
+<input type="button" value="压缩XML" class="btn f14" id="compressxml">
+</div>
+
+<textarea name="formatxmld" id="formatxmld" class="textarea"></textarea>
+<script type="text/javascript" src="./js/jquery.min.js"></script>
+<script type="text/javascript" src="./js/base-plugin.js"></script>
+<script type="text/javascript">
+$(function() {
+    $("#formatxml,#compressxml").bind("click", function() {
+        if ($("#formatxmls").val().length < 10) {
+            showInfo("请输入需要处理的字符！");
+            return;
+        }
+        var id = $(this).attr("id");
+        var type = id == "formatxml" ? "format" : "compress";
+        $.post(location.href, {
+            data: $("#formatxmls").val(),
+            type: type,
+            beforeSend: function() {
+                $("#formatinfo").html('');
+                $("#formatxmld").val('');
+                showInfo("处理中...");
+            }
+        }, function(data) {
+            var dom = $.parseJSON(data);
+            $("#formatxmld").val(dom.data[0]);
+            if (type == "compress")
+                $("#formatinfo").html("\t原始大小:" + dom.data[1] + "\t压缩后：" + dom.data[2] + "\t压缩比：" + dom.data[3]);
+        });
+    });
+    $(".formatxml a.ui-icon-close[forid]").bind('click', function() {
+        $('#' + $(this).attr('forid')).val('');
+        showInfo("清理完成！");
+    });
+    $(".formatxml a.ui-icon-transferthick-e-w[forid]").bind('click', function() {
+        var d = $('#' + $(this).attr('forid')).val();
+        if (d.length < 1)
+            return;
+        $('#' + $(this).attr('toid')).val(d);
+        showInfo("将输出结果填到输入！！");
+    });
+    $(".formatxml a.ui-icon-copy[forid]").each(function() {
+        copyClip(this);
+    }).on("click", function() {
+        copyClip(this);
+    });
+});
+
+</script>
+</body>
+</html>
