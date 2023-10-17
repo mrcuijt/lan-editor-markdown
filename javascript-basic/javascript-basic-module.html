@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-module</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-module
+
+#### ES6 模块和 CommomJS 模块的异同
+
+#### CommonJS
+
+ - 最初为服务端设计，NodeJS 版本
+
+ - 每个文件即使一个文件，用于独立的作用域
+
+ - 导出是一个模块向外暴露自己的唯一方式。CommonJS 中通过 module.exports 导出模块中的内容
+
+ - CommonJS 中使用 require 进行模块的导入
+
+ 如果导入的模块是第一次被加载，这时会首先执行该模块，然后导出执行后的内容。 如果模块曾经被加载过，则直接导出第一次加载时执行后的内容。（相当于是一个静态值了）
+
+#### ES6 模块
+
+ - 每个文件作为一个模块，每个模块拥有独立的作用域
+
+ - 通过 export 导出（只能导出一个对象）
+
+  - 命名导出
+
+      exports { a, b }
+
+  - 默认导出
+
+      exports default a
+
+ - 通过 import 导入
+
+  命名导出方式，导入时名称必须一致，可以使用 as 重命名
+  
+  默认导出的变量，导入时可以随意命名
+
+#### CommonJS 与 ES6 模块的区别
+
+ - 模块依赖
+
+  - CommonJS 对模块依赖的解决是动态的
+
+      动态：模块的依赖关系建立在代码运行阶段
+
+	  CommonJS 的实质是整体加载模块生成一个对象，之后再从对象中分别读取属性或方法
+
+	  CommonJS一个模块对应一个脚本文件，require 命令每次加载一个模块就会执行整个脚本，然后生成一个对象。这个对象一旦生成，以后再次执行相同的 require 命令都会直接到缓存中取值。也就是说：CommonJS 模块无论加载多少次，都只会在第一次加载时运行一次，以后再加载时就返回第一次运行的结果，除非手动清除系统缓存。
+
+
+  - ES6 模块是静态的
+
+      静态：模块的依赖关系建立在代码编译阶段
+
+	  ES6 的模块化设计思想是尽量静态化，使得编译时就能确定模块的依赖关系
+
+ - 模块导入
+ 
+  - CommonJS 是值拷贝
+
+  - ES6 则是只读的动态映射
+
+#### ES6 模块化的语法规范
+
+##### 严格模式
+
+在 ES6 模块中自动采用严格模式。规定：
+
+ - 变量必须先声明
+
+ - 函数参数不能有同名属性
+
+ - 不能使用 **`with`**
+
+ - 对只读属性赋值、**`delete`** 不可删除属性直接报错
+
+ - 不可删除变量 **`delete prop`** 、只能删除属性 **`delete global[prop]`**
+
+ - **`eval`** 不会再外层作用域引入变量
+
+ - **`eval`** 和 **`arguments`** 不可重新赋值
+
+ - **`arguments`** 不会自动反应函数参数变化
+
+ - 禁止 **`this`** 指向全局
+
+ - 增加保留字：**`static`**、**`interface`**、**`protected`** 等。
+
+**注意**：在 ES6 模块中，顶层 this 为 undefined，不应该被使用。
+
+##### export 命令
+
+ - export 语句输出的接口是对应值的引用，也就是一种动态绑定关系，通过该接口可以获取模块内部实时的值。
+
+ - export 命令规定要处于模块顶层，一旦出现在块级作用域内，就会报错，import 同理。
+
+很重要的一点，这个导出的，并不是一个对象，尽管看起来很像，而是一个列表。
+
+暴露方式
+
+ - 分别暴露
+
+**export.js**
+```js
+export let obj = {
+  name: "导出"
+}
+
+export const fuc = () => {
+  console.log('导出')
+}
+
+import {obj, fuc} from '@/utils/export.js'
+//obj.name
+//fuc()
+```
+
+ - 统一暴露
+
+**export.js**
+```js
+let obj = {
+  name: "导出"
+}
+
+const fuc = () => {
+  console.log('导出')
+}
+export {
+  obj,
+  fuc,
+}
+
+import {obj, fuc} from '@/utils/export.js'
+//obj.name
+//fuc()
+```
+
+ - 默认暴露
+
+**export.js**
+```js
+export default {
+  obj: {
+    name: "导出"
+  },
+  fuc: function () {
+    console.log('导出')
+  }
+}
+
+import moduleA from '@/utils/export.js'
+//moduleA.obj.name
+//moduleA.fuc()
+```
+
+- 通用引用
+
+```js
+// 这里是通用引用方式
+import * as ex from '@/utils/export.js'
+console.log(ex.default.obj.name)
+```
+
+##### import 命令
+
+ - import 是静态执行，不可以应用表达式、变量和 if 结构。
+
+ - import 语句是 Singleton 模式：虽然可以重复加载同一个模块获取该模块中的对象，但是对应的是同一个模块的实例。
+
+模块的整体加载
+
+可以使用*来指定一个对象，所有输出值都加载到这个对象上：
+
+```js
+import * as circle from './module1'
+circle.foo();
+circle.bar();
+```
+
+##### 默认输出
+
+export default 命令可以为模块默认输出
+
+用默认导出的时候，不需要变量声明 let name, const name, function name
+
+```js
+function a(){
+  console.log('123')
+}
+export {a as default}; 
+
+// 简写后相当于
+export default function(){
+  console.log('123')
+}
+```
+
+import 命令可以为匿名函数指定任意名字
+
+```js
+import {default as defaultFn} from './module2'
+
+// 简写后相当于
+import defaultFn from './module2'
+```
+
+#### export 和 import 的复合写法
+
+示例一
+
+```js
+import {foo,bar} from 'my_module';
+export{foo,bar};
+
+// 简写后等同于
+export { foo, bar} from 'my_module';
+```
+
+示例二
+
+```js
+import {es6} from './someModule'
+export default es6;
+
+// 简写后等同于
+export {es6 as default} from './someModule'
+```
+
+参考连接：
+
+ - https://zhuanlan.zhihu.com/p/364019019 ES6 模块和 CommonJS 模块相互转换
+
+ - https://juejin.cn/post/6844904003722018830 一篇文章帮你弄懂ES6模块化
+
+ - https://juejin.cn/post/6933615540455866375 ES6指北【3】——5000字长文带你彻底搞懂ES6模块
+
+ - https://blog.csdn.net/qq_42991509/article/details/111269795 Es6 模块（Module）导入、导出几种常用的方式
+
+ - https://juejin.cn/post/6982122550671196167 es6 export暴露的三种方式以及引用方法
+
+ - https://juejin.cn/post/6895328842236788749 module.exports,exports,export小型指南
+
+ - https://juejin.cn/post/6844903617976074248 import、require、export、module.exports 混合使用详解
+
+ - https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment 解构赋值
+
+ - https://www.runoob.com/w3cnote/deconstruction-assignment.html ES6 解构赋值
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

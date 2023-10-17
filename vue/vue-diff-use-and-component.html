@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-diff-use-and-component</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### vue-diff-use-and-component
+
+#### 注册全局组件
+
+ - Vue.component()
+
+ - Vue.use()
+
+#### component
+
+ - component(name:string, component:component)
+
+  - name 自定义元素名称。
+
+  - component 要注册 Vue 组件
+
+#### use
+
+这个方法接收一个参数。这个参数必须具有 install 方法。 Vue.use 函数内部会调用参数的 install 方法。
+
+ - 如果插件没有被注册过，那么注册成功之后会给插件添加一个 installed 的属性，从而避免重复注册插件。
+
+ - 插件的 install 方法将接收两个参数，第一个参数是 Vue，第二个参数是配置选项 options。
+
+ - 在 install 方法内部可以添加全局方法或者属性、全局指令、mixin混入、添加实例方法、使用 Vue.component() 注册组件等。
+
+#### use 示例
+
+```js
+import Vue from 'vue';
+
+// 这个插件必须具有install方法
+const plugin = {
+  install (Vue, options) {
+    // 添加全局方法或者属性
+    Vue.myGlobMethod = function () {};
+    // 添加全局指令
+    Vue.directive();
+    // 添加混入
+    Vue.mixin();
+    // 添加实例方法
+    Vue.prototype.$xxx = function () {};
+    // 注册全局组件
+    Vue.component()
+  }
+}
+
+// Vue.use内部会调用plugin的install方法
+Vue.use(plugin);
+```
+
+#### 示例
+
+下面看一下element-ui里面的实现。
+
+在./src/index.js里面第144行定义了一个install方法，后面导出的对象里面就引用了这个方法。然后在我们的项目中引入element-ui，必须要使用Vue.use()注册之后，才能使用element-ui的组件。element-ui的按需引入组件功能也是类似的实现方式。
+
+```js
+// src/index.js
+const install = function(Vue, opts = {}) {
+  locale.use(opts.locale);
+  locale.i18n(opts.i18n);
+
+  components.forEach(component => {
+    Vue.component(component.name, component);
+  });
+
+  Vue.use(Loading.directive);
+
+  Vue.prototype.$ELEMENT = {
+    size: opts.size || '',
+    zIndex: opts.zIndex || 2000
+  };
+
+  Vue.prototype.$loading = Loading.service;
+  Vue.prototype.$msgbox = MessageBox;
+  Vue.prototype.$alert = MessageBox.alert;
+  Vue.prototype.$confirm = MessageBox.confirm;
+  Vue.prototype.$prompt = MessageBox.prompt;
+  Vue.prototype.$notify = Notification;
+  Vue.prototype.$message = Message;
+
+};
+
+/* istanbul ignore if */
+if (typeof window !== 'undefined' && window.Vue) {
+  install(window.Vue);
+}
+
+module.exports = {
+  version: '2.4.11',
+  locale: locale.use,
+  i18n: locale.i18n,
+  install,
+  CollapseTransition,
+  Loading,
+  Pagination
+  //...
+}
+```
+
+参考连接：
+
+ - <a href="https://blog.csdn.net/yanzhi_2016/article/details/85339420" target="_blank">vue.component和vue.use的用法</a>
+
+ - <a href="https://blog.csdn.net/MPFLY/article/details/118439163" target="_blank">Vue全局组件的注册与使用</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

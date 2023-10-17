@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>vscode-workspace-settings</title>
+    <title>vue-basic-router</title>
 </head>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
@@ -51,78 +51,68 @@
 <body>
 <div id="edit">
     <textarea id="editor" name="editor">
-#### vscode-workspace-settings
+#### vue-basic-router
 
-VSCode 格式化代码快捷键 Alt + Shift + F
+Vue 单页面应用，入口页面固定不变。
 
-#### VSCode 插件安装
+入口页面展示内容框架搭建好后，通过路由工具切换当前页中的内容。
 
- - ESLint
+#### 已打开标签页路由
 
- - Vetur
+已打开标签页路由可以通过计算属性获取，通过本地存储存储。
 
- - Vue Language Features(Volar)
+#### 整体结构
 
- - Format Selection As HTML
+框架结构
 
-   格式化 Vue 中的 HTML 模板
+ - Vue 注册页面插件
 
-注：在eslint中用prettier就是个错误方式，官方也不推荐，严重拖慢了eslint和vscode编辑的速度，而且格式化的事是一个lint该做的吗？ 应该按官方推荐的方式，安装vscode插件，设置formatOnSave，保存的时候自动格式化。
+  - 前端框架 element-ui
 
-工作空间配置
+  - 路由插件 vue-router
+
+  - 本地存储 vuex
+
+事件驱动
+
+ - 应用首页数据加载，页面渲染。
+
+  - 资源数据
+
+  - 接口数据
+
+  - 计算属性
+
+本地存储 Vuex
+
+ - 数据页面动态绑定，提供路由视图标签页数据存储、读取、操作的功能。
+
+数据结构
+
+ - 路由视图标签页
+
+  - 标签页中记录了对应标签的显示名称和路由路径
+
+  - 当前活动页中记录了路由路径
 
 ```js
 {
-  "files.autoSave": "afterDelay",
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/tmp": true,
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/dist": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    "**/.settings": true,
-    "**/.factorypath": true
-  },
-  "search.followSymlinks": false,
-  "workbench.colorTheme": "Monokai",
-  "workbench.editor.enablePreview": false,
-  "editor.tabSize": 2,
-  "editor.fontSize": 22,
-  "editor.wordWrap": "bounded",
-  "editor.wordWrapColumn": 120,
-  "editor.formatOnPaste": true,
-  "editor.suggestSelection": "first",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "[vue]": {
-    "editor.defaultFormatter": "octref.vetur"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "vetur.format.defaultFormatter.js": "vscode-typescript",
-  "vetur.format.defaultFormatter.html": "js-beautify-html",
-  "vetur.format.defaultFormatterOptions": {
-    "js-beautify-html": {
-      "wrap_attributes": "force-expand-multiline"
-    },
-    "prettyhtml": {
-      "printWidth": 100,
-      "singleQuote": false,
-      "wrapAttributes": true,
-      "sortAttributes": false
-    }
-  },
-  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+    openTab: [{ route: '/main', name: 'HelloWorld' }],
+    activeIndex: '/main'
 }
 ```
+
+页面中通过计算属性，渲染出已打开或常驻的标签页标签。标签页内容由路由视图完成加载。
+
+```js
+computed: {
+    openTab () {
+        return this.$store.state.openTab
+    }
+}
+```
+
+
 	</textarea>
 </div>
 

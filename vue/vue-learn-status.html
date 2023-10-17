@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>vscode-workspace-settings</title>
+    <title>vue-learn-status</title>
 </head>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
@@ -51,78 +51,42 @@
 <body>
 <div id="edit">
     <textarea id="editor" name="editor">
-#### vscode-workspace-settings
+#### vue-learn-status
 
-VSCode 格式化代码快捷键 Alt + Shift + F
+#### 进度记录
 
-#### VSCode 插件安装
+ - 进度记录
 
- - ESLint
+  - 组件页面参数记录
 
- - Vetur
+  - 系统页面路由菜单
 
- - Vue Language Features(Volar)
+  - 组件间传参保存
 
- - Format Selection As HTML
+  - 页面框架
 
-   格式化 Vue 中的 HTML 模板
+#### Danmuk
 
-注：在eslint中用prettier就是个错误方式，官方也不推荐，严重拖慢了eslint和vscode编辑的速度，而且格式化的事是一个lint该做的吗？ 应该按官方推荐的方式，安装vscode插件，设置formatOnSave，保存的时候自动格式化。
+ - 组件
 
-工作空间配置
+  - Id 组件 查询
 
-```js
-{
-  "files.autoSave": "afterDelay",
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/tmp": true,
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/dist": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    "**/.settings": true,
-    "**/.factorypath": true
-  },
-  "search.followSymlinks": false,
-  "workbench.colorTheme": "Monokai",
-  "workbench.editor.enablePreview": false,
-  "editor.tabSize": 2,
-  "editor.fontSize": 22,
-  "editor.wordWrap": "bounded",
-  "editor.wordWrapColumn": 120,
-  "editor.formatOnPaste": true,
-  "editor.suggestSelection": "first",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "[vue]": {
-    "editor.defaultFormatter": "octref.vetur"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "vetur.format.defaultFormatter.js": "vscode-typescript",
-  "vetur.format.defaultFormatter.html": "js-beautify-html",
-  "vetur.format.defaultFormatterOptions": {
-    "js-beautify-html": {
-      "wrap_attributes": "force-expand-multiline"
-    },
-    "prettyhtml": {
-      "printWidth": 100,
-      "singleQuote": false,
-      "wrapAttributes": true,
-      "sortAttributes": false
-    }
-  },
-  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
-}
-```
+  - 表格展示内容
+
+  - 新建表单
+
+  - 编辑表单 -> 数据传递
+
+参考链接：
+
+ - <a href="https://vuex.vuejs.org/zh/guide/" target="_blank">Vuex guide</a>
+
+ - <a href="https://class-component.vuejs.org/guide/class-component.html" target="_blank">Vue export class component</a>
+
+ - <a href="https://cn.vuejs.org/guide/typescript/overview.html" target="_blank">Vue TypeJS</a>
+
+ - <a href="" target="_blank"></a>
+
 	</textarea>
 </div>
 

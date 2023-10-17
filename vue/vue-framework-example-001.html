@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>vue-framework-example-001</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### vue-framework-example-001
+
+#### 导航
+
+vue-project
+
+ - <a href="#/.eslintrc.js" target="_self">/.eslintrc.js</a>
+
+ - <a href="#/.gitignore" target="_self">/.gitignore</a>
+
+ - <a href="#/babel.config.js" target="_self">/babel.config.js</a>
+
+ - <a href="#/jsconfig.json" target="_self">/jsconfig.json</a>
+
+ - <a href="#/package.json" target="_self">/package.json</a>
+
+ - <a href="#/README.md" target="_self">/README.md</a>
+
+ - <a href="#/vue.config.js" target="_self">/vue.config.js</a>
+
+ - <a href="#/yarn.lock" target="_self">/yarn.lock</a>
+
+ - <a href="#/.vscode/settings.json" target="_self">/.vscode/settings.json</a>
+
+ - <a href="#/public/favicon.ico" target="_self">/public/favicon.ico</a>
+
+ - <a href="#/public/index.html" target="_self">/public/index.html</a>
+
+ - <a href="#/src/App.vue" target="_self">/src/App.vue</a>
+
+ - <a href="#/src/main.js" target="_self">/src/main.js</a>
+
+ - <a href="#/src/assets/logo.png" target="_self">/src/assets/logo.png</a>
+
+ - <a href="#/src/components/HelloWorld.vue" target="_self">/src/components/HelloWorld.vue</a>
+
+ - <a href="#/src/components/MainIndex.vue" target="_self">/src/components/MainIndex.vue</a>
+
+ - <a href="#/src/components/menu/MainMenu.vue" target="_self">/src/components/menu/MainMenu.vue</a>
+
+ - <a href="#/src/plugin/router.js" target="_self">/src/plugin/router.js</a>
+
+ - <a href="#/src/plugin/store.js" target="_self">/src/plugin/store.js</a>
+
+#### 目录结构
+
+```python
+vue-project:
+|   .eslintrc.js
+|   .gitignore
+|   babel.config.js
+|   jsconfig.json
+|   package.json
+|   README.md
+|   vue.config.js
+|   yarn.lock
+|
++---.vscode
+|       settings.json
+|
++---public
+|       favicon.ico
+|       index.html
+|
+\---src
+    |   App.vue
+    |   main.js
+    |
+    +---assets
+    |       logo.png
+    |
+    +---components
+    |   |   HelloWorld.vue
+    |   |   MainIndex.vue
+    |   |
+    |   +---menu
+    |   |       MainMenu.vue
+    |   |
+    |
+    |
+    \---plugin
+            router.js
+            store.js
+```
+
+<span id="/package.json">**/package.json**</span>
+
+```python
+{
+  "name": "vue-tools",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "core-js": "^3.8.3",
+    "element-ui": "^2.15.14",
+    "vue": "^2.6.14",
+    "vue-codemirror": "^4.0.6",
+    "vue-router": "^3.0.1",
+    "vuex": "^3.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-service": "~5.0.0",
+    "eslint": "^8.51.0",
+    "eslint-plugin-vue": "^8.0.3",
+    "prettier": "3.0.3",
+    "vue-template-compiler": "^2.6.14"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
+```
+
+<span id="/.eslintrc.js">**/.eslintrc.js**</span>
+
+```python
+module.exports = {
+  'env': {
+    'browser': true,
+    'es2021': true
+  },
+  'extends': [
+    'eslint:recommended',
+    'plugin:vue/vue3-essential'
+  ],
+  'overrides': [
+    {
+      'env': {
+        'node': true
+      },
+      'files': [
+        '.eslintrc.{js,cjs}'
+      ],
+      'parserOptions': {
+        'sourceType': 'script'
+      }
+    }
+  ],
+  'parserOptions': {
+    'ecmaVersion': 'latest',
+    'sourceType': 'module'
+  },
+  'plugins': [
+    'vue'
+  ],
+  'rules': {
+    'indent': [
+      'error',
+      2
+    ],
+    'linebreak-style': [
+      'error',
+      'windows'
+    ],
+    'quotes': [
+      'error',
+      'single'
+    ],
+    'semi': [
+      'error',
+      'never'
+    ]
+  }
+}
+```
+
+<span id="/.gitignore">**/.gitignore**</span>
+
+```python
+.DS_Store
+node_modules
+/dist
+
+
+# local env files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+```
+
+<span id="/babel.config.js">**/babel.config.js**</span>
+
+```js
+/* eslint-disable no-undef */
+module.exports = {
+  presets: [
+    '@vue/cli-plugin-babel/preset'
+  ]
+}
+```
+
+<span id="/jsconfig.json">**/jsconfig.json**</span>
+
+```python
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "esnext",
+    "baseUrl": "./",
+    "moduleResolution": "node",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ]
+  }
+}
+```
+
+<span id="/README.md">**/README.md**</span>
+
+<span id="/vue.config.js">**/vue.config.js**</span>
+
+```js
+/* eslint-disable no-undef */
+const { defineConfig } = require('@vue/cli-service')
+module.exports = defineConfig({
+  transpileDependencies: true
+})
+```
+
+<span id="/yarn.lock">**/yarn.lock**</span>
+
+<span id="/.vscode/settings.json">**/.vscode/settings.json**</span>
+
+```python
+{
+  "files.autoSave": "afterDelay",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/tmp": true,
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/dist": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "search.followSymlinks": false,
+  "workbench.colorTheme": "Monokai",
+  "workbench.editor.enablePreview": false,
+  "editor.tabSize": 2,
+  "editor.fontSize": 22,
+  "editor.wordWrap": "bounded",
+  "editor.wordWrapColumn": 120,
+  "editor.formatOnPaste": true,
+  "editor.suggestSelection": "first",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "octref.vetur"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "vetur.format.defaultFormatter.js": "vscode-typescript",
+  "vetur.format.defaultFormatter.html": "js-beautify-html",
+  "vetur.format.defaultFormatterOptions": {
+    "js-beautify-html": {
+      "wrap_attributes": "force-expand-multiline"
+    },
+    "prettyhtml": {
+      "printWidth": 100,
+      "singleQuote": false,
+      "wrapAttributes": true,
+      "sortAttributes": false
+    }
+  },
+  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+}
+```
+
+<span id="/public/index.html">**/public/index.html**</span>
+
+```html
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app"></div>
+    <!-- built files will be auto injected -->
+  </body>
+</html>
+```
+
+<span id="/src/App.vue">**/src/App.vue**</span>
+
+```html
+<template>
+  <div id="app">
+    <MainIndex />
+  </div>
+</template>
+
+<script>
+import MainIndex from './components/MainIndex.vue'
+
+export default {
+  name: 'App',
+  components: {
+    MainIndex
+  }
+}
+</script>
+
+<style>
+body {
+  padding: 0px;
+  margin: 0px;
+}
+</style>
+```
+
+<span id="/src/main.js">**/src/main.js**</span>
+
+```js
+import Vue from 'vue'
+import ElementUI from 'element-ui'
+import VueCodeMirror from 'vue-codemirror'
+import App from './App.vue'
+import router from '@/plugin/router'
+import store from '@/plugin/store'
+
+import 'element-ui/lib/theme-chalk/index.css'
+Vue.use(ElementUI)
+
+import 'codemirror/lib/codemirror.css'
+Vue.use(VueCodeMirror)
+
+Vue.config.productionTip = false
+
+new Vue({
+  router,
+  store,
+  render: h => h(App),
+}).$mount('#app')
+```
+
+<span id="/src/components/HelloWorld.vue">**/src/components/HelloWorld.vue**</span>
+
+```html
+<template>
+  <div class="hello">{{ msg }}</div>
+</template>
+
+<script>
+export default {
+  name: 'TabA',
+  components: {
+
+  },
+  data () {
+    return {
+      msg: 'Component A'
+    }
+  },
+  methods: {
+
+  }
+}
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped></style>
+```
+
+<span id="/src/components/MainIndex.vue">**/src/components/MainIndex.vue**</span>
+
+```html
+<template>
+  <el-container ref="mainDiv">
+    <el-header>标题</el-header>
+    <el-container>
+      <el-aside
+        ref="mainMenu"
+        width="200px"
+      >
+        <MainMenu></MainMenu>
+      </el-aside>
+      <el-main>
+        Main
+        <router-view />
+      </el-main>
+    </el-container>
+  </el-container>
+</template>
+
+<script>
+
+import MainMenu from './menu/MainMenu.vue'
+export default {
+  name: 'MainIndex',
+  components: {
+    MainMenu,
+  },
+  data () {
+    return {
+      msg: 'MainIndex',
+    }
+  },
+  methods: {
+    autoHeight () {
+      const screenheight = window.innerHeight
+      this.$refs.mainDiv.$el.style.height = screenheight + 'px'
+      console.log(screenheight, this.$refs.mainDiv.$el.style.height)
+    },
+    autoMenuWidth () {
+      this.$refs.mainMenu.$el.style.width = 'auto' 
+    }
+  },
+  mounted () {
+    this.autoHeight()
+    this.autoMenuWidth()
+    window.addEventListener('resize', this.autoHeight)
+  },
+  unmounted () {
+    window.removeEventListener('resize', this.autoHeight, false)
+  },
+}
+</script>
+
+<style>
+.el-header {
+  color: #333;
+  text-align: left;
+  line-height: 60px;
+  border-bottom: 1px solid #ccc;
+}
+
+.el-aside {
+  color: #333;
+  text-align: left;
+  overflow: hidden;
+  border-right: 1px solid #ccc;
+}
+
+.clearfix {
+  height: 1px;
+  clear: both;
+}
+
+.el-main {
+  color: #333;
+  text-align: left;
+}
+
+.el-container {
+  height: 0;
+  min-height: 370px;
+}
+</style>
+```
+<span id="/src/components/menu/MainMenu.vue">**/src/components/menu/MainMenu.vue**</span>
+
+```html
+<!-- eslint-disable vue/no-deprecated-slot-attribute -->
+<template>
+  <div class="menu-container">
+    <el-menu
+      default-active="1"
+      class="el-menu-vertical-demo"
+      @open="handleOpen"
+      @close="handleClose"
+      :collapse="isCollapse"
+      router
+    >
+      <el-menu-item @click="handleisCollapse">
+        <i class="el-icon-setting"></i>
+        <span slot="title"></span>
+      </el-menu-item>
+      <el-submenu index="1">
+        <template slot="title">
+          <i class="el-icon-location"></i>
+          <span slot="title">导航一</span>
+        </template>
+        <el-menu-item-group>
+          <span slot="title">分组一</span>
+          <el-menu-item index="danmuk">弹幕</el-menu-item>
+          <el-menu-item index="code">code</el-menu-item>
+          <el-menu-item index="codeformat">codeformat</el-menu-item>
+          <el-menu-item index="tabA">选项1</el-menu-item>
+          <el-menu-item index="tabB">选项2</el-menu-item>
+        </el-menu-item-group>
+        <el-menu-item-group title="分组2">
+          <el-menu-item index="1-3">选项3</el-menu-item>
+        </el-menu-item-group>
+        <el-submenu index="1-4">
+          <span slot="title">选项4</span>
+          <el-menu-item index="1-4-1">选项1</el-menu-item>
+        </el-submenu>
+      </el-submenu>
+      <el-menu-item index="2">
+        <i class="el-icon-menu"></i>
+        <span slot="title">导航二</span>
+      </el-menu-item>
+      <el-menu-item
+        index="3"
+        disabled
+      >
+        <i class="el-icon-document"></i>
+        <span slot="title">导航三</span>
+      </el-menu-item>
+      <el-menu-item index="4">
+        <i class="el-icon-setting"></i>
+        <span slot="title">导航四</span>
+      </el-menu-item>
+    </el-menu>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'MainMenu',
+  components: {
+  },
+  data () {
+    return {
+      isCollapse: false,
+      msg: 'MainMenu',
+    }
+  },
+  methods: {
+    handleOpen (key, keyPath) {
+      console.log(key, keyPath)
+    },
+    handleClose (key, keyPath) {
+      console.log(key, keyPath)
+    },
+    handleisCollapse () {
+      this.isCollapse = !this.isCollapse
+    },
+  },
+  mounted () {
+  },
+  unmounted () {
+  },
+}
+</script>
+
+<style scoped>
+.menu-container {
+  height: 100%;
+  overflow: hidden;
+}
+.el-menu {
+  border-right: 0px;
+  overflow: hidden;
+}
+.el-menu-vertical-demo:not(.el-menu--collapse) {
+  width: 200px;
+  min-height: 400px;
+}
+</style>
+```
+
+<span id="/src/plugin/router.js">**/src/plugin/router.js**</span>
+
+```js
+import Vue from 'vue'
+import Router from 'vue-router'
+import HelloWorld from '@/components/HelloWorld.vue'
+
+Vue.use(Router)
+ 
+export default new Router({
+  routes: [
+    {
+      path: '/',
+      name: 'HelloWorld',
+      component: HelloWorld
+    }
+  ]
+})
+```
+
+<span id="/src/plugin/store.js">**/src/plugin/store.js**</span>
+
+```js
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+Vue.use(Vuex)
+
+export default new Vuex.Store({
+  state: {
+    openTab: [], // 所有打开的路由
+    activeIndex: '/main' // 激活状态
+  },
+  mutations: {
+    // 添加tabs
+    add_tabs (state, data) {
+      state.openTab.push(data)
+    },
+    // 删除tabs
+    delete_tabs (state, route) {
+      let index = 0
+      for (let option of state.openTab) {
+        if (option.route === route) {
+          break
+        }
+        index++
+      }
+      state.openTab.splice(index, 1)
+    },
+    // 设置当前激活的tab
+    set_active_index (state, index) {
+      state.activeIndex = index
+    }
+  },
+  actions: {
+
+  }
+})
+```
+
+    </textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

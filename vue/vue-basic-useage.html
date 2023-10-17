@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>vscode-workspace-settings</title>
+    <title>vue-basic-useage</title>
 </head>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
@@ -51,78 +51,68 @@
 <body>
 <div id="edit">
     <textarea id="editor" name="editor">
-#### vscode-workspace-settings
+#### vue-basic-useage
 
-VSCode 格式化代码快捷键 Alt + Shift + F
+#### Vue Component 模板
 
-#### VSCode 插件安装
+```xml
+<template>
+  <div class="hello">{{ msg }}</div>
+</template>
 
- - ESLint
-
- - Vetur
-
- - Vue Language Features(Volar)
-
- - Format Selection As HTML
-
-   格式化 Vue 中的 HTML 模板
-
-注：在eslint中用prettier就是个错误方式，官方也不推荐，严重拖慢了eslint和vscode编辑的速度，而且格式化的事是一个lint该做的吗？ 应该按官方推荐的方式，安装vscode插件，设置formatOnSave，保存的时候自动格式化。
-
-工作空间配置
-
-```js
-{
-  "files.autoSave": "afterDelay",
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/tmp": true,
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/dist": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    "**/.settings": true,
-    "**/.factorypath": true
+<script>
+import { getContent } from '@/components/danmuk/api.js'
+import ButtonTemplate from '@/components/button/ButtonTemplate.vue'
+export default {
+  name: 'HelloWorld',
+  // props: ['inputVal'],
+  components: {
+    ButtonTemplate
   },
-  "search.followSymlinks": false,
-  "workbench.colorTheme": "Monokai",
-  "workbench.editor.enablePreview": false,
-  "editor.tabSize": 2,
-  "editor.fontSize": 22,
-  "editor.wordWrap": "bounded",
-  "editor.wordWrapColumn": 120,
-  "editor.formatOnPaste": true,
-  "editor.suggestSelection": "first",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "[vue]": {
-    "editor.defaultFormatter": "octref.vetur"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "vetur.format.defaultFormatter.js": "vscode-typescript",
-  "vetur.format.defaultFormatter.html": "js-beautify-html",
-  "vetur.format.defaultFormatterOptions": {
-    "js-beautify-html": {
-      "wrap_attributes": "force-expand-multiline"
-    },
-    "prettyhtml": {
-      "printWidth": 100,
-      "singleQuote": false,
-      "wrapAttributes": true,
-      "sortAttributes": false
+  data () {
+    return {
+      msg: 'Welcome to Your Vue.js App',
+      inputVal: ''
     }
   },
-  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+  methods: {
+    updateVal: function () {
+      this.inputVal = new Date()
+    }
+  }
 }
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped></style>
 ```
+
+#### 父组件向子组件传递参数
+
+ - 1、父组件中
+ 
+  - 父组件在 data 数据中定义要传递属性；
+
+  - 并在子组件中通过 **`:inputVal=`** 或 **`bind:inputVal=`** 进行数据的传递；
+
+ - 2、子组件中
+ 
+  - 子组件在 props 中定义接收数据的属性；
+
+#### 子组件事件通知父组件
+
+ - 1、父组件中
+
+  - 父组件在 methods 中定义事件处理方法 **`eventName`**；
+
+  - 并在子组件中通过 **`v-on:event-name="eventName"`** 将自定义事件名称 **`event-name`** 注册到子组件中；
+
+ - 2、子组件中
+
+  - 子组件通过绑定原生事件来触发父组件定义的事件；
+
+  - 子组件中通过 **`v-on:click="$emit('event-name')"`** 触发；
+
 	</textarea>
 </div>
 

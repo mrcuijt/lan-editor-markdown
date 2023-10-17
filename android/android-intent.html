@@ -53,6 +53,41 @@
     <textarea id="editor" name="editor">
 #### android-intent
 
+Intent (意图)， Android 通信的桥梁，例如：
+
+ - **启动 Activity**
+
+  - **`startActivity(Intent)`**
+
+  - **`startActivityForResult(Intent)`**
+
+ - **启动 Service**
+
+  - **`startService(Intent)`**
+
+  - **`bindService(Intent)`**
+
+ - **发送广播到指定 BroadcastReceiver**
+
+  - **`sendBroadcast`**
+
+#### 显示 Intent 与隐式 Intent 的区别
+
+ - **显示 Intent**
+
+  通过组件名指定启动的目标组件，比如 startActivity(new Intent(A.this, B.class)) 每次启动的组件只有一个。
+
+ - **隐式 Intent**
+
+  不指定组件名，而指定 Intent 的 Action，Data 或 Category，当我们启动组件时，会去匹配 AndroidManifest.xml 相关组件的 Intent-filter，逐一匹配出满足属性的组件，当不止一个满足时，会弹出一个让我们选择启动哪个对话框。
+
+#### Intent 的七个属性
+
+ - 1、ComponentName 组件名称
+
+
+#### android-intent
+
 **activity_main.xml**
 
 ```xml
@@ -162,7 +197,7 @@ public class MainActivity extends Activity {
 }
 ```
 
-    </textarea>
+	</textarea>
 </div>
 
 <div id="show"></div>

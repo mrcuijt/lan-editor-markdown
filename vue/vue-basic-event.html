@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>vscode-workspace-settings</title>
+    <title>vue-basic-event</title>
 </head>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
@@ -51,78 +51,93 @@
 <body>
 <div id="edit">
     <textarea id="editor" name="editor">
-#### vscode-workspace-settings
+#### vue-basic-event
 
-VSCode 格式化代码快捷键 Alt + Shift + F
+#### 事件处理
 
-#### VSCode 插件安装
 
- - ESLint
+#### v-on
 
- - Vetur
+**v-on** 事件处理
 
- - Vue Language Features(Volar)
+ - v-on:click=""
 
- - Format Selection As HTML
+ - 简写：@click=""
 
-   格式化 Vue 中的 HTML 模板
+ - 事件的回调需要配置在 methods 对象中，最终会在 vm 上
 
-注：在eslint中用prettier就是个错误方式，官方也不推荐，严重拖慢了eslint和vscode编辑的速度，而且格式化的事是一个lint该做的吗？ 应该按官方推荐的方式，安装vscode插件，设置formatOnSave，保存的时候自动格式化。
+ - 事件里面的 this 指向当前组件实例
 
-工作空间配置
+  - methods 中配置的函数，不要用箭头函数！否者 this 就不是 vm 了；
+
+  - methods 中配置的函数，都是被 Vue 所管理的函数，this 的指向是 vm 或者组件实例对象；
+
+**页面**
+
+```html
+<!-- 原生事件绑定 -->
+<div v-on:click="funName">xxx</div>
+<div v-on:click="funName()">xxx</div>
+<div @:click="funName">xxx</div>
+<div @:click="funName()">xxx</div>
+
+<!-- 自定义事件绑定 -->
+<div v-on:cusEvent="funName">xxx</div>
+<div @cusEvent="funName">xxx</div>
+
+<!-- 触发自定义事件 -->
+<div @click="$emit('cusEvent')">xxx</div>
+<div @click="$emit('cusEvent', 0.1)">xxx</div>
+```
+
+**函数**
 
 ```js
-{
-  "files.autoSave": "afterDelay",
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/tmp": true,
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/dist": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    "**/.settings": true,
-    "**/.factorypath": true
-  },
-  "search.followSymlinks": false,
-  "workbench.colorTheme": "Monokai",
-  "workbench.editor.enablePreview": false,
-  "editor.tabSize": 2,
-  "editor.fontSize": 22,
-  "editor.wordWrap": "bounded",
-  "editor.wordWrapColumn": 120,
-  "editor.formatOnPaste": true,
-  "editor.suggestSelection": "first",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "[vue]": {
-    "editor.defaultFormatter": "octref.vetur"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "vetur.format.defaultFormatter.js": "vscode-typescript",
-  "vetur.format.defaultFormatter.html": "js-beautify-html",
-  "vetur.format.defaultFormatterOptions": {
-    "js-beautify-html": {
-      "wrap_attributes": "force-expand-multiline"
-    },
-    "prettyhtml": {
-      "printWidth": 100,
-      "singleQuote": false,
-      "wrapAttributes": true,
-      "sortAttributes": false
-    }
-  },
-  "javascript.format.insertSpaceBeforeFunctionParenthesis": true,
+export default {
+  methods: {
+    funName () {}
+  }
 }
 ```
+
+**事件传递参数**
+
+```html
+<button @click="add(1,2)">事件传递参数</button>
+```
+
+**事件对象获取 event**
+
+ - 事件`无参数传递`，函数第一个参数位置是事件对象
+
+```html
+<button @click="getEvent">事件对象</button>
+```
+
+ - 事件`有参数传递`，获取事件对象，必须手动传入事件对象$event（传参加括号）
+
+```html
+<button @click="getEvent2(1,$event)">参数传递--事件对象</button>
+```
+
+#### 事件修饰符
+
+ - **`stop`**：阻止事件冒泡（常用）
+
+```html
+<button @click.stop="child">子元素</button>
+```
+
+ - **`prevent`**：阻止默认事件（常用）
+
+ - **`once`**：事件只触发一次（常用）
+
+ - **`capture`**：使用事件的捕获模式
+
+ - **`self`**：只有 event.target 是当前操作的元素时才触发事件
+
+ - **`passive`**：事件的默认行为立即执行，无需等待事件回调执行完毕
+
 	</textarea>
 </div>
 

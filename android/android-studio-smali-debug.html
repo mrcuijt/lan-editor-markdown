@@ -83,15 +83,15 @@ Error running Smali: Unable to open debugger port (localhost:8700): java.io.IOEx
 
     File   -->  Setting   将会弹出设置对话框
 
-![title](./images/android-studio-smali-debug-001.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-001.jpg)
 
 然后在设置对话框依次选择：  Plugins   -->    --> Install Plugin from Disk...
 
-![title](./images/android-studio-smali-debug-002.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-002.jpg)
 
 在弹出选择对话框中，找到下载好的 smalidea 压缩包，选择 ok 即可
 
-![title](./images/android-studio-smali-debug-003.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-003.jpg)
 
 至此，插件安装就完成了，关闭 Android Studio
 
@@ -105,7 +105,7 @@ java.exe -jar apktool.jar d -f -o
 
 也可以直接使用 ApkTool 集成环境(如果反编译失败可以替换其中的 apktool.jar 至最新版)：
 
-![title](./images/android-studio-smali-debug-004.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-004.jpg)
 
 在 反编译出来的 `AndroidManifest.xml` 的 `application` 节点添加 `android:debuggable="true"`
 
@@ -117,11 +117,11 @@ java.exe -jar apktool.jar d -f -o
 invoke-static {},Landroid/os/Debug;->waitForDebugger()V
 ```
 
-![title](./images/android-studio-smali-debug-005.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-005.jpg)
 
 重建且签名 apk
 
-![title](./images/android-studio-smali-debug-006.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-006.jpg)
 
 安装 重建后的 apk 到手机
 
@@ -137,27 +137,27 @@ adb shell am start -D -n package属性的值/android:name属性的值
 
  - 4.将反编译工程导入到 Android Studio
 
-![title](./images/android-studio-smali-debug-007.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-007.jpg)
 
 默认选择 **Create project from existing sources** ，一路 **next** ，最后点击 **Finish** 即可
 
 用 **Project** 视图，在项目目录右键  --> **Mark Directory as ... --> Sources root**
 
-![title](./images/android-studio-smali-debug-008.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-008.jpg)
 
  - 5.展开 `smali` 目录选择刚才添加 `waitForDebugger` 代码的 **smali** 文件下一行下断点
 
-![title](./images/android-studio-smali-debug-009.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-009.jpg)
 
  - 6.运行手机上安装的 apk (apk 会假死停在 **`waitForDebugger`** 代码处，等待调试器)。
 
  - 7.在 Android Studio 选择附加
 
-![title](./images/android-studio-smali-debug-010.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-010.jpg)
 
 此时，已经 **Attach** 到进程中，可以快乐的调试了
 
-![title](./images/android-studio-smali-debug-011.jpg)
+![title](./images/android-studio-smali-debug/android-studio-smali-debug-011.jpg)
 
 #### 总结
 
