@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+  <title>index</title>
+  <script src="./vue.js"></script>
+  <!-- 学习测试 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script> -->
+  <!-- 生产部署 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script> -->
+
+</head>
+
+<body>
+  <!-- 
+      Vue 组件中绑定按钮点击事件的事件处理，事件处理函数定义在组件内
+   -->
+  <div id="app">
+    <msg-box>
+      Something bad happened.
+    </msg-box>
+  </div>
+  <!-- built files will be auto injected -->
+  <script>
+    // 组件定义
+    Vue.component('msg-box', {
+      template: `
+        <div>
+          <input
+            type="input"
+            :value="showMsg"
+          />
+          <button @click="modifyMsg(count)">Click</button>
+        </div>
+      `,
+      data() {
+        return {
+          count: 0,
+          msg: "",
+          showMsg: ""
+        }
+      },
+      methods: {
+        modifyMsg(params) {
+          console.log('demos', params)
+          this.count = params + 1
+          this.showMsg = this.count + "---" + new Date().toLocaleString()
+        }
+      }
+    })
+    var vue = new Vue({
+      el: '#app',
+      data: {
+      }
+    })
+  </script>
+</body>
+
+</html>

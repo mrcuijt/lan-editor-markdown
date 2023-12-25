@@ -112,6 +112,20 @@ computed: {
 }
 ```
 
+#### 路由传参与取参
+
+路由切换视图，并传递参数
+
+```js
+this.$router.push({ name: 'ViewDanmukDetail', query: { id: $event.target.innerText } })
+```
+
+页面获取路由中的参数
+
+```js
+this.$route.query.id
+```
+
 
 	</textarea>
 </div>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+  <title>index</title>
+  <script src="./vue.js"></script>
+  <!-- 学习测试 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script> -->
+  <!-- 生产部署 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script> -->
+
+</head>
+
+<body>
+  <!-- 
+      Vue 组件中绑定按钮点击事件的事件处理，事件处理函数定义在组件外（父组件）
+      1.字符串模板子组件
+      1.1 全小写属性字段数据绑定，参数传递到子组件中
+      子组件中通过 props: [''] 接收传递参数
+      1.2 全小写属性字段事件绑定，子组件将可触发的事件暴露到父组件中
+      子组件中通过 $emit('') 触发事件
+   -->
+  <div id="app">
+    <msg-box
+      @modify-msg="modifyMsg"
+      :showmsg="showMsg"
+      :count="count"
+    >
+      Something bad happened.
+    </msg-box>
+  </div>
+  <!-- built files will be auto injected -->
+  <script>
+    // 组件定义
+    Vue.component('msg-box', {
+      props: ['count', 'showmsg'],
+      template: `
+        <div>
+          <input
+            type="input"
+            :value="showmsg"
+          />
+          <button @click="$emit('modify-msg', count)">Click</button>
+        </div>
+      `,
+      data() {
+        return {
+        }
+      }
+    })
+    var vue = new Vue({
+      el: '#app',
+      data() {
+        return {
+          count: 0,
+          msg: "",
+          showMsg: "hello"
+        }
+      },
+      methods: {
+        modifyMsg(params) {
+          console.log('demos', params)
+          this.count = params + 1
+          this.showMsg = this.count + "---" + new Date().toLocaleString()
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>

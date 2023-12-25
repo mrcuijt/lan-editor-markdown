@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+  <title>index</title>
+  <script src="./vue.js"></script>
+  <!-- 学习测试 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script> -->
+  <!-- 生产部署 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script> -->
+
+</head>
+
+<body>
+  <!-- 
+      
+   -->
+  <div id="app">
+    <el-img-capture :list="list"></el-img-capture>
+  </div>
+  <!-- 
+    
+    var define = null;
+    document.body.innerHTML = "";
+    var app = document.createElement('div');
+    app.id = 'app';
+    app.innerHTML = '<el-img-capture :list="list"></el-img-capture>';
+    document.body.append(app);
+    var s1 = document.createElement('script');
+    document.body.append(s1);
+    s1.type = 'text/javascript';
+    s1.src="http://localhost:8000/vue.js"
+
+    var s2 = document.createElement('script');
+    document.body.append(s2);
+    s2.type = 'text/javascript';
+    s2.src="http://localhost:8000/jquery-3.5.1.min.js"
+
+    function run(){
+      new Vue({
+        el: '#app',
+        data: {
+          list: ['https://static.zhihu.com/heifetz/assets/liukanshan-peek.a71ecf3e.png']
+        },
+      })
+    }
+
+    function init(){
+      // 组件定义
+      Vue.component('alert-box', {
+        template: `
+          <div class="demo-alert-box">
+            <strong>Error!</strong>
+            <slot></slot>
+          </div>
+        `
+      })
+      // 组件定义
+      Vue.component('el-button', {
+        props: ['type', 'name'],
+        template: `
+          <button :type="type">{{ name }}</button>
+        `
+      })
+      // 组件定义
+      Vue.component('el-img-capture', {
+        props: ['type', 'name', 'list'],
+        template: `
+          <div class="continer">
+            <button id="btnImgLoad" @click='btnImgLoad()'>图片加载</button>
+            <img id="img" ref="img" src=""/>
+          </div>
+        `,
+        data() {
+          return {
+            count: 0,
+            msg: "",
+            showMsg: ""
+          }
+        },
+        methods: {
+          modifyMsg(params) {
+            console.log('demos', params)
+            this.count = params + 1
+            this.showMsg = this.count + "---" + new Date().toLocaleString()
+          },
+          btnImgLoad() {
+            this.$refs.img.src = this.list[this.count]
+            this.count++
+          }
+        }
+      })
+    }
+   -->
+  <!-- built files will be auto injected -->
+  <script>
+    // 组件定义
+    Vue.component('alert-box', {
+      template: `
+        <div class="demo-alert-box">
+          <strong>Error!</strong>
+          <slot></slot>
+        </div>
+      `
+    })
+    // 组件定义
+    Vue.component('el-button', {
+      props: ['type', 'name'],
+      template: `
+        <button :type="type">{{ name }}</button>
+      `
+    })
+    // 组件定义
+    Vue.component('el-img-capture', {
+      props: ['type', 'name', 'list'],
+      template: `
+        <div class="continer">
+          <button id="btnImgLoad" @click='btnImgLoad()'>图片加载</button>
+          <img id="img" ref="img" src=""/>
+        </div>
+      `,
+      data() {
+        return {
+          count: 0,
+          msg: "",
+          showMsg: ""
+        }
+      },
+      methods: {
+        modifyMsg(params) {
+          console.log('demos', params)
+          this.count = params + 1
+          this.showMsg = this.count + "---" + new Date().toLocaleString()
+        },
+        btnImgLoad() {
+          this.$refs.img.src = this.list[this.count]
+          this.count++
+        }
+      }
+    })
+    new Vue({
+      el: '#app',
+      data: {
+        list: ['https://static.zhihu.com/heifetz/assets/liukanshan-peek.a71ecf3e.png']
+      },
+    })
+  </script>
+</body>
+
+</html>

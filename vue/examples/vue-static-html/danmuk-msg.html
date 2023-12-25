@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+  <title>index</title>
+  <script src="./vue.js"></script>
+  <!-- 学习测试 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script> -->
+  <!-- 生产部署 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script> -->
+
+</head>
+
+<body>
+  <!-- 
+      
+   -->
+  <div id="app">
+    <el-button
+      :type="'button'"
+      :name="'按钮'"
+    ></el-button>
+  </div>
+  <!-- built files will be auto injected -->
+  <script>
+    // 组件定义
+    Vue.component('alert-box', {
+      template: `
+        <div class="demo-alert-box">
+          <strong>Error!</strong>
+          <slot></slot>
+        </div>
+      `
+    })
+    // 组件定义
+    Vue.component('el-button', {
+      props: ['type', 'name'],
+      template: `
+        <button :type="type">{{ name }}</button>
+      `
+    })
+    new Vue({
+      el: '#app',
+      data: {
+      },
+    })
+  </script>
+</body>
+
+</html>

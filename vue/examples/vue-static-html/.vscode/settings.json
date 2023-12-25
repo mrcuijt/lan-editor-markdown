@@ -1,0 +1,40 @@
+{
+  "editor.fontSize": 22,
+  "files.autoSave": "afterDelay",
+  "workbench.colorTheme": "Monokai",
+  "editor.suggestSelection": "first",
+  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/tmp": true,
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/dist": true,
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "workbench.editor.enablePreview": false,
+  "search.followSymlinks": false,
+  "gulp.autoDetect": "off",
+  "java.autobuild.enabled": false,
+  "java.dependency.packagePresentation": "hierarchical",
+  "editor.tabSize": 2,
+  "[vue]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint"
+  },
+  "[vue-html]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "vetur.format.defaultFormatter.js": "prettier-eslint",
+  "eslint.format.enable": true,
+  "html.format.wrapAttributes": "force-expand-multiline"
+}

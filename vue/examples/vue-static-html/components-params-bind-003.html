@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+  <title>index</title>
+  <script src="./vue.js"></script>
+  <!-- 学习测试 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script> -->
+  <!-- 生产部署 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script> -->
+
+</head>
+
+<body>
+  <div id="blog-post-demo">
+    <!-- 组件的属性越来越多时，需要为每一个信息定义一个 prop 会变的麻烦，需要考虑重新构建一下组件结构。 -->
+    <!-- 
+    <blog-post
+      v-for="post in posts"
+      v-bind:key="post.id"
+      v-bind:title="post.title"
+      v-bind:content="post.content"
+      v-bind:publishedAt="post.publishedAt"
+      v-bind:comments="post.comments"
+    ></blog-post>
+    -->
+    <blog-post
+      v-for="post in posts"
+      v-bind:key="post.id"
+      v-bind:post="post"
+    ></blog-post>
+  </div>
+  <!-- built files will be auto injected -->
+  <script>
+    // 组件定义
+    Vue.component('blog-post', {
+      props: ['post'],
+      template: `
+        <div class="blog-post">
+          <h3>{{ post.title }}</h3>
+          <div v-html="post.content"></div>
+        </div>
+      `
+    })
+    new Vue({
+      el: '#blog-post-demo',
+      data: {
+        posts: [
+          { id: 1, title: 'My journey with Vue', content: 'Content 1' },
+          { id: 2, title: 'Blogging with Vue', content: 'Content 2' },
+          { id: 3, title: 'Why Vue is so fun', content: 'Content 3' }
+        ]
+      }
+    })
+  </script>
+</body>
+
+</html>

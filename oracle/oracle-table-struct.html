@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>vscode-workspace-settings-html</title>
+    <title>oracle-table-struct</title>
 </head>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
 <link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
@@ -51,56 +51,34 @@
 <body>
 <div id="edit">
     <textarea id="editor" name="editor">
-#### vscode-workspace-settings-html
+#### oracle-table-struct
 
-VSCode 格式化代码快捷键 Alt + Shift + F
+#### 数据库表结构查询
 
-#### VSCode Vue HTML 格式化
-
-工作空间配置
-
-```js
-{
-  "editor.fontSize": 22,
-  "files.autoSave": "afterDelay",
-  "workbench.colorTheme": "Monokai",
-  "editor.suggestSelection": "first",
-  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/tmp": true,
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/dist": true,
-    "**/.classpath": true,
-    "**/.project": true,
-    "**/.settings": true,
-    "**/.factorypath": true
-  },
-  "workbench.editor.enablePreview": false,
-  "search.followSymlinks": false,
-  "gulp.autoDetect": "off",
-  "java.autobuild.enabled": false,
-  "java.dependency.packagePresentation": "hierarchical",
-  "editor.tabSize": 2,
-  "[vue]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  },
-  "[vue-html]": {
-    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  },
-  "vetur.format.defaultFormatter.js": "prettier-eslint",
-  "eslint.format.enable": true,
-  "html.format.wrapAttributes": "force-expand-multiline"
-}
+```sql
+SELECT a.TABLE_NAME,
+       '中文表名' AS TABLE_NAME_ZH,
+       a.COLUMN_NAME,
+       b.COMMENTS,
+       '',
+       a.DATA_TYPE || CASE
+         WHEN a.DATA_TYPE = 'NUMBER' AND a.DATA_PRECISION IS NOT NULL AND a.DATA_SCALE IS NOT NULL 
+           THEN '(' || a.DATA_PRECISION || ',' || a.DATA_SCALE || ')'
+         WHEN a.DATA_TYPE = 'NUMBER' AND a.DATA_PRECISION IS NOT NULL 
+           THEN '(' || a.DATA_PRECISION || ')'
+         WHEN a.DATA_TYPE = 'NVARCHAR2' 
+           THEN '(' || a.CHAR_LENGTH || ')'
+         ELSE '(' || a.DATA_LENGTH || ')'
+       END DATA_TYPE,
+       '',
+       NULLABLE
+  FROM ALL_TAB_COLUMNS a
+  LEFT JOIN user_col_comments b ON a.TABLE_NAME = b.TABLE_NAME AND a.COLUMN_NAME = b.COLUMN_NAME
+ WHERE a.OWNER = '大写用户名'
+   AND a.TABLE_NAME IN ('TABLE_NAME')
+ ORDER BY a.COLUMN_ID;
 ```
+
 	</textarea>
 </div>
 

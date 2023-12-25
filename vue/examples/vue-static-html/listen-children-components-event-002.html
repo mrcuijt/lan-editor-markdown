@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+  >
+  <title>index</title>
+  <script src="./vue.js"></script>
+  <!-- 学习测试 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script> -->
+  <!-- 生产部署 -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script> -->
+
+</head>
+
+<body>
+  <!-- 
+    监听子组件事件
+    1. 父组件 v-on:event-name 绑定监听一个事件
+      1.1 事件的处理器实现可以是一个字面量表达式
+        1.1.1 字面量表达式中可以使用 $event 访问到子组件事件触发时传递的参数
+      1.2 事件的处理器实现可以是一个方法
+        1.2.1 在 Vue 组件实例中定义事件处理方法 methods : { onEnlargeText: function(params){} }
+        1.2.2 在父组件中将字面量表达式替换成事件处理的方法名
+    2. 子组件通过 $emit('event-name', params) 触发事件
+   -->
+  <div id="blog-posts-events-demo">
+    <div :style="{ fontSize: postFontSize + 'em' }">
+      <blog-post
+        v-for="post in posts"
+        v-bind:key="post.id"
+        v-bind:post="post"
+        v-on:enlarge-text="onEnlargeText"
+      ></blog-post>
+    </div>
+  </div>
+  <!-- built files will be auto injected -->
+  <script>
+    // 组件定义
+    Vue.component('blog-post', {
+      props: ['post'],
+      template: `
+        <div class="blog-post">
+          <h3>{{ post.title }}</h3>
+          <button v-on:click="$emit('enlarge-text', 0.1)">
+            Enlarge text
+          </button>
+          <div v-html="post.content"></div>
+        </div>
+      `
+    })
+    new Vue({
+      el: '#blog-posts-events-demo',
+      data: {
+        posts: [
+          { id: 1, title: 'My journey with Vue', content: 'Content 1' },
+          { id: 2, title: 'Blogging with Vue', content: 'Content 2' },
+          { id: 3, title: 'Why Vue is so fun', content: 'Content 3' }
+        ],
+        postFontSize: 1
+      },
+      methods: {
+        onEnlargeText: function (enlargeAmount) {
+          this.postFontSize += enlargeAmount
+        }
+      }
+    })
+  </script>
+</body>
+
+</html>
