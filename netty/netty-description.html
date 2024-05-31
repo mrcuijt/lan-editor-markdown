@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>netty-description</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### netty-description
+
+&nbsp;&nbsp;Netty是由JBOSS提供的一个java开源框架，现为 Github上的独立项目。Netty提供异步的、事件驱动的网络应用程序框架和工具，用以快速开发高性能、高可靠性的网络服务器和客户端程序。
+
+&nbsp;&nbsp;也就是说，Netty 是一个基于NIO的客户、服务器端的编程框架，使用Netty 可以确保你快速和简单的开发出一个网络应用，例如实现了某种协议的客户、服务端应用。Netty相当于简化和流线化了网络应用的编程开发过程，例如：基于TCP和UDP的socket服务开发。
+
+&nbsp;&nbsp;“快速”和“简单”并不用产生维护性或性能上的问题。Netty 是一个吸收了多种协议（包括FTP、SMTP、HTTP等各种二进制文本协议）的实现经验，并经过相当精心设计的项目。最终，Netty 成功的找到了一种方式，在保证易于开发的同时还保证了其应用的性能，稳定性和伸缩性。 [1]
+
+#### 特点介绍
+
+##### 设计
+
+ - 针对多种传输类型的统一接口 - 阻塞和非阻塞
+
+ - 简单但更强大的线程模型
+
+ - 真正的无连接的数据报套接字支持
+
+ - 链接逻辑支持复用
+
+##### 易用性
+
+ - 大量的 Javadoc 和 代码实例
+
+ - 除了在 JDK 1.6 + 额外的限制。(一些特征是只支持在Java 1.7 +。可选的功能可能有额外的限制。)
+
+##### 性能
+
+ - 比核心 Java API 更好的吞吐量，较低的延时
+
+ - 资源消耗更少，这个得益于共享池和重用
+
+ - 减少内存拷贝
+
+##### 健壮性
+
+ - 消除由于慢，快，或重载连接产生的 OutOfMemoryError
+
+ - 消除经常发现，在 NIO 在高速网络中的应用中的不公平的读/写比
+
+##### 安全
+
+ - 完整的 SSL / TLS 和 StartTLS 的支持
+
+ - 运行在受限的环境例如 Applet 或 OSGI
+
+##### 社区
+
+ - 发布的更早和更频繁
+
+ - 社区驱动 [2]
+
+#### 新特性
+
+ - 处理大容量数据流更简单
+
+ - 处理协议编码和单元测试更简单
+
+ - I/O超时和idle状态检测
+
+ - 应用程序的关闭更简单，更安全
+
+ - 更可靠的OutOfMemoryError预防
+
+#### 新的传输方式
+
+ - 1、基于BIO和NIO的UDP传输
+
+ - 2、本地传输(又名 in-VM传输)
+
+ - 3、HTTP通道，可绕过防火墙
+
+#### 新的编码器
+
+ - 1、HTTP客户端和服务器端
+
+ - 2、用于实现各种专有协议的工具
+
+#### 其他技术整合
+
+ - 1、Google Protocol Buffers
+
+ - 2、JBoss Microcontainer, OSGi, Guice以及Spring
+
+参考链接：
+
+ - <a href="https://baike.baidu.com/item/Netty/10061624" target="_blank">Netty</a>
+
+ - <a href="https://zhuanlan.zhihu.com/p/299396057" target="_blank">史上最通俗Netty入门长文：基本介绍、环境搭建、动手实战</a>
+
+ - <a href="http://www.52im.net/" target="_blank">即时通讯网 - 即时通讯开发者社区!</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
