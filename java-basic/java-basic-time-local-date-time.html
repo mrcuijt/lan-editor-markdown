@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-time-local-date-time</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-time-local-date-time
+
+众所周知，JDK 以版本 8 为界，有两套处理日期/时间的 API：
+
+![title](./images/java-basic-time-local-date-time/java-basic-time-local-date-time-001.png)
+
+虽然我一直鼓励弃用 Date 而支持在项目中只使用 JSR 310 日期时间类型，但是呢，由于Date依旧有庞大的存量用户，所以本文也不落单，对二者的实现均进行阐述。
+
+#### Date 类型实现
+
+java.util.Date 在 JDK 1.0 就已存在，用于表示日期 + 时间的类型，纵使年代已非常久远，并且此类的具有职责不单一，使用很不方便等诸多毛病，但由于十几二十年的历史原因存在，它的生命力依旧顽强，用户量巨大。
+
+```java
+@Test
+public void test1() {
+    Date currDate = new Date();
+    // Fri May 31 11:26:52 CST 2024
+    System.out.println(currDate.toString());
+    // 2024-5-31 11:26:52
+    System.out.println(currDate.toLocaleString()); // 已经@Deprecated
+    // 31 May 2024 03:26:52 GMT
+    System.out.println(currDate.toGMTString());    // 已经@Deprecated
+}
+```
+
+ - 第一个：标准的 UTC 时间（CST 就代表了偏移量 +0800） 
+
+ - 第二个：本地时间，根据本地时区显示的时间格式 
+
+ - 第三个：GTM 时间，也就是格林威治这个时候的时间，可以看到它是凌晨 2 点（北京时间是上午 10 点哦）
+
+第二个、第三个其实在 JDK 1.1 就都标记为 @Deprecated 过期了，基本禁止再使用。若需要转换为本地时间 or GTM 时间输出的话，请使用格式化器 java.text.DateFormat 去处理。
+
+#### 时区/偏移量 TimeZone
+
+在 JDK8 之前，Java 对时区和偏移量都是使用 java.util.TimeZone 来表示的。
+
+一般情况下，使用静态方法 TimeZone#getDefault() 即可获得当前 JVM 所运行的时区，比如你在中国运行程序，这个方法返回的就是中国时区（也叫北京时区、北京时间）。
+
+有的时候你需要做带时区的时间转换，譬如：接口返回值中既要有展示北京时间，也要展示纽约时间。这个时候就要获取到纽约的时区，以北京时间为基准在其上进行带时区转换一把：
+
+```java
+@Test
+public void test2() {
+    String patternStr = "yyyy-MM-dd HH:mm:ss";
+    // 北京时间（new出来就是默认时区的时间）
+    Date bjDate = new Date();
+    // 得到纽约的时区
+    TimeZone newYorkTimeZone = TimeZone.getTimeZone("America/New_York");
+    // 根据此时区 将北京时间转换为纽约的Date
+    DateFormat newYorkDateFormat = new SimpleDateFormat(patternStr);
+    newYorkDateFormat.setTimeZone(newYorkTimeZone);
+    // 这是北京时间：2024-05-31 13:06:07
+    System.out.println("这是北京时间：" + new SimpleDateFormat(patternStr).format(bjDate));
+    // 这是纽约时间：2024-05-31 01:06:07
+    System.out.println("这是纽约时间：" + newYorkDateFormat.format(bjDate));
+}
+```
+
+注意：两个时间表示的应该是同一时刻，也就是常说的时间戳值是相等的
+
+那么问题来了，你怎么知道获取纽约的时区用 `America/New_York` 这个 `zoneId` 呢？随便写个字符串行不行？
+
+答案是当然不行，这是有章可循的。下面我介绍两种查阅 zoneId 的方式，任你挑选：
+
+方式一：用 Java 程序把所有可用的 zoneId 打印出来，然后查阅
+
+```java
+@Test
+public void test3() {
+    String[] availableIDs = TimeZone.getAvailableIDs();
+    System.out.println("可用zoneId总数：" + availableIDs.length);
+    for (String zoneId : availableIDs) {
+        System.out.println(zoneId);
+    }
+}
+
+// 运行程序，输出（大部分符合规律：/前表示所属州，/表示城市名称）：
+// Asia/Shanghai
+// America/New_York
+```
+
+说明：此结果基于 JDK 8 版本，不同版本输出的总个数可能存在差异，但主流的 ZoneId 一般不会有变化
+
+方式二： zoneId 的列表是 jre 维护的一个文本文件，路径是你JDK/JRE的安装路径。地址在 .\jre\lib 目录的为未 tzmappings 的文本文件里。打开这个文件去 ctrl + f 找也是可以达到查找的目的地。
+
+这两种房子可以帮你找到 ZoneId 的字典方便查阅，但是还有这么一种情况：当前所在的城市呢，在 tzmappings 文件里根本没有（比如没有收录），那要获取这个地方的时间去显示怎么破呢？虽然概率很小，但不见得没有嘛，毕竟全球那么多国家那么多城市呢~
+
+Java 自然也考虑到了这一点，因此也是有办法的：指定其时区数字表示形式，其实也叫偏移量（不要告诉我这个地方的时区都不知道，那就真没救了），如下示例
+
+```java
+@Test
+public void test4() {
+    // 北京时间
+    // GMT+08:00
+    System.out.println(TimeZone.getTimeZone("GMT+08:00").getID());
+    // Asia/Shanghai
+    System.out.println(TimeZone.getDefault().getID());
+ 
+    // 纽约时间
+    // GMT-05:00
+    System.out.println(TimeZone.getTimeZone("GMT-05:00").getID());
+    // America/New_York
+    System.out.println(TimeZone.getTimeZone("America/New_York").getID());
+}
+```
+
+值得注意的是，这里只能用 `GMT+08:00` ，而不能用 `UTC+08:00` ，原因下文有解释。
+
+#### 设置默认时区
+
+一般来说，JVM 在哪里跑，默认时区就是哪。对于国内程序员来讲，一般只会接触到东八区，也就是北京时间（本地时间）。随着国际合作越来越密切，很多时候需要日期时间国际化处理，举个很实际的例子：同一份应用在阿里云部署、在 AWS（海外）上也部署一份供海外用户使用，此时同一份代码部署在不同的时区了，怎么破？
+
+倘若时区不同，那么势必影响到程序的运行结果，很容易带来计算逻辑的错误，很可能就乱套了。Java 让我们有多种方式可以手动设置/修改默认时区：
+
+ - API 方式： 强制将时区设为北京时区 TimeZone.setDefault(TimeZone.getDefault().getTimeZone("GMT+8"));
+
+ - JVM 参数方式：-Duser.timezone=GMT+8
+
+ - 运维设置方式：将操作系统主机时区设置为北京时区，这是推荐方式，可以完全对开发者无感，也方便了运维统一管理
+
+据我了解，很多公司在阿里云、腾讯云、国内外的云主机上部署应用时，全部都是采用运维设置统一时区：中国时区，这种方式来管理的，这样对程序来说就消除了默认时区不一致的问题，对开发者友好。
+
+#### 让人恼火的夏令时
+
+你知道吗，中国曾经也使用过夏令时。
+
+什么是夏令时？
+
+离现在最近是 1986年至 1991年用过夏令时（每年4月中旬的第一个周日2时 - 9月中旬的第一个星期日2时止）： 
+
+ - 1986年5月4日至9月14日
+
+ - 1987年4月12日至9月13日
+
+ - 1988年4月10日至9月11日
+
+ - 1989年4月16日至9月17日
+
+ - 1990年4月15日至9月16日
+
+ - 1991年4月14日至9月15日
+
+夏令时是一个“非常烦人”的东西，大大的 增加了日期时间处理的复杂度。比如这个灵魂拷问：若你的出生日期是 1988-09-11 00:00:00（夏令时最后一天）且存进了数据库，想一想，对此日期的格式化有没有可能就会出问题呢，有没有可能被你格式化成 1988-09-10 23:00:00 呢？
+
+针对此拷问，模拟了如下代码：
+
+```java
+@Test
+public void test5() throws ParseException {
+    String patterStr = "yyyy-MM-dd";
+    DateFormat dateFormat = new SimpleDateFormat(patterStr);
+ 
+    String birthdayStr = "1988-09-11";
+    // 字符串 -> Date -> 字符串
+    Date birthday = dateFormat.parse(birthdayStr);
+    long birthdayTimestamp = birthday.getTime();
+    System.out.println("老王的生日是：" + birthday);
+    System.out.println("老王的生日的时间戳是：" + birthdayTimestamp);
+ 
+    System.out.println("==============程序经过一番周转，我的同时 方法入参传来了生日的时间戳=============");
+    // 字符串 -> Date -> 时间戳 -> Date -> 字符串
+    birthday = new Date(birthdayTimestamp);
+    System.out.println("老王的生日是：" + birthday);
+    System.out.println("老王的生日的时间戳是：" + dateFormat.format(birthday));
+}
+
+// 老王的生日是：Sun Sep 11 00:00:00 CDT 1988
+// 老王的生日的时间戳是：589906800000
+// ==============程序经过一番周转，我的同时 方法入参传来了生日的时间戳=============
+// 老王的生日是：Sun Sep 11 00:00:00 CDT 1988
+// 老王的生日的时间戳是：1988-09-11
+```
+
+这段代码，在不同的 JDK 版本下运行，可能出现不同的结果，有兴趣的可 copy 过去自行试试。
+
+关于 JDK 处理夏令时（特指中国的夏令时）确实出现过问题且造成过 bug，当时对应的 JDK 版本是 1.8.0_2xx 之前版本格式化那个日期出问题了，在这之后的版本貌似就没问题了。这里我提供的版本信息仅供参考，若有遇到类似 case 就升级 JDK 版本到最新吧，一般就不会有问题了。
+
+发生这个情况是在 JDK 非常小的版本号之间，不太好定位精确版本号界限，所以仅供参考
+
+总的来说，只要你使用的是较新版本的 JDK，开发者是无需关心夏令时问题的，即使全球仍有很多国家在使用夏令时，咱们只需要面向时区做时间转换就没问题。
+
+#### Date 时区无关性
+
+类 Date 表示一个特定的时间瞬间，精度为毫秒。既然表示的是瞬间/时刻，那它必然和时区是无关的，看下面代码：
+
+
+```java
+@Test
+public void test6() {
+    String patterStr = "yyyy-MM-dd HH:mm:ss";
+    Date currDate = new Date(System.currentTimeMillis());
+ 
+    // 北京时区
+    DateFormat bjDateFormat = new SimpleDateFormat(patterStr);
+    bjDateFormat.setTimeZone(TimeZone.getDefault());
+    // 纽约时区
+    DateFormat newYorkDateFormat = new SimpleDateFormat(patterStr);
+    newYorkDateFormat.setTimeZone(TimeZone.getTimeZone("America/New_York"));
+    // 伦敦时区
+    DateFormat londonDateFormat = new SimpleDateFormat(patterStr);
+    londonDateFormat.setTimeZone(TimeZone.getTimeZone("Europe/London"));
+ 
+    System.out.println("毫秒数:" + currDate.getTime() + ", 北京本地时间:" + bjDateFormat.format(currDate));
+    System.out.println("毫秒数:" + currDate.getTime() + ", 纽约本地时间:" + newYorkDateFormat.format(currDate));
+    System.out.println("毫秒数:" + currDate.getTime() + ", 伦敦本地时间:" + londonDateFormat.format(currDate));
+}
+
+// 毫秒数:1717133194906, 北京本地时间:2024-05-31 13:26:34
+// 毫秒数:1717133194906, 纽约本地时间:2024-05-31 01:26:34
+// 毫秒数:1717133194906, 伦敦本地时间:2024-05-31 06:26:34
+```
+
+也就是说，同一个毫秒值，根据时区/偏移量的不同可以展示多地的时间，这就证明了 Date 它的时区无关性。
+
+确切地说：Date 对象里存的是自格林威治时间（GMT）1970年1月1日0点至 Date 所表示时刻所经过的毫秒数，是个数值。
+
+#### 读取字符串为 Date 类型
+
+这是开发中极其常见的一种需求：client 请求方扔给你一个字符串如 "2021-01-15 18:00:00"，然后你需要把它转为 Date 类型，怎么破？
+
+问题来了，光秃秃的扔给我个字符串说是15号晚上6点时间，我咋知道你指的是北京的晚上6点，还是东京的晚上6点呢？还是纽约的晚上6点呢？
+
+因此，对于字符串形式的日期时间，只有指定了时区才有意义。也就是说字符串 + 时区才能精确知道它是什么时刻，否则是存在歧义的。
+
+也许你可能会说了，自己平时开发中前端就是扔个字符串给我，然后我就给格式化为一个 Date 类型，并没有传入时区参数，运行这么久也没见出什么问题呀。如下所示：
+
+```java
+@Test
+public void test7() throws ParseException {
+    String patterStr = "yyyy-MM-dd HH:mm:ss";
+ 
+    // 模拟请求参数的时间字符串
+    String dateStrParam = "2020-01-15 18:00:00";
+ 
+    // 模拟服务端对此服务换转换为Date类型
+    DateFormat dateFormat = new SimpleDateFormat(patterStr);
+    System.out.println("格式化器用的时区是：" + dateFormat.getTimeZone().getID());
+    Date date = dateFormat.parse(dateStrParam);
+    System.out.println(date);
+}
+
+// 格式化器用的时区是：Asia/Shanghai
+// Wed Jan 15 18:00:00 CST 2020
+```
+
+看起来结果没问题。事实上，这是因为默认情况下你们交互双发就达成了契约：双方均使用的是北京时间（时区），既然是相同时区，所以互通有无不会有任何问题。不信你把你接口给海外用户调试试？
+
+对于格式化器来讲，虽然说编程过程中一般情况下我们并不需要给 DateFormat 设置时区（那就用默认时区呗）就可正常转换。但是作为高手的你必须清清楚楚，明明白白地知道这是由于交互双发默认有个相同时区的契约存在。
+
+#### SimpleDateFormat 格式化
+
+Java 中对 Date 类型的输入输出/格式化，推荐使用 DateFormat 而非用其 toString() 方法。
+
+DateFormat 是一个时间格式化器抽象类，SimpleDateFormat 是其具体实现类，用于以语言环境敏感的方式格式化和解析日期。它允许格式化(日期→文本)、解析(文本→日期)和规范化。
+
+划重点：对语言环境敏感，也就是说对环境 Locale、时区 TimeZone 都是敏感的。既然敏感，那就是可定制的
+
+对于一个格式化器来讲，模式（模版）是其关键因素，了解一下：
+
+日期/时间模式： 格式化的模式由指定的字符串组成，未加引号的大写/小写字母（A-Z a-z）代表特定模式，用来表示模式含义，若想原样输出可以用单引号''包起来，除了英文字母其它均不解释原样输出/匹配。下面是它规定的模式字母（其它字母原样输出）：
+
+SimpleDateFormat 的使用很简单，重点是了解其规则模式。最后关于 SimpleDateFormat 的使用再强调这两点哈：
+
+ - SimpleDateFormat 并非线程安全类，使用时请务必注意并发安全问题
+
+ - 若使用 SimpleDateFormat 去格式化成非本地区域（默认 Locale）的话，那就必须在构造的时候就指定好，如 Locale.US
+
+ - 对于 Date 类型的任何格式化、解析请统一使用 SimpleDateFormat
+
+#### JSR 310 类型
+
+曾经有个人做了个很有意思的投票，统计对 Java API 的不满意程度。最终 Java Date/Calendar API 斩获第二烂（第一烂是 Java XML/DOM），体现出它烂的点较多，这里给你例举几项：
+
+ - 定义并不一致，在 java.util 和 java.sql 包中竟然都有 Date 类，而且呢对它进行格式化/解析类竟然又跑到 java.text 去了，精神分裂啊
+
+ - java.util.Date 等类在建模日期的设计上行为不一致，缺陷明显。包括易变性、糟糕的偏移值、默认值、命名等等
+
+ - java.util.Date 同时包含日期和时间，而其子类 java.sql.Date 却仅包含日期，这是什么神继承？
+
+![title](./images/java-basic-time-local-date-time/java-basic-time-local-date-time-002.png)
+
+```java
+@Test
+public void test10() {
+    long currMillis = System.currentTimeMillis();
+ 
+    java.util.Date date = new Date(currMillis);
+    java.sql.Date sqlDate = new java.sql.Date(currMillis);
+    java.sql.Time time = new Time(currMillis);
+    java.sql.Timestamp timestamp = new Timestamp(currMillis);
+ 
+    System.out.println("java.util.Date：" + date);
+    System.out.println("java.sql.Date：" + sqlDate);
+    System.out.println("java.sql.Time：" + time);
+    System.out.println("java.sql.Timestamp：" + timestamp);
+}
+
+// java.util.Date：Fri May 31 13:55:51 CST 2024
+// java.sql.Date：2024-05-31
+// java.sql.Time：13:55:51
+// java.sql.Timestamp：2024-05-31 13:55:51.424
+```
+
+国际化支持得并不是好，比如跨时区操作、夏令时等等
+
+Java 自己也实在忍不了这么难用的日期时间 API 了，于是在 2014 年随着 Java 8 的发布引入了全新的 JSR 310 日期时间。JSR-310 源于精品时间库 joda-time 打造，解决了上面提到的所有问题，是整个Java 8最大亮点之一。
+
+JSR 310 日期/时间 所有的 API 都在 java.time 这个包内，没有例外。
+
+![title](./images/java-basic-time-local-date-time/java-basic-time-local-date-time-003.png)
+
+当然喽，本文重点并不在于讨论 JSR 310 日期/时间体系，而是看看 JSR 310 日期时间类型是如何处理上面 Date 类型遇到的那些 case 的。
+
+#### 时区/偏移量ZoneId
+
+在 JDK 8 之前，Java 使用 java.util.TimeZone 来表示时区。而在 JDK 8 里分别使用了  ZoneId 表示时区，ZoneOffset 表示 UTC 的偏移量。
+
+值得提前强调，时区和偏移量在概念和实际作用上是有较大区别的，主要体现在：
+
+ - UTC 偏移量仅仅记录了偏移的小时分钟而已，除此之外无任何其它信息。举个例子：+08:00 的意思是比 UTC 时间早 8 小时，没有地理/时区含义，相应的 -03:30 代表的意思仅仅是比 UTC 时间晚 3 个半小时
+
+ - 时区是特定于地区而言的，它和地理上的地区（包括规则）强绑定在一起。比如整个中国都叫东八区，纽约在西五区等等
+
+中国没有夏令时，所有东八区对应的偏移量永远是+8；纽约有夏令时，因此它的偏移量可能是-4也可能是-5哦
+
+综合来看，时区更好用。令人恼火的夏令时问题，若你使用UTC偏移量去表示那么就很麻烦，因为它可变：一年内的某些时期在原来基础上偏移量 +1，某些时期 -1；但若你使用 ZoneId 时区去表示就很方便喽，比如纽约是西五区，你在任何时候获取其当地时间都是能得到正确答案的，因为它内置了对夏令时规则的处理，也就是说啥时候+1啥时候-1时区自己门清，不需要 API 调用者关心。
+
+UTC 偏移量更像是一种写死偏移量数值的做法，这在天朝这种没有时区规则（没有夏令时）的国家不会存在问题，东八区和 UTC+08:00 效果永远一样。但在一些夏令时国家（如美国、法国等等），就只能根据时区去获取当地时间喽。所以当你不了解当地规则时，最好是使用时区而非偏移量。
+
+#### ZoneId
+
+![title](./images/java-basic-time-local-date-time/java-basic-time-local-date-time-004.png)
+
+它代表一个时区的 ID，如 Europe/Paris。它规定了一些规则可用于将一个 Instant 时间戳转换为本地日期/时间 LocalDateTime。
+
+上面说了时区 ZoneId 是包含有规则的，实际上描述偏移量何时以及如何变化的实际规则由 java.time.zone.ZoneRules 定义。ZoneId 则只是一个用于获取底层规则的 ID。之所以采用这种方法，是因为规则是由政府定义的，并且经常变化，而 ID 是稳定的。
+
+对于 API 调用者来说只需要使用这个 ID（也就是 ZoneId）即可，而需无关心更为底层的时区规则 ZoneRules，和“政府”同步规则的事是它领域内的事就交给它喽。如：夏令时这条规则是由各国政府制定的，而且不同国家不同年一般都不一样，这个事就交由 JDK 底层的 ZoneRules 机制自行 sync，使用者无需关心。
+
+ZoneId 在系统内是唯一的，它共包含三种类型的 ID：
+
+ - 最简单的 ID 类型：ZoneOffset，它由'Z'和以'+'或'-'开头的id组成。如：Z、+18:00、-18:00
+
+ - 另一种类型的 ID 是带有某种前缀形式的偏移样式ID，例如'GMT+2'或'UTC+01:00'。可识别的（合法的）前缀是'UTC'， 'GMT'和'UT'
+
+ - 第三种类型是基于区域的 ID（推荐使用）。基于区域的ID必须包含两个或多个字符，且不能以'UTC'、'GMT'、'UT' '+'或'-'开头。基于区域的id由配置定义好的，如 Europe/Paris
+
+概念说了一大堆，下面给几个代码示例感受下吧。
+
+1、获取系统默认的 ZoneId：
+
+```java
+@Test
+public void test11() {
+    // JDK 1.8之前做法
+    System.out.println(TimeZone.getDefault());
+    // JDK 1.8之后做法
+    System.out.println(ZoneId.systemDefault());
+}
+
+// sun.util.calendar.ZoneInfo[id="Asia/Shanghai",offset=28800000,dstSavings=0,useDaylight=false,transitions=31,lastRule=null]
+// Asia/Shanghai
+```
+
+二者结果是一样的，都是 Asia/Shanghai。因为 ZoneId 方法底层就是依赖 TimeZone，如图：
+
+![title](./images/java-basic-time-local-date-time/java-basic-time-local-date-time-005.png)
+
+![title](./images/java-basic-time-local-date-time/java-basic-time-local-date-time-006.png)
+
+2、指定字符串得到一个 ZoneId：
+
+```java
+@Test
+public void test12() {
+    // Asia/Shanghai
+    System.out.println(ZoneId.of("Asia/Shanghai"));
+    // 报错：java.time.zone.ZoneRulesException: Unknown time-zone ID: Asia/xxx
+    System.out.println(ZoneId.of("Asia/xxx"));
+}
+```
+
+很明显，这个字符串也是不能随便写的。那么问题来了，可写的有哪些呢？同样的 ZoneId 提供了 API 供你获取到所有可用的字符串 id，有兴趣的同学建议自行尝试：
+
+```java
+@Test
+public void test13() {
+    ZoneId.getAvailableZoneIds();
+}
+```
+
+3、根据偏移量得到一个 ZoneId：
+
+```java
+@Test
+public void test14() {
+    ZoneId zoneId = ZoneId.ofOffset("UTC", ZoneOffset.of("+8"));
+    // UTC+08:00
+    System.out.println(zoneId);
+    // 必须是大写的Z
+    zoneId = ZoneId.ofOffset("UTC", ZoneOffset.of("Z"));
+    // UTC
+    System.out.println(zoneId);
+}
+```
+
+这里第一个参数传的前缀，可用值为："GMT", "UTC", or "UT"。当然还可以传空串，那就直接返回第二个参数 ZoneOffset。若以上都不是就报错
+
+**注意：根据偏移量得到的 ZoneId 内部并无现成时区规则可用，因此对于有夏令营的国家转换可能出问题，一般不建议这么去做。**
+
+4、从日期里面获得时区：
+
+```java
+@Test
+public void test15() {
+    // Asia/Shanghai
+    System.out.println(ZoneId.from(ZonedDateTime.now()));
+    // +08:00
+    System.out.println(ZoneId.from(ZoneOffset.of("+8")));
+ 
+    // 报错：java.time.DateTimeException: Unable to obtain ZoneId from TemporalAccessor:
+    System.out.println(ZoneId.from(LocalDateTime.now()));
+    System.out.println(ZoneId.from(LocalDate.now()));
+}
+```
+
+虽然方法入参是 TemporalAccessor，但是只接受带时区的类型，LocalXXX 是不行的，使用时稍加注意。
+
+#### ZoneOffset
+
+距离格林威治/UTC的时区偏移量，例如+02:00。值得注意的是它继承自 ZoneId，所以也可当作一个 ZoneId 来使用的，当然并不建议你这么去做，请独立使用。
+
+时区偏移量是时区与格林威治/UTC之间的时间差。这通常是固定的小时数和分钟数。世界不同的地区有不同的时区偏移量。在 ZoneId 类中捕获关于偏移量如何随一年的地点和时间而变化的规则（主要是夏令时规则），所以继承自 ZoneId。
+
+1、最小/最大偏移量：因为偏移量传入的是数字，这个是有限制的哦
+
+```java
+@Test
+public void test16() {
+    System.out.println("最小偏移量：" + ZoneOffset.MIN);
+    System.out.println("最小偏移量：" + ZoneOffset.MAX);
+    System.out.println("中心偏移量：" + ZoneOffset.UTC);
+    // 超出最大范围
+    System.out.println(ZoneOffset.of("+20"));
+}
+
+// 最小偏移量：-18:00
+// 最小偏移量：+18:00
+// 中心偏移量：Z
+// 
+// java.time.DateTimeException: Zone offset hours not in valid range: value 20 is not in the range -18 to 18
+```
+
+2、通过时分秒构造偏移量（使用很方便，推荐）：
+
+```java
+@Test
+public void test17() {
+    // +08:00
+    System.out.println(ZoneOffset.ofHours(8));
+    // +08:08
+    System.out.println(ZoneOffset.ofHoursMinutes(8, 8));
+    // +08:08:08
+    System.out.println(ZoneOffset.ofHoursMinutesSeconds(8, 8, 8));
+ 
+    // -05:00
+    System.out.println(ZoneOffset.ofHours(-5));
+ 
+    // +08:00
+    // 指定一个精确的秒数  获取实例（有时候也很有用处）
+    System.out.println(ZoneOffset.ofTotalSeconds(8 * 60 * 60));
+}
+```
+
+看来，偏移量是能精确到秒的哈，只不过一般来说精确到分钟已经到顶了。
+
+#### 设置默认时区
+
+ZoneId 并没有提供设置默认时区的方法，但是通过文章可知 ZoneId 获取默认时区底层依赖的是 TimeZone.getDefault() 方法，因此设置默认时区方式完全遵照 TimeZone 的方式即可（共三种方式，还记得吗？）。
+
+#### 让人恼火的夏令时
+
+因为有夏令时规则的存在，让操作日期/时间的复杂度大大增加。但还好JDK尽量的屏蔽了这些规则对使用者的影响。因此：推荐使用时区（ZoneId）转换日期/时间，一般情况下不建议使用偏移量 ZoneOffset 去搞，这样就不会有夏令时的烦恼啦。
+
+#### JSR 310 时区相关性
+
+java.util.Date 类型它具有时区无关性，带来的弊端就是一旦涉及到国际化时间转换等需求时，使用 Date 来处理是很不方便的。
+
+JSR 310 解决了 Date 存在的一系列问题：对日期、时间进行了分开表示（LocalDate、LocalTime、LocalDateTime），对本地时间和带时区的时间进行了分开管理。LocalXXX 表示本地时间，也就是说是当前 JVM 所在时区的时间；ZonedXXX 表示是一个带有时区的日期时间，它们能非常方便的互相完成转换。
+
+```java
+@Test
+public void test18() {
+    // 本地日期/时间
+    System.out.println("================本地时间================");
+    System.out.println(LocalDate.now());
+    System.out.println(LocalTime.now());
+    System.out.println(LocalDateTime.now());
+ 
+    // 时区时间
+    System.out.println("================带时区的时间ZonedDateTime================");
+    System.out.println(ZonedDateTime.now()); // 使用系统时区
+    System.out.println(ZonedDateTime.now(ZoneId.of("America/New_York"))); // 自己指定时区
+    System.out.println(ZonedDateTime.now(Clock.systemUTC())); // 自己指定时区
+    System.out.println("================带时区的时间OffsetDateTime================");
+    System.out.println(OffsetDateTime.now()); // 使用系统时区
+    System.out.println(OffsetDateTime.now(ZoneId.of("America/New_York"))); // 自己指定时区
+    System.out.println(OffsetDateTime.now(Clock.systemUTC())); // 自己指定时区
+}
+
+// ================本地时间================
+// 2024-05-31
+// 15:27:52.319
+// 2024-05-31T15:27:52.319
+// ================带时区的时间ZonedDateTime================
+// 2024-05-31T15:27:52.320+08:00[Asia/Shanghai]
+// 2024-05-31T03:27:52.324-04:00[America/New_York]
+// 2024-05-31T07:27:52.334Z
+// ================带时区的时间OffsetDateTime================
+// 2024-05-31T15:27:52.334+08:00
+// 2024-05-31T03:27:52.335-04:00
+// 2024-05-31T07:27:52.335Z
+```
+
+本地时间的输出非常“干净”，可直接用于显示。带时区的时间显示了该时间代表的是哪个时区的时间，毕竟不指定时区的时间是没有任何意义的。LocalXXX 因为它具有时区无关性，因此它不能代表一个瞬间/时刻。
+
+另外，关于 LocalDateTime、OffsetDateTime、ZonedDateTime 三者的跨时区转换问题，以及它们的详解，因为内容过多放在了下文专文阐述，保持关注。
+
+#### 读取字符串为 JSR 310 类型
+
+一个独立的日期时间类型字符串如 2021-05-05T18:00-04:00 它是没有任何意义的，因为没有时区无法确定它代表那个瞬间，这是理论当然也适合 JSR 310 类型喽。
+
+遇到一个日期时间格式字符串，要解析它一般有这两种情况：
+
+不带时区/偏移量的字符串：要么不理它说转换不了，要么就约定一个时区（一般用系统默认时区），使用 LocalDateTime 来解析
+
+```java
+@Test
+public void test21() {
+    String dateTimeStrParam = "2021-05-05T18:00";
+    LocalDateTime localDateTime = LocalDateTime.parse(dateTimeStrParam);
+    // 解析后：2021-05-05T18:00
+    System.out.println("解析后：" + localDateTime);
+}
+```
+
+带时区字/偏移量的符串：
+
+```java
+@Test
+public void test22() {
+    // 带偏移量 使用OffsetDateTime
+    String dateTimeStrParam = "2021-05-05T18:00-04:00";
+    OffsetDateTime offsetDateTime = OffsetDateTime.parse(dateTimeStrParam);
+    System.out.println("带偏移量解析后：" + offsetDateTime);
+ 
+    // 带时区 使用ZonedDateTime
+    dateTimeStrParam = "2021-05-05T18:00-05:00[America/New_York]";
+    ZonedDateTime zonedDateTime = ZonedDateTime.parse(dateTimeStrParam);
+    System.out.println("带时区解析后：" + zonedDateTime);
+}
+
+// 带偏移量解析后：2021-05-05T18:00-04:00
+// 带时区解析后：2021-05-05T18:00-04:00[America/New_York]
+```
+
+请注意带时区解析后这个结果：字符串参数偏移量明明是-05，为毛转换为 ZonedDateTime 后偏移量成为了-04呢？？？
+
+这里是我故意造了这么一个 case 引起你的重视，对此结果我做如下解释：
+
+![title](./images/java-basic-time-local-date-time/java-basic-time-local-date-time-007.png)
+
+如图，在2021.03.14 - 2021.11.07期间，纽约的偏移量是-4，其余时候是-5。本例的日期是2021-05-05处在夏令时之中，因此偏移量是-4，这就解释了为何你显示的写了-5最终还是成了-4。
+
+#### JSR 310 格式化
+
+针对 JSR 310 日期时间类型的格式化/解析，有个专门的类 java.time.format.DateTimeFormatter 用于处理。
+
+DateTimeFormatter 也是一个不可变的类，所以是线程安全的，比 SimpleDateFormat 靠谱多了吧。另外它还内置了非常多的格式化模版实例供以使用，形如：
+
+#### 格式化器示例
+
+<text zoom='7.8'>
+╔════════════════════════════════════╤═════════════════════════════════════════╗
+║ ofLocalizedDate(dateStyle)         │ 2021-01-03                              ║
+╟────────────────────────────────────┼─────────────────────────────────────────╢
+║ ofLocalizedTime(timeStyle)         │ 10:15:30                                ║
+╟────────────────────────────────────┼─────────────────────────────────────────╢
+║ ofLocalizedDateTime(dateTimeStyle) │ 3 Jun 2021 11:05:30                     ║
+╟────────────────────────────────────┼─────────────────────────────────────────╢
+║ ISO\_LOCAL\_DATE                     │ 2021-12-03                              ║
+╟────────────────────────────────────┼─────────────────────────────────────────╢
+║ ISO\_LOCAL\_TIME                     │ 10:15:30                                ║
+╟────────────────────────────────────┼─────────────────────────────────────────╢
+║ ISO\_LOCAL\_DATE\_TIME                │ 2021-12-03T10:15:30                     ║
+╟────────────────────────────────────┼─────────────────────────────────────────╢
+║ ISO\_OFFSET\_DATE\_TIME               │ 2021-12-03T10:15:30+01:00               ║
+╟────────────────────────────────────┼─────────────────────────────────────────╢
+║ ISO\_ZONED\_DATE\_TIME                │ 2021-12-03T10:15:30+01:00[Europe/Paris] ║
+╚════════════════════════════════════╧═════════════════════════════════════════╝
+</text>
+
+```python
+["ofLocalizedDate(dateStyle)","2021-01-03"],
+["ofLocalizedTime(timeStyle)","10:15:30"],
+["ofLocalizedDateTime(dateTimeStyle)","3 Jun 2021 11:05:30"],
+["ISO_LOCAL_DATE","2021-12-03"],
+["ISO_LOCAL_TIME","10:15:30"],
+["ISO_LOCAL_DATE_TIME","2021-12-03T10:15:30"],
+["ISO_OFFSET_DATE_TIME","2021-12-03T10:15:30+01:00"],
+["ISO_ZONED_DATE_TIME","2021-12-03T10:15:30+01:00[Europe/Paris]"]
+```
+
+```java
+@Test
+public void test23() {
+    System.out.println(DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDate.now()));
+    System.out.println(DateTimeFormatter.ISO_LOCAL_TIME.format(LocalTime.now()));
+    System.out.println(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now()));
+}
+
+// 2024-05-31
+// 15:58:22.094
+// 2024-05-31T15:58:22.098
+```
+
+若想自定义模式 pattern，和 Date 一样它也可以自己指定任意的 pattern 日期/时间模式。由于本文在 Date 部分详细介绍了日期/时间模式，各个字母代表什么意思以及如何使用，这里就不再赘述了哈。
+
+虽然 DateTimeFormatter 支持的模式比 Date 略有增加，但大体还保持一致，个人觉得这块无需再花精力。若真有需要再查官网也不迟
+
+```java
+@Test
+public void test24() {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("第Q季度 yyyy-MM-dd HH:mm:ss", Locale.US);
+ 
+    // 格式化输出
+    // 第2季度 2024-05-31 16:00:51
+    System.out.println(formatter.format(LocalDateTime.now()));
+ 
+    // 解析
+    String dateTimeStrParam = "第1季度 2021-01-17 22:51:32";
+    LocalDateTime localDateTime = LocalDateTime.parse(dateTimeStrParam, formatter);
+    // 解析后的结果：2021-01-17T22:51:32
+    System.out.println("解析后的结果：" + localDateTime);
+}
+```
+
+Q/q：季度，如3; 03; Q3; 3rd quarter。
+
+#### 最佳实践
+
+弃用 Date，拥抱 JSR 310
+
+每每说到 JSR 310 日期/时间时我都会呼吁，保持惯例我这里继续啰嗦一句：放弃 Date 甚至禁用 Date，使用 JSR 310 日期/时间吧，它才是日期时间处理的最佳实践。
+
+另外，在使用期间关于指定时区（默认时区时）依旧有一套我心目中的最佳实践存在，这里分享给你：
+
+ - 永远显式地指定你需要的时区，即使你要获取的是默认时区
+
+```java
+// 方式一：普通做法
+LocalDateTime.now();
+ 
+// 方式二：最佳实践
+LocalDateTime.now(ZoneId.systemDefault());
+```
+
+如上代码二者效果一模一样。但是方式二是最佳实践。
+
+理由是：这样做能让代码带有明确的意图，消除模棱两可的可能性，即使获取的是默认时区。拿方式一来说吧，它就存在意图不明确的地方：到底是代码编写者忘记指定时区欠考虑了，还是就想用默认时区呢？这个答案如果不通读上下文是无法确定的，从而造成了不必要的沟通维护成本。因此即使你是要获取默认时区，也请显示的用ZoneId.systemDefault()写上去。
+
+ - 使用JVM的默认时区需当心，建议时区和当前会话保持绑定
+
+这个最佳实践在特殊场景用得到。这么做的理由是：JVM的默认时区通过静态方法TimeZone#setDefault()可全局设置，因此JVM的任何一个线程都可以随意更改默认时区。若关于时间处理的代码对时区非常敏感的话，最佳实践是你把时区信息和当前会话绑定，这样就可以不用再受到其它线程潜在影响了，确保了健壮性。
+
+说明：会话可能只是当前请求，也可能是一个Session，具体case具体分析
+
+#### 总结
+
+文章的内容较多，信息量均比较大，消化起来需要些时间。一方面我建议你先收藏留以当做参考书备用，另一方面建议多实践，代码这东西只有多写写才能有更深体会。
+
+#### 参考链接
+
+- <a href="https://blog.csdn.net/kevinxxw/article/details/124292686" target="_blank">彻底弄透 Java 处理 GMT/UTC 日期时间</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

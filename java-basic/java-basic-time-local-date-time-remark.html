@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-time-local-date-time-remark</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-time-local-date-time-remark
+
+#### 日期文本说明
+
+**小时、分和秒都用2位数表示，对UTC时间最后加一个大写字母Z，其他时区用`实际时间加时差`表示。**
+
+ - **`1970-01-01T00:00:00Z`**
+
+ 说明：该日期文本是符合 ISO 8601 国际标准的日期和时间的表示方法
+
+ 该日期文本表示的时间为UTC时间1970年01月01日上午0点0分0秒
+
+ 对应北京时间1970年01月01日上午8点0分0秒
+
+ - **`1970-01-01T08:00:00+0800`**
+
+ 该日期文本表示北京时间1970年01月01日上午8点0分0秒
+
+UTC 格式日期文本解析
+
+```java
+// 日期文本
+String dateStr = "1970-01-01T08:00:00+0800";
+
+// 日期格式化模板
+String patternStr = "yyyy-MM-dd'T'HH:mm:ssZ";
+
+// 实例化日期格式化对象（使用系统默认时区）
+SimpleDateFormat sdf = new SimpleDateFormat(patternStr);
+
+// 解析日期对象
+Date date = sdf.parse(dateStr);
+
+// 输出日期字符串（中国标准时间 China Standard Time）
+// Thu Jan 01 08:00:00 CST 1970
+System.out.println(date);
+
+// =================================================
+// 格式化日期对象，输出日期文本（系统默认时区）
+// =================================================
+// 日期格式化模板
+patternStr = "yyyy-MM-dd HH:mm:ss";
+
+// 实例化日期格式化对象（使用系统默认时区）
+sdf = new SimpleDateFormat(patternStr);
+
+// 输出日期字符串（中国标准时间 China Standard Time）
+// 1970-01-01 08:00:00
+System.out.println(sdf.format(date));
+
+// =================================================
+// 格式化日期对象，输出日期文本（协调世界时间）
+// =================================================
+// 日期格式化模板
+patternStr = "yyyy-MM-dd'T'HH:mm:ssZ";
+
+// 实例化日期格式化对象（使用系统默认时区）
+sdf = new SimpleDateFormat(patternStr);
+
+// 设置日期格式化对象，指定时区
+sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+// 输出日期字符串（协调世界时间 Coordinated Universal Time）
+// 1970-01-01T00:00:00+0000
+System.out.println(sdf.format(date));
+
+// =================================================
+// 格式化日期对象，输出日期文本（协调世界时间）
+// =================================================
+// 日期格式化模板
+patternStr = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
+// 实例化日期格式化对象（使用系统默认时区）
+sdf = new SimpleDateFormat(patternStr);
+
+// 设置日期格式化对象，指定时区
+sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+// 输出日期字符串（协调世界时间 Coordinated Universal Time）
+// 1970-01-01T00:00:00Z
+System.out.println(sdf.format(date));
+```
+
+#### 日期和时间的表示方法 ISO 8601
+
+ISO 8601
+
+日期和时间的表示方法
+
+#### 时间表示法
+
+**小时、分和秒都用2位数表示，对UTC时间最后加一个大写字母Z，其他时区用`实际时间加时差`表示。**
+
+如UTC时间下午2点30分5秒表示为14:30:05Z或143005Z，当时的北京时间表示为22:30:05+08:00或223005+0800，也可以简化成223005+08。
+
+#### 日期和时间的组合表示法
+
+合并表示时，要在时间前面加一大写字母T。
+
+如要表示北京时间2004年5月3日下午5点30分8秒
+
+可以写成：
+
+ - **`2004-05-03T17:30:08+08:00`**  
+
+ 或
+ 
+ - **`20040503T173008+08`**
+
+如要表示UTC时间1970年01月01日上午0点0分0秒
+
+可以写成
+
+ - **`1970-01-01T00:00:00Z`**
+ 
+ 或 
+ 
+ - **`19700101T000000Z`**
+
+#### 时间戳
+
+时间戳
+
+ - **“`时间戳`” （Unix时间戳）国际统一。**
+ 
+ 就是指 从格林威治时间 **(UTC/GMT)`1970-01-01 00:00:00`** 秒起至现在的总秒数。
+
+ - **“`日期`” 受时区影响。**
+ 
+ 同一时刻下，“不同时区的日期” 要比 “0时区的日期” 快 “时区数 * 3600 秒”。
+
+**注：在使用 `System.out.println` 打印 `Date` 的时候，会调用 `Date.toString` 方法，该方法会获取系统的默认时区来转换时间。**
+
+#### 时间戳和时区的关系
+
+时间戳和时区的关系
+
+全世界所有时区某个时刻的时间戳 timestamp 都是一样的，但如果换算成具体某个时区的日期和时间，就必须得带上对应的时区来进行换算。
+
+#### 时间戳转日期格式化
+
+```java
+// 时间戳（从格林威治时间 (UTC/GMT)1970-01-01 00:00:00 秒起至现在的总秒数）
+long zore = 0L;
+ 
+// 构建日期对象
+Date date = new Date(zore);
+ 
+// 日期格式化模板
+String pattern = "yyyy-MM-dd HH:mm:ss";
+// 实例化日期格式化对象（使用系统默认时区）
+SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+ 
+// 输出系统默认时区
+// sun.util.calendar.ZoneInfo[id="Asia/Shanghai",offset=28800000,dstSavings=0,useDaylight=false,transitions=31,lastRule=null]
+System.out.println(TimeZone.getDefault());
+// 中国标准时间
+// China Standard Time
+System.out.println(TimeZone.getDefault().getDisplayName(Locale.ENGLISH));
+ 
+// 输出日期字符串（中国标准时间 China Standard Time）
+// Thu Jan 01 08:00:00 CST 1970
+System.out.println(date);
+ 
+// 设置JVM默认时区
+TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+// 输出日期字符串（协调世界时间 Coordinated Universal Time）
+// Thu Jan 01 00:00:00 UTC 1970
+System.out.println(date);
+ 
+// 设置JVM默认时区
+TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
+// 输出日期字符串（东部标准时间 Eastern Standard Time）
+// Wed Dec 31 19:00:00 EST 1969
+System.out.println(date);
+ 
+// 设置JVM默认时区
+TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
+// 格式化日期
+String result = sdf.format(date);
+// 1970-01-01 08:00:00 timestamp:0
+System.out.println(result + " timestamp:" + date.getTime());
+ 
+// 实例化日期格式化对象（使用系统默认时区）
+sdf = new SimpleDateFormat(pattern);
+// 设置日期格式化对象，指定时区
+sdf.setTimeZone(TimeZone.getTimeZone(ZoneId.of("UTC")));
+ 
+// 输出指定时区
+// sun.util.calendar.ZoneInfo[id="UTC",offset=0,dstSavings=0,useDaylight=false,transitions=0,lastRule=null]
+System.out.println(TimeZone.getTimeZone(ZoneId.of("UTC")));
+// 协调世界时间
+// Coordinated Universal Time
+System.out.println(TimeZone.getTimeZone(ZoneId.of("UTC")).getDisplayName(Locale.ENGLISH));
+ 
+// 格式化日期
+result = sdf.format(date);
+// 1970-01-01 00:00:00 timestamp:0
+System.out.println(result + " timestamp:" + date.getTime());
+ 
+// 实例化日期格式化对象（使用系统默认时区）
+sdf = new SimpleDateFormat(pattern);
+// 设置日期格式化对象，指定时区
+sdf.setTimeZone(TimeZone.getTimeZone(ZoneId.of("America/New_York")));
+ 
+// 输出指定时区
+// sun.util.calendar.ZoneInfo[id="America/New_York",offset=-18000000,dstSavings=3600000,useDaylight=true,transitions=235,lastRule=java.util.SimpleTimeZone[id=America/New_York,offset=-18000000,dstSavings=3600000,useDaylight=true,startYear=0,startMode=3,startMonth=2,startDay=8,startDayOfWeek=1,startTime=7200000,startTimeMode=0,endMode=3,endMonth=10,endDay=1,endDayOfWeek=1,endTime=7200000,endTimeMode=0]]
+System.out.println(TimeZone.getTimeZone(ZoneId.of("America/New_York")));
+// 东部标准时间
+// Eastern Standard Time
+System.out.println(TimeZone.getTimeZone(ZoneId.of("America/New_York")).getDisplayName(Locale.ENGLISH));
+ 
+// 格式化日期
+result = sdf.format(date);
+// 1969-12-31 19:00:00 timestamp:0
+System.out.println(result + " timestamp:" + date.getTime());
+```
+
+#### 时区 & 时区区域ID & 时区区域规则
+
+查看可用的 ZoneId
+
+```java
+@Test
+public void test3() {
+    String[] availableIDs = TimeZone.getAvailableIDs();
+    System.out.println("可用zoneId总数：" + availableIDs.length);
+    for (String zoneId : availableIDs) {
+        System.out.println(zoneId);
+    }
+}
+
+// 运行程序，输出（大部分符合规律：/前表示所属州，/表示城市名称）：
+// Asia/Shanghai
+// America/New_York
+```
+
+查看时区信息
+
+```java
+// 获取系统默认时区
+// sun.util.calendar.ZoneInfo[id="Asia/Shanghai",offset=28800000,dstSavings=0,useDaylight=false,transitions=31,lastRule=null]
+System.out.println(TimeZone.getDefault());
+// 获取系统默认时区区域ID
+// Asia/Shanghai
+System.out.println(TimeZone.getDefault().toZoneId());
+// 获取系统默认时区区域规则
+// ZoneRules[currentStandardOffset=+08:00]
+System.out.println(TimeZone.getDefault().toZoneId().getRules());
+ 
+// 通过时区区域ID，获取时区区域
+// Asia/Shanghai
+System.out.println(ZoneId.of("Asia/Shanghai"));
+// 通过时区区域ID，获取时区区域，获取时区区域规则
+// ZoneRules[currentStandardOffset=+08:00]
+System.out.println(ZoneId.of("Asia/Shanghai").getRules());
+ 
+// UTC
+System.out.println(ZoneId.of("UTC"));
+// ZoneRules[currentStandardOffset=Z]
+System.out.println(ZoneId.of("UTC").getRules());
+ 
+// UTC+08:00
+System.out.println(ZoneId.of("UTC+8"));
+// ZoneRules[currentStandardOffset=+08:00]
+System.out.println(ZoneId.of("UTC+8").getRules());
+ 
+// America/New_York
+System.out.println(ZoneId.of("America/New_York"));
+// ZoneRules[currentStandardOffset=-05:00]
+System.out.println(ZoneId.of("America/New_York").getRules());
+```
+
+#### 带时区格式的文本日期解析 GMT
+
+```java
+// 日期文本
+String dateStr = "Tue, 04 Jun 2024 02:55:43 GMT";
+ 
+// 日期格式化模板
+String patternStr = "EEE',' dd MMM yyyy HH:mm:ss Z";
+ 
+// 实例化日期格式化对象（使用系统默认时区）
+SimpleDateFormat sdf = new SimpleDateFormat(patternStr, Locale.ENGLISH);
+ 
+// 解析日期对象
+Date date = sdf.parse(dateStr);
+
+// 输出日期字符串（中国标准时间 China Standard Time）
+// Tue Jun 04 10:55:43 CST 2024
+System.out.println(date);
+```
+
+#### 带时区格式的文本日期解析 时钟偏移
+
+```java
+// 日期文本
+String dateStr = "28/Jul/2022:03:15:11 -0400";
+ 
+// 日期格式化模板
+String patternStr = "dd/MMM/yyyy:HH:mm:ss Z";
+ 
+// 实例化日期格式化对象（使用系统默认时区）
+SimpleDateFormat sdf = new SimpleDateFormat(patternStr, Locale.ENGLISH);
+ 
+// 解析日期对象
+Date date = sdf.parse(dateStr);
+ 
+// 输出日期字符串（中国标准时间 China Standard Time）
+// Thu Jul 28 15:15:11 CST 2022
+System.out.println(date);
+```
+
+
+ - 文本日期在 **未标明** 自身所在时区时，会被作为当前时区的时间进行解析处理
+
+ - 文本日期在 **已标明** 自身所在时区时，在解析后会被转换为当前时区时间（会根据不同时区的时差进行偏移）
+
+ - 作为 Date 初始化后的对象，其本身值就为当前国家区域值（是当前国家区域的时间）
+
+ - 以此为基准，通过区域设置，可将其转换为其它国家地区的相对时间
+
+
+时间戳在 1000， 由此构建出来的日期值？
+
+文本日期，在解析时设置时区，日期是相对的。
+
+系统，内置，国家，地区，时区 配置。由时间戳构建出来的时间是固定的。
+
+参考链接：
+
+ - <a href="https://baike.baidu.com/item/ISO%208601/3910715?fr=aladdin" target="_blank">ISO 8601 日期和时间的表示方法</a>
+
+ - <a href="https://waylau.com/processing-of-t-z-time-in-java/" target="_blank">Java开发涉及时间里面的TZ的处理</a>
+
+ - <a href="https://segmentfault.com/a/1190000044675094" target="_blank">常用日期和时间标准对比：HTML, ISO 8601, RFC 3339, RFC 5322</a>
+
+ - <a href="https://www.liaoxuefeng.com/article/991339711823296" target="_blank">如何在Java 8中愉快地处理日期和时间</a>
+
+ - <a href="https://blog.csdn.net/chenhy1102/article/details/122576380" target="_blank">SimpleDateFormat用法与时区设置</a>
+
+ - <a href="https://cloud.tencent.com/developer/article/1777707" target="_blank">全网最全！彻底弄透Java处理GMT/UTC日期时间</a>
+
+ - <a href="https://blog.csdn.net/h4241778/article/details/122958943" target="_blank">UTC时间格式化（JAVA） 时间带T Z</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

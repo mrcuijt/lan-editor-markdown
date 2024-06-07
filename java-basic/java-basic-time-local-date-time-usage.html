@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>java-basic-time-local-date-time-usage</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### java-basic-time-local-date-time-usage
+
+#### LocalDateTime 类
+
+ - 线程安全性
+
+ java.time.LocalDateTime 是不可变的，这意味着一旦创建了对象，它的值不能被修改。这保证了在多线程环境中使用时不会出现并发问题，与 java.util.Date 的可变性形成鲜明对比。
+
+ - 时区支持
+
+ LocalDateTime 提供了更好的时区支持。它存储日期和时间信息，但不包含时区信息。这允许你在需要时将日期时间信息与特定时区相关联，而不会像 java.util.Date 那样受限于默认时区（通常是 GMT）。你可以使用 ZoneId 来将 LocalDateTime 转换为特定时区的时间，例如：
+
+
+#### ZonedDateTime 类
+
+ZonedDateTime 组合了日期时间信息和时区信息，用于表示特定时区的日期时间。它允许你以指定时区的方式处理日期时间。
+
+#### 本地时间时区转换注意点
+
+日期文本说明
+
+**小时、分和秒都用2位数表示，对UTC时间最后加一个大写字母Z，其他时区用`实际时间加时差`表示。**
+
+**获取到UTC实时时间**
+
+```java
+// 获取到UTC实时时间（协调世界时间 Coordinated Universal Time）
+LocalDateTime localDateTime = LocalDateTime.now(ZoneId.of("UTC"));
+// 2024-06-04T08:23:46.204
+System.out.println(localDateTime);
+```
+
+**获取到的本地UTC实时时间转换为EST实时时间 `正确做法`**
+
+```java
+// 正确做法
+// 得到带有UTC时区的日期时间（对UTC本地实时时间，为其指定正确的时区UTC）
+ZonedDateTime zonedDateTimeUTC = localDateTime.atZone(ZoneId.of("UTC"));
+// 2024-06-04T08:40:02.064Z[UTC] Y timestamp:1717490402
+System.out.println(zonedDateTimeUTC + " Y timestamp:" + zonedDateTimeUTC.toEpochSecond());
+ 
+// 得到时间戳实例
+Instant instant = zonedDateTimeUTC.toInstant();
+ 
+// 通过时间戳实例，得到该时间戳在EST时区的日期时间（东部标准时间 Eastern Standard Time）
+ZonedDateTime rightZonedDateTimeEST = instant.atZone(ZoneId.of("America/New_York"));
+// 2024-06-04T04:40:02.064-04:00[America/New_York] Y timestamp:1717490402
+System.out.println(rightZonedDateTimeEST + " Y timestamp:" + rightZonedDateTimeEST.toEpochSecond());
+```
+
+**获取到的本地UTC实时时间转换为EST实时时间 `错误做法`**
+
+```java
+// 错误做法
+// 将UTC本地实时时间，直接标记为EST实时时间（东部标准时间 Eastern Standard Time）
+ZonedDateTime errorZonedDateTimeEST = localDateTime.atZone(ZoneId.of("America/New_York"));
+// 2024-06-04T08:40:02.064-04:00[America/New_York] N timestamp:1717504802
+System.out.println(errorZonedDateTimeEST + " N timestamp:" + errorZonedDateTimeEST.toEpochSecond());
+```
+
+#### 时间戳转本地时间
+
+方式1
+
+```java
+// 获取时间戳
+Instant instant = Instant.now();
+// 时间戳在指定时区表示的时区时间
+ZonedDateTime zonedDateTime = instant.atZone(ZoneId.of("Asia/Shanghai"));
+// 时区时间转本地时间
+LocalDateTime localDateTime = zonedDateTime.toLocalDateTime();
+ 
+// 协调世界时间 Coordinated Universal Time
+// 2024-06-04T09:16:40.661Z
+System.out.println(instant);
+// 中国标准时间 China Standard Time
+// 2024-06-04T17:16:40.661+08:00[Asia/Shanghai]
+System.out.println(zonedDateTime);
+// 中国标准时间 China Standard Time
+// 2024-06-04T17:16:40.661
+System.out.println(localDateTime);
+```
+
+方式2
+
+```java
+// 获取时间戳
+Instant instant = Instant.ofEpochMilli(System.currentTimeMillis());
+// 获取本地时间，指定时间戳对应的时区时间
+LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Shanghai"));
+ 
+// 协调世界时间 Coordinated Universal Time
+// 2024-06-04T09:24:51.032Z
+System.out.println(instant);
+// 中国标准时间 China Standard Time
+// 2024-06-04T17:24:51.032
+System.out.println(localDateTime);
+
+// 获取时间戳
+instant = Instant.ofEpochMilli(0);
+// 获取本地时间，指定时间戳对应的时区时间
+localDateTime = LocalDateTime.ofInstant(instant, ZoneId.of("Asia/Shanghai"));
+ 
+// 协调世界时间 Coordinated Universal Time
+// 1970-01-01T00:00:00Z
+System.out.println(instant);
+// 中国标准时间 China Standard Time
+// 1970-01-01T08:00
+System.out.println(localDateTime);
+```
+
+#### 日期文本转本地时间
+
+java.time.format.DateTimeFormatter
+
+<text zoom="8.7">
+╔══════════════════════════════════════════╤══════════════════════════════════════════════════════════╤═══════════════════════════════════════════╗
+║ Formatter                                │ Description                                              │ Example                                   ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ofLocalizedDate(dateStyle)               │ Formatter with date style from the locale                │ '2011-12-03'                              ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ofLocalizedTime(timeStyle)               │ Formatter with time style from the locale                │ '10:15:30'                                ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ofLocalizedDateTime(dateTimeStyle)       │ Formatter with a style for date and time from the locale │ '3 Jun 2008 11:05:30'                     ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ofLocalizedDateTime(dateStyle,timeStyle) │ Formatter with date and time styles from the locale      │ '3 Jun 2008 11:05'                        ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ BASIC\_ISO\_DATE                           │ Basic ISO date                                           │ '20111203'                                ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_LOCAL\_DATE                           │ ISO Local Date                                           │ '2011-12-03'                              ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_OFFSET\_DATE                          │ ISO Date with offset                                     │ '2011-12-03+01:00'                        ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_DATE                                 │ ISO Date with or without offset                          │ '2011-12-03+01:00'; '2011-12-03'          ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_LOCAL\_TIME                           │ Time without offset                                      │ '10:15:30'                                ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_OFFSET\_TIME                          │ Time with offset                                         │ '10:15:30+01:00'                          ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_TIME                                 │ Time with or without offset                              │ '10:15:30+01:00'; '10:15:30'              ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_LOCAL\_DATE\_TIME                      │ ISO Local Date and Time                                  │ '2011-12-03T10:15:30'                     ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_OFFSET\_DATE\_TIME                     │ Date Time with Offset                                    │ '2011-12-03T10:15:30+01:00'               ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_ZONED\_DATE\_TIME                      │ Zoned Date Time                                          │ '2011-12-03T10:15:30+01:00[Europe/Paris]' ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_DATE\_TIME                            │ Date and time with ZoneId                                │ '2011-12-03T10:15:30+01:00[Europe/Paris]' ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_ORDINAL\_DATE                         │ Year and day of year                                     │ '2012-337'                                ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_WEEK\_DATE                            │ Year and Week                                            │ '2012-W48-6'                              ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ ISO\_INSTANT                              │ Date and Time of an Instant                              │ '2011-12-03T10:15:30Z'                    ║
+╟──────────────────────────────────────────┼──────────────────────────────────────────────────────────┼───────────────────────────────────────────╢
+║ RFC\_1123\_DATE\_TIME                       │ RFC 1123 / RFC 822                                       │ 'Tue, 3 Jun 2008 11:05:30 GMT'            ║
+╚══════════════════════════════════════════╧══════════════════════════════════════════════════════════╧═══════════════════════════════════════════╝
+</text>
+
+```python
+["Formatter","Description","Example"],
+["ofLocalizedDate(dateStyle)", "Formatter with date style from the locale", "'2011-12-03'"],
+["ofLocalizedTime(timeStyle)", "Formatter with time style from the locale", "'10:15:30'"],
+["ofLocalizedDateTime(dateTimeStyle)", "Formatter with a style for date and time from the locale", "'3 Jun 2008 11:05:30'"],
+["ofLocalizedDateTime(dateStyle,timeStyle)", "Formatter with date and time styles from the locale", "'3 Jun 2008 11:05'"],
+["BASIC_ISO_DATE", "Basic ISO date", "'20111203'"],
+["ISO_LOCAL_DATE", "ISO Local Date", "'2011-12-03'"],
+["ISO_OFFSET_DATE", "ISO Date with offset", "'2011-12-03+01:00'"],
+["ISO_DATE", "ISO Date with or without offset", "'2011-12-03+01:00'; '2011-12-03'"],
+["ISO_LOCAL_TIME", "Time without offset", "'10:15:30'"],
+["ISO_OFFSET_TIME", "Time with offset", "'10:15:30+01:00'"],
+["ISO_TIME", "Time with or without offset", "'10:15:30+01:00'; '10:15:30'"],
+["ISO_LOCAL_DATE_TIME", "ISO Local Date and Time", "'2011-12-03T10:15:30'"],
+["ISO_OFFSET_DATE_TIME", "Date Time with Offset", "'2011-12-03T10:15:30+01:00'"],
+["ISO_ZONED_DATE_TIME", "Zoned Date Time", "'2011-12-03T10:15:30+01:00[Europe/Paris]'"],
+["ISO_DATE_TIME", "Date and time with ZoneId", "'2011-12-03T10:15:30+01:00[Europe/Paris]'"],
+["ISO_ORDINAL_DATE", "Year and day of year", "'2012-337'"],
+["ISO_WEEK_DATE", "Year and Week", "'2012-W48-6'"],
+["ISO_INSTANT", "Date and Time of an Instant", "'2011-12-03T10:15:30Z'"],
+["RFC_1123_DATE_TIME", "RFC 1123 / RFC 822", "'Tue, 3 Jun 2008 11:05:30 GMT'"]
+```
+
+ - **DateTimeFormatter.ISO\_LOCAL\_DATE\_TIME**
+
+ **`'2011-12-03T10:15:30'`**
+
+ - **DateTimeFormatter.ISO\_OFFSET\_DATE\_TIME**
+
+ **`'2011-12-03T10:15:30+01:00'`**
+
+ - **DateTimeFormatter.ISO\_ZONED\_DATE\_TIME**
+
+ **`'2011-12-03T10:15:30+01:00[Europe/Paris]'`**
+
+ - **DateTimeFormatter.ISO\_DATE\_TIME**
+
+ **`'2011-12-03T10:15:30+01:00[Europe/Paris]'`**
+
+ - **DateTimeFormatter.ISO\_INSTANT**
+
+ **`'2011-12-03T10:15:30Z'`**
+
+ - **DateTimeFormatter.RFC\_1123\_DATE\_TIME**
+
+ **`'Tue, 3 Jun 2008 11:05:30 GMT'`**
+
+<text zoom="8.7">
+╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+  Symbol  Meaning                     Presentation      Examples
+  ------  -------                     ------------      -------
+   G       era                         text              AD; Anno Domini; A
+   u       year                        year              2004; 04
+   y       year-of-era                 year              2004; 04
+   D       day-of-year                 number            189
+   M/L     month-of-year               number/text       7; 07; Jul; July; J
+   d       day-of-month                number            10
+|
+   Q/q     quarter-of-year             number/text       3; 03; Q3; 3rd quarter
+   Y       week-based-year             year              1996; 96
+   w       week-of-week-based-year     number            27
+   W       week-of-month               number            4
+   E       day-of-week                 text              Tue; Tuesday; T
+   e/c     localized day-of-week       number/text       2; 02; Tue; Tuesday; T
+   F       week-of-month               number            3
+|
+   a       am-pm-of-day                text              PM
+   h       clock-hour-of-am-pm (1-12)  number            12
+   K       hour-of-am-pm (0-11)        number            0
+   k       clock-hour-of-am-pm (1-24)  number            0
+|
+   H       hour-of-day (0-23)          number            0
+   m       minute-of-hour              number            30
+   s       second-of-minute            number            55
+   S       fraction-of-second          fraction          978
+   A       milli-of-day                number            1234
+   n       nano-of-second              number            987654321
+   N       nano-of-day                 number            1234000000
+|
+   V       time-zone ID                zone-id           America/Los_Angeles; Z; -08:30
+   z       time-zone name              zone-name         Pacific Standard Time; PST
+   O       localized zone-offset       offset-O          GMT+8; GMT+08:00; UTC-08:00;
+   X       zone-offset 'Z' for zero    offset-X          Z; -08; -0830; -08:30; -083015; -08:30:15;
+   x       zone-offset                 offset-x          +0000; -08; -0830; -08:30; -083015; -08:30:15;
+   Z       zone-offset                 offset-Z          +0000; -0800; -08:00;
+|
+   p       pad next                    pad modifier      1
+|
+   '       escape for text             delimiter
+   ''      single quote                literal           '
+   [       optional section start
+   ]       optional section end
+   #       reserved for future use
+   {       reserved for future use
+   }       reserved for future use
+</text>
+
+
+方式1
+
+LocalDateTime.parse(CharSequence text) 支持日期文本格式
+
+ - **`yyyy-MM-ddTHH:mm`**
+
+ - **`yyyy-MM-ddTHH:mm:ss`**
+
+ - **`yyyy-MM-ddTHH:mm:ss.SSS`**
+
+```java
+String dateStr = "2024-06-04T17:16:40.661";
+LocalDateTime parse = LocalDateTime.parse(dateStr);
+// 2024-06-04T17:16:40.661
+System.out.println(parse);
+ 
+dateStr = "2024-06-04T17:16:40";
+parse = LocalDateTime.parse(dateStr);
+// 2024-06-04T17:16:40
+System.out.println(parse);
+ 
+dateStr = "2024-06-04T17:16";
+parse = LocalDateTime.parse(dateStr);
+// 2024-06-04T17:16
+System.out.println(parse);
+```
+
+方式2
+
+```java
+// 日期文本
+// 根据日期文本区域时区，可知其代表的时间是格林威治时间（RFC 1123 / RFC 822 时间）
+String dateStr = "Tue, 04 Jun 2024 02:55:43 GMT";
+ 
+// 解析日期文本
+TemporalAccessor temporalAccessor = DateTimeFormatter.RFC_1123_DATE_TIME.parse(dateStr);
+ 
+// 实例化区域日期时间
+ZonedDateTime zonedDateTime = ZonedDateTime.from(temporalAccessor);
+ 
+// 将区域日期时间转换为本地时间
+LocalDateTime localDateTime = zonedDateTime.toInstant()
+        .atZone(ZoneId.of("Asia/Shanghai")).toLocalDateTime();
+ 
+// 协调世界时间 Coordinated Universal Time
+// 2024-06-04T02:55:43Z timestamp:1717469743000
+System.out.println(zonedDateTime + " timestamp:" + zonedDateTime.toInstant().toEpochMilli());
+ 
+// 中国标准时间 China Standard Time
+// 2024-06-04T10:55:43 timestamp:1717469743000
+System.out.println(localDateTime + " timestamp:" + localDateTime.atZone(ZoneId.of("Asia/Shanghai")).toInstant().toEpochMilli());
+```
+
+```java
+// 日期文本
+// 根据日期文本区域偏移时间，可知其代表的时间是中国标准时间（ISO 8601 国际标准的日期和时间的表示方法）
+dateStr = "1970-01-01T08:00:00+0800";
+ 
+// 日期格式化模板
+String patternStr = "yyyy-MM-dd'T'HH:mm:ssZ";
+ 
+// 解析日期文本
+temporalAccessor = DateTimeFormatter.ofPattern(patternStr).parse(dateStr);
+ 
+// 实例化区域日期时间
+zonedDateTime = ZonedDateTime.from(temporalAccessor);
+ 
+// 中国标准时间 China Standard Time
+// 1970-01-01T08:00+08:00 timestamp:0
+System.out.println(zonedDateTime + " timestamp:" + zonedDateTime.toInstant().toEpochMilli());
+ 
+// 将区域日期时间转换到UTC区域日期时间
+zonedDateTime = zonedDateTime.toInstant().atZone(ZoneId.of("UTC"));
+ 
+// 将区域日期时间转换为本地时间
+localDateTime = zonedDateTime.toInstant()
+        .atZone(ZoneId.of("Asia/Shanghai")).toLocalDateTime();
+ 
+// 协调世界时间 Coordinated Universal Time
+// 1970-01-01T00:00Z[UTC] timestamp:0
+System.out.println(zonedDateTime + " timestamp:" + zonedDateTime.toInstant().toEpochMilli());
+ 
+// 中国标准时间 China Standard Time
+// 1970-01-01T08:00 timestamp:0
+System.out.println(localDateTime + " timestamp:" + localDateTime.atZone(ZoneId.of("Asia/Shanghai")).toInstant().toEpochMilli());
+```
+
+#### 本地日期时间工具类
+
+```java
+
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
+public class DateUtil {
+
+    private static final String DATE_FORMAT_1 = "yyyy-MM-dd";
+
+    private static final String DATE_FORMAT_2 = "yyyy-MM-dd HH:mm:ss";
+
+    /**
+     * Nginx 日志默认文本日期格式
+     */
+    private static final String NGINX_LOG_DEFAULT_DATE_TIME_FORMAT = "dd/MMM/yyyy:HH:mm:ss Z";
+
+    private static final String GMT_PLUS_8 = "GMT+8";
+
+    /**
+     * 转换日期文本为 中国标准时间 China Standard Time
+     *
+     * @param datetime
+     * @param pattern
+     * @return
+     * @throws Exception
+     */
+    public static String convert2CST(String datetime, String pattern, Locale locale) throws Exception {
+        SimpleDateFormat format = (locale == null)
+                ? new SimpleDateFormat(pattern)
+                : new SimpleDateFormat(pattern, locale);
+        format.setTimeZone(TimeZone.getTimeZone(GMT_PLUS_8));
+        Date date = format.parse(datetime);
+        LocalDateTime dt1 = DateUtil.getLocalDateTime(date.getTime(), 0);
+        String dt1str = DateUtil.formatDateTime(dt1);
+        return dt1str;
+    }
+
+    /**
+     * 本地日期格式化为日期文本
+     *
+     * @param ldt
+     * @param format
+     * @return
+     */
+    public static String format(LocalDateTime ldt, String format) {
+        return DateTimeFormatter.ofPattern(format).format(ldt);
+    }
+
+    /**
+     * 本地日期格式化为日期文本 yyyy-MM-dd
+     *
+     * @param ldt
+     * @return
+     */
+    public static String formatDate(LocalDateTime ldt) {
+        return format(ldt, DATE_FORMAT_1);
+    }
+
+    /**
+     * 本地日期格式化为日期文本 yyyy-MM-dd HH:mm:ss
+     *
+     * @param ldt
+     * @return
+     */
+    public static String formatDateTime(LocalDateTime ldt) {
+        return format(ldt, DATE_FORMAT_2);
+    }
+
+    /**
+     * 日期类型转换 LocalDateTime -> Date
+     *
+     * @param ldt
+     * @return
+     */
+    public static Date getDate(LocalDateTime ldt) {
+        ZonedDateTime zonedDateTime = ldt.atZone(ZoneId.systemDefault());
+        return Date.from(zonedDateTime.toInstant());
+    }
+
+    /**
+     * 获取本地日期文本 yyyy-MM-dd
+     *
+     * @return
+     */
+    public static String getLocalDate() {
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneId.systemDefault());
+        return formatDate(localDateTime);
+    }
+
+    /**
+     * 获取本地日期文本 yyyy-MM-dd
+     *
+     * @return
+     */
+    public static String getLocalDate(LocalDateTime localDateTime) {
+        return formatDate(localDateTime);
+    }
+
+    /**
+     * 获取本地日期时间文本 yyyy-MM-dd HH:mm:ss
+     *
+     * @return
+     */
+    public static String getLocalDateTime() {
+        LocalDateTime localDateTime = LocalDateTime.now(ZoneId.systemDefault());
+        return formatDateTime(localDateTime);
+    }
+
+    /**
+     * 日期类型转换 Date -> LocalDateTime
+     *
+     * @param date
+     * @return
+     */
+    public static LocalDateTime getLocalDateTime(Date date) {
+        Instant instant = date.toInstant();
+        ZonedDateTime zonedDateTime = instant.atZone(ZoneId.systemDefault());
+        return zonedDateTime.toLocalDateTime();
+    }
+
+    /**
+     * 获取本地日期时间文本 yyyy-MM-dd HH:mm:ss
+     *
+     * @return
+     */
+    public static String getLocalDateTime(LocalDateTime localDateTime) {
+        return formatDateTime(localDateTime);
+    }
+
+    /**
+     * 通过时间戳获取本地时间
+     *
+     * @param timestamp19
+     * @return
+     */
+    public static LocalDateTime getLocalDateTime(Long timestamp19) {
+        return getLocalDateTime(String.valueOf(timestamp19));
+    }
+
+    /**
+     * 通过毫秒和纳秒获取本地时间
+     *
+     * @param millis
+     * @param nanos
+     * @return
+     */
+    public static LocalDateTime getLocalDateTime(long millis, long nanos) {
+        LocalDateTime ldt = Instant.ofEpochMilli(millis).atZone(ZoneId.of(GMT_PLUS_8)).toLocalDateTime();
+        LocalDateTime ldt2 = ldt.plusNanos(nanos);
+        return ldt2;
+    }
+
+    /**
+     * 通过时间戳获取本地时间
+     *
+     * @param timestamp19
+     * @return
+     */
+    public static LocalDateTime getLocalDateTime(String timestamp19) {
+        Long timeZone13 = Long.valueOf(String.valueOf(timestamp19).substring(0, 13));
+        Long nanoTime = Long.valueOf(String.valueOf(timestamp19).substring(13));
+        return getLocalDateTime(timeZone13, nanoTime);
+    }
+
+
+    /**
+     * 转换日期文本为本地时间
+     *
+     * @param dateStr
+     * @param patternStr
+     * @return
+     */
+    public static LocalDateTime getLocalDateTime(String dateStr, String patternStr) {
+        return getLocalDateTime(dateStr, patternStr, null);
+    }
+
+    /**
+     * 转换指定时区的日期文本为本地时间
+     *
+     * @param dateStr
+     * @param patternStr
+     * @param zoneId
+     * @return
+     */
+    public static LocalDateTime getLocalDateTime(String dateStr, String patternStr, ZoneId zoneId) {
+        TemporalAccessor temporalAccessor = DateTimeFormatter
+                .ofPattern(patternStr)
+                .withZone((zoneId != null) ? zoneId : ZoneId.systemDefault())
+                .parse(dateStr);
+        Instant instant = ZonedDateTime.from(temporalAccessor).toInstant();
+        return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    /**
+     * 获取系统时间戳
+     *
+     * @return
+     */
+    public static long getTimestamp() {
+        return LocalDateTime.now(ZoneId.systemDefault())
+                .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+
+    /**
+     * 获取本地日期时间戳
+     *
+     * @param ldt
+     * @return
+     */
+    public static long getTimestamp(LocalDateTime ldt) {
+        return ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+
+    /**
+     * 解析 ISO_INSTANT 本地日期文本
+     *
+     * 文本日期样例：
+     * "2011-12-03T10:15:30Z"
+     *
+     * @param dateStr
+     * @return
+     */
+    public static LocalDateTime parseISOInstantDateTime(String dateStr) {
+        // 解析日期文本
+        TemporalAccessor temporalAccessor = DateTimeFormatter
+                .ISO_INSTANT
+                .withZone(ZoneId.of("UTC"))
+                .parse(dateStr);
+        // 获取时间戳
+        Instant instant = ZonedDateTime.from(temporalAccessor).toInstant();
+        // 将时间戳转换为本地时间
+        return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    /**
+     * 解析 ISO_LOCAL_DATE_TIME 本地日期文本
+     *
+     * 文本日期样例：
+     * "2011-12-03T10:15:30"
+     *
+     * @param dateStr
+     * @return
+     */
+    public static LocalDateTime parseISOLocalDateTime(String dateStr) {
+        // 解析日期文本
+        TemporalAccessor temporalAccessor = DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(dateStr);
+        // 实例化本地日期时间
+        return LocalDateTime.from(temporalAccessor);
+    }
+
+    /**
+     * 获取本地日期 yyyy-MM-dd
+     *
+     * @param dateStr
+     * @return
+     */
+    public static LocalDateTime parseLocalDate(String dateStr) {
+        TemporalAccessor temporalAccessor = DateTimeFormatter.ofPattern(DATE_FORMAT_1).parse(dateStr);
+        return LocalDateTime.from(temporalAccessor);
+    }
+
+    /**
+     * 获取本地时间 yyyy-MM-dd HH:mm:ss
+     *
+     * @param dateStr
+     * @return
+     */
+    public static LocalDateTime parseLocalDateTime(String dateStr) {
+        TemporalAccessor temporalAccessor = DateTimeFormatter.ofPattern(DATE_FORMAT_2).parse(dateStr);
+        return LocalDateTime.from(temporalAccessor);
+    }
+
+    /**
+     * 解析 Nginx 日志默认文本日期格式
+     *
+     * 文本日期样例："28/Jul/2022:03:15:11 -0400"
+     *
+     * @param dateStr
+     * @param locale
+     * @return
+     */
+    public static LocalDateTime parseNginxLogDateTime(String dateStr, Locale locale) {
+        // 解析日期文本
+        TemporalAccessor temporalAccessor = DateTimeFormatter
+                .ofPattern(NGINX_LOG_DEFAULT_DATE_TIME_FORMAT)
+                .withLocale(locale)
+                .parse(dateStr);
+        // 获取时间戳
+        Instant instant = ZonedDateTime.from(temporalAccessor).toInstant();
+        // 将时间戳转换为本地时间
+        return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    /**
+     * 解析文本日期为本地时间（RFC 1123 / RFC 822）
+     *
+     * 文本日期样例：
+     * "Tue, 3 Jun 2008 11:05:30 GMT"
+     * "Wed, 05 Jun 2024 14:07:09 +0800"
+     *
+     * @param dateStr
+     * @return
+     */
+    public static LocalDateTime parseRfc1123DateTime(String dateStr) {
+        // 解析日期文本
+        TemporalAccessor temporalAccessor = DateTimeFormatter.RFC_1123_DATE_TIME.parse(dateStr);
+        // 获取时间戳
+        Instant instant = ZonedDateTime.from(temporalAccessor).toInstant();
+        // 将时间戳转换为本地时间
+        return instant.atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+}
+```
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
