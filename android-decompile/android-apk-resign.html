@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>android-apk-resign</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### android-apk-resign
+
+#### 反编译工具介绍
+
+#### apktool 获取资源文件
+
+Apktool是一个逆向android非常有用的工具，可以用来反编译apk文件，并且能在修改部分资源文件后，重新打包成一个新的apk。
+
+#### dex2jar（源码文件获取）
+
+将Android的包dex文件转换成jar文件，此时拿到的时字节码文件一般和jd-gui结合使用，将字节码文件转成对应的源码
+
+#### jd-gui 查看APK中classes.dex转化成出的jar文件，即源码文件
+
+将dex2jar中的jar(字节码)文件转成源码，既可以查看源码也可以进行修改。
+
+我的需求只涉及修改版本号，而不需要修改源代码，只需要通过apktool工具反编译拿到资源文件、修改版本号、重新回编打包成apk、内存对齐以及重签名 下面详细介绍apktool的使用过程，dex2jar和jd-gui的使用将单起一篇文章进行介绍。
+
+#### apktool工具的反编译重打包签名的详细过程
+
+<a href="./datas/android-apktool/apktool_2.9.3.jar" target="_blank">apktool_2.9.3.jar</a>
+
+首先下载一个最新版的 <a href="https://bitbucket.org/iBotPeaches/apktool/downloads/" target="_blank">apktool.jar</a>
+
+#### 使用apktool.jar进行反编译
+
+新建一个apktool.bat脚本 放入如下内容：
+
+```python
+if "%PATH_BASE%" == "" set PATH_BASE=%PATH%
+set PATH=%CD%;%PATH_BASE%;
+chcp 65001 2>nul >nul
+java -jar -Duser.language=en -Dfile.encoding=UTF8 "%~dp0\apktool.jar" %*
+```
+
+新建bat文件很简单直接将txt文件另存为.bat文件即可
+
+![title](./images/android-apk-resign/android-apk-resign-001.png)
+
+对apk包进行反编译，将apk包和bat文件（apktool.jar）放到同一个文件夹下，目的是为了输入方便，只需要输入相对路径即可，如果不放到同一个文件夹下，每次输入命令都要输入绝对路径。
+
+![title](./images/android-apk-resign/android-apk-resign-002.png)
+
+在cmd终端，cd到此目录下，输入以下命令：
+
+```python
+##
+## 注意
+## outDir     :表示反编译后的资源文件存放到哪个目录下
+## source.apk :表示要进行反编译的apk文件名称
+##
+apktool.bat d -o outDir source.apk
+
+## 或者也可以通过下面的命令反编译两者实现的效果都是相同的
+java -jar apktool.jar d -f source.apk -o outDir
+```
+
+执行完成后就会在当前目录下生成outDir文件夹存放反编译后生产的资源文件
+
+![title](./images/android-apk-resign/android-apk-resign-003.png)
+
+#### 修改版本号versionCode
+
+有了这个outDir就能修改里面的东西了，最难修改的部分就是java代码，这里对应的是smali相关的文件夹，需要了解一些smali的语法才行。
+
+修改应用版本号只需要修改apktool.yml即可，apktool.yml文件中找到versionCode,修改里面的versionCode对应的值保存即可。
+
+![title](./images/android-apk-resign/android-apk-resign-004.png)
+
+#### 通过修改后的文件重新回编成apk文件
+
+然后就是再使用下面的命令行，可以将我们的outDior文件夹重新编译成一个apk文件，也就是下面命令中的new_no_singnalign.apk
+
+```python
+##
+## 注意
+## new_no_singnalign.apk :新生成的apk文件，此apk文件没有签名和对齐
+## outDir                :将outDir的文件进行编译
+##
+apktool.bat b -o new_no_signalign.apk outDir
+```
+
+![title](./images/android-apk-resign/android-apk-resign-005.png)
+
+#### 将新的apk文件进行重签名以及内存对齐
+
+#### 签名工具：jarsigner和apksigner
+
+此处简单介绍一下Android用的签名工具，以及V1(Jar Signature) V2(Full APK Signature)两种签名
+
+ - Android中对APK签名是通过jarsigner或apksigner进行的；
+
+ - jarsigner是JDK提供的针对jar包签名的通用工具位于JDK/bin/jarsigner.exe；
+
+ - apksigner是Google官方提供的针对Android apk签名及验证的专用工具,位于Android SDK/build-tools/SDK版本/apksigner.bat；
+
+在AS打包Build->Generate signed apk… 打包签名过程中,可以看到两种签名选项 V1(Jar Signature) V2(Full APK Signature)，从Android 7.0开始, 谷歌增加新签名方案 V2 Scheme (APK Signature);但Android 7.0以下版本, 只能用旧签名方案 V1 scheme (JAR signing)
+
+#### V1和V2签名的区别
+
+V1签名:
+
+ - 来自JDK(jarsigner), 对zip压缩包的每个文件进行验证, 签名后还能对压缩包修改(移动/重新压缩文件)
+
+ - 对V1签名的apk/jar解压,在META-INF存放签名文件(MANIFEST.MF, CERT.SF, CERT.RSA),
+
+ - 其中MANIFEST.MF文件保存所有文件的SHA1指纹(除了META-INF文件), 由此可知: V1签名是对压缩包中单个文件签名验证
+
+V2签名:
+
+ - 来自Google(apksigner), 对zip压缩包的整个文件验证, 签名后不能修改压缩包(包括zipalign),
+
+ - 对V2签名的apk解压,没有发现签名文件,重新压缩后V2签名就失效, 由此可知: V2签名是对整个APK签名验证
+
+V2签名优点很明显:
+
+ - 签名更安全(不能修改压缩包)
+
+ - 签名验证时间更短(不需要解压验证),因而安装速度加快
+
+**注意: apksigner工具默认同时使用V1和V2签名,以兼容Android 7.0以下版本**
+
+#### zipalign内存对齐
+
+位于Android SDK/build-tools/SDK版本/zipalign.exe zipalign；是对zip包对齐的工具,使APK包内未压缩的数据有序排列对齐,从而减少APP运行时内存消耗
+
+```python
+## 4字节对齐优化
+zipalign -v 4 in.apk out.apk
+## 检查APK是否对齐
+zipalign -c -v 4 in.apk
+```
+
+**非常重要：**
+
+在此处介绍一下v1和v2签名以及zipalign内存对齐，至于先签名后对齐，还是先对齐后签名与你采用的签名方是有关系，
+
+ - zipalign可以在V1签名后执行,但zipalign不能在V2签名后执行,只能在V2签名之前执行！！！
+
+ - 如果不好记你就记住一个原则就是：先对齐后签名
+
+有了上面概念理论介绍，接下来就直奔主题进行实操了，接下来我就按照先对齐后签名的方式分别用V1和V2进行签名，至于V1签名的先签名后对齐的方式不在这里描述了，感谢兴趣的自己可以试试。
+
+我们可以通过zipalign -c -v 4 new_no_signalign.apk //检查APK是否对齐
+
+![title](./images/android-apk-resign/android-apk-resign-006.png)
+
+此命令执行完成后可以看到 Verification FAILED，表示没有对齐。
+
+通过zipalign -v 4 new_no_signalign.apk new_align.apk //4字节对齐优化
+
+![title](./images/android-apk-resign/android-apk-resign-007.png)
+
+![title](./images/android-apk-resign/android-apk-resign-008.png)
+
+#### 4、jarsigner给apk签名,只支持V1签名
+
+jarsigner -verbose -keystore android.zhumu.keystore -signedjar (签名后的apk路径及名称) (要给谁签名.apk路径 ) 签名文件的别名
+
+![title](./images/android-apk-resign/android-apk-resign-009.png)
+
+运行上面的命令后需要先输入签名文件的密码才能生成签名文件， 最终生成的singnedv1.apk就是我们最终要用的apk文件。
+
+#### 5、apksigner给apk签名,默认同时使用V1和V2签名
+
+cd到Android SDK/build-tools/SDK版本/目录下, 输入命令 apksigner sign --ks 密钥库名 --ks-key-alias 密钥别名 --out 生成的签名文件路径及名称 给哪个apk文件签名
+
+注意：
+
+ - 1、上面面参数中 密钥库名、给哪个apk文件签名 需要给出绝对路径，要不就报错早找不到文件，因为在当前目录下没有签名文件和要进行签名的apk文件
+
+ - 2、而生成的签名文件路径及名称 如果不指定路径就生成在当前目录下
+
+![title](./images/android-apk-resign/android-apk-resign-010.png)
+
+生成的singnedV2.apk就是最终要用的APK,注意4和5是两种签名方式用哪一种都可以。
+
+#### 验证是否签名成功
+
+方案1只支持校验v1签名：
+
+keytool -printcert -jarfile singnedv1.apk //此命令只支持校验v1签名
+
+方案2支持v1和v2的签名校验：
+
+apksigner verify -v --print-certs (apk地址)
+
+需要切cd 到apksigner所在的目录
+
+如：apksigner verify -v --print-certs C:\Users\tiansc\Desktop\apks\signedV2.apk
+
+#### 查看新生成的签名apk的版本号是否修改成功
+
+需要用到aapt工具看看新的apk的版本号是不是真的修改成功了，
+
+输入下面的命令分别对singnedv1.apk和signedV2.apk分别进行查看
+
+```python
+## aapt dump badging 要验证的apk
+## 如：
+aapt dump badging singnedv1.apk
+aapt dump badging signedV2.apk
+```
+
+#### 总结
+
+而在我们平时工作中关于APK的打包以及签名都由AS工具可视化一键完成了，逆向开发这块需要对APK的打包签名的流程有较为深刻的理解，只有这样才能一步一步的手动完成反编译、打包、签名的整个过程。
+
+本文章只是着重介绍了反编译工具apktool的使用，至于dex2jar和 jd-gui工具将会另起一篇文章进行详细介绍，敬请关注！！！
+
+#### 参考链接
+
+ - <a href="https://blog.csdn.net/qq_51524329/article/details/126897575" target="_blank">Android反编译apk修改版本号重新打包签名详细教程（超详细）</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

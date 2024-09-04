@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>maven-plugin-mybatis-generator</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### maven-plugin-mybatis-generator
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+ 
+    <!-- 三方Jar包依赖 -->
+    <classPathEntry
+            location="D:\tools\mybatis-generate-tools-exart\dependency\mybatis-3.5.4.jar"/>
+ 
+    <context id="OracleTables" targetRuntime="MyBatis3">
+ 
+        <!-- 生成的Java文件的编码 -->
+        <property name="javaFileEncoding" value="UTF-8"/>
+ 
+        <!-- optional，旨在创建class时，对类进行控制 -->
+        <plugin type="org.mybatis.generator.plugin.LombokPlugin"/>
+ 
+        <!-- optional，旨在创建class时，对注释进行控制 -->
+        <commentGenerator type="org.mybatis.generator.plugin.MybatisCommentGenerator">
+            <!-- 是否去除自动生成的注释 true：是 ： false:否 -->
+            <!--<property name="suppressAllComments" value="true" />-->
+            <!-- 是否生成注释代时间戳-->
+            <property name="suppressDate" value="true"/>
+        </commentGenerator>
+ 
+        <!--数据库链接URL，用户名、密码 -->
+        <!-- Oracle 获取列注释 <property name="remarksReporting" value="true"></property> -->
+        <!-- MySQL 获取列注释 <property name="useInformationSchema" value="true"></property> -->
+        <!--<jdbcConnection driverClass="org.h2.Driver" connectionURL="jdbc:h2:tcp://127.0.0.1:3330/D:/tools/mybatis-generate-tools-exart/db/engine"
+                        userId="sa" password="">
+            <property name="useInformationSchema" value="true"></property>-->
+        <jdbcConnection driverClass="oracle.jdbc.driver.OracleDriver"
+                        connectionURL="jdbc:oracle:thin:@127.0.0.1:1521:ORCL"
+                        userId="YA" password="YA">
+            <property name="remarksReporting" value="true"></property>
+        </jdbcConnection>
+ 
+        <!-- 否强制 DECIMAL 和 NUMERIC 类型的字段转换为 Java 类型的 java.math.BigDecimal -->
+        <javaTypeResolver>
+            <property name="forceBigDecimals" value="false"/>
+        </javaTypeResolver>
+ 
+        <!-- 生成模型的包名和位置-->
+        <javaModelGenerator targetPackage="javax.frame.tools.mybatis.model" targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+            <property name="trimStrings" value="true"/>
+            <!-- 是否对modal添加构造函数 -->
+            <property name="constructorBased" value="false"/>
+            <!-- 建立modal对象是否不可改变 即生成的modal对象不会有setter方法，只有构造方法 -->
+            <property name="immutable" value="false"/>
+        </javaModelGenerator>
+ 
+        <!-- 生成映射文件的包名和位置-->
+        <sqlMapGenerator targetPackage="mapper" targetProject="src/main/resources">
+            <property name="enableSubPackages" value="true"/>
+        </sqlMapGenerator>
+ 
+        <!-- 生成DAO的包名和位置 -->
+        <javaClientGenerator type="XMLMAPPER" targetPackage="javax.frame.tools.mybatis.mapper"
+                             targetProject="src/main/java">
+            <property name="enableSubPackages" value="true"/>
+        </javaClientGenerator>
+ 
+        <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
+        <!--<table tableName="SYS_NGINX_LOG" enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>-->
+        <table schema="YA" tableName="LOAN_SYS_DIC" enableCountByExample="false" enableUpdateByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+    </context>
+</generatorConfiguration>
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+ 
+    <properties>
+        <java.version>1.8</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <lombok.version>1.16.14</lombok.version>
+    </properties>
+ 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.mybatis.generator</groupId>
+                <artifactId>mybatis-generator-maven-plugin</artifactId>
+                <version>1.3.7</version>
+                <configuration>
+                    <configurationFile>${basedir}/src/main/resources/generator/generatorConfig.xml</configurationFile>
+                    <overwrite>true</overwrite>
+                    <verbose>true</verbose>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.h2database</groupId>
+                        <artifactId>h2</artifactId>
+                        <version>2.2.224</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.github.noraui</groupId>
+                        <artifactId>ojdbc8</artifactId>
+                        <version>12.2.0.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                        <version>${lombok.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+ 
+    <dependencies>
+        <!-- H2 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+        </dependency>
+        <!-- Oracle -->
+        <dependency>
+            <groupId>com.github.noraui</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <version>12.2.0.1</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/smallHappyH/p/13235800.html" target="_blank">Mybatis Generator最完整配置详解[mybatis代码自动生成配置]</a>
+
+ - <a href="https://blog.csdn.net/isea533/article/details/42102297" target="_blank">MyBatis Generator中文文档</a>
+
+ - <a href="https://blog.csdn.net/10km/article/details/77389038" target="_blank">mysql/jdbc:设置useInformationSchema=true读取表注释信息(table_comment)</a>
+
+ - <a href="https://blog.csdn.net/huangchao064/article/details/78749891" target="_blank">jdbc获取Oracle字段注释</a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

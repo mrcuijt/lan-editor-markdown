@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>android-apktool</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### android-apktool
+
+#### Android apk反编译、修改代码、重新打包、签名全过程(for windows)
+
+#### 准备工作
+
+环境：win10
+
+本地工具：
+
+<a href="./datas/android-apktool/apktool_2.9.3.jar" target="_blank">apktool_2.9.3.jar</a>
+
+<a href="./datas/android-apktool/dex-tools-v2.4.zip" target="_blank">dex-tools-v2.4.zip</a>
+
+<a href="./datas/android-apktool/apktool.zip" target="_blank">apktool.zip</a>
+
+<a href="./datas/android-apktool/dex2jar-0.0.7.11-SNAPSHOT.zip" target="_blank">dex2jar-0.0.7.11-SNAPSHOT.zip</a>
+
+<a href="./datas/android-apktool/jd-gui-0.3.3.windows.zip" target="_blank">jd-gui-0.3.3.windows.zip</a>
+
+<a href="./datas/android-apktool/APK反编译工具包v1.6.rar" target="_blank">APK反编译工具包v1.6.rar</a>
+
+<a href="./datas/android-apktool/Dalvik_Handouts.zip" target="_blank">Dalvik_Handouts.zip</a>
+
+线上工具：
+
+ - apktool 反编译，重新打包工具 <a href="https://ibotpeaches.github.io/Apktool/" target="_blank">下载地址</a>
+
+ - dex2jar 这个工具用于将dex文件转换成jar文件 <a href="https://github.com/pxb1988/dex2jar" target="_blank">下载地址</a>
+
+ - jd-gui 这个工具用于将jar文件转换成java代码 <a href="https://code.google.com/archive/p/innlab/downloads" target="_blank">下载地址</a>
+
+不想自己去下载的可以直接到网盘上取，三个工具都有：
+
+<a href="https://pan.baidu.com/s/1Z7v-2z4K_IHO2rqjaH2D-A" target="_blank">下载地址</a>
+
+![title](./images/android-apktool/android-apktool-001.png)
+
+#### APK编译过程
+
+![title](./images/android-apktool/android-apktool-002.png)
+
+apk打包的基本流程模块如下：
+
+ - 1、资源处理
+
+ 这一过程中主要使用appt工具进行资源文件的处理，分析AndroidManifest.xml中的资源文件，生成R.java和resources.arsc文件；aidl工具负责处理aidl文件，生成对应的java接口文件。
+
+ - 2、代码编译
+
+ 将上一过程中产生的R.java、java接口文件以及工程源代码一起通过Java Compiler编译成.class文件，打成Jar包（这部分可以加入代码混淆），然后与第三方库的Jar包一起通过dx工具转换成.dex文件。
+
+ 通过apkbuilder工具将aapt生成的resources.arsc、classes.dex（可能多个）、其他的资源一块打包生成未经签名的apk文件
+
+ - 3、添加签名
+
+ 通过Jarsigner对生成的未签名的apk进行签名。
+
+ 再通过zipalign对签名后的apk进行对其处理，使apk中所有资源文件距离文件起始偏移为4字节的整数倍，从而在通过内存映射访问apk文件时会更快。
+
+#### 反编译流程
+
+#### apktool使用
+
+将下载下来的apktool.bat，apktool.jar还有待反编译的apk放在同一个文件目录下面。打开CMD命令，进入到该文件夹下，输入apktool看看环境是否成功，成功了如下图所示
+
+![title](./images/android-apktool/android-apktool-003.png)
+
+执行反编译命令，apktool d filename，这里我执行的是apktool d test.apk
+
+其中d是decode的意思，表示要对这个apk进行解码，除了这个基本用法，还有其他的附带参数：
+
+ - **`-f`** 如果目标文件夹已存在，则强制删除现有文件夹（默认如果目标文件夹已存在，则解码失败）。
+
+ - **`-o`** 指定解码目标文件夹的名称（默认使用APK文件的名字来命名目标文件夹）。
+
+ - **`-s`** 不反编译dex文件，也就是说classes.dex文件会被保留（默认会将dex文件解码成smali文件）。
+
+ - **`-r`** 不反编译资源文件，也就是说resources.arsc文件会被保留（默认会将resources.arsc解码成具体的资源文件）。
+
+![title](./images/android-apktool/android-apktool-004.png)
+
+结束之后我们可以看到这个文件目录下出现了test文件夹
+
+![title](./images/android-apktool/android-apktool-005.png)
+
+#### dex2jar的使用
+
+把apk中的class.dex文件取出来（把文件后缀名改成.zip，或者直接拖到AS中也可以），然后把这个class.dex文件放到第二个工具dex-tools-2.1-SNAPSHOT文件夹下面，然后CMD到这个文件目录下，输入命令d2j-dex2jar.bat classes.dex，可以看到文件夹下面生成了一个classes_dex2jar.jar的文件
+
+![title](./images/android-apktool/android-apktool-006.png)
+
+![title](./images/android-apktool/android-apktool-007.png)
+
+#### jd-gui的使用
+
+这个就比较简单了，直接把之前生成的classes_dex2jar.jar用这个工具打开就可以看到
+
+![title](./images/android-apktool/android-apktool-008.png)
+
+反编译之后的代码如图，我们也找到了相关代码，反编译结束
+
+#### 修改代码重新打包
+
+#### 修改代码
+
+我们在jd-gui中看到了Profile类，我们到test文件夹下smail文件夹中找到对应的类，进行修改
+
+![title](./images/android-apktool/android-apktool-009.png)
+
+![title](./images/android-apktool/android-apktool-010.png)
+
+#### 重新打包
+
+执行打包命令 apktool.bat b test ，b是build的意思，表示要对这个文件夹进行编码打包成APK的意思
+
+执行完之后可以看到，在test文件夹下多了，build和dist文件夹，其中dist文件夹就是反编译重新打包之后的包，但是这个包还不能安装，因为还没有签名
+
+![title](./images/android-apktool/android-apktool-011.png)
+
+#### 签名apk
+
+签名命令：
+
+```python
+## 签名命令：
+jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore 签名文件名 -storepass 签名密码 待签名的APK文件名 签名的别名
+```
+
+如图：
+
+![title](./images/android-apktool/android-apktool-012.png)
+
+#### 对齐操作
+
+签名完成后，建议对APK文件进行一次对齐操作，这样可以使得程序在Android系统中运行得更快，对齐操作使用的是zipalign工具，该工具在/build-tools/目录下，需要将这个目录配置到系统环境变量当中才可以在任何位置执行此命令。继续在cmd中执行命令：
+
+```python
+zipalign 4 test.apk test_aligned.apk
+```
+
+执行成功后，会生成一个对齐后的文件
+
+最后可以通过如下命令验证apk签名是否成功：
+
+```python
+jarsigner -verify -verbose -certs test_aligned.apk
+```
+
+如图：
+
+![title](./images/android-apktool/android-apktool-013.png)
+
+这样，你就得到一个反编译之后修改过代码的安装包了
+
+大功告成！！！
+
+#### 遇到的问题
+
+apktool.bat b test重新打包反编译的时候发现只生成了build文件夹没有生成dist文件夹，报错提示如图
+
+![title](./images/android-apktool/android-apktool-014.png)
+
+![title](./images/android-apktool/android-apktool-015.png)
+
+解决方案：打包的时候加个-r ，就可以了
+
+```python
+## 由
+apktool.bat d test.apk 
+apktool.bat b test
+
+## 改成
+apktool.bat -r d test.apk 
+apktool.bat b test
+```
+
+#### 参考链接
+
+ - <a href="https://blog.csdn.net/whbk101/article/details/102551257" target="_blank">Android apk反编译、修改代码、重新打包、签名全过程(for windows)</a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
