@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>http2-springboot-pre</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### http2-springboot-pre
+
+#### 再说Spring boot 2.0 与 HTTP/2
+
+前面有文章简单介绍了HTTP/2协议和Spring boot2如何实现的过程，它就是<a href="https://www.jianshu.com/p/569193b41e61" target="_blank">《RESTful风格的微服务-spring boot&HTTP/2》</a>，它主要介绍了HTTP/2协议相关知识，并介绍了一种Spring boot2实现http2协议服务的一种最简单的方法，其中还缺乏调用http2服务的客户端的实现，本文中将一一介绍。
+
+#### 00 前言
+
+最近在做RESTful风格的微服务实践的过程中，由于种种原因，我们选择了比较艰难的一条路：spring boot2 + JDK8 + tomcat8。
+
+ - Spring boot2带来了开发过程的便利性，以及强大的辅助功能，比如监控等。这些功能是其他的java web框架所不能比的。
+
+ - JDK8的选择主要处于稳定的原因，JDK8出生于2014年，距离现在差不多四年的时间了，已经很稳定了，并且已经大量使用在生产环境中。自从2017年下半年JDK9出现之后，相继JDK10也已经出现了，很快JDK11也要出世了，越来越看不懂oracle对JDK的规划了。一开始的时候，我们觉得制定一个未来一两年才实施的计划方案，应该选择的技术相对新一点，于是选择了JDK9。但是就在四月份oracle官网上JDK9不见了踪影，后来仔细查看才发现，JDK9版本已经走到头了，官网上已经不再升级JDK9的新功能了，已经建议使用JDK10了。我们仔细思考之后，觉得还是选择JDK8最为稳妥。
+
+ - tomcat8的选择原因，首先就tomcat这个servlet容器来说，与undertow和jetty相比，它是我们最为熟悉的容器。在实现原理和性能调优方面，还有安全漏洞监测方面，我们都有一定方案和人才积累。其次就是选择的tomcat8这个版本，也是处于稳的目的，没选择当前最新的tomcat9.
+
+#### 01 Spring boot2实现HTTP/2服务的方案
+
+在Spring boot2的框架中，实现HTTP/2协议的服务提供者有多种方案，主要是JDK版本和容器不同。下面就翻译一下官方文档的介绍吧。
+
+在Spring boot应用中启用HTTP/2协议的支持，只需要在 application.properties
+
+或者 application.yaml 中配置 server.http2.enabled 的值为 true，但是这需要依赖于你选择的web服务器和应用环境的支持，因为原生的JDK8是不支持HTTP/2协议的。
+
+Spring boot 不支持h2c（HTTP/2协议的明文版本），因此你必须配置SSL。配置SSL的方式也是很简单的，这里就不翻译了，详细请参见官方文档介绍。
+
+ - 使用Undertow实现HTTP/2
+
+需要使用Undertow 1.4.0+的版本，然后使用JDK8，再也不需要其它的支持了。
+
+最简单的实现方式，也是之前那篇文章中介绍的一个。
+
+ - 使用Jetty实现HTTP/2
+
+在Jetty 9.4.8 版本之后就开始支持HTTP/2协议了，其中一种方式就是使用 Conscrypt library来提供ALPN的实现。为了启用这个支持，还需要添加额外的依赖 org.eclipse.jetty:jetty-alpn-conscrypt-server 和 org.eclipse.jetty.http2:http2-server。
+
+这个方案暂且还没实验，又挖了个坑。
+
+ - 使用Tomcat实现HTTP/2
+
+Spring boot2默认使用的容器是 tomcat 8.5.x，在这个版本中要想支持HTTP/2协议，只有将libtcnative这个库和它的依赖安装到主机操作系统中。
+
+如果JVM的库路径下没有的话，这个库文件夹必须是对JVM可访问的，你可以通过JVM参数来配置，例如-Djava.library.path=/usr/local/opt/tomcat-native/lib，详细的细节请参见tomcat官方文档。
+
+如果在使用tomcat8.5.x的时候启用了HTTP/2，而又没有native的支持的话，会输出如下错误日志：
+
+```python
+ERROR 8787 --- [           main] o.a.coyote.http11.Http11NioProtocol      : The upgrade handler [org.apache.coyote.http2.Http2Protocol] for [h2] only supports upgrade via ALPN but has been configured for the ["https-jsse-nio-8443"] connector that does not support ALPN.
+```
+
+这个错误不影响应用的正常运行，还是会提供HTTP1.1的SSL支持。
+
+如果你使用Tomcat 9.0.x 和 JDK9运行Spring boot应用，就不需要native的支持了。使用tomcat9，你需要在pom文件中的一个编译熟悉tomcat.version覆盖成你选择的版本即可。
+
+Spring boot 官方文档介绍的HTTP/2协议相关配置已经介绍完了，下面着重介绍一下我们选用的方案，JDK8 + Tomcat8.5版本组合。
+
+##### 02 JDK8 + Tomcat8.5实现HTTP/2服务
+
+从上文中可以看到，在这个（JDK8 + Tomcat8.5）组合中要实现HTTP/2协议的服务，需要在操作系统中安装libtcnative库。下面首先介绍如何安装这个库，我是在Mac上实验的，其它的Linux操作系统也是相同方法，只是libtcnative包的后缀不太一样。
+
+准备工作：
+
+ - APR 1.2+ development headers (libapr1-dev package)，<a href="http://apr.apache.org/download.cgi" target="_blank">下载地址</a>。
+
+ - OpenSSL 1.0.2+ development headers (libssl-dev package)，<a href="https://www.openssl.org/source/" target="_blank">下载地址</a>。
+
+ - JNI headers from Java compatible JDK 1.4+
+
+ - GNU development environment (gcc, make)
+
+ - Tomcat Native，在各自版本的tomcat的bin目录下，也可以通过<a href="http://tomcat.apache.org/download-native.cgi" target="_blank">Tomcat Native</a>单独下载。
+
+我选用的版本组合：apr-1.6.3 + openssl-1.0.2o + tomcat-native-1.2.16。
+
+ - apr的安装
+
+ 首先解压apr的包，查看README文档，看看里面有没有需要特别注意的，默认的安装路径/usr/local/apr，注意安装的时候需要管理员权限，记得使用sudo命令。具体命令如下：
+
+```python
+cd apr
+./configure
+make
+make install
+```
+
+ - 安装OpenSSL
+
+ 同样需要解压openssl的安装包，查看INSTALL文档中的安装方法，我采用的是默认的安装路径，同样需要管理员权限。具体安装命令：
+
+```python
+cd openssl
+./config
+make
+make install
+```
+
+ - 安装tomcat native
+
+ 解压tomcat native的压缩包，在/tomcat-native/native/里有BUIDING文档，注意查看。具体安装命令：
+
+```python
+cd tomcat-native/native/
+./configure --with-apr=/usr/local/apr --with-ssl=/usr/local/openssl --with-java-home=${JAVA_HOME}
+make
+make install
+```
+
+以上三个步骤成功完成之后，在/usr/local/apr/lib下有libtcnative-1.0.dylib的库文件，这就是我们实现HTTP/2所需要的。然后我们只需要在启动Spring boot应用的时候加上参数：-Djava.library.path=/usr/local/apr/lib/使用。
+
+然后，加上其它的application.yaml常规配置：
+
+```python
+server:
+  http2:
+    enabled: true
+  ssl:
+    key-store: classpath:abcKeyStore.p12
+    key-store-password: abc
+    key-store-type: PKCS12
+```
+
+这样我们就实现了使用JDK8 + Tomcat8提供HTTP/2服务了。
+
+##### 03 如何后台调用HTTP/2服务
+
+使用浏览器访问HTTP/2服务，目前大部分浏览器都已经支持，并且在前面的那篇文章中也已经介绍了使用和验证方式，这里介绍一下如何通过HTTP client 后台调用HTTP/2服务。
+
+由于HTTP/2协议的服务首先肯定是https的，所以java客户端首先需要完成https的相关设置。关于https客户端有两种选择：
+
+ - 使用证书。
+
+ - 配置成信任所有证书。
+
+使用证书的okhttp client：
+
+```python
+/**
+ *  获取安全的加密（Https）的HttpClient
+ * @return
+ */
+public static OkHttpClient getTLSOKHttp() {
+    InputStream trustStorePath = HttpClientUtils.class.getResourceAsStream("/galaxyKeyStore.p12");
+    logger.info("包含授信公钥文件的路径：{}", trustStorePath);
+    KeyStore keyStore = getKeyStore("galaxy", trustStorePath);
+    TrustManagerFactory trustManagerFactory = null;
+    try {
+        trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(keyStore);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+    if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager)) {
+        throw new IllegalStateException("Unexpected default trust managers:" + Arrays.toString(trustManagers));
+    }
+    X509TrustManager trustManager = (X509TrustManager) trustManagers[0];
+    //DefaultTrustManager trustManager = new DefaultTrustManager();
+
+    SSLContext sslContext = null;
+    try {
+        sslContext = SSLContext.getInstance("TLSv1.2");
+        sslContext.init(null, new TrustManager[] { trustManager }, null);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+    //OkHttpClient okHttpClient = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, trustManager).build();
+    // 强行不验证hostName
+    OkHttpClient okHttpClient = new OkHttpClient().newBuilder().protocols(Arrays.asList(Protocol.HTTP_1_1, Protocol.HTTP_2))
+            .hostnameVerifier((String s, SSLSession sslSession) -> true)
+            //.sslSocketFactory(sslSocketFactory).build();
+            .sslSocketFactory(sslSocketFactory, trustManager).build();
+    return okHttpClient;
+}
+
+/**
+ * 获得keyStore
+ * @param password
+ * @param keyStorePath
+ * @return
+ */
+public static KeyStore getKeyStore(String password, InputStream keyStorePath) {
+    KeyStore ks = null;
+    //FileInputStream is = null;
+    try {
+        // 实例化密钥库 KeyStore用于存放证书，创建对象时 指定交换数字证书的加密标准
+        // 指定交换数字证书的加密标准
+        ks = KeyStore.getInstance("PKCS12");
+        // 获得密钥库文件流
+        //is = new FileInputStream(keyStorePath);
+        // 加载密钥库
+        ks.load(keyStorePath, password.toCharArray());
+    } catch (Exception e){
+        e.printStackTrace();
+    } finally {
+        try {
+            // 关闭密钥库文件流
+            keyStorePath.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    return ks;
+}
+```
+
+信任所有证书的okhttp client：
+
+```python
+/**
+ *  获取安全的加密（Https）的HttpClient
+ * @return
+ */
+public static OkHttpClient getTLSOKHttp() {
+    DefaultTrustManager trustManager = new DefaultTrustManager();
+
+    SSLContext sslContext = null;
+    try {
+        sslContext = SSLContext.getInstance("TLSv1.2");
+        sslContext.init(null, new TrustManager[] { trustManager }, null);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+    //OkHttpClient okHttpClient = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, trustManager).build();
+    // 强行不验证hostName
+    OkHttpClient okHttpClient = new OkHttpClient().newBuilder().protocols(Arrays.asList(Protocol.HTTP_1_1, Protocol.HTTP_2))
+            .hostnameVerifier((String s, SSLSession sslSession) -> true)
+            .sslSocketFactory(sslSocketFactory).build();
+            //.sslSocketFactory(sslSocketFactory, trustManager).build();
+    return okHttpClient;
+}
+
+private static class DefaultTrustManager implements X509TrustManager {
+    @Override
+    public void checkClientTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws java.security.cert.CertificateException {
+
+    }
+
+    @Override
+    public void checkServerTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) throws java.security.cert.CertificateException {
+
+    }
+
+    @Override
+    public X509Certificate[] getAcceptedIssuers() {
+        return new X509Certificate[0];
+    }
+
+}
+```
+
+另外还有一个需要特别注意：
+
+由于JDK8以及以前的jdk版本原生不支持http2，要想okhttp client能真正地走h2协议（如果客户端和服务端一端不支持h2，会自动降级为http1.1），需要添加alpn-boot的支持。
+
+具体操作方法：
+
+ - 从下载地址下载对应jdk版本的alpn-boot，虽然其中只提到了openJDK，但是使用oracle JDK也是可以的；
+
+ - 启动JVM的时候：java -Xbootclasspath/p:<path_to_alpn_boot_jar> ...，例如：-Xbootclasspath/p:/Users/uname/soft/alpn-boot/alpn-boot-8.1.12.v20180117.jar。
+
+这样配置之后，我们使用如下代码调用http/2的服务：
+
+```python
+public static void main(String[] args) {
+    String url = baseUrlProperties.getSerialNumber() + "/serial/number?systemNo=123456";
+    Request request = new Request.Builder().url(url).build();
+    OkHttpClient client = HttpClientUtils.getTLSOKHttp();
+    return sendRequest(client, request);
+}
+
+private static String sendRequest(OkHttpClient client, Request request) {
+    String result = null;
+    String protocolName = null;
+    try {
+        Response response = client.newCall(request).execute();
+        if (response != null) {
+            protocolName = response.protocol().name();
+            result = response.body().string();
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+    logger.info("测试app的http协议：{}", protocolName);
+    return result + ": " + protocolName;
+}
+```
+
+这样我们就能明确看到日志的打印结果：测试app的http协议：HTTP_2，证明成功的完成了HTTP/2协议的服务端和客户端通信。
+
+##### 04 结束
+
+本文介绍了在Spring boot项目中实现HTTP/2协议的最复杂的情形，客户端和服务端都需要外力的支持。关于HTTP/2相关知识还需要细细体会，欢迎一起交流。
+
+参考链接：
+
+ - <a href="https://www.jianshu.com/p/7ddcdd3847d6" target="_blank">再说Spring boot 2.0 与 HTTP/2</a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

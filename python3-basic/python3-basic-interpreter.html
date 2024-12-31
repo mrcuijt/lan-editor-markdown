@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>python3-basic-interpreter</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### python3-basic-interpreter
+
+#### Python3 解释器
+
+Linux/Unix的系统上，一般默认的 python 版本为 2.x，我们可以将 python3.x 安装在 /usr/local/python3 目录中。
+
+安装完成后，我们可以将路径 /usr/local/python3/bin 添加到您的 Linux/Unix 操作系统的环境变量中，这样您就可以通过 shell 终端输入下面的命令来启动 Python3 。
+
+```python
+$ PATH=$PATH:/usr/local/python3/bin/python3    # 设置环境变量
+$ python3 --version
+Python 3.4.0
+```
+
+在Window系统下你可以通过以下命令来设置Python的环境变量，假设你的Python安装在 C:\Python34 下:
+
+```python
+set path=%path%;C:\python34
+```
+
+##### 交互式编程
+
+我们可以在命令提示符中输入"Python"命令来启动Python解释器：
+
+```python
+$ python3
+```
+
+执行以上命令后，出现如下窗口信息：
+
+```python
+$ python3
+Python 3.4.0 (default, Apr 11 2014, 13:05:11) 
+[GCC 4.8.2] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> 
+```
+
+在 python 提示符中输入以下语句，然后按回车键查看运行效果：
+
+```python
+print ("Hello, Python!");
+```
+
+以上命令执行结果如下：
+
+```python
+Hello, Python!
+```
+
+当键入一个多行结构时，续行是必须的。我们可以看下如下 if 语句：
+
+```python
+>>> flag = True
+>>> if flag :
+...     print("flag 条件为 True!")
+... 
+flag 条件为 True!
+```
+
+##### 脚本式编程
+
+将如下代码拷贝至 hello.py文件中：
+
+```python
+print ("Hello, Python!");
+```
+
+通过以下命令执行该脚本：
+
+```python
+python3 hello.py
+```
+
+输出结果为：
+
+```python
+Hello, Python!
+```
+
+在Linux/Unix系统中，你可以在脚本顶部添加以下命令让Python脚本可以像SHELL脚本一样可直接执行：
+
+```python
+#! /usr/bin/env python3
+```
+
+然后修改脚本权限，使其有执行权限，命令如下：
+
+```python
+$ chmod +x hello.py
+```
+
+执行以下命令：
+
+```python
+./hello.py
+```
+
+输出结果为：
+
+```python
+Hello, Python!
+```
+
+参考链接：
+
+ - <a href="https://www.runoob.com/python3/python3-interpreter.html" target="_blank">Python3 解释器</a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

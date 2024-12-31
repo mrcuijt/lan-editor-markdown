@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>python3-basic-setup1</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### python3-basic-setup1
+
+#### Python3 编程第一步
+
+在前面的教程中我们已经学习了一些 Python3 的基本语法知识，接下来我们来尝试一些实例。
+
+打印字符串:
+
+```python
+print("Hello, world!")
+```
+
+输出结果为：
+
+```python
+Hello, world!
+```
+
+输出变量值:
+
+```python
+i = 256*256
+print('i 的值为：', i)
+```
+
+输出结果为：
+
+```python
+i 的值为： 65536
+```
+
+定义变量并进行简单的数学运算
+
+```python
+x = 3
+y = 2
+z = x + y
+print(z)
+```
+
+输出结果为：
+
+```python
+5
+```
+
+定义一个列表并打印出其中的元素：
+
+```python
+my_list = ['google', 'runoob', 'taobao']
+print(my_list[0]) # 输出 "google"
+print(my_list[1]) # 输出 "runoob"
+print(my_list[2]) # 输出 "taobao"
+```
+
+输出结果为：
+
+```python
+google
+runoob
+taobao
+```
+
+使用 for 循环打印数字 0 到 4:
+
+```python
+for i in range(5):
+    print(i)
+```
+
+```python
+0
+1
+2
+3
+4
+```
+
+根据条件输出不同的结果:
+
+```python
+x = 6
+if x > 10:
+    print("x 大于 10")
+else:
+    print("x 小于或等于 10")
+```
+
+输出结果为：
+
+```python
+x 小于或等于 10
+```
+
+下面我们尝试来写一个斐波纳契数列。
+
+斐波那契数列是一个经典的数学问题，其中每个数字是前两个数字之和。
+
+```python
+#!/usr/bin/python3
+ 
+# Fibonacci series: 斐波纳契数列
+# 两个元素的总和确定了下一个数
+a, b = 0, 1
+while b < 10:
+    print(b)
+    a, b = b, a+b
+```
+
+其中代码 a, b = b, a+b 的计算方式为先计算右边表达式，然后同时赋值给左边，等价于：
+
+```python
+n=b
+m=a+b
+a=n
+b=m
+```
+
+执行以上程序，输出结果为：
+
+```python
+1
+1
+2
+3
+5
+8
+```
+
+这个例子介绍了几个新特征。
+
+第一行包含了一个复合赋值：变量 a 和 b 同时得到新值 0 和 1。最后一行再次使用了同样的方法，可以看到，右边的表达式会在赋值变动之前执行。右边表达式的执行顺序是从左往右的。
+
+也可以使用 for 循环来实现：
+
+```python
+n = 10
+a, b = 0, 1
+for i in range(n):
+    print(b)
+    a, b = b, a + b
+```
+
+##### end 关键字
+
+关键字end可以用于将结果输出到同一行，或者在输出的末尾添加不同的字符，实例如下：
+
+```python
+#!/usr/bin/python3
+ 
+# Fibonacci series: 斐波纳契数列
+# 两个元素的总和确定了下一个数
+a, b = 0, 1
+while b < 1000:
+    print(b, end=',')
+    a, b = b, a+b
+```
+
+参考链接：
+
+ - <a href="https://www.runoob.com/python3/python3-step1.html" target="_blank">Python3 编程第一步</a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

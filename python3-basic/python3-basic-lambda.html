@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>python3-basic-lambda</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### python3-basic-lambda
+
+#### Python lambda（匿名函数）
+
+Python 使用 lambda 来创建匿名函数。
+
+lambda 函数是一种小型、匿名的、内联函数，它可以具有任意数量的参数，但只能有一个表达式。
+
+匿名函数不需要使用 def 关键字定义完整函数。
+
+lambda 函数通常用于编写简单的、单行的函数，通常在需要函数作为参数传递的情况下使用，例如在 map()、filter()、reduce() 等函数中。
+
+lambda 函数特点：
+
+ - lambda 函数是匿名的，它们没有函数名称，只能通过赋值给变量或作为参数传递给其他函数来使用。
+
+ - lambda 函数通常只包含一行代码，这使得它们适用于编写简单的函数。
+
+lambda 语法格式：
+
+```python
+lambda arguments: expression
+```
+
+ - lambda是 Python 的关键字，用于定义 lambda 函数。
+
+ - arguments 是参数列表，可以包含零个或多个参数，但必须在冒号(:)前指定。
+
+ - expression 是一个表达式，用于计算并返回函数的结果。
+
+以下的 lambda 函数没有参数：
+
+```python
+f = lambda: "Hello, world!"
+print(f())  # 输出: Hello, world!
+```
+
+输出结果为：
+
+```python
+Hello, world!
+```
+
+以下实例使用 lambda 创建匿名函数，设置一个函数参数 a，函数计算参数 a 加 10，并返回结果：
+
+```python
+x = lambda a : a + 10
+print(x(5))
+```
+
+输出结果为：
+
+```python
+15
+```
+
+lambda 函数也可以设置多个参数，参数使用逗号 , 隔开：
+
+以下实例使用 lambda 创建匿名函数，函数参数 a 与 b 相乘，并返回结果：
+
+```python
+x = lambda a, b : a * b
+print(x(5, 6))
+```
+
+输出结果为：
+
+```python
+30
+```
+
+以下实例使用 lambda 创建匿名函数，函数参数 a、b 与 c 相加，并返回结果：
+
+```python
+x = lambda a, b, c : a + b + c
+print(x(5, 6, 2))
+```
+
+输出结果为：
+
+```python
+13
+```
+
+lambda 函数通常与内置函数如 map()、filter() 和 reduce() 一起使用，以便在集合上执行操作。例如：
+
+```python
+numbers = [1, 2, 3, 4, 5]
+squared = list(map(lambda x: x**2, numbers))
+print(squared)  # 输出: [1, 4, 9, 16, 25]
+```
+
+输出结果为：
+
+```python
+[1, 4, 9, 16, 25]
+```
+
+使用 lambda 函数与 filter() 一起，筛选偶数：
+
+```python
+numbers = [1, 2, 3, 4, 5, 6, 7, 8]
+even_numbers = list(filter(lambda x: x % 2 == 0, numbers))
+print(even_numbers)  # 输出：[2, 4, 6, 8]
+```
+
+输出结果为：
+
+```python
+[2, 4, 6, 8]
+```
+
+下面是一个使用 reduce() 和 lambda 表达式演示如何计算一个序列的累积乘积：
+
+```python
+from functools import reduce
+ 
+numbers = [1, 2, 3, 4, 5]
+ 
+# 使用 reduce() 和 lambda 函数计算乘积
+product = reduce(lambda x, y: x * y, numbers)
+ 
+print(product)  # 输出：120
+```
+
+输出结果为：
+
+```python
+120
+```
+
+在上面的实例中，reduce() 函数通过遍历 numbers 列表，并使用 lambda 函数将累积的结果不断更新，最终得到了 1 * 2 * 3 * 4 * 5 = 120 的结果。
+
+参考链接：
+
+ - <a href="https://www.runoob.com/python3/python-lambda.html" target="_blank">Python lambda（匿名函数）</a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

@@ -53,6 +53,26 @@
     <textarea id="editor" name="editor">
 #### javascript-basic-cookie
 
+##### 简单设置 cookie
+
+```js
+/**
+ * name  : cookieName
+ * value : cookieValue
+ * host  : domain .baidu.com / baidu.com
+ */
+function setCookie(name, value, host){
+  var _ = 630e8 // 63000000000
+  document.cookie = name + "=; expires=Mon, 20 Sep 1970 00:00:00 UTC; path=/;",
+  document.cookie = name + "=; domain=" + host + "; expires=Mon, 20 Sep 1970 00:00:00 UTC; path=/; SameSite=None; Secure";
+  document.cookie = name + "=" + value + "; domain=" + host + "; expires=" + new Date(new Date().getTime() + _).toGMTString() + "; path=/; SameSite=None; Secure";
+}
+
+// 添加 Cookie
+setCookie('CP1', 'f39mlXKumu0KAuE5VOiOedFvngB43dij', '');
+setCookie('CP2', 'b7b0f394f3fd074c6bdd2ebbdd598b4e', '');
+```
+
 Cookie 用于存储 web 页面的用户信息。
 
 ##### 什么是 Cookie？

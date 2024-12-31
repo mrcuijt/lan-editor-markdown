@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>python3-basic-dictionary</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### python3-basic-dictionary
+
+#### Python3 字典
+
+字典是另一种可变容器模型，且可存储任意类型对象。
+
+字典的每个键值 key=>value 对用冒号 : 分割，每个对之间用逗号(,)分割，整个字典包括在花括号 {} 中 ,格式如下所示：
+
+```python
+d = {key1 : value1, key2 : value2, key3 : value3 }
+```
+
+注意：dict 作为 Python 的关键字和内置函数，变量名不建议命名为 dict。
+
+![title](images/python3-basic-dictionary/python3-basic-dictionary-001.png)
+
+键必须是唯一的，但值则不必。
+
+值可以取任何数据类型，但键必须是不可变的，如字符串，数字。
+
+一个简单的字典实例：
+
+```python
+tinydict = {'name': 'runoob', 'likes': 123, 'url': 'www.runoob.com'}
+```
+
+也可如此创建字典：
+
+```python
+tinydict1 = { 'abc': 456 }
+tinydict2 = { 'abc': 123, 98.6: 37 }
+```
+
+##### 创建空字典
+
+使用大括号 { } 创建空字典：
+
+```python
+# 使用大括号 {} 来创建空字典
+emptyDict = {}
+ 
+# 打印字典
+print(emptyDict)
+ 
+# 查看字典的数量
+print("Length:", len(emptyDict))
+ 
+# 查看类型
+print(type(emptyDict))
+```
+
+以上实例输出结果：
+
+```python
+{}
+Length: 0
+<class 'dict'>
+```
+
+使用内建函数 dict() 创建字典：
+
+```python
+emptyDict = dict()
+ 
+# 打印字典
+print(emptyDict)
+ 
+# 查看字典的数量
+print("Length:",len(emptyDict))
+ 
+# 查看类型
+print(type(emptyDict))
+```
+
+以上实例输出结果：
+
+```python
+{}
+Length: 0
+<class 'dict'>
+```
+
+##### 访问字典里的值
+
+把相应的键放入到方括号中，如下实例:
+
+```python
+#!/usr/bin/python3
+ 
+tinydict = {'Name': 'Runoob', 'Age': 7, 'Class': 'First'}
+ 
+print ("tinydict['Name']: ", tinydict['Name'])
+print ("tinydict['Age']: ", tinydict['Age'])
+```
+
+以上实例输出结果：
+
+```python
+tinydict['Name']:  Runoob
+tinydict['Age']:  7
+```
+
+如果用字典里没有的键访问数据，会输出错误如下：
+
+```python
+#!/usr/bin/python3
+ 
+tinydict = {'Name': 'Runoob', 'Age': 7, 'Class': 'First'}
+ 
+print ("tinydict['Alice']: ", tinydict['Alice'])
+```
+
+以上实例输出结果：
+
+```python
+Traceback (most recent call last):
+  File "test.py", line 5, in <module>
+    print ("tinydict['Alice']: ", tinydict['Alice'])
+KeyError: 'Alice'
+```
+
+##### 修改字典
+
+向字典添加新内容的方法是增加新的键/值对，修改或删除已有键/值对如下实例:
+
+```python
+#!/usr/bin/python3
+ 
+tinydict = {'Name': 'Runoob', 'Age': 7, 'Class': 'First'}
+ 
+tinydict['Age'] = 8               # 更新 Age
+tinydict['School'] = "菜鸟教程"  # 添加信息
+ 
+ 
+print ("tinydict['Age']: ", tinydict['Age'])
+print ("tinydict['School']: ", tinydict['School'])s
+```
+
+以上实例输出结果：
+
+```python
+tinydict['Age']:  8
+tinydict['School']:  菜鸟教程
+```
+
+##### 删除字典元素
+
+能删单一的元素也能清空字典，清空只需一项操作。
+
+显式删除一个字典用del命令，如下实例：
+
+```python
+#!/usr/bin/python3
+ 
+tinydict = {'Name': 'Runoob', 'Age': 7, 'Class': 'First'}
+ 
+del tinydict['Name'] # 删除键 'Name'
+tinydict.clear()     # 清空字典
+del tinydict         # 删除字典
+ 
+print ("tinydict['Age']: ", tinydict['Age'])
+print ("tinydict['School']: ", tinydict['School'])
+```
+
+但这会引发一个异常，因为用执行 del 操作后字典不再存在：
+
+```python
+Traceback (most recent call last):
+  File "/runoob-test/test.py", line 9, in <module>
+    print ("tinydict['Age']: ", tinydict['Age'])
+NameError: name 'tinydict' is not defined
+```
+
+注：del() 方法后面也会讨论。
+
+##### 字典键的特性
+
+字典值可以是任何的 python 对象，既可以是标准的对象，也可以是用户定义的，但键不行。
+
+两个重要的点需要记住：
+
+1）不允许同一个键出现两次。创建时如果同一个键被赋值两次，后一个值会被记住，如下实例：
+
+```python
+#!/usr/bin/python3
+ 
+tinydict = {'Name': 'Runoob', 'Age': 7, 'Name': '小菜鸟'}
+ 
+print ("tinydict['Name']: ", tinydict['Name'])
+```
+
+以上实例输出结果：
+
+```python
+tinydict['Name']:  小菜鸟
+```
+
+2）键必须不可变，所以可以用数字，字符串或元组充当，而用列表就不行，如下实例：
+
+```python
+#!/usr/bin/python3
+ 
+tinydict = {['Name']: 'Runoob', 'Age': 7}
+ 
+print ("tinydict['Name']: ", tinydict['Name'])
+```
+
+以上实例输出结果：
+
+```python
+Traceback (most recent call last):
+  File "test.py", line 3, in <module>
+    tinydict = {['Name']: 'Runoob', 'Age': 7}
+TypeError: unhashable type: 'list'
+```
+
+##### 字典内置函数&方法
+
+Python字典包含了以下内置函数：
+
+ - **`len(dict)`**
+
+  计算字典元素个数，即键的总数。
+
+```python
+>>> tinydict = {'Name': 'Runoob', 'Age': 7, 'Class': 'First'}
+>>> len(tinydict)
+3
+```
+
+ - **`str(dict)`**
+
+  输出字典，可以打印的字符串表示。
+
+```python
+>>> tinydict = {'Name': 'Runoob', 'Age': 7, 'Class': 'First'}
+>>> str(tinydict)
+"{'Name': 'Runoob', 'Class': 'First', 'Age': 7}"
+```
+
+ - **`type(variable)`**
+
+  返回输入的变量类型，如果变量是字典就返回字典类型。
+
+```python
+>>> tinydict = {'Name': 'Runoob', 'Age': 7, 'Class': 'First'}
+>>> type(tinydict)
+<class 'dict'>
+```
+
+Python字典包含了以下内置方法：
+
+ - **`dict.clear()`**
+
+  删除字典内所有元素
+
+ - **`dict.copy()`**
+
+  返回一个字典的浅复制
+
+ - **`dict.fromkeys()`**
+
+  创建一个新字典，以序列seq中元素做字典的键，val为字典所有键对应的初始值
+
+ - **`dict.get(key, default=None)`**
+
+  返回指定键的值，如果键不在字典中返回 default 设置的默认值
+
+ - **`key in dict`**
+
+  如果键在字典dict里返回true，否则返回false
+
+ - **`dict.items()`**
+
+  以列表返回一个视图对象
+
+ - **`dict.keys()`**
+
+  返回一个视图对象
+
+ - **`dict.setdefault(key, default=None)`**
+
+  和get()类似, 但如果键不存在于字典中，将会添加键并将值设为default
+
+ - **`dict.update(dict2)`**
+
+  把字典dict2的键/值对更新到dict里
+
+ - **`dict.values()`**
+
+  返回一个视图对象
+
+ - **`pop(key[,default])`**
+
+  删除字典 key（键）所对应的值，返回被删除的值。
+
+ - **`popitem()`**
+
+  返回并删除字典中的最后一对键和值。
+
+#### Python 字典视图对象是什么
+
+在本文中，我们将介绍 Python 中的字典视图对象。字典是 Python 中非常常见和有用的数据结构，它可以容纳多个键值对。字典视图对象提供了对字典键、值和键值对的动态视图，可以实时反映字典的变化。
+
+##### 什么是字典视图对象？
+
+字典视图对象是字典的动态视图，它提供了对字典中键、值和键值对的实时访问。字典视图对象是类似于集合的对象，它们支持集合的操作，如求交集、并集和差集等。字典视图对象是可迭代的，可以在 for 循环中使用。在 Python 中，有三种类型的字典视图对象：KeysView、ValuesView 和 ItemsView。
+
+##### KeysView
+
+KeysView 对象提供了字典中所有键的视图，它可以使用 keys() 方法获取。这个视图对象是动态的，它会随着原字典的变化而变化。我们可以通过遍历这个视图对象来获取字典中所有的键。
+
+```python
+# 创建一个字典
+my_dict = {'name': 'Alice', 'age': 25, 'gender': 'female'}
+
+# 获取键的视图对象
+keys_view = my_dict.keys()
+
+# 遍历键的视图对象
+for key in keys_view:
+    print(key)
+```
+
+输出：
+
+```python
+name
+age
+gender
+```
+
+##### ValuesView
+
+ValuesView 对象提供了字典中所有值的视图，它可以使用 values() 方法获取。和 KeysView 类似，ValuesView 也是动态的，会跟随原字典的变化而变化。我们可以通过遍历 ValuesView 来获取字典中所有的值。
+
+```python
+# 创建一个字典
+my_dict = {'name': 'Alice', 'age': 25, 'gender': 'female'}
+
+# 获取值的视图对象
+values_view = my_dict.values()
+
+# 遍历值的视图对象
+for value in values_view:
+    print(value)
+```
+
+输出：
+
+```python
+Alice
+25
+female
+```
+
+##### ItemsView
+
+ItemsView 对象提供了字典中所有键值对的视图，它可以使用 items() 方法获取。ItemsView 同样是动态的，会随着原字典的变化而变化。我们可以通过遍历 ItemsView 来获取字典中所有的键值对。
+
+```python
+# 创建一个字典
+my_dict = {'name': 'Alice', 'age': 25, 'gender': 'female'}
+
+# 获取键值对的视图对象
+items_view = my_dict.items()
+
+# 遍历键值对的视图对象
+for key, value in items_view:
+    print(key, value)
+```
+
+输出：
+
+```python
+name Alice
+age 25
+gender female
+```
+
+##### 字典视图对象的操作
+
+字典视图对象支持一些集合操作，同样也支持一些与集合对象相似的方法和属性。
+
+##### 交集
+
+我们可以使用 & 运算符或 intersection() 方法获取两个视图对象的交集。
+
+```python
+dict1 = {'a': 1, 'b': 2, 'c': 3}
+dict2 = {'b': 2, 'c': 3, 'd': 4}
+
+# 获取两个视图对象的交集
+intersection_view = dict1.keys() & dict2.keys()
+
+print(intersection_view)
+```
+
+输出：
+
+```python
+{'b', 'c'}
+```
+
+##### 并集
+
+我们可以使用 | 运算符或 union() 方法获取两个视图对象的并集。
+
+```python
+dict1 = {'a': 1, 'b': 2, 'c': 3}
+dict2 = {'b': 2, 'c': 3, 'd': 4}
+
+# 获取两个视图对象的并集
+union_view = dict1.keys() | dict2.keys()
+
+print(union_view)
+```
+
+输出：
+
+```python
+{'a', 'b', 'c', 'd'}
+```
+
+##### 差集
+
+我们可以使用 - 运算符或 difference() 方法获取两个视图对象的差集。
+
+```python
+dict1 = {'a': 1, 'b': 2, 'c': 3}
+dict2 = {'b': 2, 'c': 3, 'd': 4}
+
+# 获取两个视图对象的差集
+difference_view = dict1.keys() - dict2.keys()
+
+print(difference_view)
+```
+
+输出：
+
+```python
+{'a'}
+```
+
+##### 判断是否包含
+
+我们可以使用 in 关键字来判断一个元素是否在视图对象中。
+
+```python
+dict1 = {'a': 1, 'b': 2, 'c': 3}
+
+# 判断一个键是否在视图对象中
+print('a' in dict1.keys())
+
+# 判断一个值是否在视图对象中
+print(1 in dict1.values())
+
+# 判断一个键值对是否在视图对象中
+print(('a', 1) in dict1.items())
+```
+
+输出：
+
+```python
+True
+True
+False
+```
+
+##### 其他方法
+
+字典视图对象还支持其他一些方法和属性，如 len() 函数可以获取视图对象的长度，== 运算符可以判断两个视图对象是否相等。
+
+```python
+my_dict = {'name': 'Alice', 'age': 25, 'gender': 'female'}
+
+# 获取视图对象的长度
+print(len(my_dict.keys()))
+
+# 判断两个视图对象是否相等
+print(my_dict.keys() == my_dict.values())
+```
+
+输出：
+
+```python
+3
+False
+```
+
+##### 总结
+
+在本文中，我们介绍了 Python 中的字典视图对象。我们了解到字典视图对象提供了对字典中键、值和键值对的实时访问，它们是动态的，会随着原字典的变化而变化。我们还学习了如何使用字典视图对象进行集合操作，以及一些常用的方法和属性。使用字典视图对象可以简化对字典数据的处理，提高代码的可读性和效率。希望本文对你理解字典视图对象有所帮助。
+
+参考链接：
+
+ - <a href="https://www.runoob.com/python3/python3-dictionary.html" target="_blank">Python3 字典</a>
+
+ - <a href="https://deepinout.com/python/python-qa/35_python_what_are_dictionary_view_objects.html" target="_blank">Python 字典视图对象是什么</a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

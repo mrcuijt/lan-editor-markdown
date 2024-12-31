@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>okhttp3-http2-example</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### okhttp3-http2-example
+
+#### okhttp3 HTTP2 示例
+
+##### 依赖
+
+```xml
+<!-- okhttp3 -->
+<dependency>
+    <groupId>com.squareup.okhttp3</groupId>
+    <artifactId>okhttp</artifactId>
+    <version>3.10.0</version>
+</dependency>
+
+<!-- http content encoding br uncompress -->
+<dependency>
+    <groupId>org.brotli</groupId>
+    <artifactId>dec</artifactId>
+    <version>0.1.2</version>
+</dependency>
+```
+
+##### 示例
+
+```java
+import okhttp3.Headers;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.brotli.dec.BrotliInputStream;
+
+import javax.net.ssl.*;
+import java.io.*;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
+
+public class Http2ClientV2 {
+
+    public static OkHttpClient client = buildOkHttpClient();
+
+    static final String CONTENT_LENGTH = "Content-Length";
+
+    public static void main(String[] args) throws Exception {
+        String url = "https://zhuanlan.zhihu.com/p/80899140";
+        url = "https://zhuanlan.zhihu.com/p/36197012";
+        //url = "https://www.zhihu.com/api/v4/comment_v5/articles/80899140/config";
+        //url = "https://127.0.0.1:8612/";
+        Request request = buildOkHttp(url, toHeader(headers()));
+        System.out.println("请求头：");
+        readHeader(request.headers());
+        byte[] bytes = get(request);
+        System.out.println(new String(bytes, "UTF8"));
+    }
+
+    static String[][] headers() {
+        String[][] aa = {
+                {"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9"},
+                {"accept-encoding", "gzip, deflate, br"},
+                {"accept-language", "zh-CN,zh;q=0.9"},
+                {"cache-control", "max-age=0"},
+                //{"cookie", "_xsrf=2MTwId2Cm8ittASDdzBTPp37dZALSYyb; BEC=b7b0f394f3fd074c6bdd2ebbdd598b4e; __zse_ck=003_bdxEeEnJYUXwWmFo0zxaCPNgpkh1+HL9yQr4ya6AXXDDOOQXoausGBAnGBSUqjXGqpIyQJjZ7C2Su/UzpZZCx6xsxiIj/kqzZN/YjmBxgx+="},
+                //{"cookie", "_xsrf=ymeNlabzmtoe6liB7gW02AVycjocxN1F; BEC=6bca8f185b99e85d761c7a0d8d692864; _zap=4aa66bd6-060d-45b4-9fba-d67d6aec85ba; __zse_ck=003_bqDOVvoG7p/zR1mD5l+950LlM1hPqm66sQ0rNY9YWCzWuA3K4jTJwZangsMVWmEN477lXrQDBrZFO=vTtaGeka25Lw2exqmxdwtae5lOq+L6"},
+                {"cookie", "_xsrf=c7T03gfMw1Zc8SqyGQQdW3G4Oge8nPPU; BEC=4da77e64be3cf762e3831e43ab259290; _zap=444f460f-c480-4a7c-add4-f20c03ca3cb7; __zse_ck=003_buuccTTddYB4XRM9IKwu3onSLCQ+uNH0SH3CtxbyIUxa0AmBDWAy89TULQyTAnXYqp8k4qBEjNuuXU1PmgWr1a7=vukZJ3H1U1Oipi3/+bA3"},
+                {"sec-fetch-dest", "document"},
+                {"sec-fetch-mode", "navigate"},
+                {"sec-fetch-site", "none"},
+                {"sec-fetch-user", "?1"},
+                {"upgrade-insecure-requests", "1"},
+                {"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"},
+        };
+        return aa;
+    }
+
+    static Map<String, List<String>> toHeader(String[][] headers) {
+        Map<String, List<String>> map = new HashMap<>();
+        for (String[] header : headers) {
+            map.put(header[0], Arrays.asList(header[1]));
+        }
+        return map;
+    }
+
+    public static byte[] get(Request request) {
+        // get request
+        try (Response response = client.newCall(request).execute();) {
+            System.out.println("响应头：");
+            readHeader(response.headers());
+            if (!response.isSuccessful()) throw new RuntimeException("Unexpected code " + response);
+            long length = 0;
+            String contentLength = response.headers().get(CONTENT_LENGTH);
+            if (contentLength != null && contentLength.length() > 0) {
+                try {
+                    length = Long.valueOf(contentLength);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            // response
+            try (InputStream is = response.body().byteStream()) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                // buffer
+                byte[] buffer = new byte[1024];
+                int len = -1;
+                while ((len = is.read(buffer, 0, buffer.length)) != -1) {
+                    out.write(buffer, 0, len);
+                }
+                byte[] datas = out.toByteArray();
+                if (length != 0) {
+                    System.out.println(String.format("Content-Length : %d ; Read Length : %d ;", length, datas.length));
+                    if (length != datas.length) throw new RuntimeException("EOF read");
+                }
+                String br = "br";
+                String gzip = "gzip";
+                String contentEncoding = response.headers().get("content-encoding");
+                if (br.equals(contentEncoding)){
+                    datas = unCompressBr(datas);
+                }
+                if (gzip.equals(contentEncoding)){
+                    datas = unCompressBr(datas);
+                }
+                System.out.println("Downloader Finished.");
+                return datas;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void readHeader(Headers headers) {
+        String template = "[%s:%s]";
+        for (String name : headers.names()) {
+            System.out.println(String.format(template, name, headers.get(name)));
+        }
+    }
+
+    // ok http request
+    public static Request buildOkHttp(String url, Map<String, List<String>> headers) {
+        // create request builder
+        Request.Builder builder = new Request.Builder();
+        // set request url
+        builder.url(url);
+        // set request header
+        if (headers != null && headers.keySet().size() > 0) {
+            for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+                String key = entry.getKey();
+                List<String> values = entry.getValue();
+                if (values == null || values.size() == 0) {
+                    builder.addHeader(key, "");
+                } else {
+                    builder.addHeader(key, values.get(0));
+                }
+            }
+        }
+        // build request
+        return builder.build();
+    }
+
+    public static OkHttpClient buildOkHttpClient() {
+        return new OkHttpClient.Builder()
+                .sslSocketFactory(getSSLSocketFactory(), (X509TrustManager) new TrustManager[]{new SSLVerify()}[0])
+                .hostnameVerifier(getTrustAnyHostnameVerifier())
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build();
+    }
+
+    private static SSLSocketFactory getSSLSocketFactory() {
+        try {
+            KeyManager[] keyManagers = null;
+            TrustManager[] trustManagers = new TrustManager[]{new SSLVerify()};
+            SecureRandom secureRandom = new SecureRandom();
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(keyManagers, trustManagers, secureRandom);
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            return sslSocketFactory;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static class SSLVerify implements X509TrustManager {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType)
+                throws CertificateException {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType)
+                throws CertificateException {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[]{};
+        }
+    }
+
+    public static TrustAnyHostnameVerifier getTrustAnyHostnameVerifier() {
+        return new TrustAnyHostnameVerifier();
+    }
+
+    public static class TrustAnyHostnameVerifier implements HostnameVerifier {
+        @Override
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    }
+
+    public static byte[] unCompressBrGzip(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            return null;
+        }
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             GZIPInputStream ungzip = new GZIPInputStream(new ByteArrayInputStream(bytes));) {
+            byte[] buffer = new byte[256];
+            int n;
+            while ((n = ungzip.read(buffer)) >= 0) {
+                out.write(buffer, 0, n);
+            }
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("gzip uncompress error.", e);
+        }
+    }
+
+    public static byte[] unCompressBr(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            return null;
+        }
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             BrotliInputStream is = new BrotliInputStream(new ByteArrayInputStream(bytes));) {
+            byte[] buffer = new byte[1024];
+            int len = -1;
+            while ((len = is.read(buffer, 0, buffer.length)) != -1) {
+                out.write(buffer, 0, len);
+            }
+            return out.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("br uncompress error.", e);
+        }
+    }
+}
+```
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

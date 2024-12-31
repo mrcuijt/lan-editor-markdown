@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>python-selenium-wire-001</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### python-selenium-wire-001
+
+```python
+## 查看 Python 版本
+python --version
+
+Python 3.12.0
+```
+
+```python
+## 查看 Python 依赖版本
+pip list
+
+Package                 Version
+----------------------- -----------
+attrs                   24.2.0
+blinker                 1.7.0
+Brotli                  1.1.0
+browsermob-proxy        0.8.0
+certifi                 2024.8.30
+cffi                    1.16.0
+cfscrape                2.1.1
+charset-normalizer      3.3.2
+cloudscraper            1.2.71
+cryptography            42.0.8
+curl_cffi               0.7.1
+h11                     0.14.0
+h2                      4.1.0
+hpack                   4.0.0
+hyperframe              6.0.1
+idna                    3.8
+kaitaistruct            0.10
+numpy                   2.1.1
+outcome                 1.3.0.post0
+packaging               24.1
+pandas                  2.2.2
+pip                     24.2
+pyasn1                  0.6.1
+pycparser               2.22
+pydivert                2.1.0
+PyExecJS                1.5.1
+pyOpenSSL               24.2.1
+pyparsing               3.1.4
+PySocks                 1.7.1
+python-dateutil         2.9.0.post0
+pytz                    2024.1
+requests                2.32.3
+requests-toolbelt       1.0.0
+selenium                4.24.0
+selenium-stealth        1.0.6
+selenium-wire           5.1.0
+setuptools              74.1.2
+six                     1.16.0
+sniffio                 1.3.1
+sortedcontainers        2.4.0
+tls-client              1.0.1
+trio                    0.26.2
+trio-websocket          0.11.1
+typing_extensions       4.12.2
+tzdata                  2024.1
+undetected-chromedriver 3.5.5
+urllib3                 2.2.2
+websocket-client        1.8.0
+websockets              13.0.1
+wsproto                 1.2.0
+zstandard               0.23.0
+```
+
+##### 简单示例
+
+**简单示例**
+
+```python
+from seleniumwire import webdriver  # Import from seleniumwire
+
+# Create a new instance of the Chrome driver
+driver = webdriver.Chrome()
+
+# Go to the Google home page
+driver.get('https://blog.csdn.net/')
+
+# Access requests via the `requests` attribute
+for request in driver.requests:
+    if request.response:
+        print(
+            request.url,
+            request.response.status_code,
+            request.response.headers['Content-Type']
+        )
+```
+
+**浏览器驱动 推荐**
+
+```python
+
+```
+
+**浏览器驱动 不推荐**
+
+```python
+from seleniumwire import webdriver  # Import from seleniumwire
+from selenium.webdriver.chrome.service import Service as ChromeService
+
+## 浏览器驱动
+service = ChromeService(r'D:/development_tools/chromedriver.exe')
+
+# Create a new instance of the Chrome driver
+driver = webdriver.Chrome(service=service)
+
+# Go to the Google home page
+driver.get('https://blog.csdn.net/')
+
+# Access requests via the `requests` attribute
+for request in driver.requests:
+    if request.response:
+        print(
+            request.url,
+            request.response.status_code,
+            request.response.headers['Content-Type']
+        )
+```
+
+
+
+
+**浏览器选项**
+
+```python
+from seleniumwire import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
+
+## 浏览器配置选项
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors') ## 忽略 https 不信任证书
+options.add_argument('--incognito')                 ## 无痕模式
+
+## 浏览器驱动
+service = ChromeService(r'D:/development_tools/chromedriver.exe')
+```
+
+**发送请求**
+
+```python
+from seleniumwire import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
+
+## 浏览器配置选项
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors') ## 忽略 https 不信任证书
+options.add_argument('--incognito')                 ## 无痕模式
+
+## 浏览器驱动
+service = ChromeService(r'D:/development_tools/chromedriver.exe')
+
+## 创建 Chrome 浏览器实例
+driver = webdriver.Chrome(service=service, options=options)
+
+## 发送请求
+driver.get('https://127.0.0.1:8612/')
+
+## 打印请求信息
+for request in driver.requests:
+    if request.response:
+        print(
+            request.url,
+            request.response.status_code,
+            request.response.headers['Content-Type']
+        )
+
+## 关闭浏览器
+driver.close()
+```
+
+##### 修改请求头
+
+```python
+from seleniumwire import webdriver
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
+import time
+
+## 浏览器配置选项
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors') ## 忽略 https 不信任证书
+options.add_argument('--incognito')                 ## 无痕模式
+
+## 浏览器驱动
+service = ChromeService(r'D:/development_tools/chromedriver.exe')
+
+## 创建 Chrome 浏览器实例
+driver = webdriver.Chrome(service=service, options=options)
+
+## 添加请求头示例
+def interceptor(request):
+    ## 添加请求头
+    request.headers['New-Header'] = 'Meng'
+    ## 修改请求头 不删除，会在原有请求头后进行追加
+    del request.headers['Sec-Fetch-User']
+    request.headers['Sec-Fetch-User'] = 'Meng'
+    ## Host 请求头修改失败
+    del request.headers['Host']
+    request.headers['Host'] = 'google.com'
+    del request.headers['Referer']
+    request.headers['Referer'] = 'https://nacos.io/download/nacos-server/'
+    
+
+## 配置请求拦截器
+driver.request_interceptor = interceptor
+
+## 发送请求
+driver.get('https://127.0.0.1:8612/')
+
+## 打印请求信息
+for request in driver.requests:
+    if request.response:
+        print(
+            request.url,
+            request.response.status_code,
+            request.response.headers['Content-Type']
+        )
+
+time.sleep(30)
+
+## 关闭浏览器
+driver.close()
+```
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

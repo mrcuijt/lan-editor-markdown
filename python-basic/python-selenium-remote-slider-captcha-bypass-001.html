@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>python-selenium-remote-slider-captcha-bypass-001</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### python-selenium-remote-slider-captcha-bypass-001
+
+#### python+selenium+opencv验证滑块
+
+我们在使用selenium爬虫的时候在登录时经常会遇到滑块验证码问题，导致登录受阻，正所谓万事开头难。
+
+登录就登录不进去更别提往后的操作的。今天以登录京东后台来演示下如何破解滑块。
+
+**一.登录**
+
+首先我们先进入XXXX后台登录页面，输入用户名和密码进入滑块页面
+
+```python
+import time
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+
+driver = webdriver.Chrome()
+
+driver.implicitly_wait(10)  # 设置隐形等待
+driver.maximize_window()
+driver.get("https://passport.xxxx.com/new/login？")
+driver.find_element(by=By.XPATH, value="//a[contains(text(),'账户登录')]").click()
+driver.find_element(by=By.ID, value="loginname").send_keys("1935762273")
+driver.find_element(by=By.ID, value="nloginpwd").send_keys("13833979764")
+driver.find_element(by=By.ID, value="loginsubmit").click()
+time.sleep(2)
+```
+
+**二.获取缺口图和滑块保存到本地**
+
+1)首先获取滑块图
+
+![title](./images/python-selenium-remote-slider-captcha-bypass-001/python-selenium-remote-slider-captcha-bypass-001.png)
+
+我们可以发现滑块图是用base64加密过的，因此在获取img_url时需要base64解密才能将图片保存到本地
+
+```python
+img_list = driver.find_elements(by=By.TAG_NAME, value="img")
+hk_img = img_list[4].get_attribute("src")  # 获取定位滑块的src
+hk_img = hk_img[22:]  # 截取所需要的url
+with open("./img/hk.png", mode="wb") as f:
+    f.write(base64.b64decode(hk_img))  # base64解密后保存到本地img下
+```
+
+2)获取缺口图
+
+![title](./images/python-selenium-remote-slider-captcha-bypass-001/python-selenium-remote-slider-captcha-bypass-002.png)
+
+缺口图的获取和滑块方法是一样的，这里直接贴代码了。
+
+```python
+qk_img = img_list[3].get_attribute("src")  # 获取定位缺口的src
+qk_img = qk_img[22:]  # 截取所需要的url
+with open("./img/qk.png", mode="wb") as f:
+    f.write(base64.b64decode(qk_img))  # base64解密后保存到本地img下
+driver.quit()
+```
+
+**三.opencv处理**
+
+将缺口图和滑块图保存到本地后工作量就已经完成一半了，离胜利还有半步之遥，接下来就是用opencv处
+
+理图片计算出偏移量
+
+1）安装opencv
+
+```python
+pip install opencv-python
+```
+
+2）opencv处理图片计算偏移量
+
+灰度化处理滑块/缺口图，这一步骤需要导包 ：import cv2
+
+```python
+hk_img_01 = cv2.imread("./img/hk.png", 0)  # 灰度化
+qk_img_01 = cv2.imread("./img/qk.png", 0)
+```
+
+获取滑块在缺口图中匹配的位置
+
+late = cv2.matchTemplate(qk_img_01, hk_img_01, cv2.TM_CCOEFF_NORMED)
+
+计算偏移量
+
+loc = cv2.minMaxLoc(late)
+
+我们打印loc可以发现最终给出来的值是四个，我们直接取最大的那个即可(71)
+
+![title](./images/python-selenium-remote-slider-captcha-bypass-001/python-selenium-remote-slider-captcha-bypass-003.png)
+
+我们得到的71这个数字其实还不是最终的偏移量，还需要获取到滑块图Rendered size和Intrinsic size
+
+![title](./images/python-selenium-remote-slider-captcha-bypass-001/python-selenium-remote-slider-captcha-bypass-004.png)
+
+拿获取的loc*Rendered/Intrinsic得到的才是最后要偏移的距离
+
+```python
+y = int(loc[2][0] * 39 / 50)
+```
+
+**四.模拟鼠标事件拖拽滑块**
+
+这一步超级简单，就直接copy代码了
+
+```python
+action = ActionChains(driver)
+action.click_and_hold(img_list[4])
+action.move_by_offset(x, 0)
+action.release().perform()
+```
+
+这里需要注意的是万事都不是绝对的，计算偏移量也是一样，不能达到100%成功，但也有个七八十，所以
+
+模拟鼠标拖拽时加个while循环即可，这里就不做过多演示了。
+
+**五.破解反爬机制**
+
+当你执行到第四步的时候你会发现有时即使滑块和缺口对应上了，但还是会提示验证失败，这是因为京东代码含反
+
+爬机制，检验出你使用的是selenium，所以给你干掉了。下面就来介绍下小编的反反爬之苦逼之路。
+
+1）改变请求头设置无痕模式
+
+当遇到上面的情况后第一时间想到的就是改变请求头，设置无痕模式，于是抱着试试的心态我写了如下代码。
+
+```python
+option = webdriver.ChromeOptions()
+
+option.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/104.0.0.0 Safari/537.36") 
+option.add_experimental_option("excludeSwitches", ["enable-automation"])
+driver = webdriver.Chrome(options=option)
+```
+
+结果可想而知，苍天助error不助succeed。
+
+2）模拟手动拖拽轨迹
+
+一条路走不通那么就走第二条，在尝试多次后可以发现，selenium打开页面到验证滑块的时，这个时候手动去拖拽
+
+滑块，最后可以拼接成功，那么就有一种可能，反爬机制不是一开始就检测出来的，而是在模拟鼠标拖拽时检测出
+
+来的。那么我们只需要模拟手动推拽轨迹使其更像人为操作即可。下面是封装好的方法（网上copy的，如有侵权，
+
+请告知删除）
+
+```python
+def get_track(distance):
+    # 移动轨迹
+    track = []
+    # 当前位移
+    current = 0
+    # 减速阈值
+    mid = distance * 4 / 5
+    # 计算间隔
+    t = 0.2
+    # 初速度
+    v = 1
+    while current < distance:
+        if current < mid:
+            # 加速度为2
+            a = 4
+        else:
+            # 加速度为-2
+            a = -3
+        v0 = v
+        # 当前速度
+        v = v0 + a * t
+        # 移动距离
+        move = v0 * t + 1 / 2 * a * t * t
+        # 当前位移
+        current += move
+        # 加入轨迹
+        track.append(round(move))
+    return track
+```
+
+这个方法如果高中物理学的不好的人就不要了解了，直接拿来用即可。下面贴下最后代码
+
+```python
+action = ActionChains(driver)
+    tracks = get_track(x)
+    action.click_and_hold(img_list[4]).perform()
+    for i in tracks:
+        action.move_by_offset(i, 0).perform()
+    action.move_by_offset(3, 0).perform()
+    action.move_by_offset(-3, 0).perform()
+    action.release().perform()
+    time.sleep(3)
+```
+
+3）修改window.navigator.webdrive
+
+正常来说第二种方法就可以跳过检测验证成功，那么在了解一种也不错呢，正所谓艺多不压身。
+
+我们在手动进入登录页面时window.navigator.webdrive是为undefined的。但用selenium打开登录
+
+![title](./images/python-selenium-remote-slider-captcha-bypass-001/python-selenium-remote-slider-captcha-bypass-005.png)
+
+页面时window.navigator.webdrive的值为true，所以在进入页面时我们需要修改该值，最简单的方法
+
+加入一行代码即可。
+
+```python
+option.add_argument("--disable-blink-features=AutomationControlled")
+```
+
+4）禁用Chrome浏览器的自动化扩展
+
+```python
+option.add_experimental_option('useAutomationExtension', False)
+```
+
+**六.验证结果**
+
+很抱歉的说句未能成功，原因是什么呢，其实通过模拟手动拖拽轨迹是可以验证成功的，这个亲测有效，
+
+但不知为何xxxx网站又做了什么骚操作，目前无法验证成功，这个会后续研究，有好的方法再更新。
+
+**七.源码**
+
+```python
+import time
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import base64
+import cv2.cv2 as cv2
+from selenium.webdriver import ActionChains
+
+option = webdriver.ChromeOptions()
+# option.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+#                     "Chrome/104.0.0.0 Safari/537.36")
+# option.add_experimental_option("excludeSwitches", ["enable-automation"])
+# option.add_argument("--disable-blink-features=AutomationControlled")
+
+option.add_experimental_option('useAutomationExtension', False)
+
+driver = webdriver.Chrome(options=option)
+
+driver.implicitly_wait(10)  # 设置隐形等待
+driver.maximize_window()
+driver.get("https://passport.xxxx.com/new/login?")
+driver.find_element(by=By.XPATH, value="//a[contains(text(),'账户登录')]").click()
+driver.find_element(by=By.ID, value="loginname").send_keys("15161581519")
+driver.find_element(by=By.ID, value="nloginpwd").send_keys("13633979764")
+driver.find_element(by=By.ID, value="loginsubmit").click()
+time.sleep(2)
+
+
+def get_track(distance):
+    # 移动轨迹
+    track = []
+    # 当前位移
+    current = 0
+    # 减速阈值
+    mid = distance * 4 / 5
+    # 计算间隔
+    t = 0.2
+    # 初速度
+    v = 1
+    while current < distance:
+        if current < mid:
+            # 加速度为2
+            a = 4
+        else:
+            # 加速度为-2
+            a = -3
+        v0 = v
+        # 当前速度
+        v = v0 + a * t
+        # 移动距离
+        move = v0 * t + 1 / 2 * a * t * t
+        # 当前位移
+        current += move
+        # 加入轨迹
+        track.append(round(move))
+    return track
+
+
+while True:
+    img_list = driver.find_elements(by=By.TAG_NAME, value="img")
+    hk_img = img_list[4].get_attribute("src")  # 获取定位滑块的src
+    hk_img = hk_img[22:]  # 截取所需要的url
+    with open("./img/hk.png", mode="wb") as f:
+        f.write(base64.b64decode(hk_img))  # base64解密后保存到本地img下
+
+    qk_img = img_list[3].get_attribute("src")  # 获取定位缺口的src
+    qk_img = qk_img[22:]  # 截取所需要的url
+    with open("./img/qk.png", mode="wb") as f:
+        f.write(base64.b64decode(qk_img))  # base64解密后保存到本地img下
+
+    hk_img_01 = cv2.imread("./img/hk.png", 0)  # 灰度化
+    qk_img_01 = cv2.imread("./img/qk.png", 0)
+    late = cv2.matchTemplate(qk_img_01, hk_img_01, cv2.TM_CCOEFF_NORMED)  # 获取滑块在缺口图的位置
+    loc = cv2.minMaxLoc(late)  # 获取位置
+    x = int(loc[2][0] * 39 / 50)
+    print(x)
+    action = ActionChains(driver)
+    tracks = get_track(x)
+    action.click_and_hold(img_list[4]).perform()
+    for i in tracks:
+        action.move_by_offset(i, 0).perform()
+    action.move_by_offset(3, 0).perform()
+    action.move_by_offset(-3, 0).perform()
+    action.release().perform()
+    time.sleep(3)
+```
+
+
+**滑块验证**
+
+```python
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver import ActionChains
+import cv2
+import base64
+import sys
+import time
+
+def mydriver():
+    ## 远程服务地址
+    ## http://localhost:4444          ## 检查服务是否可用
+    ## http://localhost:4444/wd/hub   ## 使用服务
+    command_executor = 'http://localhost:4444/wd/hub'
+
+    ## 浏览器配置选项
+    options = webdriver.ChromeOptions()
+    options.add_argument('--ignore-certificate-errors')    ## 忽略 https 不信任证书
+    options.add_argument('--incognito')                    ## 无痕模式
+    options.add_argument("--auto-open-devtools-for-tabs")  ## 开启开发者工具（F12）
+
+    ## 设置为手机模式
+    ## mobile_emulation = {"deviceName": "iPhone 6/7/8"}
+    ## options.add_experimental_option("mobileEmulation", mobile_emulation)
+
+    ## 初始化浏览器为chrome浏览器
+    driver = webdriver.Remote(
+        command_executor = command_executor,
+        options = options
+    )
+    ## 返回
+    return driver
+
+def nav(driver, url):
+
+    ## 访问地址
+    driver.get(url)
+
+    ## 网页标题
+    print(driver.title)
+    ## 当前网址
+    print(driver.current_url)
+    ## 浏览器名称
+    print(driver.name)
+    ## 网页源码
+    print(driver.page_source)
+
+    ## 查询页面元素（未找到则抛出异常）
+    f1=driver.find_element(By.TAG_NAME,'body')
+    print(f1)
+
+def switch(driver, url):
+    driver.execute_script(f'window.open("{url}", "_blank");')
+    driver.switch_to.window(driver.window_handles[1])
+
+def get_track(distance):
+    # 移动轨迹
+    track = []
+    # 当前位移
+    current = 0
+    # 减速阈值
+    mid = distance * 4 / 5
+    # 计算间隔
+    t = 0.2
+    # 初速度
+    v = 1
+    while current < distance:
+        if current < mid:
+            # 加速度为2
+            a = 4
+        else:
+            # 加速度为-2
+            a = -3
+        v0 = v
+        # 当前速度
+        v = v0 + a * t
+        # 移动距离
+        move = v0 * t + 1 / 2 * a * t * t
+        # 当前位移
+        current += move
+        # 加入轨迹
+        track.append(round(move))
+    return track
+
+## 程序入口
+if __name__ == '__main__' :
+
+    ## 获取浏览器
+    driver = mydriver()
+
+    url_pools = {
+        'a0' : 'https://127.0.0.1:8600/',
+        'a1' : 'https://baidu.com',
+        'a2' : 'https://csdn.net',
+        'a3' : 'https://127.0.0.1:8600/',
+    }
+
+    new_tab = {
+        'b0' : 'https://127.0.0.1:8600/',
+    }
+
+    user_input = 'a3'
+
+    nav(driver, url_pools[user_input])
+
+    ## 执行 JavaScript
+    ## 获取执行结果 需要 return，否则返回为 None
+    result = driver.execute_script('return window.a = 100')
+
+    print(result)
+
+    result = driver.execute_script('return document.body.innerHTML')
+
+    element = driver.find_element(By.XPATH, "//*[@placeholder='用户名']").send_keys("admin")
+
+    element = driver.find_element(By.XPATH, "//*[@placeholder='密码']").send_keys("admin")
+
+    element = driver.find_element(By.CSS_SELECTOR, ".login-container .el-form.login-form .el-form-item__content button").click()
+
+    time.sleep(3)
+
+    hk_img = driver.find_element(By.CSS_SELECTOR, ".verify-sub-block img").get_attribute("src")
+
+    hk_img = hk_img[22:]  # 截取所需要的url
+    with open("./img/hk.png", mode="wb") as f:
+        f.write(base64.b64decode(hk_img))  # base64解密后保存到本地img下
+
+    qk_img = driver.find_element(By.CSS_SELECTOR, ".verify-img-panel img").get_attribute("src")
+
+    qk_img = qk_img[22:]  # 截取所需要的url
+    with open("./img/qk.png", mode="wb") as f:
+        f.write(base64.b64decode(qk_img))  # base64解密后保存到本地img下
+
+    time.sleep(3)
+
+    hk_img_01 = cv2.imread("./img/hk.png", 0)  # 灰度化
+    qk_img_01 = cv2.imread("./img/qk.png", 0)
+
+    cv2.imshow("Output", hk_img_01)
+
+    cv2.imshow("Output", qk_img_01)
+
+    btn = driver.find_element(By.CSS_SELECTOR, ".verify-left-bar")
+    
+    late = cv2.matchTemplate(qk_img_01, hk_img_01, cv2.TM_CCOEFF_NORMED)  # 获取滑块在缺口图的位置
+    loc = cv2.minMaxLoc(late)  # 获取位置
+    x = int(loc[2][0] * 39 / 50)
+    print(x)
+    action = ActionChains(driver)
+    tracks = get_track(x)
+    action.click_and_hold(btn).perform()
+    for i in tracks:
+        action.move_by_offset(i, 0).perform()
+    action.move_by_offset(3, 0).perform()
+    #action.move_by_offset(-3, 0).perform()
+    action.release().perform()
+    time.sleep(3)
+
+    ac = ActionChains(driver)
+
+    print(result)
+
+    ## 关闭浏览器
+    ## driver.quit()
+```
+
+参考链接：
+
+ - <a href="https://www.cnblogs.com/lihongtaoya/p/16793699.html" target="_blank">python+selenium+opencv验证滑块</a>
+
+ - <a href="https://blog.csdn.net/m0_37579176/article/details/116950903" target="_blank">OpenCV模板匹配（cv2.matchTemplate）</a>
+
+ - <a href="https://blog.csdn.net/zwjapple/article/details/134282510" target="_blank">Python 的 Selenium 库进行元素定位时，XPath的详细用法</a>
+
+ - <a href="https://www.cnblogs.com/lihongtaoya/p/16839051.html" target="_blank">详解pyautogui模块</a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
