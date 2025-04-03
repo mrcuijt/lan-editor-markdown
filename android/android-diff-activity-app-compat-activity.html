@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>android-diff-activity-app-compat-activity</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### android-diff-activity-app-compat-activity
+
+#### AppCompatActivity
+
+前期工作 - 项目名是ActionBarTest
+
+ - 新建工程，默认生成 AndroidManifest.xml 注册文件、MainActivity 文件、activity_main.xml 界面布局文件，不对其他地方做任何修改，仅修改 MainActivity 继承的类别是 Activity，还是 AppCompatActivity。
+
+ - AndroidManifest.xml
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.actionbartest">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ActionBarTest">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+```
+
+ - 主题：Theme.ActionBarTest，父类是 Theme.MaterialComponents.DayNight.DarkActionBar
+
+```xml
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.ActionBarTest" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+</resources>
+```
+
+ - activity_main.xml
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hello ActionBarTest!"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+```
+
+ - MainActivity
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+    }
+}
+```
+
+##### 讨论1
+
+ - 可以看到上面新建工程时，MainActivity 默认继承的是 AppCompatActivity 类
+
+ - 运行程序看效果，可以看到有标题栏
+
+![title](./images/android-diff-activity-app-compat-activity/android-diff-activity-app-compat-activity-001.png)
+
+ - 在 onCreate() 方法中添加如下代码， supportRequestWindowFeature(Window.FEATURE_NO_TITLE); 则标题栏被隐藏了。代码如下所示：
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(R.layout.activity_main);
+    }
+}
+```
+
+ - 效果图如下所示：
+
+![title](./images/android-diff-activity-app-compat-activity/android-diff-activity-app-compat-activity-002.png)
+
+ - 继承 AppCompatActivity，隐藏标题栏的另一个方法：在 onCreate() 方法种添加如下代码： getSupportActionBar().hide();
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        if(getSupportActionBar()!=null){
+            getSupportActionBar().hide();
+        }
+    }
+}
+```
+
+##### 讨论2
+
+ - 继承了AppComPatActivity类，直接不显示标题栏，onCreate()方法中并没有使用讨论1提供的两种方法，这是怎么回事呢？
+
+ - 关注AndroidManifest注册文件中的主题，可能主题是 NoActionBar
+
+ - 代码如下，
+
+![title](./images/android-diff-activity-app-compat-activity/android-diff-activity-app-compat-activity-003.png)
+
+ - 此时利用Log打印 getSupportActionBar() 信息，为null，正好验证了讨论1中的第二种方法。
+
+![title](./images/android-diff-activity-app-compat-activity/android-diff-activity-app-compat-activity-004.png)
+
+##### 讨论3
+
+ - 如果我们把主题设定的代码写成如下格式：可以吗？
+
+```xml
+android:theme="@android:style/Theme.NoTitleBar"
+```
+
+ - 运行程序，发现奔溃了，错误信息如下：
+
+  **java.lang.IllegalStateException: You need to use a Theme.AppCompat theme (or descendant) with this activity.**
+
+ - 其实分析原因：就是 AppCompatActivity 类 相对于 Activity 类 的第二种主要变化：Theme 主题只能用 android:theme="@style/AppTheme(appTheme主题或者其子类)" ，而不能用 android:theme="@android:style/主题名"形式，否则会报错。
+
+##### 讨论4
+
+ - 此时如果我们的活动继承是 AppCompatActivity 类，不显示标题栏的方法有两种类型：一种是在 Java 文件中添加代码，如讨论1；另一种是在 AndroidManifest 注册文件中修改主题为 NoActionBar，如讨论2。
+
+ - 这里我介绍第三种形式：
+
+ - 在 themes.xml 文件中自己定义主题
+
+```xml
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    </style>
+    <!-- Customize your theme here. -->
+	<!-- 上面的AppTheme一定要定义，否则下面的AppTheme.NoActionBar找不到，而且AppTheme也是AppCompatActivity类所识别的-->
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+</resources>
+```
+
+ - 在 AndroidManifest 注册文件中引用即可。
+
+```xml
+ <application
+     android:allowBackup="true"
+     android:icon="@mipmap/ic_launcher"
+     android:label="@string/app_name"
+     android:roundIcon="@mipmap/ic_launcher_round"
+     android:supportsRtl="true"
+     android:theme="@style/AppTheme.NoActionBar">
+     <activity
+         android:name=".MainActivity"
+         android:exported="true">
+         <intent-filter>
+             <action android:name="android.intent.action.MAIN" />
+
+             <category android:name="android.intent.category.LAUNCHER" />
+         </intent-filter>
+     </activity>
+ </application>
+```
+
+##### 讨论5
+
+ - 通常我们在onCreate()中还会加上一句代码，如下：
+
+```java
+getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+```
+
+ - 效果为全屏显示，连右上角的电池和时间图标都没有了。
+
+![title](./images/android-diff-activity-app-compat-activity/android-diff-activity-app-compat-activity-005.png)
+
+##### Activity
+
+讨论1
+
+ - 如果此时AndroidManifest注册文件中主题的设定非NoActionBar形式
+
+ - 想要隐藏标题栏，则需要添加代码如下：
+
+```java
+requestWindowFeature(Window.FEATURE_NO_TITLE)
+```
+
+讨论2
+
+ - 如果不想在 java 文件中添加代码隐藏标题栏，想直接在主题中设定为 NoActionBar 形式，注意语法格式为 android:theme="@android:style/主题名" , 非 android:theme="@style/主题名(AppTheme或者其子类)" 。
+
+#### 总结
+
+
+ - 继承 AppComPatActivity 类，想要不显示标题栏，实现方法四种：
+
+  - onCreate()方法中添加 _`supportRequestWindowFeature(Window.FEATURE_NO_TITLE);`_
+
+  - onCreate()方法中添加 getSupportActionBar().hide();
+
+  - AndroidManifest 注册文件中修改主题格式为 NoActionBar
+
+  - themes.xml 文件中自定义主题，注册文件中引用。
+
+ - 继承 Activity 类，想要不显示标题栏，实现方法如下：
+
+  - onCreate()方法中添加
+
+      _`requestWindowFeature(Window.FEATURE_NO_TITLE);`_
+
+  - 设定主题为 NoActionBar 形式
+
+ - 继承 AppCompatActivity 时，主题语法格式为：
+
+  - android:theme="@style/主题名(AppTheme或其子类)"
+
+ - 继承 Activity 时，主题语法格式为：
+
+  - android:theme="@android:style/主题名"
+
+参考链接:
+
+ - <a href="https://blog.csdn.net/weixin_43636084/article/details/123654497" target="_blank">Android 拓展知识 - 活动继承 Activity 或者继承 AppCompatActivity 的区别</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

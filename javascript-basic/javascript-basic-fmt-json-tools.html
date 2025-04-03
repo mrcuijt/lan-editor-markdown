@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+
+        textarea {
+            width: 100%;
+            overflow-x: scroll;
+            word-break: break-all;
+            word-wrap: break-word;
+            /*在ie中解决断行问题(防止自动变为在一行显示，主要解决ie兼容问题，ie8中当设宽度为100%时，文本域类容超过一行时，
+            当我们双击文本内容就会自动变为一行显示，所以只能用ie的专有断行属性“word-break或word-wrap”控制其断行)*/
+            white-space: pre !important;
+        }
+
+    </style>
+    <script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+</head>
+<body>
+
+<div style="">
+<a href="#top" style="border-radius: 30px; border: 1px solid #ccc; border-image: none; width: 30px; text-align: center; left: 20px; bottom: 10px; line-height: 30px; display: inline-block; position: fixed; z-index: 2; background-color: #fff;">回到顶部</a>
+</div>
+
+<h3 id="top">javascript-basic-fmt-json-tools(JQ)</h3>
+
+<textarea id="json-data" style='max-height:200px;min-height:200px;'>
+{"success":true,"data":{"recording":{"id":"1120bbc7e7f544a3818793310da746aa20250402083939","createTime":"2025-04-02T16:39:41.042822225+08:00","clientTime":"2025-04-02T08:39:40.709Z","mode":"streaming","duration":0,"environment":{"device":{"appCodeName":"Mozilla","appName":"Netscape","appVersion":"5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36","deviceMemory":8,"hardwareConcurrency":8,"language":"zh-CN","languages":["zh-CN"],"platform":"Win32","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"},"screen":[1920,1080],"window":{"location":"https://juejin.cn/post/7106738165083275277","size":[918,937]},"document":{"title":"冷知识：不起眼但有用的String.raw方法String.raw String.raw是JavaScript中模板字符 - 掘金","size":[901,7065]},"version":"1.0.12.11"},"meta":{"appKey":"tea-2608","bytereplay.record_mode":"streaming","bytereplay.replay_mode":"Record","tags":[""]},"state":"Initialized","trackers":[100,200,400,500,600]},"transport":{"strategies":[{"name":"streaming-record","mode":"streaming","channelType":"websocket","url":"wss://bytereplay.zijieapi.com/stream/record/1120bbc7e7f544a3818793310da746aa20250402083939?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWQiOiIxMTIwYmJjN2U3ZjU0NGEzODE4NzkzMzEwZGE3NDZhYTIwMjUwNDAyMDgzOTM5IiwiaXNzIjoidGVhLTI2MDgiLCJzdWIiOiJTdHJlYW1SZWNvcmQiLCJleHAiOjE3NDM1ODM0ODF9.qMg4t2l7mBoCePiscQrgxYT0JlI9FFM1PJZJ1DpoAv0","packer":{"compression":{"mode":"raw"}},"config":{"bufferTime":1000,"bufferSize":100,"heartbeat":{"interval":3000,"timeout":9000},"retry":{"retries":10,"initialTimeout":1500,"maxTimeout":8000}}}]}},"message":"","code":"SUCCESS"}
+</textarea>
+
+<button id="json-data-btn">Generate</button>
+<button id="json-data-btn2">Generate2</button>
+
+<div id="json-data-result"></div>
+<script type="text/javascript">
+
+	var autosize = require('autosize');
+
+	function generate() {
+		var input = $("#json-data")[0].value
+		var out = {demo:"", demo2:""}
+		run(0, input, 0, out)
+        $("#json-data-result").html($("<textarea>").val(out.demo));
+		autosize(document.querySelectorAll("textarea"));
+	}
+
+	function generate2() {
+		var input = $("#json-data")[0].value
+		var out = {demo:"", demo2:""}
+		run(0, input, 0, out)
+		run2(out)
+        $("#json-data-result").html($("<textarea>").val(out.demo2));
+		autosize(document.querySelectorAll("textarea"));
+	}
+
+	$(function() {
+		$("#json-data-btn").bind("click", generate);
+		$("#json-data-btn2").bind("click", generate2);
+		autosize(document.querySelectorAll("textarea"));
+	});
+
+
+var sp_1 = ['{', '}']
+var sp_2 = ['[', ']']
+var sp_3 = '\\'
+var sp_4 = ','
+var sp_5 = '"'
+var spec = '\t'
+var bk = '\n'
+var level = 0
+
+// 针对 `"` 判断内容是否闭合
+// 针对 `{` 判断内容是否闭合
+// 针对 `[` 判断内容是否闭合
+
+// var out = {demo:"", demo2:""}
+function run(indx, data, level, out){
+	var cur_sp1 = false
+	var cur_sp2 = false
+	var cur_sp11 = false
+	var cur_sp12 = false
+	var cur_sp51 = false
+	var cur_sp52 = false
+	var cur_tab = tab(level, spec)
+	var cur = indx
+	out.demo += cur_tab
+	for(; cur < data.length; cur++){
+		// 当前内容
+		var ch = data[cur]
+		var chn = (cur + 1) < data.length ? data[cur + 1] : ''
+		// console.info(ch)
+
+		// `{` `[`
+		cur_sp1 = ch === sp_1[0] && !cur_sp51 && !cur_sp52
+		cur_sp2 = ch === sp_2[0] && !cur_sp51 && !cur_sp52
+		if(cur_sp1 || cur_sp2){
+			out.demo += ch
+			out.demo += bk
+			var ret = run(cur + 1, data, level + 1, out)
+			cur = ret
+			continue
+		}
+
+		// `}` `]`
+		cur_sp11 = ch === sp_1[1] && !cur_sp51 && !cur_sp52
+		cur_sp21 = ch === sp_2[1] && !cur_sp51 && !cur_sp52
+		if(cur_sp11 || cur_sp21){
+			out.demo += bk
+			out.demo += tab(level - 1, spec)
+			out.demo += ch
+			break
+		}
+
+		if(cur_sp51 && !cur_sp52){
+			cur_sp52 = ch === sp_5 && data[cur - 1] !== sp_3
+		}
+
+		if(!cur_sp51){
+			cur_sp51 = ch === sp_5
+		}
+
+		if(cur_sp51 && cur_sp52){
+			cur_sp51 = false
+			cur_sp52 = false
+		}
+
+		// 正常文本处理
+		out.demo += ch
+		if(ch === sp_4 && !cur_sp51 && !cur_sp52){
+			out.demo += bk
+			out.demo += cur_tab
+		}
+
+	}
+	return cur
+}
+
+function tab(level, v){
+	var spec = ''
+	for(var i = 0; i < level; i++){
+		spec += v
+	}
+	return spec
+}
+
+function run2(out){
+	var ary = out.demo.split("\n")
+	for(var i = 0; i < ary.length; i++){
+		var temp = ary[i].trim();
+		out.demo2 += temp
+	}
+}
+
+</script>
+</body>
+</html>

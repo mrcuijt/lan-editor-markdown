@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>javascript-basic-fmt-json</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+
+<!--
+// 示例 1
+{"success":true,"data":{"recording":{"id":"1120bbc7e7f544a3818793310da746aa20250402083939","createTime":"2025-04-02T16:39:41.042822225+08:00","clientTime":"2025-04-02T08:39:40.709Z","mode":"streaming","duration":0,"environment":{"device":{"appCodeName":"Mozilla","appName":"Netscape","appVersion":"5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36","deviceMemory":8,"hardwareConcurrency":8,"language":"zh-CN","languages":["zh-CN"],"platform":"Win32","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"},"screen":[1920,1080],"window":{"location":"https://juejin.cn/post/7106738165083275277","size":[918,937]},"document":{"title":"冷知识：不起眼但有用的String.raw方法String.raw String.raw是JavaScript中模板字符 - 掘金","size":[901,7065]},"version":"1.0.12.11"},"meta":{"appKey":"tea-2608","bytereplay.record_mode":"streaming","bytereplay.replay_mode":"Record","tags":[""]},"state":"Initialized","trackers":[100,200,400,500,600]},"transport":{"strategies":[{"name":"streaming-record","mode":"streaming","channelType":"websocket","url":"wss://bytereplay.zijieapi.com/stream/record/1120bbc7e7f544a3818793310da746aa20250402083939?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWQiOiIxMTIwYmJjN2U3ZjU0NGEzODE4NzkzMzEwZGE3NDZhYTIwMjUwNDAyMDgzOTM5IiwiaXNzIjoidGVhLTI2MDgiLCJzdWIiOiJTdHJlYW1SZWNvcmQiLCJleHAiOjE3NDM1ODM0ODF9.qMg4t2l7mBoCePiscQrgxYT0JlI9FFM1PJZJ1DpoAv0","packer":{"compression":{"mode":"raw"}},"config":{"bufferTime":1000,"bufferSize":100,"heartbeat":{"interval":3000,"timeout":9000},"retry":{"retries":10,"initialTimeout":1500,"maxTimeout":8000}}}]}},"message":"","code":"SUCCESS"}
+```
+
+```js
+// 示例 2
+{"body":[[{"cmd":"INTERACT_WORD","data":{"contribution":{"grade":0},"dmscore":16,"fans_medal":{"anchor_roomid":22637261,"guard_level":0,"icon_id":0,"is_lighted":1,"medal_color":12478086,"medal_color_border":12478086,"medal_color_end":12478086,"medal_color_start":12478086,"medal_level":15,"medal_name":"嘉心糖","score":90102,"special":"","target_id":672328094},"identities":[3,1],"is_spread":0,"msg_type":1,"privilege_type":0,"roomid":22603245,"score":1672602665614,"spread_desc":"","spread_info":"","tail_icon":0,"timestamp":1672502563,"trigger_time":1672502562480777700,"uid":388440175,"uname":"v2fly","uname_color":""}},{"cmd":"INTERACT_WORD","data":{"contribution":{"grade":0},"dmscore":14,"fans_medal":{"anchor_roomid":22603245,"guard_level":0,"icon_id":0,"is_lighted":1,"medal_color":12478086,"medal_color_border":12478086,"medal_color_end":12478086,"medal_color_start":12478086,"medal_level":13,"medal_name":"雏草姬","score":38220,"special":"","target_id":1265680561},"identities":[3,1],"is_spread":0,"msg_type":1,"privilege_type":0,"roomid":22603245,"score":1672550783230,"spread_desc":"","spread_info":"","tail_icon":0,"timestamp":1672502563,"trigger_time":1672502562086096100,"uid":476004194,"uname":"居然是陈皮哎","uname_color":""}},{"cmd":"DANMU_MSG","info":[[0,1,25,5816798,1672502564313,-918406842,0,"3ee68759",0,0,0,"",1,{"bulge_display":0,"emoticon_unique":"official_147","height":60,"in_player_area":1,"is_dynamic":0,"url":"http://i0.hdslb.com/bfs/live/bbd9045570d0c022a984c637e406cb0e1f208aa9.png","width":150},"{}",{"mode":0,"show_player_type":0,"extra":"{\"send_from_me\":false,\"mode\":0,\"color\":5816798,\"dm_type\":1,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"赞\",\"user_hash\":\"1055295321\",\"emoticon_unique\":\"official_147\",\"bulge_display\":0,\"recommend_score\":8,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null}"},{"activity_identity":"","activity_source":0,"not_show":0}],"赞",[368041673,"什么_在想我的事",0,0,0,10000,1,""],[16,"雏草姬","永雏塔菲",22603245,12478086,"",0,12478086,12478086,12478086,0,1,1265680561],[5,0,9868950,">50000",0],["",""],0,0,null,{"ts":1672502564,"ct":"447C64BA"},0,0,null,null,0,63]},{"cmd":"ONLINE_RANK_COUNT","data":{"count":4551}},{"cmd":"DANMU_MSG","info":[[0,1,25,5816798,1672502564463,65255138,0,"f5fccdf9",0,0,0,"",0,"{}","{}",{"mode":0,"show_player_type":0,"extra":"{\"send_from_me\":false,\"mode\":0,\"color\":5816798,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"好好好\",\"user_hash\":\"4126985721\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":3,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null}"},{"activity_identity":"","activity_source":0,"not_show":0}],"好好好",[511066718,"一只萌新沈梦溪",0,0,0,10000,1,""],[15,"雏草姬","永雏塔菲",22603245,12478086,"",0,12478086,12478086,12478086,0,1,1265680561],[1,0,9868950,">50000",0],["",""],0,0,null,{"ts":1672502564,"ct":"D8541F57"},0,0,null,null,0,63]},{"cmd":"DANMU_MSG","info":[[0,1,25,16777215,1672502564545,-1199628639,0,"1824046e",0,0,0,"",0,"{}","{}",{"mode":0,"show_player_type":0,"extra":"{\"send_from_me\":false,\"mode\":0,\"color\":16777215,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"新年快乐喵！\",\"user_hash\":\"405013614\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":6,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null}"},{"activity_identity":"","activity_source":0,"not_show":0}],"新年快乐喵！",[1825222863,"小小阿拉维",0,0,0,10000,1,""],[],[0,0,9868950,">50000",0],["",""],0,0,null,{"ts":1672502564,"ct":"8E39D28E"},0,0,null,null,0,7]},{"cmd":"SEND_GIFT","data":{"action":"投喂","batch_combo_id":"batch:gift:combo_id:37025534:1265680561:32479:1672502564.5541","batch_combo_send":{"action":"投喂","batch_combo_id":"batch:gift:combo_id:37025534:1265680561:32479:1672502564.5541","batch_combo_num":1,"blind_gift":null,"gift_id":32479,"gift_name":"利是糖","gift_num":1,"send_master":null,"uid":37025534,"uname":"Ayamita_彩"},"beatId":"0","biz_source":"Live","blind_gift":null,"broadcast_id":0,"coin_type":"gold","combo_resources_id":1,"combo_send":{"action":"投喂","combo_id":"gift:combo_id:37025534:1265680561:32479:1672502564.5526","combo_num":1,"gift_id":32479,"gift_name":"利是糖","gift_num":1,"send_master":null,"uid":37025534,"uname":"Ayamita_彩"},"combo_stay_time":3,"combo_total_coin":1000,"crit_prob":0,"demarcation":2,"discount_price":1000,"dmscore":72,"draw":0,"effect":0,"effect_block":0,"face":"https://i2.hdslb.com/bfs/face/1aeb1209710be9ad2d7a5906118c99a0222d6777.jpg","face_effect_id":0,"face_effect_type":0,"float_sc_resource_id":0,"giftId":32479,"giftName":"利是糖","giftType":0,"gold":0,"guard_level":0,"is_first":true,"is_join_receiver":false,"is_naming":false,"is_special_batch":0,"magnification":1,"medal_info":{"anchor_roomid":0,"anchor_uname":"","guard_level":0,"icon_id":0,"is_lighted":1,"medal_color":12478086,"medal_color_border":12478086,"medal_color_end":12478086,"medal_color_start":12478086,"medal_level":16,"medal_name":"雏草姬","special":"","target_id":1265680561},"name_color":"","num":1,"original_gift_name":"","price":1000,"rcost":67415643,"receive_user_info":{"uid":1265680561,"uname":"永雏塔菲"},"remain":0,"rnd":"1672502564111400003","send_master":null,"silver":0,"super":0,"super_batch_gift_num":1,"super_gift_num":1,"svga_block":0,"switch":true,"tag_image":"","tid":"1672502564111400003","timestamp":1672502564,"top_list":null,"total_coin":1000,"uid":37025534,"uname":"Ayamita_彩"}},{"cmd":"DANMU_MSG","info":[[0,1,25,5566168,1672502564769,-234872878,0,"294f9044",0,0,0,"",0,"{}","{}",{"mode":0,"show_player_type":0,"extra":"{\"send_from_me\":false,\"mode\":0,\"color\":5566168,\"dm_type\":0,\"font_size\":25,\"player_mode\":1,\"show_player_type\":0,\"content\":\"新年快乐喵\",\"user_hash\":\"693080132\",\"emoticon_unique\":\"\",\"bulge_display\":0,\"recommend_score\":0,\"main_state_dm_color\":\"\",\"objective_state_dm_color\":\"\",\"direction\":0,\"pk_direction\":0,\"quartet_direction\":0,\"anniversary_crowd\":0,\"yeah_space_type\":\"\",\"yeah_space_url\":\"\",\"jump_to_url\":\"\",\"space_type\":\"\",\"space_url\":\"\",\"animation\":{},\"emots\":null}"},{"activity_identity":"","activity_source":0,"not_show":0}],"新年快乐喵",[518685186,"蒙德的猫",0,0,0,10000,1,""],[5,"不逊啦","EggyEggy氮氮",587702,6126494,"",0,6126494,6126494,6126494,0,1,314516],[6,0,9868950,">50000",0],["",""],0,0,null,{"ts":1672502564,"ct":"E85644E3"},0,0,null,null,0,21]},{"cmd":"DANMU_AGGREGATION","data":{"activity_identity":"3662802","activity_source":1,"aggregation_cycle":1,"aggregation_icon":"https://i0.hdslb.com/bfs/live/c8fbaa863bf9099c26b491d06f9efe0c20777721.png","aggregation_num":999,"broadcast_msg_type":0,"dmscore":144,"msg":"新年快乐喵","show_rows":1,"show_time":2,"timestamp":1672502565}},{"cmd":"INTERACT_WORD","data":{"contribution":{"grade":0},"dmscore":18,"fans_medal":{"anchor_roomid":22603245,"guard_level":0,"icon_id":0,"is_lighted":1,"medal_color":1725515,"medal_color_border":1725515,"medal_color_end":5414290,"medal_color_start":1725515,"medal_level":21,"medal_name":"雏草姬","score":50001810,"special":"","target_id":1265680561},"identities":[3,1],"is_spread":0,"msg_type":1,"privilege_type":0,"roomid":22603245,"score":1722514374469,"spread_desc":"","spread_info":"","tail_icon":0,"timestamp":1672502564,"trigger_time":1672502563335890000,"uid":499506488,"uname":"绫紴纚","uname_color":""}},{"cmd":"INTERACT_WORD","data":{"contribution":{"grade":0},"dmscore":16,"fans_medal":{"anchor_roomid":22676119,"guard_level":0,"icon_id":0,"is_lighted":0,"medal_color":1725515,"medal_color_border":12632256,"medal_color_end":12632256,"medal_color_start":12632256,"medal_level":23,"medal_name":"喵喵露","score":50005736,"special":"","target_id":697091119},"identities":[1],"is_spread":0,"msg_type":1,"privilege_type":0,"roomid":22603245,"score":1672502564210,"spread_desc":"","spread_info":"","tail_icon":0,"timestamp":1672502564,"trigger_time":1672502563083509800,"uid":89370502,"uname":"大喵u","uname_color":""}}]],"packetLen":2019,"headerLen":16,"ver":3,"op":5,"seq":0}
+```
+
+```js
+// 示例 3
+{"settings":{"csv":"","hoverTooltip":true,"deeplinking":true,"sidebar":true,"rightSidebar":false,"toggleSidebar":true,"thumbnails":false,"sidebarWidth":"300px","sidebarClosed":false,"ordered":true,"orderBy":"title","portrait":480,"maxZoom":3,"mapWidth":500,"mapHeight":500,"animations":false,"filters":true,"filtersOpened":false,"layer":"L1","location":null,"css":".mapplic-dir-item.mapplic-list-item{padding: 12px 16px;} .mapplic-dir-item.mapplic-active{background-color: #efebf2;} .mapplic-dir-item h5{line-height: 1;} .tooltip-header{color: var(--primary);} .tooltip-opening-hour{color: var(--neutral-500);} .mapplic-marker{display: none} .text, .text>path{fill: #8f8d91} polygon, path, polyline, rect{fill: #EFEBF2;} \n.restaurant-container{--polygon-color: #cdb7e2;} .shop-container{--polygon-color: #EFEBF2;}\n\n\n.restaurant-container.mapplic-highlight, .shop-container.mapplic-highlight{--polygon-color: #c6c2c9;}\n.restaurant-container.mapplic-active, .shop-container.mapplic-active{--polygon-color:#8451A7;}\n\n\n.restaurant-container > polygon, .restaurant-container > path, .restaurant-container > polyline, .restaurant-container > rect, .shop-container > polygon, .shop-container > path, .shop-container > polyline, .shop-container > rect {fill: var(--polygon-color) !important; transition: 0.12s color;} \n\n.restaurant-container .text > *, .shop-container .text > * {fill:#8451A7;}\n.restaurant-container.mapplic-active .text > *, .shop-container.mapplic-active .text > *{fill:white !important; } .mapplic-thumbnail > img {\r\n\tfilter: grayscale(100%);\r\n\topacity: 0.5;\r\n}\r\n\r\n.mapplic-dir-item:hover .mapplic-thumbnail img,\r\n.mapplic-dir-item.mapplic-active .mapplic-thumbnail img {\r\n\tfilter: grayscale(0%);\r\n\topacity: 1;\r\n}\r\n\r\n.mapplic-thumbnail > img {\r\n    object-fit: contain;\r\n}\r\n\r\n.mapplic-popup-image > img {\r\n    object-fit: contain;\r\n    padding: 8px;\r\n    box-sizing: border-box;\r\n}","primaryColor":"#8451A7","fullscreen":"bottom-left","layerSwitcher":"top-right","resetButton":"bottom-right","zoomButtons":"bottom-right","zoom":true,"geo":false,"groupBy":true,"filtersAlwaysVisible":false,"csvEnabled":false,"moreText":"\u66f4\u591a","mouseWheel":true,"wayfinding":false,"wayfindingSpeed":3,"wayfindingAccessibility":false,"wayfindingControls":"top-left","wayfindingSmoothing":4,"wayfindingLineColor":"#8451a7","wayfindingOpened":false,"hoverAbout":false,"wayfindingFixedFrom":"","legend":true,"legendLabel":"bottom-right","title":"\u5929\u73af Parc Central","searchText":"\u641c\u5bfb","clearText":"\u6e05\u695a","foundText":"\u9879\u7ed3\u679c"},"groups":[{"id":"shopping","name":"\u65f6\u5c1a\u8d2d\u7269","legend":"true","polygonColor":"#EFEBF2","color":"#8451a7"},{"id":"dining","name":"\u7f8e\u98df\u835f\u8403","legend":"true","polygonColor":"#cdb7e2","color":"#8451a7"}],"layers":[{"id":"B2","name":"B2","file":"..\/storage\/maps\/B2.svg"},{"id":"B1","name":"B1","file":"..\/storage\/maps\/B1.svg"},{"id":"L1","name":"L1","file":"..\/storage\/maps\/L1.svg"},{"id":"L2","name":"L2","file":"..\/storage\/maps\/L2.svg"}],"locations":[{"id":"B104","shopId":107,"title":"OSIM\u50b2\u80dc","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/107","group":"shopping","layer":"B1","isShop":true},{"id":"B105","shopId":357,"title":"\u592a\u98df\u7378\u6cf0\u5f0f\u8336\u9910\u5385","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u4e94\uff1a11:00-14:30 16:30-21:00 \u5468\u516d\u3001\u5468\u65e5\u53ca\u8282\u5047\u65e5\uff1a11:30-21:00<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/357","group":"dining","layer":"B1","isShop":false},{"id":"B106","shopId":357,"title":"\u592a\u98df\u7378\u6cf0\u5f0f\u8336\u9910\u5385","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u4e94\uff1a11:00-14:30 16:30-21:00 \u5468\u516d\u3001\u5468\u65e5\u53ca\u8282\u5047\u65e5\uff1a11:30-21:00<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/357","group":"dining","layer":"B1","isShop":false},{"id":"B107","shopId":319,"title":"Ubras","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/319","group":"shopping","layer":"B1","isShop":true},{"id":"B108","shopId":143,"title":"\u5468\u751f\u751f\u73e0\u5b9d","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/143","group":"shopping","layer":"B1","isShop":true},{"id":"B109-111","shopId":68,"title":"Massimo Dutti","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/68","group":"shopping","layer":"B1","isShop":true},{"id":"B112","shopId":172,"title":"Sisley PARIS","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/172","group":"shopping","layer":"B1","isShop":true},{"id":"B113","shopId":273,"title":"HR\u8d6b\u83b2\u5a1c","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/273","group":"shopping","layer":"B1","isShop":true},{"id":"B114","shopId":397,"title":"CHARLES & KEITH","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u76ae\u5177\u7528\u54c1\u3001\u978b\u7c7b\u53ca\u624b\u888b","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/397","group":"shopping","layer":"B1","isShop":true},{"id":"B116","shopId":96,"title":"Pizza Marzano\u6bd4\u8428\u739b\u5c1a\u8bfa","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u897f\u5f0f\u73cd\u9990","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/96","group":"dining","layer":"B1","isShop":false},{"id":"B118","shopId":372,"title":"LA PRAIRIE\u83b1\u73c0\u59ae","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/372","group":"shopping","layer":"B1","isShop":true},{"id":"B119","shopId":170,"title":"ARMANI Beauty \u963f\u739b\u5c3c\u7f8e\u5986","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/170","group":"shopping","layer":"B1","isShop":true},{"id":"B121","shopId":385,"title":"Penhaligons\u6f58\u6d77\u5229\u6839","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/385","group":"shopping","layer":"B1","isShop":true},{"id":"B122","shopId":448,"title":"JO MALONE LONDON","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/448","group":"shopping","layer":"B1","isShop":true},{"id":"B123","shopId":77,"title":"Vietmiam \u835f\u6b23\u00b7\u8d8a\u5357","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:30-22:00<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/77","group":"dining","layer":"B1","isShop":false},{"id":"B127","shopId":420,"title":"CHICJOC","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/420","group":"shopping","layer":"B1","isShop":true},{"id":"B129","shopId":94,"title":"Abercrombie&Fitch","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/94","group":"shopping","layer":"B1","isShop":true},{"id":"B130-131","shopId":60,"title":"H&M","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/60","group":"shopping","layer":"B1","isShop":true},{"id":"B133","shopId":214,"title":"DAZZLE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/214","group":"shopping","layer":"B1","isShop":true},{"id":"B134","shopId":212,"title":"\u55ae\u8fb2","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/212","group":"shopping","layer":"B1","isShop":true},{"id":"B135","shopId":62,"title":"MO&Co.","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/62","group":"shopping","layer":"B1","isShop":true},{"id":"B136","shopId":325,"title":"RAZZLE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/325","group":"shopping","layer":"B1","isShop":true},{"id":"B137a","shopId":250,"title":"NEIWAI\u5185\u5916","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/250","group":"shopping","layer":"B1","isShop":true},{"id":"B137b","shopId":439,"title":"ROCK&RIDE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/439","group":"shopping","layer":"B1","isShop":true},{"id":"B137c","shopId":405,"title":"President\u603b\u7edf\u773c\u955c","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/405","group":"shopping","layer":"B1","isShop":true},{"id":"B138a","shopId":127,"title":"JINS\u775b\u59ff","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/127","group":"shopping","layer":"B1","isShop":true},{"id":"B138c","shopId":229,"title":"73 hours","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u76ae\u5177\u7528\u54c1\u3001\u978b\u7c7b\u53ca\u624b\u888b","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/229","group":"shopping","layer":"B1","isShop":true},{"id":"B139","shopId":380,"title":"PANDORA\u6f58\u591a\u62c9\u73e0\u5b9d","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/380","group":"shopping","layer":"B1","isShop":true},{"id":"B140","shopId":79,"title":"GODIVA\u6b4c\u5e1d\u68b5","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/79","group":"dining","layer":"B1","isShop":false},{"id":"B141-142","shopId":216,"title":"ZARA HOME","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/216","group":"shopping","layer":"B1","isShop":true},{"id":"B143-144","shopId":213,"title":"OYSHO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/213","group":"shopping","layer":"B1","isShop":true},{"id":"B146","shopId":166,"title":"Kiehl's \u79d1\u989c\u6c0f","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/166","group":"shopping","layer":"B1","isShop":true},{"id":"B148","shopId":302,"title":"Acqua di Parma \u5e15\u5c14\u739b\u4e4b\u6c34","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/302","group":"shopping","layer":"B1","isShop":true},{"id":"B150","shopId":368,"title":"DIPTYQUE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/368","group":"shopping","layer":"B1","isShop":true},{"id":"B151","shopId":374,"title":"inLESS","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/374","group":"shopping","layer":"B1","isShop":true},{"id":"B152a","shopId":354,"title":"ARKET","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/354","group":"shopping","layer":"B1","isShop":true},{"id":"B152b","shopId":393,"title":"GIVENCHY\u7eaa\u68b5\u5e0c","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/393","group":"shopping","layer":"B1","isShop":true},{"id":"B153","shopId":283,"title":"Guerlain\u6cd5\u56fd\u5a07\u5170","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/283","group":"shopping","layer":"B1","isShop":true},{"id":"B154","shopId":139,"title":"Cl\u00e9 de Peau Beaut\u00e9 \u808c\u80a4\u4e4b\u94a5","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/139","group":"shopping","layer":"B1","isShop":true},{"id":"B155","shopId":389,"title":"Maison Francis Kurkdjian \u68b5\u8bd7\u67ef\u9999","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/389","group":"shopping","layer":"B1","isShop":true},{"id":"B156","shopId":257,"title":"Shu Uemura\u690d\u6751\u79c0","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/257","group":"shopping","layer":"B1","isShop":true},{"id":"B158","shopId":227,"title":"NARS","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/227","group":"shopping","layer":"B1","isShop":true},{"id":"B159-160","shopId":53,"title":"COS","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/53","group":"shopping","layer":"B1","isShop":true},{"id":"B161","shopId":425,"title":"UYHO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/425","group":"shopping","layer":"B1","isShop":true},{"id":"B163","shopId":381,"title":"MAXRIENY","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/381","group":"shopping","layer":"B1","isShop":true},{"id":"B164-165","shopId":373,"title":"Edition","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/373","group":"shopping","layer":"B1","isShop":true},{"id":"B166","shopId":331,"title":"Shake Shack","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u897f\u5f0f\u73cd\u9990","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/331","group":"dining","layer":"B1","isShop":false},{"id":"B167","shopId":404,"title":"COVEN GARDEN","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/404","group":"shopping","layer":"B1","isShop":true},{"id":"B168","shopId":363,"title":"PlaySERIOUS\u73a9\u7269\u5c1a\u81f4","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/363","group":"shopping","layer":"B1","isShop":true},{"id":"B169","shopId":390,"title":"JNBY\u6c5f\u5357\u5e03\u8863","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/390","group":"shopping","layer":"B1","isShop":true},{"id":"B171","shopId":350,"title":"\u901f\u5199CROQUIS","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/350","group":"shopping","layer":"B1","isShop":true},{"id":"B172","shopId":347,"title":"RedlineParis","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/347","group":"shopping","layer":"B1","isShop":true},{"id":"B201","shopId":145,"title":"Watsons\u5c48\u81e3\u6c0f","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/145","group":"shopping","layer":"B2","isShop":true},{"id":"B202-203","shopId":242,"title":"d\u2019zzit","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/242","group":"shopping","layer":"B2","isShop":true},{"id":"B204","shopId":289,"title":"JORYA","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/289","group":"shopping","layer":"B2","isShop":true},{"id":"B208","shopId":259,"title":"TIGI\u00d7IL COLPO \u660e\u661f\u5e97","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/259","group":"shopping","layer":"B2","isShop":true},{"id":"B209","shopId":57,"title":"\u7131\u94c1\u70e7","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u4e94\uff1a11:00-22:00 \u5468\u516d\u3001\u5468\u65e5\u53ca\u8282\u5047\u65e5\uff1a11:00-22:30<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/57","group":"dining","layer":"B2","isShop":false},{"id":"B210","shopId":313,"title":"DJI\u5927\u7586","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5f71\u97f3\u3001\u5bb6\u7535\u53ca\u6570\u7801\u4ea7\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/313","group":"shopping","layer":"B2","isShop":true},{"id":"B211","shopId":244,"title":"Donoratico\u8fbe\u8863\u5ca9","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/244","group":"shopping","layer":"B2","isShop":true},{"id":"B212","shopId":104,"title":"New Balance","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/104","group":"shopping","layer":"B2","isShop":true},{"id":"B213","shopId":438,"title":"store by .jpg","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u56db\uff1a09:00-21:30 \u5468\u4e94\u3001\u5468\u516d\uff1a08:00-22:00 \u5468\u65e5\uff1a09:00-21:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/438","group":"dining","layer":"B2","isShop":false},{"id":"B215b","shopId":400,"title":"Crocs","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u76ae\u5177\u7528\u54c1\u3001\u978b\u7c7b\u53ca\u624b\u888b","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/400","group":"shopping","layer":"B2","isShop":true},{"id":"B216","shopId":86,"title":"\u5947\u83ef\u9905\u5bb6","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/86","group":"dining","layer":"B2","isShop":false},{"id":"B217","shopId":87,"title":"Aape","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/87","group":"shopping","layer":"B2","isShop":true},{"id":"B218","shopId":88,"title":"\u661f\u7f8e\u4e50","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u897f\u5f0f\u73cd\u9990","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/88","group":"dining","layer":"B2","isShop":false},{"id":"B219a","shopId":196,"title":"\u6995\u610f","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:00-21:30<\/div>","about":"\u4e2d\u5f0f\u4f73\u80b4","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/196","group":"dining","layer":"B2","isShop":false},{"id":"B219b","shopId":74,"title":"\u81fb\u54c1\u00b7\u5c0f\u70b3\u80dc","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:00-15:00 16:30-22:00<\/div>","about":"\u4e2d\u5f0f\u4f73\u80b4","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/74","group":"dining","layer":"B2","isShop":false},{"id":"B220","shopId":411,"title":"HOKA","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/411","group":"shopping","layer":"B2","isShop":true},{"id":"B221","shopId":408,"title":"KEEN","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/408","group":"shopping","layer":"B2","isShop":true},{"id":"B222","shopId":55,"title":"ASIA TABLE\u805a\u8549","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:00-21:30<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/55","group":"dining","layer":"B2","isShop":false},{"id":"B223","shopId":335,"title":"HEFANG","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/335","group":"shopping","layer":"B2","isShop":true},{"id":"B224","shopId":386,"title":"BLACKHEAD\u9ed1\u5934","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/386","group":"shopping","layer":"B2","isShop":true},{"id":"B227","shopId":102,"title":"Hollister","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/102","group":"shopping","layer":"B2","isShop":true},{"id":"B228","shopId":429,"title":"\u8611\u754cMORE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:00-16:00 17:00-21:30<\/div>","about":"\u4e2d\u5f0f\u4f73\u80b4","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/429","group":"dining","layer":"B2","isShop":false},{"id":"B229-231","shopId":60,"title":"H&M","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/60","group":"shopping","layer":"B2","isShop":true},{"id":"B234","shopId":384,"title":"\u5e7f\u5929\u85cf\u54c1","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/384","group":"shopping","layer":"B2","isShop":true},{"id":"B235","shopId":449,"title":"\u5b98\u6808","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/449","group":"shopping","layer":"B2","isShop":true},{"id":"B238","shopId":200,"title":"\u516d\u798f\u73e0\u5b9d","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/200","group":"shopping","layer":"B2","isShop":true},{"id":"B240","shopId":113,"title":"Onitsuka Tiger","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/113","group":"shopping","layer":"B2","isShop":true},{"id":"B243","shopId":294,"title":"ASICS\u4e9a\u745f\u58eb","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/294","group":"shopping","layer":"B2","isShop":true},{"id":"B248","shopId":375,"title":"\u5468\u5927\u798f\u835f\u9986JEWELRIA","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/375","group":"shopping","layer":"B2","isShop":true},{"id":"B249","shopId":376,"title":"\u6f6e\u5b8f\u57fa","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/376","group":"shopping","layer":"B2","isShop":true},{"id":"B250","shopId":299,"title":"gaga Garden","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u897f\u5f0f\u73cd\u9990","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/299","group":"dining","layer":"B2","isShop":false},{"id":"B251","shopId":221,"title":"\u5143\u6c17\u5bff\u53f8","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/221","group":"dining","layer":"B2","isShop":false},{"id":"B252a","shopId":311,"title":"WASAI LIVING","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/311","group":"shopping","layer":"B2","isShop":true},{"id":"B252b","shopId":81,"title":"PAPER STONE BAKERY","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/81","group":"dining","layer":"B2","isShop":false},{"id":"B254","shopId":306,"title":"\u5948\u96ea\u7684\u8336PRO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/306","group":"dining","layer":"B2","isShop":false},{"id":"B255","shopId":422,"title":"\u9ad8\u5730\u5a01\u58eb\u5fcc","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/422","group":"dining","layer":"B2","isShop":false},{"id":"B256","shopId":424,"title":"BLUEGLASS YOGURT","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/424","group":"dining","layer":"B2","isShop":false},{"id":"B257","shopId":199,"title":"BEAST\u91ce\u517d\u6d3e","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/199","group":"shopping","layer":"B2","isShop":true},{"id":"B258","shopId":414,"title":"\u963f\u5b37\u624b\u4f5c","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/414","group":"dining","layer":"B2","isShop":false},{"id":"B261","shopId":284,"title":"AITU","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/284","group":"shopping","layer":"B2","isShop":true},{"id":"B263","shopId":210,"title":"ECCO\u7231\u6b65","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u76ae\u5177\u7528\u54c1\u3001\u978b\u7c7b\u53ca\u624b\u888b","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/210","group":"shopping","layer":"B2","isShop":true},{"id":"B264","shopId":263,"title":"Champion","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/263","group":"shopping","layer":"B2","isShop":true},{"id":"B265","shopId":432,"title":"FPA","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/432","group":"shopping","layer":"B2","isShop":true},{"id":"B267","shopId":296,"title":"PSO Brand","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/296","group":"shopping","layer":"B2","isShop":true},{"id":"B268","shopId":197,"title":"\u6728\u4e5d\u5341MUJOSH","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/197","group":"shopping","layer":"B2","isShop":true},{"id":"B269","shopId":252,"title":"Ochirly","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/252","group":"shopping","layer":"B2","isShop":true},{"id":"L101b","shopId":233,"title":"YSL","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5f62\u8c61\u5347\u7ea7\u4e2d<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/233","group":"shopping","layer":"L1","isShop":true},{"id":"L101d","shopId":228,"title":"ARCTERYX\u59cb\u7956\u9e1f","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/228","group":"shopping","layer":"L1","isShop":true},{"id":"L102b","shopId":392,"title":"EVISU","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/392","group":"shopping","layer":"L1","isShop":true},{"id":"L102c","shopId":111,"title":"JORDAN 218 TIANHE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/111","group":"shopping","layer":"L1","isShop":true},{"id":"L108","shopId":338,"title":"\u8fea\u6851\u7279DESCENTE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/338","group":"shopping","layer":"L1","isShop":true},{"id":"L109a","shopId":342,"title":"ZENITH\u771f\u529b\u65f6","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/342","group":"shopping","layer":"L1","isShop":true},{"id":"L109b","shopId":346,"title":"BREITLING\u767e\u5e74\u7075","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/346","group":"shopping","layer":"L1","isShop":true},{"id":"L110","shopId":186,"title":"APM Monaco","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/186","group":"shopping","layer":"L1","isShop":true},{"id":"L111","shopId":144,"title":"TUDOR\u5e1d\u8235\u8868- \u4e1c\u65b9\u8868\u884c","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/144","group":"shopping","layer":"L1","isShop":true},{"id":"L112","shopId":407,"title":"GUCCI","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/407","group":"shopping","layer":"L1","isShop":true},{"id":"L115a","shopId":134,"title":"\u7279\u65af\u62c9Tesla","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6c7d\u8f66","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/134","group":"shopping","layer":"L1","isShop":true},{"id":"L116","shopId":134,"title":"\u7279\u65af\u62c9Tesla","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6c7d\u8f66","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/134","group":"shopping","layer":"L1","isShop":true},{"id":"L117","shopId":426,"title":"AIGLE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/426","group":"shopping","layer":"L1","isShop":true},{"id":"L121","shopId":149,"title":"ROLEX\u52b3\u529b\u58eb - \u4e1c\u65b9\u8868\u884c","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/149","group":"shopping","layer":"L1","isShop":true},{"id":"L123","shopId":23,"title":"Apple Store","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5f71\u97f3\u3001\u5bb6\u7535\u53ca\u6570\u7801\u4ea7\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/23","group":"shopping","layer":"L1","isShop":true},{"id":"L124","shopId":398,"title":"Ami Paris","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/398","group":"shopping","layer":"L1","isShop":true},{"id":"L125","shopId":417,"title":"Aesop\u4f0a\u7d22","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/417","group":"shopping","layer":"L1","isShop":true},{"id":"L127a","shopId":365,"title":"DJULA","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/365","group":"shopping","layer":"L1","isShop":true},{"id":"L127b","shopId":366,"title":"GENTLE MONSTER","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/366","group":"shopping","layer":"L1","isShop":true},{"id":"L128","shopId":440,"title":"GOLDEN GOOSE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/440","group":"shopping","layer":"L1","isShop":true},{"id":"L209","shopId":367,"title":"\u8302\u00b7\u9ba8\u9020 OMAKASE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u4e94\uff1a11:30-14:00 17:30-22:00 \u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a11:30-22:30 \u5468\u65e5\uff1a11:30-22:00<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/367","group":"dining","layer":"L2","isShop":false},{"id":"L210","shopId":443,"title":"\u8089\u8089\u5927\u7c73","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/443","group":"dining","layer":"L2","isShop":false},{"id":"L214","shopId":126,"title":"Optical88\u773c\u955c88","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/126","group":"shopping","layer":"L2","isShop":true},{"id":"L215b-216","shopId":308,"title":"\u6d45\u9505","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:00-21:30<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/308","group":"dining","layer":"L2","isShop":false},{"id":"L218","shopId":320,"title":"STUDIOUS TOKYO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/320","group":"shopping","layer":"L2","isShop":true},{"id":"L226","shopId":444,"title":"\u53bb\u8336\u5c71","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a09:00-22:30<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/444","group":"dining","layer":"L2","isShop":false},{"id":"B117","shopId":21,"title":"PALACE CINEMA\u767e\u4e3d\u5bab\u5f71\u57ce","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u4ee5\u7535\u5f71\u6392\u671f\u4e3a\u51c6<\/div>","about":"\u5f71\u9662","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/21","group":"shopping","layer":"B1","isShop":true},{"id":"B128","shopId":291,"title":"SNIDEL &  FRAYID","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/291","group":"shopping","layer":"B1","isShop":true},{"id":"B162","shopId":399,"title":"EVE LOM","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/399","group":"shopping","layer":"B1","isShop":true},{"id":"B205","shopId":427,"title":"RE\u2019VAN","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/427","group":"shopping","layer":"B2","isShop":true},{"id":"B206b","shopId":356,"title":"NO ONE ELSE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/356","group":"shopping","layer":"B2","isShop":true},{"id":"B207a","shopId":403,"title":"AOJO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/403","group":"shopping","layer":"B2","isShop":true},{"id":"B207b","shopId":370,"title":"Miele","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5f71\u97f3\u3001\u5bb6\u7535\u53ca\u6570\u7801\u4ea7\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/370","group":"shopping","layer":"B2","isShop":true},{"id":"B214","shopId":428,"title":"\u6caa\u4e0a\u9c9c\u5e08CHEF IN SHANGHAI","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u4e94\uff1a11:00-15:00 17:00-21:00 \u5468\u516d-\u5468\u65e5\u53ca\u8282\u5047\u65e5\uff1a11:00-22:00<\/div>","about":"\u4e2d\u5f0f\u4f73\u80b4","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/428","group":"dining","layer":"B2","isShop":false},{"id":"B237b","shopId":256,"title":"SHISEIDO PROFESSIONAL X IL COLPO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/256","group":"shopping","layer":"B2","isShop":true},{"id":"B237c","shopId":256,"title":"SHISEIDO PROFESSIONAL X IL COLPO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/256","group":"shopping","layer":"B2","isShop":true},{"id":"B239","shopId":351,"title":"CASIO\u5361\u897f\u6b27","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/351","group":"shopping","layer":"B2","isShop":true},{"id":"B262a","shopId":254,"title":"Ray-Ban\u96f7\u670b","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/254","group":"shopping","layer":"B2","isShop":true},{"id":"B262b","shopId":361,"title":"SECRETS'DOOR \u79d8\u5bc6\u4e4b\u95e8","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/361","group":"shopping","layer":"B2","isShop":true},{"id":"B266","shopId":383,"title":"UNDEFEATED","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/383","group":"shopping","layer":"B2","isShop":true},{"id":"L103a","shopId":251,"title":"NIKE KICKS LOUNGE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/251","group":"shopping","layer":"L1","isShop":true},{"id":"L105","shopId":262,"title":"HEYTEA LAB \u559c\u8336","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a09:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a09:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/262","group":"dining","layer":"L1","isShop":false},{"id":"L106","shopId":409,"title":"SALOMON","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/409","group":"shopping","layer":"L1","isShop":true},{"id":"L115b","shopId":395,"title":"Mardi Mercredi","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/395","group":"shopping","layer":"L1","isShop":true},{"id":"L119a","shopId":362,"title":"LA MER \u6d77\u84dd\u4e4b\u8c1c","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/362","group":"shopping","layer":"L1","isShop":true},{"id":"L119b","shopId":280,"title":"TOM FORD BEAUTY","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/280","group":"shopping","layer":"L1","isShop":true},{"id":"L119c-d","shopId":248,"title":"lululemon","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/248","group":"shopping","layer":"L1","isShop":true},{"id":"L202c","shopId":111,"title":"JORDAN 218 TIANHE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/111","group":"shopping","layer":"L2","isShop":true},{"id":"L202d","shopId":111,"title":"JORDAN 218 TIANHE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/111","group":"shopping","layer":"L2","isShop":true},{"id":"L204","shopId":388,"title":"Samsonite","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u76ae\u5177\u7528\u54c1\u3001\u978b\u7c7b\u53ca\u624b\u888b","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/388","group":"shopping","layer":"L2","isShop":true},{"id":"L205","shopId":262,"title":"HEYTEA LAB \u559c\u8336","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a09:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a09:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/262","group":"dining","layer":"L2","isShop":false},{"id":"L206a","shopId":344,"title":"\u7f8e\u675c\u838eTheVzusa","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/344","group":"shopping","layer":"L2","isShop":true},{"id":"L207","shopId":378,"title":"CASETiFY STUDiO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/378","group":"shopping","layer":"L2","isShop":true},{"id":"L208","shopId":309,"title":"\u6cfd\u7530\u672c\u5bb6","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/309","group":"dining","layer":"L2","isShop":false},{"id":"L212","shopId":412,"title":"ZZZ'S COFFEE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/412","group":"dining","layer":"L2","isShop":false},{"id":"L213a","shopId":418,"title":"BRAUN","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5176\u4ed6","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/418","group":"shopping","layer":"L2","isShop":true},{"id":"L215a","shopId":136,"title":"LAMY\u51cc\u7f8e","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/136","group":"shopping","layer":"L2","isShop":true},{"id":"L220","shopId":85,"title":"THE\u00a0PERFECT\u00a0POP","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/85","group":"dining","layer":"L2","isShop":false},{"id":"L223","shopId":279,"title":"\u4e5d\u6728\u6742\u7269\u793e","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/279","group":"shopping","layer":"L2","isShop":true},{"id":"L224a","shopId":282,"title":"Garmin\u4f73\u660e","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/282","group":"shopping","layer":"L2","isShop":true},{"id":"L224b","shopId":260,"title":"% Arabica Coffee","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a07:30-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a07:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/260","group":"dining","layer":"L2","isShop":false},{"id":"L213b","shopId":377,"title":"\u6df7\u679c\u6c41HUNJUICE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/377","group":"dining","layer":"L2","isShop":false},{"id":"L120","shopId":320,"title":"STUDIOUS TOKYO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/320","group":"shopping","layer":"L1","isShop":true},{"id":"L224c","shopId":269,"title":"\u96c5\u840cYA-MAN","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/269","group":"shopping","layer":"L2","isShop":true},{"id":"L224d","shopId":379,"title":"\u91ce\u8403\u5c71","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/379","group":"dining","layer":"L2","isShop":false},{"id":"B157a","shopId":391,"title":"CHANEL BEAUT\u00c9","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/391","group":"shopping","layer":"B1","isShop":true},{"id":"B157b","shopId":288,"title":"\u9ba8\u00b7\u534a\u85cf","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:30-21:30<\/div>","about":"\u4e9a\u6d32\u98ce\u5473","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/288","group":"dining","layer":"B1","isShop":false},{"id":"L211a","shopId":423,"title":"\u5982\u613f\u7cd6\u6c34","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:30-22:00<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/423","group":"dining","layer":"L2","isShop":false},{"id":"B225a","shopId":416,"title":"POPSOCKETS","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/416","group":"shopping","layer":"B2","isShop":true},{"id":"L211b","shopId":314,"title":"\u7709\u6bdb\u7684\u4fee\u517b","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/314","group":"shopping","layer":"L2","isShop":true},{"id":"B244b","shopId":415,"title":"Moodytiger","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/415","group":"shopping","layer":"B2","isShop":true},{"id":"B215a","shopId":304,"title":"SWATCH\u65af\u6c83\u742a","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/304","group":"shopping","layer":"B2","isShop":true},{"id":"B226a","shopId":441,"title":"Riotlily","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/441","group":"shopping","layer":"B2","isShop":true},{"id":"B116a","shopId":433,"title":"BOBBI BROWN","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/433","group":"shopping","layer":"B1","isShop":true},{"id":"B244a","shopId":301,"title":"MAIA ACTIVE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/301","group":"shopping","layer":"B2","isShop":true},{"id":"B225b","shopId":394,"title":"LADERACH\u83b1\u5fb7\u62c9","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/394","group":"dining","layer":"B2","isShop":false},{"id":"B172a","shopId":442,"title":"COSMIC SPECULATION","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/442","group":"shopping","layer":"B1","isShop":true},{"id":"B126a","shopId":446,"title":"AMOUAGE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/446","group":"shopping","layer":"B1","isShop":true},{"id":"L225","shopId":366,"title":"GENTLE MONSTER","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/366","group":"shopping","layer":"L2","isShop":true},{"id":"B232","shopId":334,"title":"PROMESSA\u00b7\u5468\u751f\u751f","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/334","group":"shopping","layer":"B2","isShop":true},{"id":"B120a","shopId":189,"title":"LANC\u00d4ME\u5170\u853b","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/189","group":"shopping","layer":"B1","isShop":true},{"id":"B233","shopId":341,"title":"I-PRIMO\u827e\u749e\u4fea\u68a6","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/341","group":"shopping","layer":"B2","isShop":true},{"id":"B115a","shopId":359,"title":"Valentino Beauty","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/359","group":"shopping","layer":"B1","isShop":true},{"id":"B115b","shopId":349,"title":"\u4fee\u4e3d\u53efSkinCeuticals","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/349","group":"shopping","layer":"B1","isShop":true},{"id":"B253a","shopId":360,"title":"AKAK","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/360","group":"dining","layer":"B2","isShop":false},{"id":"B253b","shopId":348,"title":"MANNER COFFEE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/348","group":"dining","layer":"B2","isShop":false},{"id":"L107","shopId":353,"title":"BURTON","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/353","group":"shopping","layer":"L1","isShop":true},{"id":"B101-103","shopId":73,"title":"ZARA","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/73","group":"shopping","layer":"B1","isShop":true},{"id":"B201a","shopId":369,"title":"\u8549\u4e0bBeneunder","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u4f11\u95f2\u670d\u9970\u53ca\u8fd0\u52a8\u7528\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/369","group":"shopping","layer":"B2","isShop":true},{"id":"B132a","shopId":103,"title":"LACOSTE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/103","group":"shopping","layer":"B1","isShop":true},{"id":"B132b","shopId":355,"title":"Miss Sixty","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/355","group":"shopping","layer":"B1","isShop":true},{"id":"B125","shopId":165,"title":"Make Up For Ever","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/165","group":"shopping","layer":"B1","isShop":true},{"id":"B170b","shopId":192,"title":"POP MART\u6ce1\u6ce1\u739b\u7279","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5bb6\u5c45\u3001\u793c\u54c1\u53ca\u6587\u5177","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/192","group":"shopping","layer":"B1","isShop":true},{"id":"B245","shopId":245,"title":"JAKET","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/245","group":"shopping","layer":"B2","isShop":true},{"id":"B170a","shopId":247,"title":"KING BABY","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/247","group":"shopping","layer":"B1","isShop":true},{"id":"L113a","shopId":396,"title":"RUE MADAME","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/396","group":"shopping","layer":"L1","isShop":true},{"id":"L113b","shopId":401,"title":"Bell & Ross","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u73e0\u5b9d\u53ca\u949f\u8868","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/401","group":"shopping","layer":"L1","isShop":true},{"id":"B124","shopId":402,"title":"BVLGARI","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/402","group":"shopping","layer":"B1","isShop":true},{"id":"B239a","shopId":406,"title":"BON PARFUMEUR","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u7f8e\u5bb9\u53ca\u4e2a\u4eba\u62a4\u7406","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/406","group":"shopping","layer":"B2","isShop":true},{"id":"B246","shopId":413,"title":"Dyson","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u5176\u4ed6","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/413","group":"shopping","layer":"B2","isShop":true},{"id":"L222a","shopId":419,"title":"KNOT KNOT Select","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/419","group":"dining","layer":"L2","isShop":false},{"id":"L222b","shopId":437,"title":"\u8513\u83b3MAYS","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u4e00-\u5468\u65e5\uff1a11:00-21:00<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/437","group":"dining","layer":"L2","isShop":false},{"id":"L203","shopId":421,"title":"pLeace","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u897f\u5f0f\u73cd\u9990","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/421","group":"dining","layer":"L2","isShop":false},{"id":"L118a","shopId":204,"title":"CALVIN KLEIN","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/204","group":"shopping","layer":"L1","isShop":true},{"id":"B226b","shopId":271,"title":"CIRCLE","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u773c\u955c\u53ca\u9970\u54c1","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/271","group":"shopping","layer":"B2","isShop":true},{"id":"L128c","shopId":445,"title":"NESPRESSO","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u60a0\u95f2\u8f7b\u98df","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/restaurants\/445","group":"dining","layer":"L1","isShop":false},{"id":"L126b","shopId":447,"title":"BIRKENSTOCK","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5468\u65e5-\u5468\u56db\uff1a10:00-22:00 \u5468\u4e94\u3001\u5468\u516d\u53ca\u8282\u5047\u65e5\uff1a10:00-22:30<\/div>","about":"\u76ae\u5177\u7528\u54c1\u3001\u978b\u7c7b\u53ca\u624b\u888b","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/447","group":"shopping","layer":"L1","isShop":true},{"id":"B241b","shopId":339,"title":"MOUSSY","desc":"<div class='tooltip-header'>\u8425\u4e1a\u65f6\u95f4<\/div><div class='tooltip-opening-hour'>\u5f62\u8c61\u5347\u7ea7\u4e2d<\/div>","about":"\u6f6e\u6d41\u670d\u9970","link":"https:\/\/www.parccentral.com.cn\/zh-CN\/shop\/339","group":"shopping","layer":"B2","isShop":true}],"breakpoints":[{"name":"all-screens","below":8000,"portrait":false,"type":"list","column":1,"sidebar":280,"container":600},{"name":"tablet","below":860,"portrait":true,"column":3,"sidebar":200,"container":400,"type":"grid"},{"name":"mobile","type":"list","below":480,"portrait":true,"container":460}],"filters":[{"id":"group","type":"tags","name":"group","default":["dining"]}]}
+-->
+
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### javascript-basic-fmt-json
+
+#### 格式化 JSON 字符串 V1
+
+```js
+var sp_1 = ['{', '}']
+var sp_2 = ['[', ']']
+var sp_3 = String.raw`'\'` // '
+var sp_4 = ','
+var spec = '\t'
+var bk = '\n'
+var level = 0
+var data = String.raw`{}`
+
+// 针对 `"` 判断内容是否闭合
+// 针对 `{` 判断内容是否闭合
+// 针对 `[` 判断内容是否闭合
+
+var demo = ""
+function run(indx, data, level){
+	var cur_sp1 = false
+	var cur_sp2 = false
+	var cur_sp11 = false
+	var cur_sp12 = false
+	var cur_tab = tab(level, spec)
+	var cur = indx
+	demo += cur_tab
+	for(; cur < data.length; cur++){
+		// 当前内容
+		var ch = data[cur]
+		var chn = (cur + 1) < data.length ? data[cur + 1] : ''
+		// console.info(ch)
+
+		// `{` `[`
+		cur_sp1 = ch === sp_1[0]
+		cur_sp2 = ch === sp_2[0]
+		if(cur_sp1 || cur_sp2){
+			demo += ch
+			demo += bk
+			var ret = run(cur + 1, data, level + 1)
+			cur = ret
+			continue
+		}
+
+		// `}` `]`
+		cur_sp11 = ch === sp_1[1]
+		cur_sp21 = ch === sp_2[1]
+		if(cur_sp11 || cur_sp21){
+			demo += bk
+			demo += tab(level - 1, spec)
+			demo += ch
+			break
+		}
+
+		// 正常文本处理
+		demo += ch
+		if(ch === sp_4){
+			demo += bk
+			demo += cur_tab
+		}
+
+	}
+	return cur
+}
+
+function tab(level, v){
+	var spec = ''
+	for(var i = 0; i < level; i++){
+		spec += v
+	}
+	return spec
+}
+
+run(0, data, 0)
+console.info(demo)
+```
+
+#### 格式化 JSON 字符串 V2
+
+```js
+var sp_1 = ['{', '}']
+var sp_2 = ['[', ']']
+var sp_3 = String.raw`'\'` // '
+var sp_4 = ','
+var sp_5 = '"'
+var spec = '\t'
+var bk = '\n'
+var level = 0
+var data = String.raw`{}`
+
+// 针对 `"` 判断内容是否闭合
+// 针对 `{` 判断内容是否闭合
+// 针对 `[` 判断内容是否闭合
+
+var demo = ""
+function run(indx, data, level){
+	var cur_sp1 = false
+	var cur_sp2 = false
+	var cur_sp11 = false
+	var cur_sp12 = false
+	var cur_sp51 = false
+	var cur_sp52 = false
+	var cur_tab = tab(level, spec)
+	var cur = indx
+	demo += cur_tab
+	for(; cur < data.length; cur++){
+		// 当前内容
+		var ch = data[cur]
+		var chn = (cur + 1) < data.length ? data[cur + 1] : ''
+		// console.info(ch)
+
+		// `{` `[`
+		cur_sp1 = ch === sp_1[0]
+		cur_sp2 = ch === sp_2[0]
+		if(cur_sp1 || cur_sp2){
+			demo += ch
+			demo += bk
+			var ret = run(cur + 1, data, level + 1)
+			cur = ret
+			continue
+		}
+
+		// `}` `]`
+		cur_sp11 = ch === sp_1[1]
+		cur_sp21 = ch === sp_2[1]
+		if(cur_sp11 || cur_sp21){
+			demo += bk
+			demo += tab(level - 1, spec)
+			demo += ch
+			break
+		}
+
+		if(cur_sp51 && !cur_sp52){
+			cur_sp52 = ch === sp_5
+		}
+
+		if(!cur_sp51){
+			cur_sp51 = ch === sp_5
+		}
+
+		if(cur_sp51 && cur_sp52){
+			cur_sp51 = false
+			cur_sp52 = false
+		}
+
+		// 正常文本处理
+		demo += ch
+		if(ch === sp_4 && !cur_sp51 && !cur_sp52){
+			demo += bk
+			demo += cur_tab
+		}
+
+	}
+	return cur
+}
+
+function tab(level, v){
+	var spec = ''
+	for(var i = 0; i < level; i++){
+		spec += v
+	}
+	return spec
+}
+
+run(0, data, 0)
+console.info(demo)
+```
+
+#### 格式化 JSON 字符串 V2
+
+```js
+var sp_1 = ['{', '}']
+var sp_2 = ['[', ']']
+var sp_3 = String.raw`'\'`[1] // '
+var sp_4 = ','
+var sp_5 = '"'
+var spec = '\t'
+var bk = '\n'
+var level = 0
+var data = String.raw`{}`
+
+// 针对 `"` 判断内容是否闭合
+// 针对 `{` 判断内容是否闭合
+// 针对 `[` 判断内容是否闭合
+
+var demo = ""
+function run(indx, data, level){
+	var cur_sp1 = false
+	var cur_sp2 = false
+	var cur_sp11 = false
+	var cur_sp12 = false
+	var cur_sp51 = false
+	var cur_sp52 = false
+	var cur_tab = tab(level, spec)
+	var cur = indx
+	demo += cur_tab
+	for(; cur < data.length; cur++){
+		// 当前内容
+		var ch = data[cur]
+		var chn = (cur + 1) < data.length ? data[cur + 1] : ''
+		// console.info(ch)
+
+		// `{` `[`
+		cur_sp1 = ch === sp_1[0] && !cur_sp51 && !cur_sp52
+		cur_sp2 = ch === sp_2[0] && !cur_sp51 && !cur_sp52
+		if(cur_sp1 || cur_sp2){
+			demo += ch
+			demo += bk
+			var ret = run(cur + 1, data, level + 1)
+			cur = ret
+			continue
+		}
+
+		// `}` `]`
+		cur_sp11 = ch === sp_1[1] && !cur_sp51 && !cur_sp52
+		cur_sp21 = ch === sp_2[1] && !cur_sp51 && !cur_sp52
+		if(cur_sp11 || cur_sp21){
+			demo += bk
+			demo += tab(level - 1, spec)
+			demo += ch
+			break
+		}
+
+		if(cur_sp51 && !cur_sp52){
+			cur_sp52 = ch === sp_5 && data[cur - 1] !== sp_3
+		}
+
+		if(!cur_sp51){
+			cur_sp51 = ch === sp_5
+		}
+
+		if(cur_sp51 && cur_sp52){
+			cur_sp51 = false
+			cur_sp52 = false
+		}
+
+		// 正常文本处理
+		demo += ch
+		if(ch === sp_4 && !cur_sp51 && !cur_sp52){
+			demo += bk
+			demo += cur_tab
+		}
+
+	}
+	return cur
+}
+
+function tab(level, v){
+	var spec = ''
+	for(var i = 0; i < level; i++){
+		spec += v
+	}
+	return spec
+}
+
+run(0, data, 0)
+console.info(demo)
+```
+
+#### 格式化 JSON 字符串 V3
+
+```js
+var sp_1 = ['{', '}']
+var sp_2 = ['[', ']']
+var sp_3 = String.raw`'\'`[1] // '
+var sp_4 = ','
+var sp_5 = '"'
+var spec = '\t'
+var bk = '\n'
+var level = 0
+var data = String.raw`{}`
+
+// 针对 `"` 判断内容是否闭合
+// 针对 `{` 判断内容是否闭合
+// 针对 `[` 判断内容是否闭合
+
+var out = {demo:""}
+function run(indx, data, level, out){
+	var cur_sp1 = false
+	var cur_sp2 = false
+	var cur_sp11 = false
+	var cur_sp12 = false
+	var cur_sp51 = false
+	var cur_sp52 = false
+	var cur_tab = tab(level, spec)
+	var cur = indx
+	out.demo += cur_tab
+	for(; cur < data.length; cur++){
+		// 当前内容
+		var ch = data[cur]
+		var chn = (cur + 1) < data.length ? data[cur + 1] : ''
+		// console.info(ch)
+
+		// `{` `[`
+		cur_sp1 = ch === sp_1[0] && !cur_sp51 && !cur_sp52
+		cur_sp2 = ch === sp_2[0] && !cur_sp51 && !cur_sp52
+		if(cur_sp1 || cur_sp2){
+			out.demo += ch
+			out.demo += bk
+			var ret = run(cur + 1, data, level + 1, out)
+			cur = ret
+			continue
+		}
+
+		// `}` `]`
+		cur_sp11 = ch === sp_1[1] && !cur_sp51 && !cur_sp52
+		cur_sp21 = ch === sp_2[1] && !cur_sp51 && !cur_sp52
+		if(cur_sp11 || cur_sp21){
+			out.demo += bk
+			out.demo += tab(level - 1, spec)
+			out.demo += ch
+			break
+		}
+
+		if(cur_sp51 && !cur_sp52){
+			cur_sp52 = ch === sp_5 && data[cur - 1] !== sp_3
+		}
+
+		if(!cur_sp51){
+			cur_sp51 = ch === sp_5
+		}
+
+		if(cur_sp51 && cur_sp52){
+			cur_sp51 = false
+			cur_sp52 = false
+		}
+
+		// 正常文本处理
+		out.demo += ch
+		if(ch === sp_4 && !cur_sp51 && !cur_sp52){
+			out.demo += bk
+			out.demo += cur_tab
+		}
+
+	}
+	return cur
+}
+
+function tab(level, v){
+	var spec = ''
+	for(var i = 0; i < level; i++){
+		spec += v
+	}
+	return spec
+}
+
+run(0, data, 0, out)
+console.info(out)
+```
+
+#### 格式化 JSON 字符串 V3 - 1
+
+```js
+var sp_1 = ['{', '}']
+var sp_2 = ['[', ']']
+var sp_3 = '\\'
+var sp_4 = ','
+var sp_5 = '"'
+var spec = '\t'
+var bk = '\n'
+var level = 0
+
+// 针对 `"` 判断内容是否闭合
+// 针对 `{` 判断内容是否闭合
+// 针对 `[` 判断内容是否闭合
+
+var out = {demo:""}
+function run(indx, data, level, out){
+	var cur_sp1 = false
+	var cur_sp2 = false
+	var cur_sp11 = false
+	var cur_sp12 = false
+	var cur_sp51 = false
+	var cur_sp52 = false
+	var cur_tab = tab(level, spec)
+	var cur = indx
+	out.demo += cur_tab
+	for(; cur < data.length; cur++){
+		// 当前内容
+		var ch = data[cur]
+		var chn = (cur + 1) < data.length ? data[cur + 1] : ''
+		// console.info(ch)
+
+		// `{` `[`
+		cur_sp1 = ch === sp_1[0] && !cur_sp51 && !cur_sp52
+		cur_sp2 = ch === sp_2[0] && !cur_sp51 && !cur_sp52
+		if(cur_sp1 || cur_sp2){
+			out.demo += ch
+			out.demo += bk
+			var ret = run(cur + 1, data, level + 1, out)
+			cur = ret
+			continue
+		}
+
+		// `}` `]`
+		cur_sp11 = ch === sp_1[1] && !cur_sp51 && !cur_sp52
+		cur_sp21 = ch === sp_2[1] && !cur_sp51 && !cur_sp52
+		if(cur_sp11 || cur_sp21){
+			out.demo += bk
+			out.demo += tab(level - 1, spec)
+			out.demo += ch
+			break
+		}
+
+		if(cur_sp51 && !cur_sp52){
+			cur_sp52 = ch === sp_5 && data[cur - 1] !== sp_3
+		}
+
+		if(!cur_sp51){
+			cur_sp51 = ch === sp_5
+		}
+
+		if(cur_sp51 && cur_sp52){
+			cur_sp51 = false
+			cur_sp52 = false
+		}
+
+		// 正常文本处理
+		out.demo += ch
+		if(ch === sp_4 && !cur_sp51 && !cur_sp52){
+			out.demo += bk
+			out.demo += cur_tab
+		}
+
+	}
+	return cur
+}
+
+function tab(level, v){
+	var spec = ''
+	for(var i = 0; i < level; i++){
+		spec += v
+	}
+	return spec
+}
+
+var json = {a : "b"}
+run(0, JSON.stringify(json), 0, out)
+console.info(out)
+console.info(out.demo)
+```
+
+**格式输出**
+```js
+{
+	"success":true,
+	"data":{
+		"recording":{
+			"id":"1120bbc7e7f544a3818793310da746aa20250402083939",
+			"createTime":"2025-04-02T16:39:41.042822225+08:00",
+			"clientTime":"2025-04-02T08:39:40.709Z",
+			"mode":"streaming",
+			"duration":0,
+			"environment":{
+				"device":{
+					"appCodeName":"Mozilla",
+					"appName":"Netscape",
+					"appVersion":"5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36",
+					"deviceMemory":8,
+					"hardwareConcurrency":8,
+					"language":"zh-CN",
+					"languages":[
+						"zh-CN"
+					],
+					"platform":"Win32",
+					"userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+				},
+				"screen":[
+					1920,
+					1080
+				],
+				"window":{
+					"location":"https://juejin.cn/post/7106738165083275277",
+					"size":[
+						918,
+						937
+					]
+				},
+				"document":{
+					"title":"冷知识：不起眼但有用的String.raw方法String.raw String.raw是JavaScript中模板字符 - 掘金",
+					"size":[
+						901,
+						7065
+					]
+				},
+				"version":"1.0.12.11"
+			},
+			"meta":{
+				"appKey":"tea-2608",
+				"bytereplay.record_mode":"streaming",
+				"bytereplay.replay_mode":"Record",
+				"tags":[
+					""
+				]
+			},
+			"state":"Initialized",
+			"trackers":[
+				100,
+				200,
+				400,
+				500,
+				600
+			]
+		},
+		"transport":{
+			"strategies":[
+				{
+					"name":"streaming-record",
+					"mode":"streaming",
+					"channelType":"websocket",
+					"url":"wss://bytereplay.zijieapi.com/stream/record/1120bbc7e7f544a3818793310da746aa20250402083939?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyaWQiOiIxMTIwYmJjN2U3ZjU0NGEzODE4NzkzMzEwZGE3NDZhYTIwMjUwNDAyMDgzOTM5IiwiaXNzIjoidGVhLTI2MDgiLCJzdWIiOiJTdHJlYW1SZWNvcmQiLCJleHAiOjE3NDM1ODM0ODF9.qMg4t2l7mBoCePiscQrgxYT0JlI9FFM1PJZJ1DpoAv0",
+					"packer":{
+						"compression":{
+							"mode":"raw"
+						}
+					},
+					"config":{
+						"bufferTime":1000,
+						"bufferSize":100,
+						"heartbeat":{
+							"interval":3000,
+							"timeout":9000
+						},
+						"retry":{
+							"retries":10,
+							"initialTimeout":1500,
+							"maxTimeout":8000
+						}
+					}
+				}
+			]
+		}
+	},
+	"message":"",
+	"code":"SUCCESS"
+}
+```
+
+参考链接：
+
+ - <a href="https://juejin.cn/post/7106738165083275277" target="_blank">冷知识：不起眼但有用的 String.raw 方法</a>
+
+ - <a href="https://blog.csdn.net/qq_42114504/article/details/106401606" target="_blank">单纯的一个复杂的 json 例子</a>
+
+ - <a href="https://blog.csdn.net/LVXIANGAN/article/details/81544881" target="_blank">一个复杂的 json 例子</a>
+
+ - <a href="https://www.json.org.cn/resource/json-xml-example.htm" target="_blank">JSON 示例</a>
+
+ - <a href="https://www.lidihuo.com/json/json-example.html" target="_blank">JSON 示例</a>
+
+ - <a href="https://www.jianshu.com/p/0d500bb1ebb3" target="_blank">解析复杂 JSON</a>
+
+ - <a href="https://www.cnblogs.com/huolongluo/p/5812532.html" target="_blank">让复杂 Json 数据和对象自由转换 --- Gson</a>
+
+ - <a href="https://blog.csdn.net/qq_40592590/article/details/140013675" target="_blank">常见的用 Java 来解析复杂 Json 的例子</a>
+
+ - <a href="https://www.qianduange.cn/article/3764.html" target="_blank">js 中复杂 json 组装实例通用模式</a>
+
+ - <a href="https://json-schema.xiniushu.com/json-schema-reference/structuring-a-complex-schema" target="_blank">四、JSON Schema 规范 构建复杂模式</a>
+
+ - <a href="https://study.sf.163.com/documents/read/easydatav8.0-update06/sql_parse_complexjson.md" target="_blank">在sql 任务中使用复杂嵌套JSON数据</a>
+
+ - <a href="https://blog.csdn.net/qq_51601665/article/details/145115782" target="_blank">用 simplejson 轻松搞定复杂 JSON 文件，性能秒杀标准库！</a>
+
+ - <a href="https://blog.csdn.net/Mrqiang9001/article/details/82872405" target="_blank">java使用jackson解析复杂json字符串</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>

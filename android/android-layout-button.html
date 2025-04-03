@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>android-layout-button</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### android-layout-button
+
+#### 按钮样式
+
+ - **`stroke`** ：设置 Button 的边框
+
+ - **`solid`** ：设置 Button 的背景
+
+ - **`corners`** ：设置 Button 的圆角
+
+##### 边框
+
+使用 stroke 设置 Button 的边框，width 控制边框大小，color 控制边框颜色
+
+```xml
+<stroke android:width="1dp" android:color="#ffffff" />
+```
+
+##### 背景
+
+使用 solid 设置 Button 的背景，color 控制背景颜色
+
+```xml
+<solid android:color="#ffffff" />
+```
+
+##### 圆角
+
+使用 corners 设置 Button 的圆角，radius 控制圆角角度
+
+下面给出一个完整的按钮样式的示例，在 drawable 下面建立 button_style 样式表，在里面写上如下内容
+
+```xml
+<corners android:radius="10dp"/>
+```
+
+完整示例
+
+```xml
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <stroke android:width="1dp" android:color="#cccccc" />
+    <solid android:color="#ffffff" />
+    <corners android:radius="10dp" />
+</shape>
+```
+
+##### 设置样式
+
+打开布局文件，找到 Button 控件，将 Button 控件的 background 改成这个样式表
+
+```xml
+android:background="@drawable/button_style"
+```
+
+#### 按钮多态
+
+Button 有很多种状态，可以使用 selector 控制不同状态下的按钮的样式
+
+在使用 selector 之前需要将 Button 各种状态下的样式分别写到不同的样式表里，假设我们创建了三个样式，就可以通过 selector 控制它们了
+
+ - **`button_style_disabled`** ：禁用状态
+
+ - **`button_style_normal`** ：常规状态
+
+ - **`button_style_pressed`** ：按下状态
+
+完整实例
+
+下面给出一个完整实例，分别设置了 Button 的以下状态
+
+ - **`disabled`** ：禁用 - _`未启用`_
+ 
+  | _**`android:state_enabled="false"`**_
+
+ - **`normal`** ：常规 - _`未按下`_
+ 
+  | _**`android:state_pressed="false"`**_
+
+ - **`pressed`** ：按下 - _`按下`_
+ 
+  | _**`android:state_pressed="true"`**_
+
+在 drawable 下建立 `button_style_selector`，在里面写上如下内容
+
+```xml
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false"
+        android:drawable="@drawable/button_style_disabled" />
+    <item android:state_pressed="false"
+        android:drawable="@drawable/button_style_normal" />
+    <item android:state_pressed="true"
+        android:drawable="@drawable/button_style_pressed" />
+</selector>
+```
+
+**drawable 02 圆角，背景色**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="20dp" />
+    <solid android:color="#D52BD5" />
+</shape>
+```
+
+**drawable 03 圆角，边框**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <corners android:radius="20dp" />
+
+    <stroke
+        android:width="2dp"
+        android:color="#22DD22" />
+
+</shape>
+```
+
+**drawable 04 状态，背景色**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:state_pressed="false"
+        android:drawable="@color/teal_200"/>
+
+    <item
+        android:state_pressed="true"
+        android:drawable="@color/teal_700" />
+</selector>
+```
+
+**drawable 05 状态 圆角，背景色**
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_pressed="false">
+        <shape>
+            <corners android:radius="10dp" />
+            <solid android:color="@color/teal_200" />
+        </shape>
+    </item>
+
+    <item>
+        <shape>
+            <corners android:radius="10dp" />
+            <solid android:color="@color/teal_700" />
+        </shape>
+    </item>
+
+</selector>
+```
+
+
+
+
+
+
+参考链接:
+
+ - <a href="https://tongfu.net/home/35/blog/512791.html" target="_blank">Android 的 Button 控件的样式设置大全</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
