@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>aviator-basic-remark</title>
+</head>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/LanEditor.css"/>
+<link rel="stylesheet" type="text/css" href="../plugin/LanEditor/highlight/styles/idea.css">
+
+<link href="../plugin/SyntaxHighlighter/main.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shCore.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/SyntaxHighlighter/shThemeDefault.css" rel='stylesheet' type='text/css'>
+<link href="../plugin/LanEditor/main.css" rel='stylesheet' type='text/css'>
+
+<script src="../plugin/SyntaxHighlighter/shCore-convert.js" type='text/javascript'></script>
+<script src="../plugin/SyntaxHighlighter/shBrushAll.js" type='text/javascript'></script>
+
+<script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+<script type="text/javascript" src="../plugin/LanEditor/LanEditor.js"></script>
+
+<script type="text/javascript">
+
+    window.autosize = require("autosize");
+
+    $(document).ready(function () {
+        //初始化 @textelem:编辑区的id @showelem可以省略
+        var lan = LanEditor.init({
+            textelem: "editor",
+            showelem: "show"
+        });
+        //如果初始化失败，则显示出错信息
+        if(lan.status == false){
+            alter(lan.message);
+            return ;
+        }else{
+            // 默认保存LanEditor快速指南文件
+            // 获取文件创建的时间
+            var createTime = LanEditor.Time.GetTimestamp();
+            // 文件名
+            LanEditor.File.CurOpenFile.name = $(document).attr("title");
+            // 创建时间
+            LanEditor.File.CurOpenFile.time = createTime;
+            // 保存文件
+            LanEditor.File.SaveFile();
+            // 渲染
+            LanEditor.RenderHTML();
+        }
+    });
+</script>
+<body>
+<div id="edit">
+    <textarea id="editor" name="editor">
+#### aviator-basic-remark
+
+**seq.list()**
+
+```js
+let list = seq.list();
+```
+
+ - list 列表在首次添加数据项后会确定整体 list 的数据类型
+
+  seq.add(list, 1.0) 确认为 `List<Double>`，后续只能添加 double 类型的数据（浮点型）
+
+  seq.add(list, 1.0) 确认为 `List<Double>`，后续如果添加 int 整型数据项回报错 seq.add(list, 1)
+
+   - 数据类型确认后，后续再添加的数据项必须是同一类型
+
+   - 衍生及测试时需要考虑是否会有不同类型的数据项被加入到集合中
+
+   - 确认好字段类型和数据表现形式后可按需处理
+
+   - 可尝试将整型数据通过 + 0.0 方式转换成浮点型数据，注意字段本身数据类型
+
+   - 除法需要注意数据类型，避免占比取值小数被舍弃 (int) (float/double)
+
+ - 数据分组处理时注意多个账户情况，是否需要隔离
+
+ - JSON 中数字可能带有精度，字符金额可能不带精度但带有千分位逗号分隔符
+
+   一般情况下，报告中金额类（例如额度，金额等）数据项的取值均已统一折算
+
+   - 为人民币金额，单位为元，精确到个位数。例外情况是，当个人作为企业相关还款责任人时，还款责任金额的取值是实际币种对应的金额；
+
+   - 对于外币计价的还款责任金额，在信息概要中进行汇总展示时，征信系统会先按照查询信用报告时的汇率折算为人民币
+
+#### 千分位金额处理
+
+```js
+let amount = long(string.join(string.split(money, ","), ""));
+```
+
+#### 数据分组处理
+
+```python
+## 月份倒序
+let months = seq.list(12,11,10,9,8,7,6,5,4,3,2,1);
+
+let list_map_keys = seq.list();
+
+let list_map = seq.map();
+
+let list_amount = seq.list();
+
+let amount = long(string.join(string.split(money, ","), ""));
+
+## 遍历月份
+for n in months {
+	let key = record.RepaymentYear + "-" + n;
+	## 数据分组
+	if(!include(list_map_keys) && amount != nil){
+		seq.add(list_map_keys, key);
+		seq.put(list_map, key, seq.list());
+	}
+	## 分组记录还款逾期额度
+	if(amount != nil){
+		seq.add(seq.get(list_map, key), amount);
+	}
+}
+
+## 分组求和
+if(is_empty(list_map_keys) == false){
+	for key in list_map_keys {
+		let groupSum = 0;
+		for bVal in seq.get(list_map, key){
+			groupSum = groupSum + bVal;
+		}
+		seq.add(list_amount, groupSum);
+	}
+}
+
+## 求和后最大值
+## 所有账户历史相同年月下最大逾期额度
+let amountMax = nil;
+if(seq.max(list_amount) != nil){
+	seq.max(list_amount);
+}
+```
+
+#### PowerShell 解密 Base64 Gzip
+
+```python
+$file = Get-Content "D:\Data\001.txt"
+$byteArray = [System.Convert]::FromBase64String($file)
+Add-Content -Path "D:\Data\001-a.zip" -Value $byteArray -Encoding Byte
+```
+
+#### 参考链接
+
+ - <a href="https://geekdaxue.co/read/boyan-avfmj@aviatorscript/ashevw" target="_blank">AviatorScript 编程指南（5.0）</a>
+
+ - <a href="https://www.yuque.com/boyan-avfmj/aviatorscript" target="_blank">AviatorScript 编程指南（5.0）</a>
+
+ - <a href="" target="_blank"></a>
+
+ - <a href="" target="_blank"></a>
+
+
+	</textarea>
+</div>
+
+<div id="show"></div>
+</body>
+</html>
