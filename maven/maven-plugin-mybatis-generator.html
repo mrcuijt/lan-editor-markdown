@@ -73,7 +73,7 @@
         <plugin type="org.mybatis.generator.plugin.LombokPlugin"/>
  
         <!-- optional，旨在创建class时，对注释进行控制 -->
-        <commentGenerator type="org.mybatis.generator.plugin.MybatisCommentGenerator">
+        <commentGenerator type="org.mybatis.generator.plugins.UnmergeableXmlMappersPlugin">
             <!-- 是否去除自动生成的注释 true：是 ： false:否 -->
             <!--<property name="suppressAllComments" value="true" />-->
             <!-- 是否生成注释代时间戳-->

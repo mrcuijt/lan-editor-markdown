@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style type="text/css">
+
+        textarea {
+            width: 100%;
+            overflow-x: scroll;
+            word-break: break-all;
+            word-wrap: break-word;
+            /*在ie中解决断行问题(防止自动变为在一行显示，主要解决ie兼容问题，ie8中当设宽度为100%时，文本域类容超过一行时，
+            当我们双击文本内容就会自动变为一行显示，所以只能用ie的专有断行属性“word-break或word-wrap”控制其断行)*/
+            white-space: pre !important;
+        }
+
+    </style>
+    <script type="text/javascript" src="../plugin/LanEditor/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="../plugin/autosize/autosize.bundle.js"></script>
+</head>
+<body>
+
+<div style="">
+<a href="#top" style="border-radius: 30px; border: 1px solid #ccc; border-image: none; width: 30px; text-align: center; left: 20px; bottom: 10px; line-height: 30px; display: inline-block; position: fixed; z-index: 2; background-color: #fff;">回到顶部</a>
+</div>
+
+<h3 id="top">javascript-basic-fmt-json-tools(JQ)</h3>
+
+<textarea id="json-data" style='max-height:200px;min-height:200px;'>
+CREATE TABLE `sys_menu` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `menu_name` varchar(64) NOT NULL DEFAULT 'NULL' COMMENT '菜单名',
+  `path` varchar(200) DEFAULT NULL COMMENT '路由地址',
+  `component` varchar(255) DEFAULT NULL COMMENT '组件路径',
+  `visible` char(1) DEFAULT '0' COMMENT '菜单状态（0显示 1隐藏）',
+  `status` char(1) DEFAULT '0' COMMENT '菜单状态（0正常 1停用）',
+  `perms` varchar(100) DEFAULT NULL COMMENT '权限标识',
+  `icon` varchar(100) DEFAULT '#' COMMENT '菜单图标',
+  `create_by` bigint(20) DEFAULT NULL,
+  `create_time` datetime DEFAULT NULL,
+  `update_by` bigint(20) DEFAULT NULL,
+  `update_time` datetime DEFAULT NULL,
+  `del_flag` int(11) DEFAULT '0' COMMENT '是否删除（0未删除 1已删除）',
+  `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COMMENT='菜单表'
+</textarea>
+
+<button id="json-data-btn">Generate</button>
+
+<div id="json-data-result"></div>
+<script type="text/javascript">
+
+	var autosize = require('autosize');
+
+	function generate() {
+		var input = $("#json-data")[0].value
+		var out = {demo:"", demo2:""}
+		run(input, out)
+        $("#json-data-result").html($("<textarea>").val(out.demo2 + '\n' + out.demo));
+		autosize(document.querySelectorAll("textarea"));
+	}
+
+	$(function() {
+		$("#json-data-btn").bind("click", generate);
+		autosize(document.querySelectorAll("textarea"));
+	});
+
+var regex_field = new RegExp(/`([^ ]+)`/)
+var regex_common = new RegExp(/COMMENT.'(.+)'/)
+
+function run(data, out){
+	var cur = 1
+	var lines = data.split("\n")
+	for(var i = 0; i < lines.length; i++){
+		var line = lines[i]
+		var field = (regex_field.test(line)) ? regex_field.exec(line)[1] : ''
+		var common = (regex_common.test(line)) ? regex_common.exec(line)[1] : ''
+		common = common.replaceAll('\n', ' ').replaceAll('\t', ' ').replaceAll('\'\'', '\'')
+		if(line.indexOf('CREATE TABLE `') != -1){
+			out.demo2 += '序号\t' + field + '\t'
+			continue
+		}
+		if(line.indexOf(') ENGINE=') != -1){
+			out.demo2 += common + '\t数据类型\t是否必填\t默认值\t备注'
+			continue
+		}
+		if(line.indexOf('PRIMARY KEY') != -1 || (field === '' && common === '')){
+			continue
+		}
+		var dt = datatype(line)
+		var allowNull = notnull(line)
+		var defaultVal = defVal(line)
+		out.demo += cur + '\t' + field + '\t\t' + dt + '\t' + allowNull + '\t' + defaultVal + '\t' + common + '\n'
+		cur++
+	}
+}
+
+/**
+ * 数据类型
+ */
+function datatype(line){
+	return line.split(' ')[3]
+}
+
+
+/**
+ * 是否必填
+ */
+function notnull(line){
+	if(line.indexOf('NOT NULL,') != -1
+	 || line.indexOf('NOT NULL COMMENT') != -1
+	 || line.indexOf('NOT NULL DEFAULT ')  != -1 ){
+		return 'Y' 
+	}
+	return 'N'
+}
+
+
+/**
+ * 默认值
+ */
+var regex_def_val = new RegExp(/DEFAULT '([^ ]+)'/)
+function defVal(line){
+	if(line.indexOf('DEFAULT NULL') != -1){
+		return 'NULL' 
+	}
+	if(line.indexOf('AUTO_INCREMENT COMMENT ') != -1
+	  || line.indexOf('AUTO_INCREMENT,') != -1){
+		return 'AUTO_INCREMENT' 
+	}
+	var def_val = (regex_def_val.test(line)) ? regex_def_val.exec(line)[1] : ''
+	return '\'' + def_val + '\''
+}
+
+</script>
+</body>
+</html>
